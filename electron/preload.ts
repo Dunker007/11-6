@@ -22,3 +22,23 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   },
 });
 
+// --------- Expose File System API ---------
+contextBridge.exposeInMainWorld('fileSystem', {
+  readFile: (path: string) => ipcRenderer.invoke('fs:readFile', path),
+  writeFile: (path: string, content: string) => ipcRenderer.invoke('fs:writeFile', path, content),
+  mkdir: (path: string, recursive?: boolean) => ipcRenderer.invoke('fs:mkdir', path, recursive),
+  rm: (path: string, recursive?: boolean) => ipcRenderer.invoke('fs:rm', path, recursive),
+  readdir: (path: string) => ipcRenderer.invoke('fs:readdir', path),
+  stat: (path: string) => ipcRenderer.invoke('fs:stat', path),
+  exists: (path: string) => ipcRenderer.invoke('fs:exists', path),
+});
+
+// --------- Expose Dialog API ---------
+contextBridge.exposeInMainWorld('dialogs', {
+  openFile: (options?: { filters?: { name: string; extensions: string[] }[] }) =>
+    ipcRenderer.invoke('dialog:openFile', options),
+  saveFile: (options?: { defaultPath?: string; filters?: { name: string; extensions: string[] }[] }) =>
+    ipcRenderer.invoke('dialog:saveFile', options),
+  openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
+});
+

@@ -6,8 +6,34 @@ declare global {
       send(channel: string, ...args: any[]): void;
       invoke(channel: string, ...args: any[]): Promise<any>;
     };
+    fileSystem: {
+      readFile(path: string): Promise<{ success: boolean; content?: string; error?: string }>;
+      writeFile(path: string, content: string): Promise<{ success: boolean; error?: string }>;
+      mkdir(path: string, recursive?: boolean): Promise<{ success: boolean; error?: string }>;
+      rm(path: string, recursive?: boolean): Promise<{ success: boolean; error?: string }>;
+      readdir(path: string): Promise<{ success: boolean; entries?: FileSystemEntry[]; error?: string }>;
+      stat(path: string): Promise<{ success: boolean; stats?: FileStats; error?: string }>;
+      exists(path: string): Promise<{ success: boolean; exists?: boolean; error?: string }>;
+    };
+    dialogs: {
+      openFile(options?: { filters?: { name: string; extensions: string[] }[] }): Promise<{ success: boolean; filePaths?: string[] }>;
+      saveFile(options?: { defaultPath?: string; filters?: { name: string; extensions: string[] }[] }): Promise<{ success: boolean; filePath?: string }>;
+      openDirectory(): Promise<{ success: boolean; filePaths?: string[] }>;
+    };
   }
 }
 
-export {};
+export interface FileSystemEntry {
+  name: string;
+  isDirectory: boolean;
+  path: string;
+}
+
+export interface FileStats {
+  isFile: boolean;
+  isDirectory: boolean;
+  size: number;
+  mtime: string;
+  ctime: string;
+}
 
