@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { useProjectStore } from '../../services/project/projectStore';
-import '../styles/AIAssistant.css';
+import '../../styles/AIAssistant.css';
 
 interface Message {
   id: string;

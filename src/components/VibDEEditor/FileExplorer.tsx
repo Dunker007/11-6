@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ProjectFile } from '@/types/project';
 import { useProjectStore } from '../../services/project/projectStore';
-import '../styles/FileExplorer.css';
+import '../../styles/FileExplorer.css';
 
 interface FileExplorerProps {
   files: ProjectFile[];

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
-import '../styles/LLMStatus.css';
+import '../../styles/LLMStatus.css';
 
 function LLMStatus() {
   const { models, availableProviders, isLoading, discoverProviders } = useLLMStore();

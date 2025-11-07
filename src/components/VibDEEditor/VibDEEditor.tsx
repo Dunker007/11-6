@@ -3,7 +3,7 @@ import Editor from '@monaco-editor/react';
 import { useProjectStore } from '../../services/project/projectStore';
 import FileExplorer from './FileExplorer';
 import AIAssistant from '../AIAssistant/AIAssistant';
-import '../styles/VibDEEditor.css';
+import '../../styles/VibDEEditor.css';
 
 function VibDEEditor() {
   const { activeProject, loadProjects, createProject, updateFile, getFileContent, setActiveFile } = useProjectStore();

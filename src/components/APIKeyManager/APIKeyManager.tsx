@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAPIKeyStore } from '../../services/apiKeys/apiKeyStore';
 import { PROVIDER_CONFIGS, type LLMProvider } from '../../types/apiKeys';
-import '../styles/APIKeyManager.css';
+import '../../styles/APIKeyManager.css';
 
 interface APIKeyManagerProps {
   onClose: () => void;
