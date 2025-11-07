@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import '../../styles/LLMStatus.css';
 
@@ -14,17 +14,28 @@ function LLMStatus() {
     }, 30000); // Check every 30 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [discoverProviders]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     await discoverProviders();
     setLastChecked(new Date());
-  };
+  }, [discoverProviders]);
 
-  const lmStudioModels = models.filter((m) => m.provider === 'lmstudio');
-  const ollamaModels = models.filter((m) => m.provider === 'ollama');
-  const geminiModels = models.filter((m) => m.provider === 'gemini');
-  const notebookLMModels = models.filter((m) => m.provider === 'notebooklm');
+  // Memoize model filtering to avoid recalculating on every render
+  const modelGroups = useMemo(() => ({
+    lmStudio: models.filter((m) => m.provider === 'lmstudio'),
+    ollama: models.filter((m) => m.provider === 'ollama'),
+    gemini: models.filter((m) => m.provider === 'gemini'),
+    notebookLM: models.filter((m) => m.provider === 'notebooklm'),
+  }), [models]);
+
+  // Memoize provider status checks
+  const providerStatus = useMemo(() => ({
+    lmstudio: availableProviders.includes('lmstudio'),
+    ollama: availableProviders.includes('ollama'),
+    gemini: availableProviders.includes('gemini'),
+    notebooklm: availableProviders.includes('notebooklm'),
+  }), [availableProviders]);
 
   return (
     <div className="llm-status">
@@ -43,14 +54,14 @@ function LLMStatus() {
           <div className="provider-status">
             <div className="provider-header">
               <span className="provider-name">LM Studio</span>
-              <span className={`status-indicator ${availableProviders.includes('lmstudio') ? 'online' : 'offline'}`}>
-                {availableProviders.includes('lmstudio') ? '● Online' : '○ Offline'}
+              <span className={`status-indicator ${providerStatus.lmstudio ? 'online' : 'offline'}`}>
+                {providerStatus.lmstudio ? '● Online' : '○ Offline'}
               </span>
             </div>
-            {availableProviders.includes('lmstudio') ? (
+            {providerStatus.lmstudio ? (
               <div className="models-list">
-                {lmStudioModels.length > 0 ? (
-                  lmStudioModels.map((model) => (
+                {modelGroups.lmStudio.length > 0 ? (
+                  modelGroups.lmStudio.map((model) => (
                     <div key={model.id} className="model-item">
                       <span className="model-name">{model.name}</span>
                       {model.size && <span className="model-size">{model.size}</span>}
@@ -68,14 +79,14 @@ function LLMStatus() {
           <div className="provider-status">
             <div className="provider-header">
               <span className="provider-name">Ollama</span>
-              <span className={`status-indicator ${availableProviders.includes('ollama') ? 'online' : 'offline'}`}>
-                {availableProviders.includes('ollama') ? '● Online' : '○ Offline'}
+              <span className={`status-indicator ${providerStatus.ollama ? 'online' : 'offline'}`}>
+                {providerStatus.ollama ? '● Online' : '○ Offline'}
               </span>
             </div>
-            {availableProviders.includes('ollama') ? (
+            {providerStatus.ollama ? (
               <div className="models-list">
-                {ollamaModels.length > 0 ? (
-                  ollamaModels.map((model) => (
+                {modelGroups.ollama.length > 0 ? (
+                  modelGroups.ollama.map((model) => (
                     <div key={model.id} className="model-item">
                       <span className="model-name">{model.name}</span>
                       {model.size && <span className="model-size">{model.size}</span>}
@@ -98,14 +109,14 @@ function LLMStatus() {
           <div className="provider-status">
             <div className="provider-header">
               <span className="provider-name">Google Gemini</span>
-              <span className={`status-indicator ${availableProviders.includes('gemini') ? 'online' : 'offline'}`}>
-                {availableProviders.includes('gemini') ? '● Online' : '○ Offline'}
+              <span className={`status-indicator ${providerStatus.gemini ? 'online' : 'offline'}`}>
+                {providerStatus.gemini ? '● Online' : '○ Offline'}
               </span>
             </div>
-            {availableProviders.includes('gemini') ? (
+            {providerStatus.gemini ? (
               <div className="models-list">
-                {geminiModels.length > 0 ? (
-                  geminiModels.map((model) => (
+                {modelGroups.gemini.length > 0 ? (
+                  modelGroups.gemini.map((model) => (
                     <div key={model.id} className="model-item">
                       <span className="model-name">{model.name}</span>
                       {model.contextWindow && (
@@ -125,14 +136,14 @@ function LLMStatus() {
           <div className="provider-status">
             <div className="provider-header">
               <span className="provider-name">NotebookLM</span>
-              <span className={`status-indicator ${availableProviders.includes('notebooklm') ? 'online' : 'offline'}`}>
-                {availableProviders.includes('notebooklm') ? '● Online' : '○ Offline'}
+              <span className={`status-indicator ${providerStatus.notebooklm ? 'online' : 'offline'}`}>
+                {providerStatus.notebooklm ? '● Online' : '○ Offline'}
               </span>
             </div>
-            {availableProviders.includes('notebooklm') ? (
+            {providerStatus.notebooklm ? (
               <div className="models-list">
-                {notebookLMModels.length > 0 ? (
-                  notebookLMModels.map((model) => (
+                {modelGroups.notebookLM.length > 0 ? (
+                  modelGroups.notebookLM.map((model) => (
                     <div key={model.id} className="model-item">
                       <span className="model-name">{model.name}</span>
                       {model.description && (

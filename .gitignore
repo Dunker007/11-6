@@ -107,3 +107,10 @@ storybook-static/
 .tmp/
 .temp/
 
+# Images (temporary downloads)
+download*.png
+download*.jpg
+download*.jpeg
+download*.gif
+
+

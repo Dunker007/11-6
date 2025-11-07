@@ -25,6 +25,20 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
+.modal-content.back-office-modal {
+  max-width: 1400px;
+  width: 95%;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content.back-office-modal > *:not(.modal-header) {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -59,7 +73,7 @@
   color: var(--text-primary);
 }
 
-.modal-content > *:not(.modal-header) {
+.modal-content > *:not(.modal-header):not(.back-office) {
   overflow-y: auto;
   flex: 1;
 }

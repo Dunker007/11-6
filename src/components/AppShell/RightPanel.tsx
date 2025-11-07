@@ -1,6 +1,7 @@
 import '../../styles/RightPanel.css';
 import LLMStatus from '../LLMStatus/LLMStatus';
 import HealthDashboard from '../Health/HealthDashboard';
+import VersionDisplay from '../System/VersionDisplay';
 
 function RightPanel() {
   return (
@@ -56,6 +57,8 @@ function RightPanel() {
           </div>
         </div>
       </div>
+
+      <VersionDisplay />
     </div>
   );
 }

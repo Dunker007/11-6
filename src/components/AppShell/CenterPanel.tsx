@@ -1,20 +1,49 @@
+import { useMemo } from 'react';
 import '../../styles/CenterPanel.css';
 import NeuralCore from './NeuralCore';
 import VibDEEditor from '../VibDEEditor/VibDEEditor';
+import FinancialDashboard from '../BackOffice/FinancialDashboard';
+import CreateWorkflow from '../Create/CreateWorkflow';
 
 interface CenterPanelProps {
   activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
 }
 
-const workflows = [
+const WORKFLOWS = [
   { id: 'create' as const, name: 'Create' },
   { id: 'build' as const, name: 'Build' },
   { id: 'deploy' as const, name: 'Deploy' },
   { id: 'monitor' as const, name: 'Monitor' },
   { id: 'monetize' as const, name: 'Monetize' },
-];
+] as const;
 
 function CenterPanel({ activeWorkflow }: CenterPanelProps) {
+  // Memoize active workflow index calculation
+  const activeIndex = useMemo(
+    () => WORKFLOWS.findIndex((w) => w.id === activeWorkflow),
+    [activeWorkflow]
+  );
+
+  // Memoize workflow component rendering
+  const workflowContent = useMemo(() => {
+    switch (activeWorkflow) {
+      case 'create':
+        return <CreateWorkflow />;
+      case 'build':
+        return <VibDEEditor />;
+      case 'monitor':
+        return <FinancialDashboard />;
+      default:
+        const workflow = WORKFLOWS.find((w) => w.id === activeWorkflow);
+        return (
+          <div className="workflow-placeholder">
+            <h2>{workflow?.name} Workflow</h2>
+            <p>Coming soon...</p>
+          </div>
+        );
+    }
+  }, [activeWorkflow]);
+
   return (
     <div className="center-panel">
       <div className="neural-core-container">
@@ -23,9 +52,8 @@ function CenterPanel({ activeWorkflow }: CenterPanelProps) {
       
       <div className="workflow-pipeline">
         <div className="pipeline-stages">
-          {workflows.map((workflow, index) => {
+          {WORKFLOWS.map((workflow, index) => {
             const isActive = workflow.id === activeWorkflow;
-            const activeIndex = workflows.findIndex(w => w.id === activeWorkflow);
             const isPast = activeIndex > index;
             
             return (
@@ -39,14 +67,7 @@ function CenterPanel({ activeWorkflow }: CenterPanelProps) {
       </div>
 
       <div className="main-content">
-        {activeWorkflow === 'build' ? (
-          <VibDEEditor />
-        ) : (
-          <div className="workflow-placeholder">
-            <h2>{workflows.find(w => w.id === activeWorkflow)?.name} Workflow</h2>
-            <p>Coming soon...</p>
-          </div>
-        )}
+        {workflowContent}
       </div>
     </div>
   );

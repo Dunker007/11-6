@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain, dialog, screen } from 'electron';
+import electron from 'electron';
+const { app, BrowserWindow, ipcMain, dialog, screen } = electron;
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';

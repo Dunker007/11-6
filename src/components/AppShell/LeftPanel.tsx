@@ -1,24 +1,25 @@
 import '../../styles/LeftPanel.css';
 import '../../styles/Modal.css';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import APIKeyManager from '../APIKeyManager/APIKeyManager';
 import DevToolsManager from '../DevTools/DevToolsManager';
 import GitHubPanel from '../GitHub/GitHubPanel';
 import MonitorLayoutManager from '../MonitorLayout/MonitorLayoutManager';
 import ByteBotPanel from '../Automation/ByteBotPanel';
+import BackOffice from '../BackOffice/BackOffice';
 
 interface LeftPanelProps {
   activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
   onWorkflowChange: (workflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize') => void;
 }
 
-const workflows = [
+const WORKFLOWS = [
   { id: 'create' as const, name: 'Create', icon: '💡' },
   { id: 'build' as const, name: 'Build', icon: '⚡' },
   { id: 'deploy' as const, name: 'Deploy', icon: '🚀' },
   { id: 'monitor' as const, name: 'Monitor', icon: '📊' },
   { id: 'monetize' as const, name: 'Monetize', icon: '💰' },
-];
+] as const;
 
 function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
   const [showAPIKeyManager, setShowAPIKeyManager] = useState(false);
@@ -26,6 +27,27 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
   const [showGitHub, setShowGitHub] = useState(false);
   const [showMonitorLayouts, setShowMonitorLayouts] = useState(false);
   const [showByteBot, setShowByteBot] = useState(false);
+  const [showBackOffice, setShowBackOffice] = useState(false);
+
+  // Memoize modal handlers to prevent unnecessary re-renders
+  const modalHandlers = useMemo(() => ({
+    openAPIKeyManager: () => setShowAPIKeyManager(true),
+    closeAPIKeyManager: () => setShowAPIKeyManager(false),
+    openDevTools: () => setShowDevTools(true),
+    closeDevTools: () => setShowDevTools(false),
+    openGitHub: () => setShowGitHub(true),
+    closeGitHub: () => setShowGitHub(false),
+    openMonitorLayouts: () => setShowMonitorLayouts(true),
+    closeMonitorLayouts: () => setShowMonitorLayouts(false),
+    openByteBot: () => setShowByteBot(true),
+    closeByteBot: () => setShowByteBot(false),
+    openBackOffice: () => setShowBackOffice(true),
+    closeBackOffice: () => setShowBackOffice(false),
+  }), []);
+
+  const handleWorkflowClick = useCallback((workflowId: typeof WORKFLOWS[number]['id']) => {
+    onWorkflowChange(workflowId);
+  }, [onWorkflowChange]);
 
   return (
     <>
@@ -39,11 +61,11 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
         
         <nav className="workflow-nav">
           <div className="nav-label">Workflows</div>
-          {workflows.map((workflow) => (
+          {WORKFLOWS.map((workflow) => (
             <button
               key={workflow.id}
               className={`workflow-item ${activeWorkflow === workflow.id ? 'active' : ''}`}
-              onClick={() => onWorkflowChange(workflow.id)}
+              onClick={() => handleWorkflowClick(workflow.id)}
             >
               <span className="workflow-icon">{workflow.icon}</span>
               <span className="workflow-name">{workflow.name}</span>
@@ -72,47 +94,53 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
         <div className="settings-section">
           <button 
             className="settings-button"
-            onClick={() => setShowAPIKeyManager(true)}
+            onClick={modalHandlers.openAPIKeyManager}
           >
             ⚙️ API Keys
           </button>
           <button 
             className="settings-button"
-            onClick={() => setShowDevTools(true)}
+            onClick={modalHandlers.openDevTools}
           >
             🔧 Dev Tools
           </button>
           <button 
             className="settings-button"
-            onClick={() => setShowGitHub(true)}
+            onClick={modalHandlers.openGitHub}
           >
             🐙 GitHub
           </button>
           <button 
             className="settings-button"
-            onClick={() => setShowMonitorLayouts(true)}
+            onClick={modalHandlers.openMonitorLayouts}
           >
             🖥️ Monitors
           </button>
           <button 
             className="settings-button"
-            onClick={() => setShowByteBot(true)}
+            onClick={modalHandlers.openByteBot}
           >
             🤖 ByteBot
+          </button>
+          <button 
+            className="settings-button"
+            onClick={modalHandlers.openBackOffice}
+          >
+            📊 Back Office
           </button>
         </div>
       </div>
 
       {showAPIKeyManager && (
-        <APIKeyManager onClose={() => setShowAPIKeyManager(false)} />
+        <APIKeyManager onClose={modalHandlers.closeAPIKeyManager} />
       )}
 
       {showDevTools && (
-        <div className="modal-overlay" onClick={() => setShowDevTools(false)}>
+        <div className="modal-overlay" onClick={modalHandlers.closeDevTools}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Dev Tools Manager</h2>
-              <button className="modal-close" onClick={() => setShowDevTools(false)}>×</button>
+              <button className="modal-close" onClick={modalHandlers.closeDevTools}>×</button>
             </div>
             <DevToolsManager />
           </div>
@@ -120,11 +148,11 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
       )}
 
       {showGitHub && (
-        <div className="modal-overlay" onClick={() => setShowGitHub(false)}>
+        <div className="modal-overlay" onClick={modalHandlers.closeGitHub}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>GitHub</h2>
-              <button className="modal-close" onClick={() => setShowGitHub(false)}>×</button>
+              <button className="modal-close" onClick={modalHandlers.closeGitHub}>×</button>
             </div>
             <GitHubPanel />
           </div>
@@ -132,11 +160,11 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
       )}
 
       {showMonitorLayouts && (
-        <div className="modal-overlay" onClick={() => setShowMonitorLayouts(false)}>
+        <div className="modal-overlay" onClick={modalHandlers.closeMonitorLayouts}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Monitor Layouts</h2>
-              <button className="modal-close" onClick={() => setShowMonitorLayouts(false)}>×</button>
+              <button className="modal-close" onClick={modalHandlers.closeMonitorLayouts}>×</button>
             </div>
             <MonitorLayoutManager />
           </div>
@@ -144,13 +172,25 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
       )}
 
       {showByteBot && (
-        <div className="modal-overlay" onClick={() => setShowByteBot(false)}>
+        <div className="modal-overlay" onClick={modalHandlers.closeByteBot}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>ByteBot Automation</h2>
-              <button className="modal-close" onClick={() => setShowByteBot(false)}>×</button>
+              <button className="modal-close" onClick={modalHandlers.closeByteBot}>×</button>
             </div>
             <ByteBotPanel />
+          </div>
+        </div>
+      )}
+
+      {showBackOffice && (
+        <div className="modal-overlay" onClick={modalHandlers.closeBackOffice}>
+          <div className="modal-content back-office-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Back Office</h2>
+              <button className="modal-close" onClick={modalHandlers.closeBackOffice}>×</button>
+            </div>
+            <BackOffice />
           </div>
         </div>
       )}
