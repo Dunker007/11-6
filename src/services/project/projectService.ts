@@ -165,13 +165,6 @@ export class ProjectService {
     }
   }
 
-  static getInstance(): ProjectService {
-    if (!ProjectService.instance) {
-      ProjectService.instance = new ProjectService();
-    }
-    return ProjectService.instance;
-  }
-
   private loadProjects(): void {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
