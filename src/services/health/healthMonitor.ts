@@ -1,4 +1,15 @@
-import * as si from 'systeminformation';
+// Only import systeminformation in Electron context
+// In browser, this will be null and we'll use mock data
+let si: any = null;
+if (typeof process !== 'undefined' && process.versions?.electron) {
+  try {
+    // Only require in Electron context
+    si = require('systeminformation');
+  } catch {
+    // systeminformation not available
+    si = null;
+  }
+}
 
 export interface SystemStats {
   cpu: {
@@ -72,6 +83,33 @@ export class HealthMonitor {
   }
 
   async getSystemStats(): Promise<SystemStats> {
+    // Return mock data if systeminformation is not available (browser context)
+    if (!si) {
+      return {
+        cpu: {
+          usage: 0,
+          cores: 4,
+          model: 'Unknown (Browser Mode)',
+        },
+        memory: {
+          total: 0,
+          used: 0,
+          free: 0,
+          usage: 0,
+        },
+        disk: [],
+        network: {
+          interfaces: [],
+        },
+        processes: {
+          total: 0,
+          running: 0,
+        },
+        uptime: 0,
+        timestamp: new Date(),
+      };
+    }
+
     const [cpu, cpuInfo, mem, fsSize, networkStats, processes, time] = await Promise.all([
       si.currentLoad(),
       si.cpu(),
@@ -97,14 +135,14 @@ export class HealthMonitor {
         free: mem.free,
         usage: (mem.used / mem.total) * 100,
       },
-      disk: fsSize.map((disk) => ({
+      disk: fsSize.map((disk: any) => ({
         total: disk.size,
         used: disk.used,
         free: disk.available,
         usage: (disk.used / disk.size) * 100,
       })),
       network: {
-        interfaces: networkStats.map((iface) => ({
+        interfaces: networkStats.map((iface: any) => ({
           name: iface.iface,
           bytesReceived: iface.rx_bytes,
           bytesSent: iface.tx_bytes,
