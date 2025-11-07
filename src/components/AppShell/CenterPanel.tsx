@@ -4,6 +4,8 @@ import NeuralCore from './NeuralCore';
 import VibDEEditor from '../VibDEEditor/VibDEEditor';
 import FinancialDashboard from '../BackOffice/FinancialDashboard';
 import CreateWorkflow from '../Create/CreateWorkflow';
+import DeployWorkflow from '../Deploy/DeployWorkflow';
+import MonetizeWorkflow from '../Monetize/MonetizeWorkflow';
 
 interface CenterPanelProps {
   activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
@@ -31,8 +33,12 @@ function CenterPanel({ activeWorkflow }: CenterPanelProps) {
         return <CreateWorkflow />;
       case 'build':
         return <VibDEEditor />;
+      case 'deploy':
+        return <DeployWorkflow />;
       case 'monitor':
         return <FinancialDashboard />;
+      case 'monetize':
+        return <MonetizeWorkflow />;
       default:
         const workflow = WORKFLOWS.find((w) => w.id === activeWorkflow);
         return (
