@@ -1,0 +1,67 @@
+{
+  "name": "dlx-studios-ultimate",
+  "version": "1.0.0",
+  "description": "DLX Studios Ultimate - AI-Native Development Platform with VibDEEditor",
+  "main": "dist-electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder",
+    "electron:pack": "electron-builder",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "test": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "keywords": [
+    "ai",
+    "code-editor",
+    "electron",
+    "development",
+    "vibdee",
+    "llm"
+  ],
+  "author": "DLX Studios",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dunker007/11-6.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Dunker007/11-6/issues"
+  },
+  "homepage": "https://github.com/Dunker007/11-6#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/ui": "^4.0.7",
+    "concurrently": "^9.2.1",
+    "electron": "^39.1.1",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "playwright": "^1.56.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.1",
+    "vitest": "^4.0.7",
+    "wait-on": "^9.0.1"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "monaco-editor": "^0.54.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zustand": "^5.0.8"
+  }
+}
