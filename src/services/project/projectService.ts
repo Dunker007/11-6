@@ -1,7 +1,9 @@
 import type { Project, ProjectFile } from '@/types/project';
+import { fileSystemService } from '../filesystem/fileSystemService';
 
 const STORAGE_KEY = 'dlx_projects';
 const ACTIVE_PROJECT_KEY = 'dlx_active_project';
+const USE_FILE_SYSTEM_KEY = 'dlx_use_file_system';
 
 export class ProjectService {
   private static instance: ProjectService;
@@ -10,6 +12,157 @@ export class ProjectService {
 
   private constructor() {
     this.loadProjects();
+  }
+
+  static getInstance(): ProjectService {
+    if (!ProjectService.instance) {
+      ProjectService.instance = new ProjectService();
+    }
+    return ProjectService.instance;
+  }
+
+  private useFileSystem(): boolean {
+    try {
+      const stored = localStorage.getItem(USE_FILE_SYSTEM_KEY);
+      return stored === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  setUseFileSystem(use: boolean): void {
+    localStorage.setItem(USE_FILE_SYSTEM_KEY, use ? 'true' : 'false');
+  }
+
+  async openProjectFromDisk(path: string): Promise<Project | null> {
+    try {
+      const exists = await fileSystemService.exists(path);
+      if (!exists.data) {
+        return null;
+      }
+
+      const stats = await fileSystemService.stat(path);
+      if (!stats.success || !stats.data?.isDirectory) {
+        return null;
+      }
+
+      // Read project.json if it exists
+      const projectJsonPath = `${path}/project.json`;
+      const projectJsonExists = await fileSystemService.exists(projectJsonPath);
+      
+      let project: Project;
+      if (projectJsonExists.data) {
+        const projectJson = await fileSystemService.readFile(projectJsonPath);
+        if (projectJson.success && projectJson.data) {
+          project = JSON.parse(projectJson.data);
+          project.rootPath = path;
+        } else {
+          return null;
+        }
+      } else {
+        // Create new project from directory
+        const dirName = path.split(/[/\\]/).pop() || 'Untitled';
+        project = {
+          id: crypto.randomUUID(),
+          name: dirName,
+          rootPath: path,
+          files: [],
+          createdAt: stats.data ? new Date(stats.data.ctime) : new Date(),
+          updatedAt: stats.data ? new Date(stats.data.mtime) : new Date(),
+        };
+      }
+
+      // Load files from disk
+      const entries = await fileSystemService.readdir(path);
+      if (entries.success && entries.data) {
+        project.files = await this.buildFileTree(path, entries.data);
+      }
+
+      this.projects.set(project.id, project);
+      this.activeProjectId = project.id;
+      this.saveProjects();
+      return project;
+    } catch (error) {
+      console.error('Failed to open project from disk:', error);
+      return null;
+    }
+  }
+
+  private async buildFileTree(_rootPath: string, entries: any[]): Promise<ProjectFile[]> {
+    const files: ProjectFile[] = [];
+
+    for (const entry of entries) {
+      if (entry.isDirectory) {
+        const subEntries = await fileSystemService.readdir(entry.path);
+        const children = subEntries.success && subEntries.data
+          ? await this.buildFileTree(entry.path, subEntries.data)
+          : [];
+
+        files.push({
+          path: entry.path,
+          name: entry.name,
+          content: '',
+          isDirectory: true,
+          children,
+        });
+      } else {
+        const content = await fileSystemService.readFile(entry.path);
+        files.push({
+          path: entry.path,
+          name: entry.name,
+          content: content.success ? (content.data || '') : '',
+          isDirectory: false,
+        });
+      }
+    }
+
+    return files;
+  }
+
+  async saveProjectToDisk(projectId: string, path: string): Promise<boolean> {
+    const project = this.projects.get(projectId);
+    if (!project) return false;
+
+    try {
+      // Ensure directory exists
+      await fileSystemService.mkdir(path, true);
+
+      // Save project.json
+      const projectJson = JSON.stringify({
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+      }, null, 2);
+
+      await fileSystemService.writeFile(`${path}/project.json`, projectJson);
+
+      // Save all files
+      await this.saveFilesToDisk(project.files[0], path);
+
+      project.rootPath = path;
+      this.saveProjects();
+      return true;
+    } catch (error) {
+      console.error('Failed to save project to disk:', error);
+      return false;
+    }
+  }
+
+  private async saveFilesToDisk(root: ProjectFile, basePath: string): Promise<void> {
+    if (!root.children) return;
+
+    for (const file of root.children) {
+      const filePath = `${basePath}/${file.name}`;
+
+      if (file.isDirectory) {
+        await fileSystemService.mkdir(filePath, true);
+        await this.saveFilesToDisk(file, filePath);
+      } else {
+        await fileSystemService.writeFile(filePath, file.content || '');
+      }
+    }
   }
 
   static getInstance(): ProjectService {
@@ -148,6 +301,14 @@ export class ProjectService {
       file.content = content;
       project.updatedAt = new Date();
       this.saveProjects();
+
+      // If using file system, also save to disk
+      if (this.useFileSystem() && project.rootPath) {
+        const fullPath = `${project.rootPath}${path}`;
+        fileSystemService.writeFile(fullPath, content).catch((error) => {
+          console.error('Failed to save file to disk:', error);
+        });
+      }
     }
   }
 

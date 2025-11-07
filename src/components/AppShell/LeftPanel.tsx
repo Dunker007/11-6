@@ -1,6 +1,11 @@
 import '../../styles/LeftPanel.css';
+import '../../styles/Modal.css';
 import { useState } from 'react';
 import APIKeyManager from '../APIKeyManager/APIKeyManager';
+import DevToolsManager from '../DevTools/DevToolsManager';
+import GitHubPanel from '../GitHub/GitHubPanel';
+import MonitorLayoutManager from '../MonitorLayout/MonitorLayoutManager';
+import ByteBotPanel from '../Automation/ByteBotPanel';
 
 interface LeftPanelProps {
   activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
@@ -17,6 +22,10 @@ const workflows = [
 
 function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
   const [showAPIKeyManager, setShowAPIKeyManager] = useState(false);
+  const [showDevTools, setShowDevTools] = useState(false);
+  const [showGitHub, setShowGitHub] = useState(false);
+  const [showMonitorLayouts, setShowMonitorLayouts] = useState(false);
+  const [showByteBot, setShowByteBot] = useState(false);
 
   return (
     <>
@@ -67,11 +76,83 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
           >
             ⚙️ API Keys
           </button>
+          <button 
+            className="settings-button"
+            onClick={() => setShowDevTools(true)}
+          >
+            🔧 Dev Tools
+          </button>
+          <button 
+            className="settings-button"
+            onClick={() => setShowGitHub(true)}
+          >
+            🐙 GitHub
+          </button>
+          <button 
+            className="settings-button"
+            onClick={() => setShowMonitorLayouts(true)}
+          >
+            🖥️ Monitors
+          </button>
+          <button 
+            className="settings-button"
+            onClick={() => setShowByteBot(true)}
+          >
+            🤖 ByteBot
+          </button>
         </div>
       </div>
 
       {showAPIKeyManager && (
         <APIKeyManager onClose={() => setShowAPIKeyManager(false)} />
+      )}
+
+      {showDevTools && (
+        <div className="modal-overlay" onClick={() => setShowDevTools(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Dev Tools Manager</h2>
+              <button className="modal-close" onClick={() => setShowDevTools(false)}>×</button>
+            </div>
+            <DevToolsManager />
+          </div>
+        </div>
+      )}
+
+      {showGitHub && (
+        <div className="modal-overlay" onClick={() => setShowGitHub(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>GitHub</h2>
+              <button className="modal-close" onClick={() => setShowGitHub(false)}>×</button>
+            </div>
+            <GitHubPanel />
+          </div>
+        </div>
+      )}
+
+      {showMonitorLayouts && (
+        <div className="modal-overlay" onClick={() => setShowMonitorLayouts(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Monitor Layouts</h2>
+              <button className="modal-close" onClick={() => setShowMonitorLayouts(false)}>×</button>
+            </div>
+            <MonitorLayoutManager />
+          </div>
+        </div>
+      )}
+
+      {showByteBot && (
+        <div className="modal-overlay" onClick={() => setShowByteBot(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>ByteBot Automation</h2>
+              <button className="modal-close" onClick={() => setShowByteBot(false)}>×</button>
+            </div>
+            <ByteBotPanel />
+          </div>
+        </div>
       )}
     </>
   );

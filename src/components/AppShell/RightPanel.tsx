@@ -1,5 +1,6 @@
 import '../../styles/RightPanel.css';
 import LLMStatus from '../LLMStatus/LLMStatus';
+import HealthDashboard from '../Health/HealthDashboard';
 
 function RightPanel() {
   return (
@@ -19,6 +20,10 @@ function RightPanel() {
 
       <div className="panel-section">
         <LLMStatus />
+      </div>
+
+      <div className="panel-section">
+        <HealthDashboard />
       </div>
 
       <div className="panel-section">
