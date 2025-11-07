@@ -14,11 +14,14 @@ interface ProjectStore {
   addFile: (path: string, content: string, language?: string) => void;
   deleteFile: (path: string) => void;
   getFileContent: (path: string) => string | null;
+  activeFile: string | null;
+  setActiveFile: (path: string | null) => void;
 }
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
   projects: [],
   activeProject: null,
+  activeFile: null,
   isLoading: false,
   error: null,
 
@@ -81,6 +84,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     if (!activeProject) return null;
 
     return projectService.getFileContent(activeProject.id, path);
+  },
+
+  setActiveFile: (path) => {
+    set({ activeFile: path });
   },
 }));
 
