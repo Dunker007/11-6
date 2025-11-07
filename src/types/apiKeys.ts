@@ -4,7 +4,8 @@ export type LLMProvider =
   | 'openai'
   | 'anthropic'
   | 'lmstudio'
-  | 'ollama';
+  | 'ollama'
+  | 'github';
 
 export interface APIKey {
   id: string;
@@ -77,6 +78,13 @@ export const PROVIDER_CONFIGS: ProviderConfig[] = [
     requiresKey: false,
     endpoint: 'http://localhost:11434',
     description: 'Local LLM runtime',
+  },
+  {
+    provider: 'github',
+    name: 'GitHub',
+    type: 'cloud',
+    requiresKey: true,
+    description: 'GitHub API for repository management',
   },
 ];
 
