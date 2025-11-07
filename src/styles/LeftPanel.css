@@ -134,8 +134,28 @@
   font-weight: 600;
 }
 
-.cmd-k-label {
+.settings-section {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.settings-button {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
   font-size: 0.875rem;
-  color: var(--text-secondary);
+}
+
+.settings-button:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--violet-500);
+  transform: translateX(4px);
 }
 
