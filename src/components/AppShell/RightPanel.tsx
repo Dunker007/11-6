@@ -1,4 +1,4 @@
-import '../styles/RightPanel.css';
+import '../../styles/RightPanel.css';
 import LLMStatus from '../LLMStatus/LLMStatus';
 
 function RightPanel() {

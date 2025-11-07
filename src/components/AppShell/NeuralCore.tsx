@@ -1,4 +1,4 @@
-import '../styles/NeuralCore.css';
+import '../../styles/NeuralCore.css';
 
 function NeuralCore() {
   return (

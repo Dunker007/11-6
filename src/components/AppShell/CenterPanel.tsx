@@ -1,4 +1,4 @@
-import '../styles/CenterPanel.css';
+import '../../styles/CenterPanel.css';
 import NeuralCore from './NeuralCore';
 import VibDEEditor from '../VibDEEditor/VibDEEditor';
 

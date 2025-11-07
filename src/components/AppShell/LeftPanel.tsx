@@ -1,4 +1,4 @@
-import '../styles/LeftPanel.css';
+import '../../styles/LeftPanel.css';
 import { useState } from 'react';
 import APIKeyManager from '../APIKeyManager/APIKeyManager';
 
