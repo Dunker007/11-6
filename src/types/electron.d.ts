@@ -20,6 +20,11 @@ declare global {
       saveFile(options?: { defaultPath?: string; filters?: { name: string; extensions: string[] }[] }): Promise<{ success: boolean; filePath?: string }>;
       openDirectory(): Promise<{ success: boolean; filePaths?: string[] }>;
     };
+    devTools: {
+      check(command: string): Promise<{ success: boolean; installed?: boolean; output?: string; error?: string }>;
+      getVersion(command: string): Promise<{ success: boolean; version?: string; error?: string }>;
+      install(command: string): Promise<{ success: boolean; output?: string; error?: string }>;
+    };
   }
 }
 

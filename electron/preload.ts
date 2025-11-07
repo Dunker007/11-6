@@ -42,3 +42,10 @@ contextBridge.exposeInMainWorld('dialogs', {
   openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
 });
 
+// --------- Expose Dev Tools API ---------
+contextBridge.exposeInMainWorld('devTools', {
+  check: (command: string) => ipcRenderer.invoke('tools:check', command),
+  getVersion: (command: string) => ipcRenderer.invoke('tools:getVersion', command),
+  install: (command: string) => ipcRenderer.invoke('tools:install', command),
+});
+

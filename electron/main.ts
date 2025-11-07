@@ -3,6 +3,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -189,6 +193,36 @@ ipcMain.handle('dialog:openDirectory', async () => {
     properties: ['openDirectory'],
   });
   return { success: !result.canceled, filePaths: result.filePaths };
+});
+
+// Dev Tools IPC Handlers
+ipcMain.handle('tools:check', async (_event, command: string) => {
+  try {
+    const { stdout } = await execAsync(command);
+    return { success: true, installed: true, output: stdout };
+  } catch (error) {
+    return { success: true, installed: false, error: (error as Error).message };
+  }
+});
+
+ipcMain.handle('tools:getVersion', async (_event, command: string) => {
+  try {
+    const { stdout } = await execAsync(command);
+    // Extract version number
+    const match = stdout.match(/(\d+\.\d+\.\d+)/);
+    return { success: true, version: match ? match[1] : undefined };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+ipcMain.handle('tools:install', async (_event, command: string) => {
+  try {
+    const { stdout, stderr } = await execAsync(command);
+    return { success: true, output: stdout, error: stderr };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
 });
 
 app.whenReady().then(createWindow);
