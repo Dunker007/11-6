@@ -1,4 +1,4 @@
-import type { RevenueStream, Subscription, RevenueAnalytics, MonetizationRecommendation } from '@/types/monetize';
+import type { RevenueStream, Subscription, RevenueAnalytics } from '@/types/monetize';
 
 const REVENUE_STREAMS_KEY = 'dlx_revenue_streams';
 const SUBSCRIPTIONS_KEY = 'dlx_subscriptions';

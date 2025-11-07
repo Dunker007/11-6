@@ -14,26 +14,34 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-    rollupOptions: {
-      external: ['systeminformation'], // Don't bundle systeminformation - it's Node.js only
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'monaco-vendor': ['@monaco-editor/react', 'monaco-editor'],
-          'ai-vendor': ['@google/generative-ai'],
+      build: {
+        outDir: 'dist',
+        emptyOutDir: true,
+        rollupOptions: {
+          external: [
+            'systeminformation',
+            'simple-git',
+            'node:buffer',
+            'node:path',
+            'node:events',
+            'child_process',
+            'fs',
+          ], // Don't bundle Node.js-only modules
+          output: {
+            manualChunks: {
+              'react-vendor': ['react', 'react-dom'],
+              'monaco-vendor': ['@monaco-editor/react', 'monaco-editor'],
+              'ai-vendor': ['@google/generative-ai'],
+            },
+          },
         },
+        chunkSizeWarningLimit: 1000,
+        minify: 'esbuild',
+        target: 'esnext',
       },
-    },
-    chunkSizeWarningLimit: 1000,
-    minify: 'esbuild',
-    target: 'esnext',
-  },
-  optimizeDeps: {
-    exclude: ['systeminformation'], // Don't pre-bundle systeminformation
-    include: ['react', 'react-dom', '@monaco-editor/react'],
-  },
+      optimizeDeps: {
+        exclude: ['systeminformation', 'simple-git'], // Don't pre-bundle Node.js-only modules
+        include: ['react', 'react-dom', '@monaco-editor/react'],
+      },
   base: './',
 });

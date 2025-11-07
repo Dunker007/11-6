@@ -21,7 +21,7 @@
 - [ ] Workflow pipeline shows 5 stages
 - [ ] Right panel shows Activity Feed, LLM Status, AI Suggestions, Stats
 
-### ✅ VibDEEditor
+### ✅ VibeEditor
 - [ ] Welcome screen appears when no project is open
 - [ ] Can create a new project
 - [ ] File Explorer appears in sidebar

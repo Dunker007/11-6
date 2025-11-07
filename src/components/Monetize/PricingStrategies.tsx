@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useMonetizeStore } from '../../services/monetize/monetizeStore';
-import type { PricingStrategy } from '@/types/monetize';
 import '../../styles/MonetizeWorkflow.css';
 
 function PricingStrategies() {

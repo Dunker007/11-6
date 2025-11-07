@@ -39,6 +39,42 @@
   overflow: hidden;
 }
 
+.quicklab-modal {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 1200px;
+  padding: 0;
+}
+
+.quicklab-content {
+  height: calc(90vh - 60px);
+  overflow: hidden;
+}
+
+.layout-playground-modal {
+  max-width: 95vw;
+  max-height: 95vh;
+  width: 1400px;
+  padding: 0;
+}
+
+.layout-playground-content {
+  height: calc(95vh - 60px);
+  overflow: hidden;
+}
+
+.program-runner-modal {
+  max-width: 95vw;
+  max-height: 95vh;
+  width: 1400px;
+  padding: 0;
+}
+
+.program-runner-content {
+  height: calc(95vh - 60px);
+  overflow: hidden;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;

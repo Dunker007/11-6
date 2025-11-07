@@ -1,6 +1,19 @@
 import { Octokit } from '@octokit/rest';
-import simpleGit from 'simple-git';
 import { apiKeyService } from '@/services/apiKeys/apiKeyService';
+
+// Dynamic import helper for simple-git (Node.js only, not available in browser)
+async function getSimpleGit(path?: string) {
+  try {
+    // Only import in Electron environment (has window.electron)
+    if (typeof window !== 'undefined' && !(window as any).electron) {
+      throw new Error('Git operations are only available in Electron environment');
+    }
+    const simpleGit = (await import('simple-git')).default;
+    return path ? simpleGit(path) : simpleGit();
+  } catch (error) {
+    throw new Error(`Failed to load git: ${(error as Error).message}`);
+  }
+}
 
 export interface Repository {
   id: number;
@@ -113,7 +126,7 @@ export class GitHubService {
 
   async cloneRepository(url: string, path: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const git = simpleGit();
+      const git = await getSimpleGit();
       await git.clone(url, path);
       return { success: true };
     } catch (error) {
@@ -123,7 +136,7 @@ export class GitHubService {
 
   async initRepository(path: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const git = simpleGit(path);
+      const git = await getSimpleGit(path);
       await git.init();
       return { success: true };
     } catch (error) {
@@ -133,7 +146,7 @@ export class GitHubService {
 
   async getStatus(path: string): Promise<GitStatus | null> {
     try {
-      const git = simpleGit(path);
+      const git = await getSimpleGit(path);
       const status = await git.status();
       const branch = await git.revparse(['--abbrev-ref', 'HEAD']);
 
@@ -154,7 +167,7 @@ export class GitHubService {
 
   async commit(path: string, message: string, files?: string[]): Promise<{ success: boolean; hash?: string; error?: string }> {
     try {
-      const git = simpleGit(path);
+      const git = await getSimpleGit(path);
       
       if (files && files.length > 0) {
         await git.add(files);
@@ -171,7 +184,7 @@ export class GitHubService {
 
   async push(path: string, remote = 'origin', branch?: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const git = simpleGit(path);
+      const git = await getSimpleGit(path);
       const currentBranch = branch || (await git.revparse(['--abbrev-ref', 'HEAD']));
       await git.push(remote, currentBranch);
       return { success: true };
@@ -182,7 +195,7 @@ export class GitHubService {
 
   async pull(path: string, remote = 'origin', branch?: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const git = simpleGit(path);
+      const git = await getSimpleGit(path);
       await git.pull(remote, branch);
       return { success: true };
     } catch (error) {
@@ -192,7 +205,7 @@ export class GitHubService {
 
   async createBranch(path: string, name: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const git = simpleGit(path);
+      const git = await getSimpleGit(path);
       await git.checkoutLocalBranch(name);
       return { success: true };
     } catch (error) {
@@ -202,7 +215,7 @@ export class GitHubService {
 
   async checkoutBranch(path: string, name: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const git = simpleGit(path);
+      const git = await getSimpleGit(path);
       await git.checkout(name);
       return { success: true };
     } catch (error) {
@@ -212,7 +225,7 @@ export class GitHubService {
 
   async getBranches(path: string): Promise<Branch[]> {
     try {
-      const git = simpleGit(path);
+      const git = await getSimpleGit(path);
       const branches = await git.branchLocal();
       return branches.all.map((name) => ({
         name,

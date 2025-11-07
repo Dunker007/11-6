@@ -101,8 +101,8 @@ export class PricingService {
 
   generateRecommendations(
     projectType: string,
-    currentRevenue?: number,
-    userCount?: number
+    _currentRevenue?: number,
+    _userCount?: number
   ): MonetizationRecommendation[] {
     const recommendations: MonetizationRecommendation[] = [];
 

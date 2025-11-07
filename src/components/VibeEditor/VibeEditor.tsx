@@ -3,9 +3,9 @@ import Editor from '@monaco-editor/react';
 import { useProjectStore } from '../../services/project/projectStore';
 import FileExplorer from './FileExplorer';
 import AIAssistant from '../AIAssistant/AIAssistant';
-import '../../styles/VibDEEditor.css';
+import '../../styles/VibeEditor.css';
 
-function VibDEEditor() {
+function VibeEditor() {
   const { activeProject, loadProjects, createProject, updateFile, getFileContent, setActiveFile } = useProjectStore();
   const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
   const [fileContent, setFileContent] = useState<string>('');
@@ -60,12 +60,12 @@ function VibDEEditor() {
 
   if (!activeProject) {
     return (
-      <div className="vibdee-editor">
+      <div className="vibe-editor">
         <div className="welcome-screen">
           <div className="welcome-logo">
-            <img src="/vibdee-logo.svg" alt="VibDee" />
+            <img src="/vibdee-logo.svg" alt="VibeEditor" />
           </div>
-          <h1>Welcome to VibDEEditor</h1>
+          <h1>Welcome to VibeEditor</h1>
           <p>Your AI-native development companion</p>
           <div className="welcome-actions">
             <button className="action-button primary" onClick={handleNewProject}>
@@ -149,4 +149,4 @@ function VibDEEditor() {
   );
 }
 
-export default VibDEEditor;
+export default VibeEditor;

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import '../../styles/CenterPanel.css';
 import NeuralCore from './NeuralCore';
-import VibDEEditor from '../VibDEEditor/VibDEEditor';
+import VibeEditor from '../VibeEditor/VibeEditor';
 import FinancialDashboard from '../BackOffice/FinancialDashboard';
 import CreateWorkflow from '../Create/CreateWorkflow';
 import DeployWorkflow from '../Deploy/DeployWorkflow';
@@ -9,6 +9,7 @@ import MonetizeWorkflow from '../Monetize/MonetizeWorkflow';
 
 interface CenterPanelProps {
   activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
+  onWorkflowChange?: (workflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize') => void;
 }
 
 const WORKFLOWS = [
@@ -19,20 +20,26 @@ const WORKFLOWS = [
   { id: 'monetize' as const, name: 'Monetize' },
 ] as const;
 
-function CenterPanel({ activeWorkflow }: CenterPanelProps) {
+function CenterPanel({ activeWorkflow, onWorkflowChange }: CenterPanelProps) {
   // Memoize active workflow index calculation
   const activeIndex = useMemo(
     () => WORKFLOWS.findIndex((w) => w.id === activeWorkflow),
     [activeWorkflow]
   );
 
+  const handleProjectCreated = () => {
+    if (onWorkflowChange) {
+      onWorkflowChange('build');
+    }
+  };
+
   // Memoize workflow component rendering
   const workflowContent = useMemo(() => {
     switch (activeWorkflow) {
       case 'create':
-        return <CreateWorkflow />;
+        return <CreateWorkflow onProjectCreated={handleProjectCreated} />;
       case 'build':
-        return <VibDEEditor />;
+        return <VibeEditor />;
       case 'deploy':
         return <DeployWorkflow />;
       case 'monitor':
@@ -48,7 +55,7 @@ function CenterPanel({ activeWorkflow }: CenterPanelProps) {
           </div>
         );
     }
-  }, [activeWorkflow]);
+  }, [activeWorkflow, onWorkflowChange]);
 
   return (
     <div className="center-panel">

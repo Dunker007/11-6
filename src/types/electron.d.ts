@@ -30,6 +30,25 @@ declare global {
       setPrimary(displayId: string): Promise<{ success: boolean; error?: string }>;
       setDisplayBounds(displayId: string, bounds: { x: number; y: number; width: number; height: number }): Promise<{ success: boolean; error?: string }>;
     };
+    program: {
+      execute(command: string, workingDirectory?: string): Promise<{ success: boolean; executionId?: string; error?: string }>;
+      kill(executionId: string): Promise<{ success: boolean; error?: string }>;
+      onOutput(callback: (executionId: string, data: { type: 'stdout' | 'stderr'; data: string }) => void): void;
+      onComplete(callback: (executionId: string, result: { exitCode: number; stdout: string; stderr: string }) => void): void;
+      onError(callback: (executionId: string, error: { error: string }) => void): void;
+    };
+    updater: {
+      check(): Promise<{ success: boolean; error?: string; updateInfo?: any }>;
+      install(): Promise<{ success: boolean; error?: string }>;
+      onAvailable(callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void): void;
+      onDownloaded(callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void): void;
+      onProgress(callback: (progress: { percent: number; transferred: number; total: number }) => void): void;
+      onError(callback: (error: { error: string }) => void): void;
+    };
+    menu: {
+      onAbout(callback: () => void): void;
+      onShortcuts(callback: () => void): void;
+    };
   }
 }
 

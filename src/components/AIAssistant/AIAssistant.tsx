@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { useProjectStore } from '../../services/project/projectStore';
+import { projectKnowledgeService } from '../../services/ai/projectKnowledgeService';
 import '../../styles/AIAssistant.css';
 
 interface Message {
@@ -17,7 +18,7 @@ function AIAssistant() {
     {
       id: '1',
       role: 'assistant',
-      content: "Hi! I'm VibDee, your AI coding companion. I can help you write code, explain functions, refactor code, and more. What would you like to do?",
+      content: "Hey there! I'm Vibed Ed, your coding buddy. I'm here to help you build awesome stuff - write code, explain functions, refactor, debug, whatever you need. Let's keep it chill and get things done. What's on your mind?",
       timestamp: new Date(),
     },
   ]);
@@ -45,21 +46,56 @@ function AIAssistant() {
     setIsStreaming(true);
 
     try {
-      // Build context-aware prompt
+      // Build context-aware prompt with Vibed Ed persona
       let prompt = input.trim();
       
-      // Add file context if available
+      // Check if user is asking about military background
+      const isMilitaryQuestion = /military|usmc|marine|veteran|vet|service/.test(input.toLowerCase());
+      
+      // Build base prompt with file context
+      let basePrompt = input.trim();
+      
       if (activeFile) {
         const fileContent = getFileContent(activeFile);
         if (fileContent) {
-          prompt = `Current file: ${activeFile}\n\nFile content:\n\`\`\`\n${fileContent}\n\`\`\`\n\nUser request: ${input.trim()}`;
+          basePrompt = `Current file: ${activeFile}\n\nFile content:\n\`\`\`\n${fileContent}\n\`\`\`\n\nUser request: ${input.trim()}`;
         }
       }
-
-      // Add project context
-      if (activeProject) {
-        prompt = `Project: ${activeProject.name}\n\n${prompt}`;
+      
+      // Get full project knowledge
+      const projectContext = projectKnowledgeService.getFullProjectContext(activeProject?.id);
+      const navigationSuggestion = projectKnowledgeService.suggestNavigation(input.trim(), activeProject?.id);
+      
+      // Build persona prompt
+      let personaPrompt = '';
+      if (isMilitaryQuestion) {
+        personaPrompt = `You are Vibed Ed, a laid-back coding assistant. The user is asking about your military background. You're a USMC vet but these days you're all about keeping things chill while coding. Respond naturally and casually.`;
+      } else {
+        personaPrompt = `You are Vibed Ed, a laid-back, smart coding assistant with redneck/stoner/beach dude vibes. You're helpful, knowledgeable, and chill. Use casual language like "yeah", "sure thing", "no worries", "let's do this". Keep responses conversational and casual while being accurate and helpful.`;
       }
+      
+      // Add project context
+      if (projectContext) {
+        personaPrompt += `\n\nYou have full knowledge of the current project:\n${projectContext}`;
+      }
+      
+      // Add navigation suggestion if applicable
+      if (navigationSuggestion) {
+        personaPrompt += `\n\nIMPORTANT: The user's query suggests they might want to use the ${navigationSuggestion.workflow} workflow. You can suggest navigating there, but you CANNOT execute builds or deployments directly. Users must go to the proper workflow environment. You can only guide and suggest - no overrides or direct execution.`;
+        personaPrompt += `\n\nSuggestion: ${navigationSuggestion.reason}. ${navigationSuggestion.action}`;
+      }
+      
+      // Important: Ed cannot execute builds/deploys
+      personaPrompt += `\n\nCRITICAL RULES:
+- You CANNOT execute builds or deployments directly
+- You CANNOT override user actions
+- You CAN suggest workflows and navigation
+- You CAN suggest commands (user must run in Program Runner)
+- You CAN suggest code changes (user must apply them)
+- You CAN guide users to proper environments
+- Always remind users they need to go to the proper workflow for execution`;
+      
+      prompt = `${personaPrompt}\n\nUser request: ${basePrompt}`;
 
       // Stream the response
       const assistantMessage: Message = {
@@ -87,7 +123,7 @@ function AIAssistant() {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `Error: ${(error as Error).message}. Make sure a local LLM is running (LM Studio or Ollama).`,
+        content: `Ah, ran into an issue there: ${(error as Error).message}. Make sure you've got a local LLM running (LM Studio or Ollama) or an API key configured. No worries though, we'll get it sorted.`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -105,11 +141,11 @@ function AIAssistant() {
 
   const handleQuickAction = (action: string) => {
     const prompts: Record<string, string> = {
-      explain: 'Explain this code',
-      refactor: 'Refactor this code to be more efficient',
-      fix: 'Find and fix any bugs in this code',
-      test: 'Generate unit tests for this code',
-      document: 'Generate JSDoc comments for this code',
+      explain: 'Can you break down what this code does? Keep it simple for me.',
+      refactor: 'This code works but feels messy. Can you clean it up and make it better?',
+      fix: 'Something\'s not working right here. Mind taking a look and fixing it?',
+      test: 'I need some tests for this. Can you hook me up?',
+      document: 'This could use some comments so I remember what it does later.',
     };
 
     setInput(prompts[action] || action);
@@ -124,9 +160,9 @@ function AIAssistant() {
           <span className="avatar-icon">🧠</span>
         </div>
         <div className="header-info">
-          <h3>VibDee</h3>
+          <h3>Vibed Ed</h3>
           <span className="status-indicator">
-            {isLoading || isStreaming ? 'Thinking...' : 'Ready'}
+            {isLoading || isStreaming ? 'Hmm, let me think...' : 'Ready to help'}
           </span>
         </div>
       </div>
@@ -211,7 +247,7 @@ function AIAssistant() {
         <textarea
           ref={inputRef}
           className="message-input"
-          placeholder="Ask VibDee anything... (Shift+Enter for new line)"
+          placeholder="Ask Vibed Ed anything... (Shift+Enter for new line)"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}

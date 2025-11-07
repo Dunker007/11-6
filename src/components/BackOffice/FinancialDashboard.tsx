@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useFinancialStore } from '../../services/backoffice/financialStore';
 import { useThresholdStore } from '../../services/backoffice/thresholdStore';
 import type { ExpenseCategory, IncomeSource } from '@/types/backoffice';

@@ -11,6 +11,7 @@ out/
 .next/
 dist-electron/
 release/
+release-new/
 
 # Environment & Secrets (CRITICAL - Never commit these!)
 .env

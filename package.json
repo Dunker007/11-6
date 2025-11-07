@@ -1,7 +1,7 @@
 {
   "name": "dlx-studios-ultimate",
   "version": "1.0.0",
-  "description": "DLX Studios Ultimate - AI-Native Development Platform with VibDEEditor",
+  "description": "DLX Studios Ultimate - AI-Native Development Platform with VibeEditor",
   "main": "dist-electron/main.js",
   "type": "module",
   "scripts": {
@@ -9,7 +9,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development tsx electron/main.ts\"",
-    "electron:build": "npm run build && electron-builder",
+    "electron:build:main": "tsc -p tsconfig.electron.json",
+    "electron:build:all": "npm run build && npm run electron:build:main && electron-builder",
+    "electron:build": "npm run build && npm run electron:build:main && electron-builder",
     "electron:pack": "electron-builder",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -65,9 +67,11 @@
     "@google/generative-ai": "^0.24.1",
     "@monaco-editor/react": "^4.7.0",
     "@octokit/rest": "^22.0.1",
+    "electron-updater": "^6.1.7",
     "monaco-editor": "^0.54.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
     "simple-git": "^3.30.0",
     "systeminformation": "^5.27.11",
     "zustand": "^5.0.8"

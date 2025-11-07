@@ -142,6 +142,64 @@ const DEPLOYMENT_TARGETS: DeploymentTarget[] = [
     ],
     supportedFrameworks: ['any'],
   },
+  {
+    id: 'render',
+    name: 'Render',
+    type: 'render',
+    icon: '🎨',
+    description: 'Deploy to Render for full-stack applications',
+    requiresAuth: true,
+    authType: 'token',
+    configFields: [
+      {
+        name: 'renderToken',
+        label: 'Render API Token',
+        type: 'password',
+        required: true,
+        placeholder: 'Enter your Render API token',
+      },
+      {
+        name: 'serviceName',
+        label: 'Service Name',
+        type: 'text',
+        required: true,
+        placeholder: 'my-service',
+      },
+      {
+        name: 'buildCommand',
+        label: 'Build Command',
+        type: 'text',
+        required: false,
+        placeholder: 'npm run build',
+        defaultValue: 'npm run build',
+      },
+      {
+        name: 'startCommand',
+        label: 'Start Command',
+        type: 'text',
+        required: false,
+        placeholder: 'npm start',
+        defaultValue: 'npm start',
+      },
+      {
+        name: 'environment',
+        label: 'Environment',
+        type: 'select',
+        required: false,
+        options: ['node', 'python', 'docker', 'static'],
+        defaultValue: 'node',
+      },
+      {
+        name: 'region',
+        label: 'Region',
+        type: 'select',
+        required: false,
+        options: ['oregon', 'frankfurt', 'singapore', 'sydney'],
+        defaultValue: 'oregon',
+      },
+    ],
+    supportedFrameworks: ['vite', 'react', 'vue', 'nextjs', 'node', 'python', 'docker'],
+  },
 ];
 
 const DEPLOYMENT_HISTORY_KEY = 'dlx_deployment_history';
@@ -240,6 +298,7 @@ export class DeploymentService {
       vercel: 'vercel.app',
       netlify: 'netlify.app',
       'github-pages': 'github.io',
+      render: 'render.com',
     };
     return domains[targetId] || 'example.com';
   }

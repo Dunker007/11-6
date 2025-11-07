@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useDeploymentStore } from '../../services/deploy/deploymentStore';
 import type { Deployment } from '@/types/deploy';
 import '../../styles/DeployWorkflow.css';
 

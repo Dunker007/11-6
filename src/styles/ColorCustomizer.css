@@ -1,0 +1,134 @@
+.color-customizer {
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 0.75rem;
+  padding: 2rem;
+}
+
+.customizer-header {
+  margin-bottom: 2rem;
+}
+
+.customizer-header h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.customizer-header p {
+  color: var(--text-secondary);
+}
+
+.customizer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.color-group {
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.color-group:last-child {
+  border-bottom: none;
+}
+
+.color-group h4 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.color-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.color-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.color-input label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.color-picker-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.color-picker {
+  width: 50px;
+  height: 40px;
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.color-text {
+  flex: 1;
+  padding: 0.5rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 0.5rem;
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.color-text:focus {
+  outline: none;
+  border-color: var(--violet-500);
+}
+
+.customizer-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.action-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.action-btn.save {
+  background: var(--violet-500);
+  color: white;
+}
+
+.action-btn.save:hover {
+  background: var(--violet-600);
+}
+
+.action-btn.reset {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.action-btn.reset:hover {
+  background: var(--bg-tertiary);
+  opacity: 0.8;
+}
+
+.action-btn.cancel {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--bg-tertiary);
+}
+
+.action-btn.cancel:hover {
+  background: var(--bg-tertiary);
+}
+

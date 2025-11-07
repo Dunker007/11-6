@@ -26,7 +26,7 @@ This will:
 - ✅ Workflow navigation (5 workflows)
 - ✅ Holographic design theme
 
-### 2. VibDEEditor
+### 2. VibeEditor
 - ✅ Create a new project (click "New Project" on welcome screen)
 - ✅ Add files (right-click in File Explorer or use + button)
 - ✅ Edit code in Monaco Editor

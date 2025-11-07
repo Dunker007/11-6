@@ -1,7 +1,7 @@
 export interface DeploymentTarget {
   id: string;
   name: string;
-  type: 'vercel' | 'netlify' | 'aws' | 'docker' | 'github-pages' | 'custom';
+  type: 'vercel' | 'netlify' | 'aws' | 'docker' | 'github-pages' | 'render' | 'custom';
   icon: string;
   description: string;
   requiresAuth: boolean;

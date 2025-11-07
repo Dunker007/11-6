@@ -1,16 +1,34 @@
 import '../../styles/LeftPanel.css';
 import '../../styles/Modal.css';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import APIKeyManager from '../APIKeyManager/APIKeyManager';
 import DevToolsManager from '../DevTools/DevToolsManager';
 import GitHubPanel from '../GitHub/GitHubPanel';
 import MonitorLayoutManager from '../MonitorLayout/MonitorLayoutManager';
 import ByteBotPanel from '../Automation/ByteBotPanel';
 import BackOffice from '../BackOffice/BackOffice';
+import MindMap from '../QuickLabs/MindMap';
+import CodeReview from '../QuickLabs/CodeReview';
+import AgentForge from '../QuickLabs/AgentForge';
+import Creator from '../QuickLabs/Creator';
+import LayoutPlayground from '../LayoutPlayground/LayoutPlayground';
+import ProgramRunner from '../ProgramRunner/ProgramRunner';
 
 interface LeftPanelProps {
   activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
   onWorkflowChange: (workflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize') => void;
+  handlersRef?: React.MutableRefObject<{
+    onOpenAPIKeys: () => void;
+    onOpenDevTools: () => void;
+    onOpenGitHub: () => void;
+    onOpenMonitorLayouts: () => void;
+    onOpenByteBot: () => void;
+    onOpenBackOffice: () => void;
+    onOpenMindMap: () => void;
+    onOpenCodeReview: () => void;
+    onOpenAgentForge: () => void;
+    onOpenCreator: () => void;
+  } | null>;
 }
 
 const WORKFLOWS = [
@@ -21,13 +39,16 @@ const WORKFLOWS = [
   { id: 'monetize' as const, name: 'Monetize', icon: '💰' },
 ] as const;
 
-function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
+function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelProps) {
   const [showAPIKeyManager, setShowAPIKeyManager] = useState(false);
   const [showDevTools, setShowDevTools] = useState(false);
   const [showGitHub, setShowGitHub] = useState(false);
   const [showMonitorLayouts, setShowMonitorLayouts] = useState(false);
   const [showByteBot, setShowByteBot] = useState(false);
   const [showBackOffice, setShowBackOffice] = useState(false);
+  const [showLayoutPlayground, setShowLayoutPlayground] = useState(false);
+  const [showProgramRunner, setShowProgramRunner] = useState(false);
+  const [activeQuickLab, setActiveQuickLab] = useState<'mindmap' | 'codereview' | 'agentforge' | 'creator' | null>(null);
 
   // Memoize modal handlers to prevent unnecessary re-renders
   const modalHandlers = useMemo(() => ({
@@ -43,7 +64,33 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
     closeByteBot: () => setShowByteBot(false),
     openBackOffice: () => setShowBackOffice(true),
     closeBackOffice: () => setShowBackOffice(false),
+    openLayoutPlayground: () => setShowLayoutPlayground(true),
+    closeLayoutPlayground: () => setShowLayoutPlayground(false),
+    openProgramRunner: () => setShowProgramRunner(true),
+    closeProgramRunner: () => setShowProgramRunner(false),
   }), []);
+
+  // Expose handlers for command palette
+  useEffect(() => {
+    if (handlersRef) {
+      handlersRef.current = {
+        onOpenAPIKeys: modalHandlers.openAPIKeyManager,
+        onOpenDevTools: modalHandlers.openDevTools,
+        onOpenGitHub: modalHandlers.openGitHub,
+        onOpenMonitorLayouts: modalHandlers.openMonitorLayouts,
+        onOpenByteBot: modalHandlers.openByteBot,
+        onOpenBackOffice: modalHandlers.openBackOffice,
+        onOpenMindMap: () => setActiveQuickLab('mindmap'),
+        onOpenCodeReview: () => setActiveQuickLab('codereview'),
+        onOpenAgentForge: () => setActiveQuickLab('agentforge'),
+        onOpenCreator: () => setActiveQuickLab('creator'),
+      };
+    }
+  }, [handlersRef, modalHandlers]);
+
+  const handleQuickLabClick = useCallback((lab: 'mindmap' | 'codereview' | 'agentforge' | 'creator') => {
+    setActiveQuickLab(lab === activeQuickLab ? null : lab);
+  }, [activeQuickLab]);
 
   const handleWorkflowClick = useCallback((workflowId: typeof WORKFLOWS[number]['id']) => {
     onWorkflowChange(workflowId);
@@ -76,10 +123,30 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
         <div className="quick-labs">
           <div className="nav-label">Quick Labs</div>
           <div className="labs-grid">
-            <button className="lab-item">🧠 Mind Map</button>
-            <button className="lab-item">🔍 Code Review</button>
-            <button className="lab-item">🤖 Agent Forge</button>
-            <button className="lab-item">📝 Creator</button>
+            <button
+              className={`lab-item ${activeQuickLab === 'mindmap' ? 'active' : ''}`}
+              onClick={() => handleQuickLabClick('mindmap')}
+            >
+              🧠 Mind Map
+            </button>
+            <button
+              className={`lab-item ${activeQuickLab === 'codereview' ? 'active' : ''}`}
+              onClick={() => handleQuickLabClick('codereview')}
+            >
+              🔍 Code Review
+            </button>
+            <button
+              className={`lab-item ${activeQuickLab === 'agentforge' ? 'active' : ''}`}
+              onClick={() => handleQuickLabClick('agentforge')}
+            >
+              🤖 Agent Forge
+            </button>
+            <button
+              className={`lab-item ${activeQuickLab === 'creator' ? 'active' : ''}`}
+              onClick={() => handleQuickLabClick('creator')}
+            >
+              📝 Creator
+            </button>
           </div>
         </div>
 
@@ -127,6 +194,18 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
             onClick={modalHandlers.openBackOffice}
           >
             📊 Back Office
+          </button>
+          <button 
+            className="settings-button"
+            onClick={modalHandlers.openLayoutPlayground}
+          >
+            🎨 Layout Playground
+          </button>
+          <button 
+            className="settings-button"
+            onClick={modalHandlers.openProgramRunner}
+          >
+            💻 Program Runner
           </button>
         </div>
       </div>
@@ -194,9 +273,59 @@ function LeftPanel({ activeWorkflow, onWorkflowChange }: LeftPanelProps) {
           </div>
         </div>
       )}
-    </>
-  );
-}
+
+      {activeQuickLab && (
+        <div className="modal-overlay" onClick={() => setActiveQuickLab(null)}>
+          <div className="modal-content quicklab-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                {activeQuickLab === 'mindmap' && '🧠 Mind Map'}
+                {activeQuickLab === 'codereview' && '🔍 Code Review'}
+                {activeQuickLab === 'agentforge' && '🤖 Agent Forge'}
+                {activeQuickLab === 'creator' && '📝 Creator'}
+              </h2>
+              <button className="modal-close" onClick={() => setActiveQuickLab(null)}>×</button>
+            </div>
+            <div className="quicklab-content">
+              {activeQuickLab === 'mindmap' && <MindMap />}
+              {activeQuickLab === 'codereview' && <CodeReview />}
+              {activeQuickLab === 'agentforge' && <AgentForge />}
+              {activeQuickLab === 'creator' && <Creator />}
+            </div>
+          </div>
+        </div>
+      )}
+
+          {showLayoutPlayground && (
+            <div className="modal-overlay" onClick={modalHandlers.closeLayoutPlayground}>
+              <div className="modal-content layout-playground-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>🎨 Layout Playground</h2>
+                  <button className="modal-close" onClick={modalHandlers.closeLayoutPlayground}>×</button>
+                </div>
+                <div className="layout-playground-content">
+                  <LayoutPlayground />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showProgramRunner && (
+            <div className="modal-overlay" onClick={modalHandlers.closeProgramRunner}>
+              <div className="modal-content program-runner-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2>💻 Program Runner</h2>
+                  <button className="modal-close" onClick={modalHandlers.closeProgramRunner}>×</button>
+                </div>
+                <div className="program-runner-content">
+                  <ProgramRunner />
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      );
+    }
 
 export default LeftPanel;
 
