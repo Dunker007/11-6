@@ -26,7 +26,8 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "electron"],
+  "include": ["src"],
+  "exclude": ["electron", "node_modules", "dist"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
 
