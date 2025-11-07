@@ -2,7 +2,7 @@ import { useState } from 'react';
 import LeftPanel from './components/AppShell/LeftPanel';
 import CenterPanel from './components/AppShell/CenterPanel';
 import RightPanel from './components/AppShell/RightPanel';
-import '../styles/index.css';
+import './styles/index.css';
 
 function App() {
   const [activeWorkflow, setActiveWorkflow] = useState<'create' | 'build' | 'deploy' | 'monitor' | 'monetize'>('build');
