@@ -25,6 +25,11 @@ declare global {
       getVersion(command: string): Promise<{ success: boolean; version?: string; error?: string }>;
       install(command: string): Promise<{ success: boolean; output?: string; error?: string }>;
     };
+    monitor: {
+      getDisplays(): Promise<Display[]>;
+      setPrimary(displayId: string): Promise<{ success: boolean; error?: string }>;
+      setDisplayBounds(displayId: string, bounds: { x: number; y: number; width: number; height: number }): Promise<{ success: boolean; error?: string }>;
+    };
   }
 }
 
@@ -40,5 +45,14 @@ export interface FileStats {
   size: number;
   mtime: string;
   ctime: string;
+}
+
+export interface Display {
+  id: string;
+  bounds: { x: number; y: number; width: number; height: number };
+  scaleFactor: number;
+  isPrimary: boolean;
+  name: string;
+  resolution: { width: number; height: number };
 }
 

@@ -49,3 +49,11 @@ contextBridge.exposeInMainWorld('devTools', {
   install: (command: string) => ipcRenderer.invoke('tools:install', command),
 });
 
+// --------- Expose Monitor API ---------
+contextBridge.exposeInMainWorld('monitor', {
+  getDisplays: () => ipcRenderer.invoke('monitor:getDisplays'),
+  setPrimary: (displayId: string) => ipcRenderer.invoke('monitor:setPrimary', displayId),
+  setDisplayBounds: (displayId: string, bounds: { x: number; y: number; width: number; height: number }) =>
+    ipcRenderer.invoke('monitor:setDisplayBounds', displayId, bounds),
+});
+

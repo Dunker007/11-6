@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, screen } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
@@ -223,6 +223,34 @@ ipcMain.handle('tools:install', async (_event, command: string) => {
   } catch (error) {
     return { success: false, error: (error as Error).message };
   }
+});
+
+// Monitor IPC Handlers
+ipcMain.handle('monitor:getDisplays', async () => {
+  const displays = screen.getAllDisplays();
+  return displays.map((display, index) => ({
+    id: `display-${index}`,
+    bounds: display.bounds,
+    scaleFactor: display.scaleFactor,
+    isPrimary: display === screen.getPrimaryDisplay(),
+    name: `Display ${index + 1}`,
+    resolution: {
+      width: display.size.width,
+      height: display.size.height,
+    },
+  }));
+});
+
+ipcMain.handle('monitor:setPrimary', async (_event, displayId: string) => {
+  // Note: Setting primary display programmatically is platform-specific
+  // This is a placeholder - actual implementation would require platform-specific code
+  return { success: false, error: 'Not implemented' };
+});
+
+ipcMain.handle('monitor:setDisplayBounds', async (_event, displayId: string, bounds: { x: number; y: number; width: number; height: number }) => {
+  // Note: Setting display bounds programmatically is platform-specific
+  // This is a placeholder - actual implementation would require platform-specific code
+  return { success: false, error: 'Not implemented' };
 });
 
 app.whenReady().then(createWindow);
