@@ -1,15 +1,22 @@
 import { LMStudioProvider, OllamaProvider, type LLMProvider } from './providers/localLLM';
+import { GeminiProvider, NotebookLMProvider } from './providers/cloudLLM';
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
 
 export type { LLMProvider };
 
 export class LLMRouter {
   private providers: Map<string, LLMProvider> = new Map();
-  private preferredProvider: 'lmstudio' | 'ollama' | null = null;
+  private preferredProvider: 'lmstudio' | 'ollama' | 'gemini' | 'notebooklm' | null = null;
+  private strategy: 'local-first' | 'cloud-first' | 'cost-based' = 'local-first';
 
   constructor() {
+    // Local providers
     this.providers.set('lmstudio', new LMStudioProvider());
     this.providers.set('ollama', new OllamaProvider());
+    
+    // Cloud providers
+    this.providers.set('gemini', new GeminiProvider());
+    this.providers.set('notebooklm', new NotebookLMProvider());
   }
 
   async discoverProviders(): Promise<{ provider: string; available: boolean; models: LLMModel[] }[]> {
@@ -46,18 +53,49 @@ export class LLMRouter {
       }
     }
 
-    // Try LM Studio first
-    const lmStudio = this.providers.get('lmstudio');
-    if (lmStudio && (await lmStudio.healthCheck())) {
-      this.preferredProvider = 'lmstudio';
-      return lmStudio;
+    // Local-first strategy (default)
+    if (this.strategy === 'local-first') {
+      // Try local providers first
+      const lmStudio = this.providers.get('lmstudio');
+      if (lmStudio && (await lmStudio.healthCheck())) {
+        this.preferredProvider = 'lmstudio';
+        return lmStudio;
+      }
+
+      const ollama = this.providers.get('ollama');
+      if (ollama && (await ollama.healthCheck())) {
+        this.preferredProvider = 'ollama';
+        return ollama;
+      }
+
+      // Fallback to cloud
+      const gemini = this.providers.get('gemini');
+      if (gemini && (await gemini.healthCheck())) {
+        this.preferredProvider = 'gemini';
+        return gemini;
+      }
     }
 
-    // Fallback to Ollama
-    const ollama = this.providers.get('ollama');
-    if (ollama && (await ollama.healthCheck())) {
-      this.preferredProvider = 'ollama';
-      return ollama;
+    // Cloud-first strategy
+    if (this.strategy === 'cloud-first') {
+      const gemini = this.providers.get('gemini');
+      if (gemini && (await gemini.healthCheck())) {
+        this.preferredProvider = 'gemini';
+        return gemini;
+      }
+
+      // Fallback to local
+      const lmStudio = this.providers.get('lmstudio');
+      if (lmStudio && (await lmStudio.healthCheck())) {
+        this.preferredProvider = 'lmstudio';
+        return lmStudio;
+      }
+
+      const ollama = this.providers.get('ollama');
+      if (ollama && (await ollama.healthCheck())) {
+        this.preferredProvider = 'ollama';
+        return ollama;
+      }
     }
 
     return null;
@@ -83,7 +121,7 @@ export class LLMRouter {
   async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse> {
     const provider = await this.getAvailableProvider();
     if (!provider) {
-      throw new Error('No local LLM provider available');
+      throw new Error('No LLM provider available. Please check your local LLM servers or configure cloud API keys.');
     }
 
     return provider.generate(prompt, options);
@@ -92,14 +130,18 @@ export class LLMRouter {
   async *streamGenerate(prompt: string, options?: GenerateOptions): AsyncGenerator<StreamChunk> {
     const provider = await this.getAvailableProvider();
     if (!provider) {
-      throw new Error('No local LLM provider available');
+      throw new Error('No LLM provider available. Please check your local LLM servers or configure cloud API keys.');
     }
 
     yield* provider.streamGenerate(prompt, options);
   }
 
-  setPreferredProvider(provider: 'lmstudio' | 'ollama'): void {
+  setPreferredProvider(provider: 'lmstudio' | 'ollama' | 'gemini' | 'notebooklm'): void {
     this.preferredProvider = provider;
+  }
+
+  setStrategy(strategy: 'local-first' | 'cloud-first' | 'cost-based'): void {
+    this.strategy = strategy;
   }
 
   getProvider(name: string): LLMProvider | undefined {

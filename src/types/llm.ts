@@ -1,10 +1,11 @@
 export interface LLMModel {
   id: string;
   name: string;
-  provider: 'lmstudio' | 'ollama';
+  provider: 'lmstudio' | 'ollama' | 'gemini' | 'notebooklm' | 'openai' | 'anthropic';
   size?: string;
   contextWindow?: number;
   capabilities?: string[];
+  description?: string;
   isAvailable: boolean;
 }
 
