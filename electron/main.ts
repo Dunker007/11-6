@@ -428,7 +428,9 @@ ipcMain.handle('dialog:saveFile', async (_event, options?: { defaultPath?: strin
 
 ipcMain.handle('dialog:openDirectory', async () => {
   const result = await dialog.showOpenDialog(win!, {
-    properties: ['openDirectory'],
+    properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
+    title: 'Select Project Folder',
+    buttonLabel: 'Open Project',
   });
   return { success: !result.canceled, filePaths: result.filePaths };
 });

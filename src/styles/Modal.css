@@ -4,25 +4,26 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(20px);
 }
 
 .modal-content {
-  background: var(--bg-primary);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 0.75rem;
+  background: var(--bg-glass);
+  backdrop-filter: var(--panel-blur);
+  border: 2px solid var(--panel-border);
+  border-radius: 1rem;
   width: 90%;
   max-width: 1200px;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
 }
 
 .modal-content.back-office-modal {

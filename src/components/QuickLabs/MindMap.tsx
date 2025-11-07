@@ -19,6 +19,7 @@ function MindMap() {
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [draggedNode, setDraggedNode] = useState<MindMapNode | null>(null);
   const [showNewMapDialog, setShowNewMapDialog] = useState(false);
   const [newMapName, setNewMapName] = useState('');
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -50,6 +51,7 @@ function MindMap() {
   const handleNodeDragStart = (e: React.MouseEvent, node: MindMapNode) => {
     e.stopPropagation();
     setIsDragging(true);
+    setDraggedNode(node);
     const rect = canvasRef.current?.getBoundingClientRect();
     if (rect) {
       setDragStart({
@@ -60,16 +62,16 @@ function MindMap() {
   };
 
   const handleNodeDrag = useCallback(
-    (e: React.MouseEvent, node: MindMapNode) => {
-      if (!isDragging || !canvasRef.current) return;
+    (e: React.MouseEvent) => {
+      if (!draggedNode || !isDragging || !canvasRef.current) return;
 
       const rect = canvasRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left - dragStart.x) / scale;
       const y = (e.clientY - rect.top - dragStart.y) / scale;
 
-      updateNode(node.id, { x, y });
+      updateNode(draggedNode.id, { x, y });
     },
-    [isDragging, dragStart, scale, updateNode]
+    [draggedNode, isDragging, dragStart, scale, updateNode]
   );
 
 
@@ -151,7 +153,11 @@ function MindMap() {
         ref={canvasRef}
         className="mind-map-canvas"
         onClick={handleCanvasClick}
-        onMouseUp={() => setIsDragging(false)}
+        onMouseUp={() => {
+          setIsDragging(false);
+          setDraggedNode(null);
+        }}
+        onMouseMove={handleNodeDrag}
         style={{
           transform: `scale(${scale})`,
           transformOrigin: 'top left',
@@ -168,7 +174,6 @@ function MindMap() {
             }}
             onClick={(e) => handleNodeClick(e, node)}
             onMouseDown={(e) => handleNodeDragStart(e, node)}
-            onMouseMove={(e) => handleNodeDrag(e, node)}
           >
             <div className="node-text">{node.text}</div>
             {node.connections.length > 0 && (
@@ -254,4 +259,3 @@ function MindMap() {
 }
 
 export default MindMap;
-

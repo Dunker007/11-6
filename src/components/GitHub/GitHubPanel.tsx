@@ -154,16 +154,39 @@ function GitHubPanel() {
           <h4>Git Operations</h4>
           
           {status && (
-            <div className="git-status">
-              <div className="status-item">
-                <span>Branch:</span>
-                <strong>{status.branch}</strong>
+            <>
+              <div className="git-status">
+                <div className="status-item">
+                  <span>Branch:</span>
+                  <strong>{status.branch}</strong>
+                </div>
+                <div className="status-item">
+                  <span>Changes:</span>
+                  <strong>{status.files.length} file(s)</strong>
+                </div>
               </div>
-              <div className="status-item">
-                <span>Changes:</span>
-                <strong>{status.files.length} file(s)</strong>
-              </div>
-            </div>
+
+              {status.files.length > 0 && (
+                <div className="changed-files">
+                  <h5>Changed Files</h5>
+                  <div className="file-list">
+                    {status.files.map((file, index) => (
+                      <div key={index} className="file-change-item">
+                        <span className={`file-status ${file.status}`}>
+                          {file.status === 'M' && '●'}
+                          {file.status === 'A' && '+'}
+                          {file.status === 'D' && '−'}
+                          {file.status === '??' && '?'}
+                        </span>
+                        <span className="file-path" title={file.file}>
+                          {file.file}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           <div className="operation-group">

@@ -1,13 +1,15 @@
 .left-panel {
   width: 240px;
-  background: var(--bg-secondary);
-  border-right: 1px solid rgba(139, 92, 246, 0.2);
+  background: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  border-right: 1px solid var(--panel-border);
   display: flex;
   flex-direction: column;
   padding: 1rem;
   gap: 1.5rem;
   overflow-y: auto;
   overflow-x: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .panel-header {
@@ -78,7 +80,10 @@
 }
 
 .workflow-icon {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .workflow-name {
@@ -104,7 +109,10 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.75rem;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .lab-item:hover {
@@ -138,6 +146,13 @@
   background: rgba(139, 92, 246, 0.1);
   border: 1px solid rgba(139, 92, 246, 0.3);
   margin-top: auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.command-palette-trigger:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--violet-500);
 }
 
 .cmd-k-button {
@@ -150,6 +165,12 @@
   color: var(--text-primary);
   font-size: 0.75rem;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.cmd-k-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 .settings-section {
@@ -170,8 +191,10 @@
   color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
-  text-align: left;
   font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .settings-button:hover {

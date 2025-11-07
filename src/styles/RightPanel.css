@@ -1,18 +1,27 @@
 .right-panel {
   width: 280px;
-  background: var(--bg-secondary);
-  border-left: 1px solid rgba(139, 92, 246, 0.2);
+  background: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  border-left: 1px solid var(--panel-border);
   display: flex;
   flex-direction: column;
   padding: 1rem;
   gap: 1.5rem;
   overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .panel-section {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+/* Activity Feed gets more space */
+.activity-feed-section {
+  flex: 1;
+  min-height: 300px;
+  max-height: 500px;
 }
 
 .section-header {

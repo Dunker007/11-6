@@ -1,4 +1,5 @@
 import '../../styles/RightPanel.css';
+import ActivityFeed from '../Activity/ActivityFeed';
 import LLMStatus from '../LLMStatus/LLMStatus';
 import HealthDashboard from '../Health/HealthDashboard';
 import VersionDisplay from '../System/VersionDisplay';
@@ -6,17 +7,8 @@ import VersionDisplay from '../System/VersionDisplay';
 function RightPanel() {
   return (
     <div className="right-panel">
-      <div className="panel-section">
-        <div className="section-header">Activity Feed</div>
-        <div className="activity-list">
-          <div className="activity-item">
-            <span className="activity-icon">✨</span>
-            <div className="activity-content">
-              <div className="activity-title">Project initialized</div>
-              <div className="activity-time">Just now</div>
-            </div>
-          </div>
-        </div>
+      <div className="panel-section activity-feed-section">
+        <ActivityFeed />
       </div>
 
       <div className="panel-section">

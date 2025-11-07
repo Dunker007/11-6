@@ -6,7 +6,11 @@ import CommandPalette from './components/CommandPalette/CommandPalette';
 import AIChat from './components/AIChat/AIChat';
 import UpdateNotification from './components/UpdateNotification/UpdateNotification';
 import AboutDialog from './components/About/AboutDialog';
+import AIOSInterface from './components/AIOS/AIOSInterface';
+import TechIcon from './components/Icons/TechIcon';
+import { ICON_MAP } from './components/Icons/IconSet';
 import { registerCommands } from './services/command/registerCommands';
+import './services/theme/themeService'; // Initialize theme on import
 import './styles/index.css';
 
 interface ErrorBoundaryProps {
@@ -87,7 +91,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 function App() {
-  const [activeWorkflow, setActiveWorkflow] = useState<'create' | 'build' | 'deploy' | 'monitor' | 'monetize'>('build');
+  const [osMode, setOsMode] = useState(false);
+  const [activeWorkflow, setActiveWorkflow] = useState<'create' | 'build' | 'deploy' | 'monitor' | 'monetize'>('monitor');
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [isAIChatMinimized, setIsAIChatMinimized] = useState(false);
   const [showAboutDialog, setShowAboutDialog] = useState(false);
@@ -134,6 +139,11 @@ function App() {
             e.preventDefault();
             setIsAIChatMinimized((prev) => !prev);
           }
+          // Cmd+Shift+O or Ctrl+Shift+O for OS Mode
+          if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'O') {
+            e.preventDefault();
+            setOsMode((prev) => !prev);
+          }
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -168,39 +178,62 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div style={{ 
-        display: 'flex', 
-        height: '100vh',
-        width: '100vw',
-        backgroundColor: 'var(--bg-primary)',
-        color: 'var(--text-primary)',
-        overflow: 'hidden'
-      }}>
-        <LeftPanel 
-          activeWorkflow={activeWorkflow} 
-          onWorkflowChange={setActiveWorkflow}
-          handlersRef={leftPanelHandlersRef}
-        />
-        <CenterPanel activeWorkflow={activeWorkflow} onWorkflowChange={setActiveWorkflow} />
-        <RightPanel />
-        <CommandPalette 
-          isOpen={showCommandPalette}
-          onClose={() => setShowCommandPalette(false)}
-        />
-        <AIChat 
-          isMinimized={isAIChatMinimized}
-          onToggleMinimize={() => setIsAIChatMinimized((prev) => !prev)}
-        />
-        {showUpdateNotification && (
-          <UpdateNotification
-            onClose={() => setShowUpdateNotification(false)}
-          />
-        )}
-        <AboutDialog
-          isOpen={showAboutDialog}
-          onClose={() => setShowAboutDialog(false)}
-        />
-      </div>
+      {osMode ? (
+        // AI OS Mode - Full screen takeover
+        <AIOSInterface onExit={() => setOsMode(false)} />
+      ) : (
+        // Regular IDE Mode
+        <>
+          <div style={{ 
+            display: 'flex', 
+            height: '100vh',
+            width: '100vw',
+            background: 'transparent',
+            color: 'var(--text-primary)',
+            overflow: 'hidden'
+          }}>
+            <LeftPanel 
+              activeWorkflow={activeWorkflow} 
+              onWorkflowChange={setActiveWorkflow}
+              handlersRef={leftPanelHandlersRef}
+            />
+            <CenterPanel activeWorkflow={activeWorkflow} onWorkflowChange={setActiveWorkflow} />
+            <RightPanel />
+            <CommandPalette 
+              isOpen={showCommandPalette}
+              onClose={() => setShowCommandPalette(false)}
+            />
+            <AIChat 
+              isMinimized={isAIChatMinimized}
+              onToggleMinimize={() => setIsAIChatMinimized((prev) => !prev)}
+            />
+            {showUpdateNotification && (
+              <UpdateNotification
+                onClose={() => setShowUpdateNotification(false)}
+              />
+            )}
+            <AboutDialog
+              isOpen={showAboutDialog}
+              onClose={() => setShowAboutDialog(false)}
+            />
+          </div>
+
+          {/* Floating OS Mode Toggle Button */}
+          <button
+            className="os-mode-toggle-btn"
+            onClick={() => setOsMode(true)}
+            title="Enter AI OS Mode (⌘⇧O)"
+          >
+            <TechIcon 
+              icon={ICON_MAP.osMode}
+              size={20}
+              glow="cyan"
+              animated={true}
+            />
+            <span>OS Mode</span>
+          </button>
+        </>
+      )}
     </ErrorBoundary>
   );
 }

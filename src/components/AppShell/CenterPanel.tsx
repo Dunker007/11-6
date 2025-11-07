@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import '../../styles/CenterPanel.css';
 import NeuralCore from './NeuralCore';
 import VibeEditor from '../VibeEditor/VibeEditor';
-import FinancialDashboard from '../BackOffice/FinancialDashboard';
+import HealthDashboard from '../Health/HealthDashboard';
 import CreateWorkflow from '../Create/CreateWorkflow';
 import DeployWorkflow from '../Deploy/DeployWorkflow';
 import MonetizeWorkflow from '../Monetize/MonetizeWorkflow';
@@ -43,7 +43,7 @@ function CenterPanel({ activeWorkflow, onWorkflowChange }: CenterPanelProps) {
       case 'deploy':
         return <DeployWorkflow />;
       case 'monitor':
-        return <FinancialDashboard />;
+        return <HealthDashboard />;
       case 'monetize':
         return <MonetizeWorkflow />;
       default:

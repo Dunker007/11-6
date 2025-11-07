@@ -1,0 +1,515 @@
+/* ============================================
+   MISSION SELECTOR - HUD PANELS
+   ============================================ */
+
+.mission-selector {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ============================================
+   MISSION HEADER
+   ============================================ */
+
+.mission-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  justify-content: center;
+}
+
+.header-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan-500), transparent);
+  max-width: 200px;
+}
+
+.mission-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--cyan-500);
+  text-shadow: 0 0 20px var(--cyan-500);
+  animation: title-flicker 5s ease-in-out infinite;
+}
+
+@keyframes title-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* ============================================
+   MISSION PANELS GRID
+   ============================================ */
+
+.mission-panels {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3rem;
+}
+
+.mission-panel {
+  position: relative;
+  padding: 3rem 2rem;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--panel-border);
+  border-radius: 1.5rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  animation: panel-entrance 0.8s ease-out both;
+}
+
+.template-panel {
+  animation-delay: 0.2s;
+}
+
+.ai-panel {
+  animation-delay: 0.4s;
+}
+
+@keyframes panel-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mission-panel:hover {
+  transform: translateY(-10px) scale(1.02);
+  border-color: var(--cyan-500);
+  box-shadow: 0 20px 60px rgba(6, 182, 212, 0.4);
+}
+
+.ai-panel:hover {
+  border-color: var(--violet-500);
+  box-shadow: 0 20px 60px rgba(139, 92, 246, 0.4);
+}
+
+/* ============================================
+   HEXAGON OVERLAY
+   ============================================ */
+
+.panel-hexagon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hex-border {
+  width: 100%;
+  height: 100%;
+  animation: hex-rotate 20s linear infinite;
+}
+
+@keyframes hex-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.hex-path {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: hex-draw 3s ease-out forwards;
+}
+
+@keyframes hex-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.mission-panel:hover .hex-border {
+  animation: hex-rotate 10s linear infinite;
+}
+
+.mission-panel:hover .panel-hexagon {
+  opacity: 0.3;
+}
+
+/* ============================================
+   PANEL CONTENT
+   ============================================ */
+
+.panel-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.panel-icon {
+  margin-bottom: 0.5rem;
+}
+
+.panel-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.panel-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--text-primary);
+  text-shadow: 0 2px 10px rgba(6, 182, 212, 0.5);
+  margin: 0;
+}
+
+.ai-panel .panel-title {
+  text-shadow: 0 2px 10px rgba(139, 92, 246, 0.5);
+}
+
+.panel-code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: var(--cyan-500);
+  opacity: 0.7;
+  letter-spacing: 0.05em;
+}
+
+.ai-panel .panel-code {
+  color: var(--violet-500);
+}
+
+.panel-description {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+/* ============================================
+   FEATURE LIST
+   ============================================ */
+
+.panel-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: rgba(6, 182, 212, 0.05);
+  border-left: 2px solid var(--cyan-500);
+  border-radius: 0 0.5rem 0.5rem 0;
+  transition: all 0.2s ease;
+}
+
+.ai-panel .feature-item {
+  background: rgba(139, 92, 246, 0.05);
+  border-left-color: var(--violet-500);
+}
+
+.mission-panel:hover .feature-item {
+  background: rgba(6, 182, 212, 0.1);
+  transform: translateX(5px);
+}
+
+.ai-panel:hover .feature-item {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.feature-icon {
+  color: var(--cyan-500);
+  font-size: 0.75rem;
+}
+
+.ai-panel .feature-icon {
+  color: var(--violet-500);
+}
+
+.feature-text {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   ACTION BUTTON
+   ============================================ */
+
+.panel-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: var(--gradient-primary);
+  border: 2px solid var(--cyan-500);
+  border-radius: 0.75rem;
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-panel .panel-action-btn {
+  border-color: var(--violet-500);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+.panel-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.panel-action-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.panel-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(6, 182, 212, 0.6);
+}
+
+.ai-panel .panel-action-btn:hover {
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+}
+
+.btn-text {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-arrow {
+  position: relative;
+  z-index: 1;
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+.panel-action-btn:hover .btn-arrow {
+  transform: translateX(5px);
+}
+
+/* ============================================
+   PANEL GLOW EFFECTS
+   ============================================ */
+
+.panel-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  filter: blur(60px);
+  z-index: 0;
+}
+
+.cyan-glow {
+  background: radial-gradient(circle, var(--cyan-500) 0%, transparent 70%);
+}
+
+.violet-glow {
+  background: radial-gradient(circle, var(--violet-500) 0%, transparent 70%);
+}
+
+.mission-panel:hover .panel-glow {
+  opacity: 0.3;
+}
+
+/* ============================================
+   SCAN LINE EFFECT
+   ============================================ */
+
+.panel-scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--cyan-500) 50%, 
+    transparent 100%
+  );
+  opacity: 0;
+  animation: scan-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.ai-panel .panel-scan-line {
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--violet-500) 50%, 
+    transparent 100%
+  );
+}
+
+@keyframes scan-sweep {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+.mission-panel:hover .panel-scan-line {
+  animation: scan-sweep 2s ease-in-out infinite;
+}
+
+/* ============================================
+   CORNER ACCENTS
+   ============================================ */
+
+.panel-corners {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--cyan-500);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ai-panel .corner {
+  border-color: var(--violet-500);
+}
+
+.c-tl {
+  top: 1rem;
+  left: 1rem;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.c-tr {
+  top: 1rem;
+  right: 1rem;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.c-bl {
+  bottom: 1rem;
+  left: 1rem;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+}
+
+.c-br {
+  bottom: 1rem;
+  right: 1rem;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+.mission-panel:hover .corner {
+  opacity: 1;
+}
+
+/* ============================================
+   NEURAL NETWORK OVERLAY (AI Panel only)
+   ============================================ */
+
+.neural-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.ai-panel:hover .neural-overlay {
+  opacity: 0.3;
+}
+
+.neural-node {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--violet-500);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--violet-500);
+  animation: neural-pulse 2s ease-in-out infinite;
+}
+
+@keyframes neural-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .mission-panels {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .mission-panel {
+    padding: 2rem 1.5rem;
+  }
+}
+

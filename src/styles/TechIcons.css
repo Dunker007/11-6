@@ -1,0 +1,452 @@
+/* ============================================
+   TECH ICON SYSTEM - COMMAND CENTER AESTHETIC
+   ============================================ */
+
+.tech-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   BASE ICON STYLING
+   ============================================ */
+
+.tech-icon-svg {
+  position: relative;
+  z-index: 2;
+  color: currentColor;
+  transition: all 0.3s ease;
+}
+
+.tech-icon-wrapper:hover .tech-icon-svg {
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+/* ============================================
+   HEXAGONAL FRAME VARIANT
+   ============================================ */
+
+.variant-hexagon {
+  width: 50px;
+  height: 50px;
+  padding: 0.5rem;
+}
+
+.hex-frame {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.hex-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 4px var(--cyan-500));
+}
+
+.hex-border {
+  fill: none;
+  stroke: var(--cyan-500);
+  stroke-width: 1.5;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.hex-fill {
+  fill: rgba(6, 182, 212, 0.03);
+  stroke: none;
+  transition: all 0.3s ease;
+}
+
+.tech-icon-wrapper:hover .hex-border {
+  stroke-width: 2;
+  opacity: 1;
+  filter: drop-shadow(0 0 8px var(--cyan-500));
+}
+
+.tech-icon-wrapper:hover .hex-fill {
+  fill: rgba(6, 182, 212, 0.1);
+}
+
+/* Hexagon corner accents */
+.hex-corners {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.corner {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--cyan-500);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.corner-tl {
+  top: 2px;
+  left: 2px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.corner-tr {
+  top: 2px;
+  right: 2px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.corner-bl {
+  bottom: 2px;
+  left: 2px;
+  border-right: none;
+  border-top: none;
+}
+
+.corner-br {
+  bottom: 2px;
+  right: 2px;
+  border-left: none;
+  border-top: none;
+}
+
+.tech-icon-wrapper:hover .corner {
+  opacity: 1;
+}
+
+/* ============================================
+   CIRCUIT PATTERN VARIANT
+   ============================================ */
+
+.variant-circuit {
+  width: 50px;
+  height: 50px;
+  padding: 0.5rem;
+}
+
+.circuit-pattern {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.circuit-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.circuit-line {
+  fill: none;
+  stroke: var(--cyan-500);
+  stroke-width: 1;
+  stroke-dasharray: 2, 2;
+  animation: circuit-flow 2s linear infinite;
+}
+
+.circuit-node {
+  fill: var(--cyan-500);
+  filter: drop-shadow(0 0 2px var(--cyan-500));
+}
+
+.tech-icon-wrapper:hover .circuit-pattern {
+  opacity: 0.8;
+}
+
+@keyframes circuit-flow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 20;
+  }
+}
+
+/* ============================================
+   CIRCLE VARIANT
+   ============================================ */
+
+.variant-circle {
+  width: 50px;
+  height: 50px;
+  padding: 0.5rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--cyan-500);
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
+  box-shadow: inset 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+.variant-circle:hover {
+  box-shadow: inset 0 0 20px rgba(6, 182, 212, 0.4),
+              0 0 15px rgba(6, 182, 212, 0.3);
+}
+
+/* ============================================
+   GLOW EFFECTS
+   ============================================ */
+
+.glow-cyan {
+  color: var(--cyan-500);
+}
+
+.glow-cyan:hover {
+  filter: drop-shadow(0 0 12px var(--cyan-500));
+}
+
+.glow-violet {
+  color: var(--violet-500);
+}
+
+.glow-violet:hover {
+  filter: drop-shadow(0 0 12px var(--violet-500));
+}
+
+.glow-violet .hex-border,
+.glow-violet .circuit-line,
+.glow-violet .corner {
+  stroke: var(--violet-500);
+}
+
+.glow-violet .hex-fill {
+  fill: rgba(139, 92, 246, 0.03);
+}
+
+.glow-violet:hover .hex-fill {
+  fill: rgba(139, 92, 246, 0.1);
+}
+
+.glow-amber {
+  color: var(--amber-500);
+}
+
+.glow-amber:hover {
+  filter: drop-shadow(0 0 12px var(--amber-500));
+}
+
+.glow-amber .hex-border,
+.glow-amber .circuit-line,
+.glow-amber .corner {
+  stroke: var(--amber-500);
+}
+
+/* ============================================
+   ANIMATED STATE
+   ============================================ */
+
+.animated {
+  animation: icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Scan line effect */
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--cyan-500) 50%, 
+    transparent 100%
+  );
+  opacity: 0.6;
+  animation: scan-sweep 2s linear infinite;
+  z-index: 3;
+  pointer-events: none;
+}
+
+@keyframes scan-sweep {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   PARTICLE EFFECTS
+   ============================================ */
+
+.particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--cyan-500);
+  border-radius: 50%;
+  opacity: 0;
+  animation: particle-float 3s ease-in-out infinite;
+  box-shadow: 0 0 4px var(--cyan-500);
+}
+
+.particle-1 {
+  top: 20%;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.particle-2 {
+  top: 50%;
+  right: 20%;
+  animation-delay: 1s;
+}
+
+.particle-3 {
+  bottom: 20%;
+  left: 50%;
+  animation-delay: 2s;
+}
+
+@keyframes particle-float {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(var(--float-x, 10px), var(--float-y, -10px));
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   ACTIVE STATE
+   ============================================ */
+
+.active {
+  animation: active-pulse 1.5s ease-in-out infinite;
+}
+
+.active .tech-icon-svg {
+  color: var(--cyan-400) !important;
+  filter: drop-shadow(0 0 12px var(--cyan-500));
+}
+
+.active .hex-border {
+  stroke: var(--cyan-400);
+  stroke-width: 2.5;
+  opacity: 1;
+  animation: border-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes active-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes border-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px var(--cyan-500));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px var(--cyan-400));
+  }
+}
+
+/* Pulse ring for active icons */
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid var(--cyan-500);
+  opacity: 0;
+  animation: pulse-ring-expand 2s ease-out infinite;
+  z-index: 0;
+}
+
+@keyframes pulse-ring-expand {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   INTERACTIVE STATES
+   ============================================ */
+
+.tech-icon-wrapper:active {
+  transform: scale(0.95);
+}
+
+.tech-icon-wrapper.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ============================================
+   SIZE VARIANTS
+   ============================================ */
+
+.tech-icon-wrapper.size-sm {
+  width: 32px;
+  height: 32px;
+  padding: 0.25rem;
+}
+
+.tech-icon-wrapper.size-md {
+  width: 50px;
+  height: 50px;
+  padding: 0.5rem;
+}
+
+.tech-icon-wrapper.size-lg {
+  width: 70px;
+  height: 70px;
+  padding: 0.75rem;
+}
+
+.tech-icon-wrapper.size-xl {
+  width: 100px;
+  height: 100px;
+  padding: 1rem;
+}
+

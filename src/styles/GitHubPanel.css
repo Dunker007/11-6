@@ -199,6 +199,69 @@
   color: var(--text-primary);
 }
 
+.changed-files {
+  margin-bottom: 1rem;
+}
+
+.changed-files h5 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.file-list {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+
+.file-change-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: background 0.2s;
+}
+
+.file-change-item:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.file-status {
+  font-size: 0.875rem;
+  font-weight: bold;
+  width: 16px;
+  text-align: center;
+}
+
+.file-status.M {
+  color: rgb(251, 191, 36);
+}
+
+.file-status.A {
+  color: rgb(34, 197, 94);
+}
+
+.file-status.D {
+  color: rgb(239, 68, 68);
+}
+
+.file-path {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .operation-group {
   margin-bottom: 1.5rem;
   padding: 1rem;

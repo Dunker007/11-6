@@ -109,3 +109,29 @@
   background: rgba(139, 92, 246, 0.2);
 }
 
+.context-menu-item.danger {
+  color: rgb(239, 68, 68);
+}
+
+.context-menu-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: rgba(139, 92, 246, 0.2);
+  margin: 0.25rem 0;
+}
+
+.rename-input {
+  background: var(--bg-primary);
+  border: 1px solid var(--violet-500);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  padding: 0.125rem 0.25rem;
+  outline: none;
+  width: 150px;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+

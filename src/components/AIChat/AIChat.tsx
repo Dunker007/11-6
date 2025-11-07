@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { useProjectStore } from '../../services/project/projectStore';
+import { useActivityStore } from '../../services/activity/activityStore';
 import { projectKnowledgeService } from '../../services/ai/projectKnowledgeService';
+import TechIcon from '../Icons/TechIcon';
+import { ICON_MAP } from '../Icons/IconSet';
 import '../../styles/AIChat.css';
 
 interface Message {
@@ -19,6 +22,7 @@ interface AIChatProps {
 function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
   const { streamGenerate, isLoading } = useLLMStore();
   const { activeProject, getFileContent, activeFile } = useProjectStore();
+  const { addActivity } = useActivityStore();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -49,6 +53,10 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsStreaming(true);
+    
+    // Track user query
+    const shortQuery = input.trim().slice(0, 50) + (input.trim().length > 50 ? '...' : '');
+    addActivity('ai', 'query', `Asked: "${shortQuery}"`);
 
     try {
       // Check if user is asking about military background
@@ -120,6 +128,9 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
           return updated;
         });
       }
+      
+      // Track AI response completion
+      addActivity('ai', 'response', 'Vibed Ed responded');
     } catch (error) {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
@@ -143,7 +154,13 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
   if (isMinimized) {
     return (
       <div className="ai-chat-minimized" onClick={onToggleMinimize}>
-        <div className="minimized-avatar">🧠</div>
+        <TechIcon 
+          icon={ICON_MAP.vibedEd}
+          size={24}
+          glow="violet"
+          animated={true}
+          className="minimized-avatar"
+        />
         <span>Vibed Ed</span>
       </div>
     );
@@ -154,7 +171,12 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
       <div className="chat-header">
         <div className="chat-header-left">
           <div className="chat-avatar">
-            <span>🧠</span>
+            <TechIcon 
+              icon={ICON_MAP.vibedEd}
+              size={24}
+              glow="violet"
+              animated={isLoading || isStreaming}
+            />
           </div>
           <div className="chat-header-info">
             <h3>Vibed Ed</h3>

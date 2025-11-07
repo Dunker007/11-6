@@ -1,0 +1,391 @@
+/* ============================================
+   RECENT OPERATIONS
+   ============================================ */
+
+.recent-operations {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ============================================
+   OPERATIONS HEADER
+   ============================================ */
+
+.operations-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.header-accent {
+  color: var(--cyan-500);
+  font-size: 1.25rem;
+  animation: accent-blink 2s ease-in-out infinite;
+}
+
+@keyframes accent-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.operations-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.header-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan-500), transparent);
+}
+
+/* ============================================
+   NO OPERATIONS STATE
+   ============================================ */
+
+.no-operations {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px dashed var(--panel-border);
+  border-radius: 1rem;
+}
+
+.no-ops-icon {
+  font-size: 3rem;
+  color: var(--cyan-500);
+  opacity: 0.3;
+  margin-bottom: 1rem;
+}
+
+.no-ops-text {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.no-ops-subtext {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0 0;
+}
+
+/* ============================================
+   OPERATIONS GRID
+   ============================================ */
+
+.operations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ============================================
+   OPERATION CARD
+   ============================================ */
+
+.operation-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.operation-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--cyan-500);
+  box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+}
+
+.operation-card:hover .card-scan {
+  animation: card-scan 2s ease-in-out infinite;
+}
+
+.operation-card:hover .card-brackets .bracket {
+  opacity: 1;
+}
+
+.operation-card:hover .status-led {
+  animation: led-pulse 1s ease-in-out infinite;
+}
+
+/* ============================================
+   STATUS LED
+   ============================================ */
+
+.status-led {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.status-led.green {
+  background: #00ff88;
+  box-shadow: 0 0 10px #00ff88;
+}
+
+.status-led.yellow {
+  background: #ffaa00;
+  box-shadow: 0 0 10px #ffaa00;
+}
+
+.status-led.red {
+  background: #ff4444;
+  box-shadow: 0 0 10px #ff4444;
+}
+
+@keyframes led-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.7;
+  }
+}
+
+/* ============================================
+   PROJECT ICON
+   ============================================ */
+
+.project-icon-wrapper {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid var(--cyan-500);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.operation-card:hover .project-icon-wrapper {
+  background: rgba(6, 182, 212, 0.2);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+/* ============================================
+   PROJECT INFO
+   ============================================ */
+
+.project-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.project-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.meta-icon {
+  font-size: 0.625rem;
+  color: var(--cyan-500);
+}
+
+.meta-divider {
+  opacity: 0.3;
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid var(--cyan-500);
+  border-radius: 0.5rem;
+  color: var(--cyan-500);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.action-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  box-shadow: 0 0 15px var(--cyan-500);
+}
+
+.open-btn:hover {
+  background: rgba(6, 182, 212, 0.2);
+}
+
+.delete-btn {
+  border-color: #ff4444;
+  color: #ff4444;
+}
+
+.delete-btn:hover {
+  background: rgba(255, 68, 68, 0.2);
+  box-shadow: 0 0 15px #ff4444;
+}
+
+/* ============================================
+   CARD SCAN EFFECT
+   ============================================ */
+
+.card-scan {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--cyan-500) 50%, 
+    transparent 100%
+  );
+  opacity: 0;
+  z-index: 1;
+}
+
+@keyframes card-scan {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   CARD BRACKETS
+   ============================================ */
+
+.card-brackets {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bracket {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-color: var(--cyan-500);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.bracket.tl {
+  top: 0.5rem;
+  left: 0.5rem;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.bracket.tr {
+  top: 0.5rem;
+  right: 0.5rem;
+  border-top: 2px solid;
+  border-right: 2px solid;
+}
+
+.bracket.bl {
+  bottom: 0.5rem;
+  left: 0.5rem;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+}
+
+.bracket.br {
+  bottom: 0.5rem;
+  right: 0.5rem;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .operations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .operation-card {
+    padding: 1rem;
+  }
+
+  .project-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+

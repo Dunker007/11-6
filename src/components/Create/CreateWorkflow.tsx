@@ -3,6 +3,9 @@ import { createService } from '../../services/create/createService';
 import { useProjectStore } from '../../services/project/projectStore';
 import ProjectTemplates from './ProjectTemplates';
 import AIProjectGenerator from './AIProjectGenerator';
+import CommandCenterHero from './CommandCenterHero';
+import MissionSelector from './MissionSelector';
+import RecentOperations from './RecentOperations';
 import '../../styles/CreateWorkflow.css';
 
 interface CreateWorkflowProps {
@@ -99,44 +102,27 @@ function CreateWorkflow({ onProjectCreated }: CreateWorkflowProps) {
   }
 
   return (
-    <div className="create-workflow">
-      <div className="workflow-placeholder-content">
-        <h2>Create Workflow</h2>
-        <p>Start a new project from templates or use AI to generate one</p>
-        
-        {error && (
-          <div className="error-banner">
+    <div className="create-workflow command-center-layout">
+      {error && (
+        <div className="error-banner">
+          <div className="error-content">
+            <span className="error-icon">⚠</span>
             <p>{error}</p>
           </div>
-        )}
-
-        <div className="create-options">
-          <div className="create-option">
-            <div className="option-icon">📋</div>
-            <h3>Templates</h3>
-            <p>Choose from pre-built project templates</p>
-            <button 
-              className="option-button"
-              onClick={() => setMode('templates')}
-              disabled={isCreating}
-            >
-              Browse Templates
-            </button>
-          </div>
-          <div className="create-option">
-            <div className="option-icon">🤖</div>
-            <h3>AI Generator</h3>
-            <p>Describe your project and let AI create it</p>
-            <button 
-              className="option-button"
-              onClick={() => setMode('ai')}
-              disabled={isCreating}
-            >
-              Generate with AI
-            </button>
-          </div>
         </div>
-      </div>
+      )}
+
+      {/* Command Center Hero with Neural Core */}
+      <CommandCenterHero />
+
+      {/* Mission Selector */}
+      <MissionSelector 
+        onSelectTemplate={() => setMode('templates')}
+        onSelectAI={() => setMode('ai')}
+      />
+
+      {/* Recent Operations */}
+      <RecentOperations />
     </div>
   );
 }

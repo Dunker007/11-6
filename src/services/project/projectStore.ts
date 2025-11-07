@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { projectService } from './projectService';
+import { activityService } from '../activity/activityService';
 import type { Project } from '@/types/project';
+import { FolderPlus, FileText, Trash2 } from 'lucide-react';
 
 interface ProjectStore {
   projects: Project[];
@@ -37,6 +39,18 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       projects: [...state.projects, project],
       activeProject: project,
     }));
+    
+    // Track activity
+    activityService.addActivity({
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: 'project',
+      action: 'created',
+      description: `Created project "${name}"`,
+      timestamp: Date.now(),
+      icon: FolderPlus,
+      color: 'green',
+    });
+    
     return project;
   },
 
@@ -44,6 +58,19 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     projectService.setActiveProject(id);
     const activeProject = projectService.getActiveProject();
     set({ activeProject });
+    
+    // Track activity
+    if (activeProject) {
+      activityService.addActivity({
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: 'project',
+        action: 'opened',
+        description: `Opened project "${activeProject.name}"`,
+        timestamp: Date.now(),
+        icon: FolderPlus,
+        color: 'cyan',
+      });
+    }
   },
 
   updateFile: (path, content) => {
@@ -66,6 +93,19 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     if (updatedProject) {
       set({ activeProject: updatedProject });
     }
+    
+    // Track activity
+    const fileName = path.split('/').pop() || path;
+    activityService.addActivity({
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: 'file',
+      action: 'created',
+      description: `Created ${fileName}`,
+      timestamp: Date.now(),
+      metadata: { path },
+      icon: FileText,
+      color: 'green',
+    });
   },
 
   deleteFile: (path) => {
@@ -77,6 +117,19 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     if (updatedProject) {
       set({ activeProject: updatedProject });
     }
+    
+    // Track activity
+    const fileName = path.split('/').pop() || path;
+    activityService.addActivity({
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: 'file',
+      action: 'deleted',
+      description: `Deleted ${fileName}`,
+      timestamp: Date.now(),
+      metadata: { path },
+      icon: Trash2,
+      color: 'red',
+    });
   },
 
   getFileContent: (path) => {
