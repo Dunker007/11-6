@@ -1,4 +1,5 @@
 import '../styles/RightPanel.css';
+import LLMStatus from '../LLMStatus/LLMStatus';
 
 function RightPanel() {
   return (
@@ -14,6 +15,10 @@ function RightPanel() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="panel-section">
+        <LLMStatus />
       </div>
 
       <div className="panel-section">
