@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDevToolsStore } from '../../services/devtools/toolStore';
 import { DEV_TOOLS } from '../../services/devtools/toolRegistry';
 import type { DevTool } from '../../services/devtools/toolRegistry';
-import '../styles/DevToolsManager.css';
+import '../../styles/DevToolsManager.css';
 
 function DevToolsManager() {
   const { tools, isLoading, checkAllTools, installTool, getToolsByCategory } = useDevToolsStore();

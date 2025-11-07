@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useHealthStore } from '../../services/health/healthStore';
-import '../styles/HealthDashboard.css';
+import '../../styles/HealthDashboard.css';
 
 function HealthDashboard() {
   const { stats, metrics, alerts, checkHealth, startMonitoring, stopMonitoring, acknowledgeAlert } = useHealthStore();

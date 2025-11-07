@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useByteBotStore } from '../../services/automation/bytebotStore';
-import '../styles/ByteBotPanel.css';
+import '../../styles/ByteBotPanel.css';
 
 function ByteBotPanel() {
   const { config, tasks, isLoading, connect, executeTask, cancelTask } = useByteBotStore();

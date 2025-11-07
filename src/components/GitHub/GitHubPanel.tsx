@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useGitHubStore } from '../../services/github/githubStore';
 import { useFileSystemStore } from '../../services/filesystem/fileSystemStore';
-import '../styles/GitHubPanel.css';
+import '../../styles/GitHubPanel.css';
 
 function GitHubPanel() {
   const {

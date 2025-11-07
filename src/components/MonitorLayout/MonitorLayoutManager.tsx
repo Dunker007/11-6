@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMonitorStore } from '../../services/monitor/monitorStore';
-import '../styles/MonitorLayoutManager.css';
+import '../../styles/MonitorLayoutManager.css';
 
 function MonitorLayoutManager() {
   const { displays, layouts, currentLayout, loadDisplays, loadLayouts, saveLayout, deleteLayout, applyLayout } = useMonitorStore();
