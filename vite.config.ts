@@ -17,6 +17,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      external: ['systeminformation'], // Don't bundle systeminformation - it's Node.js only
+    },
+  },
+  optimizeDeps: {
+    exclude: ['systeminformation'], // Don't pre-bundle systeminformation
   },
   base: './',
 });
