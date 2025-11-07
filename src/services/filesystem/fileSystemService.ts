@@ -20,6 +20,9 @@ export class FileSystemService {
 
   async readFile(path: string): Promise<FileSystemResult<string>> {
     try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
       const result = await window.fileSystem.readFile(path);
       if (result.success && result.content !== undefined) {
         return { success: true, data: result.content };
@@ -32,6 +35,9 @@ export class FileSystemService {
 
   async writeFile(path: string, content: string): Promise<FileSystemResult> {
     try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
       const result = await window.fileSystem.writeFile(path, content);
       if (result.success) {
         return { success: true };
@@ -44,6 +50,9 @@ export class FileSystemService {
 
   async mkdir(path: string, recursive = true): Promise<FileSystemResult> {
     try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
       const result = await window.fileSystem.mkdir(path, recursive);
       if (result.success) {
         return { success: true };
@@ -56,6 +65,9 @@ export class FileSystemService {
 
   async rm(path: string, recursive = false): Promise<FileSystemResult> {
     try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
       const result = await window.fileSystem.rm(path, recursive);
       if (result.success) {
         return { success: true };
@@ -68,6 +80,9 @@ export class FileSystemService {
 
   async readdir(path: string): Promise<FileSystemResult<FileSystemEntry[]>> {
     try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
       const result = await window.fileSystem.readdir(path);
       if (result.success && result.entries) {
         return { success: true, data: result.entries };
@@ -80,6 +95,9 @@ export class FileSystemService {
 
   async stat(path: string): Promise<FileSystemResult<FileStats>> {
     try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
       const result = await window.fileSystem.stat(path);
       if (result.success && result.stats) {
         return { success: true, data: result.stats };
@@ -92,6 +110,9 @@ export class FileSystemService {
 
   async exists(path: string): Promise<FileSystemResult<boolean>> {
     try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
       const result = await window.fileSystem.exists(path);
       if (result.success && result.exists !== undefined) {
         return { success: true, data: result.exists };
@@ -104,6 +125,9 @@ export class FileSystemService {
 
   async openFileDialog(options?: { filters?: { name: string; extensions: string[] }[] }): Promise<FileSystemResult<string[]>> {
     try {
+      if (!window.dialogs) {
+        return { success: false, error: 'Dialog API not available' };
+      }
       const result = await window.dialogs.openFile(options);
       if (result.success && result.filePaths) {
         return { success: true, data: result.filePaths };
@@ -116,6 +140,9 @@ export class FileSystemService {
 
   async saveFileDialog(options?: { defaultPath?: string; filters?: { name: string; extensions: string[] }[] }): Promise<FileSystemResult<string>> {
     try {
+      if (!window.dialogs) {
+        return { success: false, error: 'Dialog API not available' };
+      }
       const result = await window.dialogs.saveFile(options);
       if (result.success && result.filePath) {
         return { success: true, data: result.filePath };
@@ -128,6 +155,9 @@ export class FileSystemService {
 
   async openDirectoryDialog(): Promise<FileSystemResult<string[]>> {
     try {
+      if (!window.dialogs) {
+        return { success: false, error: 'Dialog API not available' };
+      }
       const result = await window.dialogs.openDirectory();
       if (result.success && result.filePaths) {
         return { success: true, data: result.filePaths };

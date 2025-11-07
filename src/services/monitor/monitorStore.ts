@@ -31,6 +31,10 @@ export const useMonitorStore = create<MonitorStore>((set, get) => ({
   loadDisplays: async () => {
     set({ isLoading: true, error: null });
     try {
+      if (!window.monitor) {
+        set({ isLoading: false, error: 'Monitor API not available' });
+        return;
+      }
       const displays = await window.monitor.getDisplays();
       set({ displays, isLoading: false });
     } catch (error) {
@@ -99,6 +103,10 @@ export const useMonitorStore = create<MonitorStore>((set, get) => ({
     }
 
     try {
+      if (!window.monitor) {
+        set({ error: 'Monitor API not available' });
+        return false;
+      }
       // Apply each monitor's bounds
       for (const monitor of layout.monitors) {
         await window.monitor.setDisplayBounds(monitor.id, monitor.bounds);

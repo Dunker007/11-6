@@ -29,6 +29,14 @@ export class ToolManager {
     }
 
     try {
+      if (!window.devTools) {
+        return {
+          tool,
+          isInstalled: false,
+          error: 'Dev tools API not available',
+        };
+      }
+
       const result = await window.devTools.check(tool.command);
       
       if (result.success && result.installed) {
@@ -82,6 +90,9 @@ export class ToolManager {
     if (!tool.versionCommand) return undefined;
 
     try {
+      if (!window.devTools) {
+        return undefined;
+      }
       const result = await window.devTools.getVersion(tool.versionCommand);
       return result.version;
     } catch {
@@ -101,6 +112,9 @@ export class ToolManager {
     }
 
     try {
+      if (!window.devTools) {
+        return { success: false, error: 'Dev tools API not available' };
+      }
       const result = await window.devTools.install(tool.installCommand);
       if (result.success) {
         // Clear cache to force re-check
