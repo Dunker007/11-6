@@ -14,7 +14,11 @@ process.env.VITE_PUBLIC = app.isPackaged
   : path.join(process.env.DIST, '../public');
 
 let win: BrowserWindow | null = null;
-const preload = path.join(__dirname, 'preload.js');
+// In development, use the TypeScript file directly (tsx will handle it)
+// In production, this will be compiled to preload.js
+const preload = isDev 
+  ? path.join(__dirname, 'preload.ts')
+  : path.join(__dirname, 'preload.js');
 const url = isDev ? 'http://localhost:5173' : undefined;
 
 function createWindow() {
