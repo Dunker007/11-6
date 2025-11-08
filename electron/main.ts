@@ -19,6 +19,18 @@ const __dirname = path.dirname(__filename);
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
+// Debug logging to file
+const DEBUG_LOG_FILE = path.join(app.getPath('userData'), 'electron-debug.log');
+function debugLog(...args: any[]) {
+  const message = `[${new Date().toISOString()}] ${args.join(' ')}\n`;
+  console.log(...args);
+  try {
+    writeFileSync(DEBUG_LOG_FILE, message, { flag: 'a' });
+  } catch (err) {
+    console.error('Failed to write debug log:', err);
+  }
+}
+
 // Window state persistence
 const WINDOW_STATE_FILE = path.join(app.getPath('userData'), 'window-state.json');
 
@@ -119,22 +131,31 @@ function createWindow() {
 
   // Load the app
   if (url) {
+    debugLog('[Electron] Dev mode - loading from URL:', url);
     win.loadURL(url);
-    if (isDev) {
-      win.webContents.openDevTools();
-    }
+    win.webContents.openDevTools(); // Always open DevTools for debugging
   } else {
+    // Open DevTools in production for debugging
+    win.webContents.openDevTools();
     // In production, resolve path relative to the app root
     // __dirname in production points to resources/app.asar/dist-electron
     // We need to go up one level to reach dist
     const indexPath = path.join(__dirname, '../dist/index.html');
     
-    console.log('[Electron] isDev:', isDev);
-    console.log('[Electron] __dirname:', __dirname);
-    console.log('[Electron] Loading index.html from:', indexPath);
+    debugLog('[Electron] Production mode');
+    debugLog('[Electron] isDev:', isDev);
+    debugLog('[Electron] app.isPackaged:', app.isPackaged);
+    debugLog('[Electron] __dirname:', __dirname);
+    debugLog('[Electron] process.resourcesPath:', process.resourcesPath);
+    debugLog('[Electron] app.getAppPath():', app.getAppPath());
+    debugLog('[Electron] Resolved index path:', indexPath);
+    debugLog('[Electron] Index file exists:', existsSync(indexPath));
     
-    win.loadFile(indexPath).catch(err => {
-      console.error('[Electron] Failed to load index.html:', err);
+    win.loadFile(indexPath).then(() => {
+      debugLog('[Electron] Successfully loaded index.html');
+    }).catch(err => {
+      debugLog('[Electron] ERROR loading index.html:', err.message);
+      debugLog('[Electron] Error stack:', err.stack);
     });
   }
 

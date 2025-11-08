@@ -32,31 +32,15 @@ export default defineConfig({
           ], // Don't bundle Node.js-only modules
           output: {
             manualChunks: (id) => {
-              // Core React libraries
-              if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-                return 'react-vendor';
-              }
               // Monaco Editor (large dependency)
               if (id.includes('node_modules/monaco-editor') || id.includes('node_modules/@monaco-editor')) {
                 return 'monaco-vendor';
-              }
-              // Markdown renderer
-              if (id.includes('node_modules/react-markdown')) {
-                return 'markdown-vendor';
-              }
-              // AI/LLM libraries
-              if (id.includes('node_modules/@google/generative-ai')) {
-                return 'ai-vendor';
               }
               // Lucide icons
               if (id.includes('node_modules/lucide-react')) {
                 return 'icons-vendor';
               }
-              // Zustand state management
-              if (id.includes('node_modules/zustand')) {
-                return 'state-vendor';
-              }
-              // Other node_modules
+              // All other node_modules INCLUDING React - keep React in vendor for proper loading
               if (id.includes('node_modules')) {
                 return 'vendor';
               }
