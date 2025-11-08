@@ -18,18 +18,19 @@ export default function ErrorConsole({ isOpen, onClose }: ErrorConsoleProps) {
   const [filter, setFilter] = useState<ErrorFilter>({});
   const [showFilters, setShowFilters] = useState(false);
 
+  const loadErrors = useCallback(() => {
+    setErrors(errorLogger.getErrors());
+  }, []);
+
   // Load errors on mount and subscribe to updates
   useEffect(() => {
     loadErrors();
     const unsubscribe = errorLogger.subscribe(() => {
-      loadErrors();
+      // Use setTimeout to defer state update to next tick, avoiding updates during render
+      setTimeout(loadErrors, 0);
     });
     return unsubscribe;
-  }, []);
-
-  const loadErrors = () => {
-    setErrors(errorLogger.getErrors());
-  };
+  }, [loadErrors]);
 
   // Filter errors
   const filteredErrors = useMemo(() => {
