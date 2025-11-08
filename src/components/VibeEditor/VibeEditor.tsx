@@ -24,6 +24,8 @@ function VibeEditor() {
   const [showProjectSearch, setShowProjectSearch] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadProjects();
@@ -31,7 +33,7 @@ function VibeEditor() {
 
   // Update error context when project or file changes
   useEffect(() => {
-    errorContext.setProject(activeProject || null);
+    errorContext.setProject(activeProject?.id || null);
   }, [activeProject]);
 
   useEffect(() => {
@@ -116,8 +118,16 @@ function VibeEditor() {
       setUnsavedChanges(true);
       setSaveStatus('saving');
       
+      // Clear any existing timeout before setting a new one
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+      
       // Debounce the save
-      const timeoutId = setTimeout(() => {
+      saveTimeoutRef.current = setTimeout(() => {
         updateFile(activeFilePath, value);
         setUnsavedChanges(false);
         setSaveStatus('saved');
@@ -127,14 +137,24 @@ function VibeEditor() {
         addActivity('file', 'saved', `Saved ${fileName}`);
         
         // Show "Saved" for 2 seconds
-        setTimeout(() => {
+        statusTimeoutRef.current = setTimeout(() => {
           setSaveStatus('saved');
         }, 2000);
       }, 500);
-      
-      return () => clearTimeout(timeoutId);
     }
   };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleFileSelect = (path: string, line?: number) => {
     setActiveFilePath(path);

@@ -65,7 +65,7 @@ export class GeminiProvider implements LLMProvider {
           },
         ],
         generationConfig: {
-          temperature: options?.temperature ?? 0.7,
+          temperature: options?.temperature ?? 0.91,
           maxOutputTokens: options?.maxTokens ?? 2048,
         },
       }),
@@ -111,7 +111,7 @@ export class GeminiProvider implements LLMProvider {
           },
         ],
         generationConfig: {
-          temperature: options?.temperature ?? 0.7,
+          temperature: options?.temperature ?? 0.91,
           maxOutputTokens: options?.maxTokens ?? 2048,
         },
       }),
@@ -217,7 +217,7 @@ export class NotebookLMProvider implements LLMProvider {
       },
       body: JSON.stringify({
         prompt,
-        temperature: options?.temperature ?? 0.7,
+        temperature: options?.temperature ?? 0.91,
         maxTokens: options?.maxTokens ?? 2048,
       }),
     });

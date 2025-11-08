@@ -79,6 +79,10 @@
     "createStartMenuShortcut": true,
     "shortcutName": "DLX Studios Ultimate"
   },
-  "publish": null
+  "publish": {
+    "provider": "github",
+    "owner": "Dunker007",
+    "repo": "11-6"
+  }
 }
 

@@ -25,7 +25,7 @@ export class AIGeneratorService {
       const prompt = this.buildProjectPrompt(projectName, description);
       const response = await useLLMStore.getState().generate(prompt, {
         maxTokens: 4000,
-        temperature: 0.7,
+        temperature: 0.91,
       });
 
       // Parse the AI response to extract file structure
