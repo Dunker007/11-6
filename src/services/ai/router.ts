@@ -238,10 +238,6 @@ export class LLMRouter {
     this.preferredProvider = provider;
   }
 
-  setStrategy(strategy: 'local-first' | 'cloud-first' | 'cost-based'): void {
-    this.strategy = strategy;
-  }
-
   getProvider(name: string): LLMProvider | undefined {
     return this.providers.get(name);
   }
