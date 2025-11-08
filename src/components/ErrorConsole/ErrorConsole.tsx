@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { errorLogger } from '../../services/errors/errorLogger';
 import { CapturedError, ErrorCategory, ErrorSeverity, ErrorFilter } from '../../types/error';
 import { formatTimeAgo } from '../../utils/formatters';
