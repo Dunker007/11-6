@@ -203,7 +203,7 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
             onClick={onToggleMinimize}
             title={isMinimized ? "Expand" : "Minimize"}
           >
-            <TechIcon icon={isMinimized ? ICON_MAP.plus : ICON_MAP.x} size={16} />
+            <TechIcon icon={isMinimized ? Plus : X} size={16} />
           </button>
         </div>
       </div>
