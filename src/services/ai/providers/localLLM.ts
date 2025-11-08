@@ -166,14 +166,24 @@ export class OllamaProvider implements LLMProvider {
   name = 'Ollama';
   type: 'local' = 'local';
   private baseUrl = 'http://localhost:11434/api';
+  private maxRetries = 3;
+  private retryDelay = 1000; // ms
+  private healthCheckTimeout = 5000; // ms
 
   async healthCheck(): Promise<boolean> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
+      
       const response = await fetch(`${this.baseUrl}/tags`, {
         method: 'GET',
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       return response.ok;
-    } catch {
+    } catch (error) {
+      console.warn('Ollama health check failed:', error);
       return false;
     }
   }
@@ -185,7 +195,7 @@ export class OllamaProvider implements LLMProvider {
       });
 
       if (!response.ok) {
-        return [];
+        throw new Error(`Ollama returned ${response.status}`);
       }
 
       const data = await response.json();
@@ -195,7 +205,9 @@ export class OllamaProvider implements LLMProvider {
         id: model.name || 'unknown',
         name: model.name || 'Unknown Model',
         provider: 'ollama' as const,
-        size: model.size ? `${(model.size / 1024 / 1024 / 1024).toFixed(2)} GB` : undefined,
+        size: this.formatSize(model.size),
+        contextWindow: this.detectContextWindow(model.name),
+        description: model.digest || undefined,
         isAvailable: true,
       }));
     } catch (error) {
@@ -205,37 +217,93 @@ export class OllamaProvider implements LLMProvider {
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse> {
-    const model = options?.model || (await this.getModels())[0]?.id;
+    const model = options?.model || await this.getDefaultModel();
+    
     if (!model) {
-      throw new Error('No model available');
+      throw new Error('No Ollama models available. Run "ollama pull <model>" first.');
     }
 
-    const response = await fetch(`${this.baseUrl}/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        prompt,
-        stream: false,
-        options: {
-          temperature: options?.temperature ?? 0.91,
-          num_predict: options?.maxTokens ?? 2048,
-        },
-      }),
-    });
+    // Retry logic for transient failures
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt < this.maxRetries; attempt++) {
+      try {
+        const response = await fetch(`${this.baseUrl}/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model,
+            prompt,
+            stream: false,
+            options: {
+              temperature: options?.temperature ?? 0.91,
+              num_predict: options?.maxTokens ?? 2048,
+            },
+          }),
+        });
 
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`Ollama API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        return {
+          text: data.response || '',
+          tokensUsed: data.eval_count || 0,
+          finishReason: data.done ? 'stop' : 'length',
+        };
+      } catch (error) {
+        lastError = error as Error;
+        
+        if (attempt < this.maxRetries - 1) {
+          // Exponential backoff
+          await this.sleep(this.retryDelay * Math.pow(2, attempt));
+          continue;
+        }
+      }
     }
 
-    const data = await response.json();
-    return {
-      text: data.response || '',
-      tokensUsed: data.eval_count,
-      finishReason: data.done ? 'stop' : 'length',
-    };
+    throw new Error(`Ollama generation failed after ${this.maxRetries} attempts: ${lastError?.message}`);
+  }
+
+  private async getDefaultModel(): Promise<string | null> {
+    const models = await this.getModels();
+    if (models.length === 0) return null;
+    
+    // Prefer code models, then chat models
+    const codeModel = models.find(m => 
+      m.name.includes('coder') || 
+      m.name.includes('code') ||
+      m.name.includes('deepseek')
+    );
+    if (codeModel) return codeModel.id;
+    
+    return models[0].id;
+  }
+
+  private detectContextWindow(modelName: string): number {
+    if (modelName.includes('32b')) return 32768;
+    if (modelName.includes('16b') || modelName.includes('14b')) return 16384;
+    if (modelName.includes('7b') || modelName.includes('8b')) return 8192;
+    if (modelName.includes('3b') || modelName.includes('1b')) return 4096;
+    return 4096; // Default
+  }
+
+  private formatSize(bytes: number): string | undefined {
+    if (!bytes) return undefined;
+    const gb = bytes / (1024 ** 3);
+    if (gb < 1) {
+      const mb = bytes / (1024 ** 2);
+      return `${mb.toFixed(0)}MB`;
+    }
+    return `${gb.toFixed(1)}GB`;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   async *streamGenerate(prompt: string, options?: GenerateOptions): AsyncGenerator<StreamChunk> {

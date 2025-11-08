@@ -5,6 +5,7 @@ export type LLMProvider =
   | 'anthropic'
   | 'lmstudio'
   | 'ollama'
+  | 'openrouter'
   | 'github';
 
 export interface APIKey {
@@ -78,6 +79,13 @@ export const PROVIDER_CONFIGS: ProviderConfig[] = [
     requiresKey: false,
     endpoint: 'http://localhost:11434',
     description: 'Local LLM runtime',
+  },
+  {
+    provider: 'openrouter',
+    name: 'OpenRouter',
+    type: 'cloud',
+    requiresKey: true,
+    description: 'Unified API for 100+ models (GPT-4, Claude, etc.)',
   },
   {
     provider: 'github',
