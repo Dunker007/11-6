@@ -7,6 +7,7 @@ import { aiServiceBridge } from '../../services/ai/aiServiceBridge';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
 import { VIBED_ED_PERSONAS, VibedEdPersona } from '../../services/ai/prompts/vibedEdPersonas';
+import { Plus, X } from 'lucide-react';
 import '../../styles/AIChat.css';
 
 interface Message {
