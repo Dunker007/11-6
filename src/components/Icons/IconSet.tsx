@@ -41,6 +41,9 @@ import {
   Layout,
   Bell, // Import Bell
   Shield, // Import Shield
+  Target,
+  AlertTriangle,
+  Hand,
   LucideIcon
 } from 'lucide-react';
 
@@ -53,7 +56,7 @@ export type IconName =
   | 'vibedEd' | 'osMode' | 'commandPalette'
   | 'plus' | 'search' | 'settings' | 'layers' | 'play'
   | 'package' | 'gitbranch' | 'eye' | 'file' | 'folder'
-  | 'bell' | 'shield'; // Add shield
+  | 'bell' | 'shield' | 'target' | 'alert' | 'hand';
 
 // Complete icon mapping for the command center
 export const ICON_MAP: Record<IconName, LucideIcon> = {
@@ -98,6 +101,9 @@ export const ICON_MAP: Record<IconName, LucideIcon> = {
   folder: FolderPlus,
   bell: Bell, // Add bell mapping
   shield: Shield, // Add shield mapping
+  target: Target,
+  alert: AlertTriangle,
+  hand: Hand,
 };
 
 // Alternate icons for variety
@@ -160,6 +166,9 @@ export {
   Layout,
   Bell, // Export Bell
   Shield, // Export Shield
+  Target,
+  AlertTriangle,
+  Hand,
 };
 
 // Helper function to get icon by name

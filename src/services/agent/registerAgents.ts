@@ -8,6 +8,11 @@ export function registerAllAgents() {
     name: 'Kai, The Strategist',
     description: 'A creative partner for brainstorming new passive income streams.',
     icon: ICON_MAP.vibedEd,
+    capabilities: [
+      { id: 'kai.generatePlan', name: 'Strategic Planning' },
+      { id: 'kai.outlineRefactor', name: 'Refactor Blueprint' },
+      { id: 'kai.outlineDeployment', name: 'Deployment Outline' },
+    ],
   });
 
   agentService.registerAgent({
@@ -15,6 +20,9 @@ export function registerAllAgents() {
     name: 'Guardian, The System Monitor',
     description: 'A background agent that proactively monitors application health and errors.',
     icon: ICON_MAP.shield,
+    capabilities: [
+      { id: 'guardian.analyzeErrors', name: 'Error Analysis' },
+    ],
   });
 
   // Future agents can be registered here

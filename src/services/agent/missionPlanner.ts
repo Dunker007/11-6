@@ -1,46 +1,87 @@
 // src/services/agent/missionPlanner.ts
-import { Agent } from '../../types/agent';
+import { MissionDefinition, MissionPhaseDefinition, MissionStepDefinition } from '../mission/missionTypes';
 
-export interface MissionStep {
-  agentId: Agent['id'];
-  task: string;
-}
-
-export interface MissionPlan {
-  objective: string;
-  steps: MissionStep[];
-}
+const createId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2, 10);
+};
 
 class MissionPlanner {
-  async createPlan(objective: string): Promise<MissionPlan> {
-    // This is where the magic will happen.
-    // For now, we'll return a mocked plan based on keywords.
-    // In the future, this will involve a call to an LLM with the project context.
-    console.log(`[MissionPlanner] Creating plan for objective: "${objective}"`);
+  async createPlan(objective: string): Promise<MissionDefinition> {
+    const normalized = objective.toLowerCase();
 
-    const plan: MissionPlan = {
+    const phases: MissionPhaseDefinition[] = [];
+
+    // Phase 1 – Analysis
+    const analysisSteps: MissionStepDefinition[] = [
+      {
+        agentId: 'guardian',
+        action: 'analyzeErrors',
+        description: 'Check the latest errors and system health.',
+      },
+    ];
+
+    phases.push({
+      id: `phase_analysis_${createId()}`,
+      name: 'Analysis',
+      description: 'Gather context and assess current state.',
+      steps: analysisSteps,
+    });
+
+    // Phase 2 – Planning / Refactor
+    const planningSteps: MissionStepDefinition[] = [
+      {
+        agentId: 'kai',
+        action: 'generatePlan',
+        description: 'Create a strategic approach for the objective.',
+      },
+    ];
+
+    if (normalized.includes('refactor')) {
+      planningSteps.push({
+        agentId: 'kai',
+        action: 'outlineRefactor',
+        description: 'Break down the refactor tasks into actionable steps.',
+      });
+    }
+
+    phases.push({
+      id: `phase_planning_${createId()}`,
+      name: 'Planning',
+      description: 'Design the path forward using agent intelligence.',
+      steps: planningSteps,
+    });
+
+    // Phase 3 – Deployment / Wrap-up
+    if (normalized.includes('deploy')) {
+      phases.push({
+        id: `phase_deploy_${createId()}`,
+        name: 'Deployment Prep',
+        description: 'Prepare deployment checklist and guardrails.',
+        steps: [
+          {
+            agentId: 'kai',
+            action: 'outlineDeployment',
+            description: 'Summarize deployment steps for the team.',
+          },
+        ],
+      });
+    }
+
+    const definition: MissionDefinition = {
+      id: `definition_${createId()}`,
       objective,
-      steps: [],
+      createdAt: new Date().toISOString(),
+      phases,
+      exitCriteria: normalized.includes('deploy')
+        ? ['guardian.noCriticalErrors', 'tests.unit.pass']
+        : ['guardian.noCriticalErrors'],
     };
 
-    if (objective.toLowerCase().includes('refactor') && objective.toLowerCase().includes('zustand')) {
-      plan.steps = [
-        { agentId: 'guardian', task: 'Analyze current state management files for complexity.' },
-        { agentId: 'kai', task: 'Generate a step-by-step refactoring plan to migrate to Zustand.' },
-      ];
-    } else if (objective.toLowerCase().includes('deploy')) {
-      plan.steps = [
-        { agentId: 'guardian', task: 'Run final code quality and security checks.' },
-        { agentId: 'kai', task: 'Outline the deployment steps for Vercel.' },
-      ];
-    } else {
-      plan.steps = [
-        { agentId: 'kai', task: `Deconstruct the high-level objective: "${objective}"` },
-      ];
-    }
-    
-    console.log('[MissionPlanner] Mock plan generated:', plan);
-    return Promise.resolve(plan);
+    console.log('[MissionPlanner] Generated mission definition:', definition);
+    return definition;
   }
 }
 

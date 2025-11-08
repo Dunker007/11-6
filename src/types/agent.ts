@@ -4,6 +4,12 @@ import { LucideIcon } from 'lucide-react';
 
 export type AgentStatus = 'idle' | 'running' | 'success' | 'error' | 'paused';
 
+export interface AgentCapabilitySummary {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 export interface Agent {
   id: string;
   name: string;
@@ -12,4 +18,5 @@ export interface Agent {
   status: AgentStatus;
   lastRun?: Date;
   logs: string[];
+  capabilities?: AgentCapabilitySummary[];
 }
