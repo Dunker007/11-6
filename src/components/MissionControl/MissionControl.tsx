@@ -4,11 +4,12 @@ import { useAgentStore } from '../../services/agent/agentStore';
 import { missionPlanner, MissionPlan } from '../../services/agent/missionPlanner';
 import TechIcon from '../Icons/TechIcon';
 import '../../styles/MissionControl.css';
-import { shallow } from 'zustand/shallow';
 import { Agent } from '../../types/agent';
 
 const MissionControl = () => {
-  const agents = useAgentStore((state) => Object.values(state.agents), shallow) as Agent[];
+  // Get agents record directly and convert to array with useMemo to prevent infinite loops
+  const agentsRecord = useAgentStore((state) => state.agents);
+  const agents = useMemo(() => Object.values(agentsRecord) as Agent[], [agentsRecord]);
   const [objective, setObjective] = useState('');
   const [plan, setPlan] = useState<MissionPlan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
