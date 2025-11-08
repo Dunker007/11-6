@@ -3,16 +3,21 @@ import DeploymentTargets from './DeploymentTargets';
 import DeploymentConfig from './DeploymentConfig';
 import DeploymentHistory from './DeploymentHistory';
 import LiveDeployment from './LiveDeployment';
+import WorkflowHero from '../shared/WorkflowHero';
+import WorkflowHeader from '../shared/WorkflowHeader';
+import CommandCard from '../shared/CommandCard';
 import { useDeploymentStore } from '../../services/deploy/deploymentStore';
 import { useActivityStore } from '../../services/activity/activityStore';
+import { useProjectStore } from '../../services/project/projectStore';
 import TechIcon from '../Icons/TechIcon';
 import { Target, History, Rocket } from 'lucide-react';
 import type { DeploymentTarget, DeploymentConfig as DeployConfig } from '@/types/deploy';
 import '../../styles/DeployWorkflow.css';
 
 function DeployWorkflow() {
-  const { deploy, activeDeployment, loadHistory } = useDeploymentStore();
+  const { deploy, activeDeployment, loadHistory, history } = useDeploymentStore();
   const { addActivity } = useActivityStore();
+  const { projects } = useProjectStore();
   const [selectedTarget, setSelectedTarget] = useState<DeploymentTarget | null>(null);
   const [activeTab, setActiveTab] = useState<'targets' | 'history'>('targets');
   const [isDeploying, setIsDeploying] = useState(false);
@@ -57,6 +62,10 @@ function DeployWorkflow() {
   if (isDeploying && activeDeployment) {
     return (
       <div className="deploy-workflow">
+        <WorkflowHeader 
+          title="DEPLOYMENT IN PROGRESS"
+          statusBadge={{ label: 'DEPLOYING', variant: 'info' }}
+        />
         <LiveDeployment deployment={activeDeployment} />
       </div>
     );
@@ -65,6 +74,11 @@ function DeployWorkflow() {
   if (selectedTarget) {
     return (
       <div className="deploy-workflow">
+        <WorkflowHeader 
+          title="CONFIGURE DEPLOYMENT"
+          breadcrumbs={['Deploy', selectedTarget.name]}
+          onBack={handleConfigCancel}
+        />
         <DeploymentConfig
           target={selectedTarget}
           onConfigured={handleConfigSubmit}
@@ -74,36 +88,62 @@ function DeployWorkflow() {
     );
   }
 
+  // Calculate stats
+  const totalDeployments = history.length;
+  const successfulDeployments = history.filter(d => d.status === 'success').length;
+  const activeProjects = projects.filter(p => p.status !== 'archived').length;
+  const successRate = totalDeployments > 0 ? Math.round((successfulDeployments / totalDeployments) * 100) : 0;
+
   return (
-    <div className="deploy-workflow">
-      <div className="deploy-header">
-        <div className="deploy-title">
-          <TechIcon icon={Rocket} size={32} glow="cyan" animated={false} />
-          <div>
-            <h2>Deploy Your Project</h2>
-            <p>Choose a deployment target and get your project live</p>
-          </div>
-        </div>
-      </div>
+    <div className="deploy-workflow command-center-layout">
+      {/* Command Center Hero */}
+      <WorkflowHero
+        title="DEPLOYMENT COMMAND"
+        subtitle="Launch Your Projects to Production"
+        showCore={false}
+        stats={[
+          { icon: '▣', value: activeProjects, label: 'Active Projects' },
+          { icon: '◈', value: totalDeployments, label: 'Total Deployments' },
+          { icon: '◎', value: successfulDeployments, label: 'Successful' },
+          { icon: '◉', value: `${successRate}%`, label: 'Success Rate' },
+        ]}
+        statusIndicators={[
+          { label: 'DEPLOY READY', status: 'online' },
+          { label: 'TARGETS AVAILABLE', status: 'online' },
+        ]}
+      />
 
-      <div className="deploy-tabs">
-        <button
-          className={`deploy-tab ${activeTab === 'targets' ? 'active' : ''}`}
+      {/* Tab Navigation */}
+      <div className="deploy-tab-nav">
+        <CommandCard 
+          variant="cyan"
+          clickable
           onClick={() => setActiveTab('targets')}
+          className={activeTab === 'targets' ? 'active' : ''}
         >
-          <TechIcon icon={Target} size={18} glow={activeTab === 'targets' ? 'cyan' : 'none'} />
-          <span>Deployment Targets</span>
-        </button>
-        <button
-          className={`deploy-tab ${activeTab === 'history' ? 'active' : ''}`}
+          <div className="tab-content">
+            <TechIcon icon={Target} size={32} glow="cyan" animated={activeTab === 'targets'} />
+            <h3>Deployment Targets</h3>
+            <p>Select platform and configure deployment</p>
+          </div>
+        </CommandCard>
+
+        <CommandCard 
+          variant="violet"
+          clickable
           onClick={() => setActiveTab('history')}
+          className={activeTab === 'history' ? 'active' : ''}
         >
-          <TechIcon icon={History} size={18} glow={activeTab === 'history' ? 'cyan' : 'none'} />
-          <span>History</span>
-        </button>
+          <div className="tab-content">
+            <TechIcon icon={History} size={32} glow="violet" animated={activeTab === 'history'} />
+            <h3>Deployment History</h3>
+            <p>View past deployments and logs</p>
+          </div>
+        </CommandCard>
       </div>
 
-      <div className="deploy-content">
+      {/* Content Area */}
+      <div className="deploy-content-wrapper">
         {activeTab === 'targets' && <DeploymentTargets onSelectTarget={handleTargetSelect} />}
         {activeTab === 'history' && <DeploymentHistory />}
       </div>

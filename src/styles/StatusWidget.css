@@ -1,0 +1,248 @@
+/* ============================================
+   REUSABLE STATUS WIDGET
+   ============================================ */
+
+.status-widget {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.status-widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.status-widget.compact {
+  padding: 0.5rem 1rem;
+  gap: 0.5rem;
+}
+
+/* LED Indicator */
+.widget-led {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.led-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border: 2px solid;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.3;
+  animation: led-ring-pulse 2s ease-in-out infinite;
+}
+
+.led-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: led-blink 2s ease-in-out infinite;
+}
+
+/* Status Colors */
+.status-widget.online .led-ring {
+  border-color: var(--emerald-500);
+}
+
+.status-widget.online .led-core {
+  background: var(--emerald-500);
+  box-shadow: 0 0 10px var(--emerald-500),
+              0 0 20px var(--emerald-500);
+}
+
+.status-widget.offline .led-ring {
+  border-color: var(--red-500);
+}
+
+.status-widget.offline .led-core {
+  background: var(--red-500);
+  box-shadow: 0 0 10px var(--red-500),
+              0 0 20px var(--red-500);
+}
+
+.status-widget.warning .led-ring {
+  border-color: var(--amber-500);
+}
+
+.status-widget.warning .led-core {
+  background: var(--amber-500);
+  box-shadow: 0 0 10px var(--amber-500),
+              0 0 20px var(--amber-500);
+}
+
+.status-widget.loading .led-ring {
+  border-color: var(--cyan-500);
+  animation: led-ring-spin 1.5s linear infinite;
+}
+
+.status-widget.loading .led-core {
+  background: var(--cyan-500);
+  box-shadow: 0 0 10px var(--cyan-500),
+              0 0 20px var(--cyan-500);
+  animation: led-pulse-fast 1s ease-in-out infinite;
+}
+
+@keyframes led-ring-pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.6;
+  }
+}
+
+@keyframes led-ring-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes led-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes led-pulse-fast {
+  0%, 100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+/* Widget Content */
+.widget-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+}
+
+.widget-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.widget-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--cyan-500), var(--violet-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.05em;
+}
+
+.widget-sublabel {
+  font-size: 0.675rem;
+  color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+}
+
+/* Background Pulse */
+.widget-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, currentColor 0%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.status-widget.online .widget-pulse {
+  color: var(--emerald-500);
+}
+
+.status-widget.offline .widget-pulse {
+  color: var(--red-500);
+}
+
+.status-widget.warning .widget-pulse {
+  color: var(--amber-500);
+}
+
+.status-widget.loading .widget-pulse {
+  color: var(--cyan-500);
+  animation: pulse-breath 2s ease-in-out infinite;
+}
+
+.status-widget:hover .widget-pulse {
+  opacity: 0.1;
+}
+
+@keyframes pulse-breath {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+/* Compact Variant */
+.status-widget.compact .widget-led {
+  width: 12px;
+  height: 12px;
+}
+
+.status-widget.compact .led-core {
+  width: 6px;
+  height: 6px;
+}
+
+.status-widget.compact .widget-label {
+  font-size: 0.7rem;
+}
+
+.status-widget.compact .widget-value {
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .status-widget {
+    padding: 0.5rem 1rem;
+  }
+
+  .widget-value {
+    font-size: 1.125rem;
+  }
+}
+

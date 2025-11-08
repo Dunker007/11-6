@@ -1,7 +1,14 @@
 .deploy-workflow {
-  padding: 2rem;
+  width: 100%;
   height: 100%;
   overflow-y: auto;
+}
+
+.deploy-workflow.command-center-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  padding: 2rem 0;
 }
 
 .deploy-header {
@@ -27,42 +34,60 @@
   margin: 0.25rem 0 0;
 }
 
-.deploy-tabs {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--panel-border);
-  background: var(--panel-bg);
-  backdrop-filter: var(--panel-blur);
-  padding: 0.5rem;
-  border-radius: 0.5rem 0.5rem 0 0;
+/* Tab Navigation with Command Cards */
+.deploy-tab-nav {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
-.deploy-tab {
-  padding: 0.75rem 1.5rem;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid transparent;
-  border-radius: 0.5rem;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.2s ease;
+.deploy-tab-nav .command-card {
+  min-height: 180px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
 }
 
-.deploy-tab:hover {
-  color: var(--text-primary);
-  background: rgba(139, 92, 246, 0.1);
-  border-color: rgba(139, 92, 246, 0.3);
-}
-
-.deploy-tab.active {
-  color: var(--cyan-400);
-  background: rgba(34, 211, 238, 0.1);
+.deploy-tab-nav .command-card.active {
   border-color: var(--cyan-500);
-  box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+  box-shadow: 0 10px 40px rgba(6, 182, 212, 0.4);
+}
+
+.deploy-tab-nav .tab-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.deploy-tab-nav .tab-content h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--cyan-500), var(--violet-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.deploy-tab-nav .tab-content p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Content Wrapper */
+.deploy-content-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem 2rem;
 }
 
 /* Deployment Targets */
