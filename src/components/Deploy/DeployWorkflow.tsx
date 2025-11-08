@@ -89,10 +89,10 @@ function DeployWorkflow() {
   }
 
   // Calculate stats (with safe fallbacks)
-  const deploymentHistory = history || [];
+  const deploymentList = history?.deployments || [];
   const projectList = projects || [];
-  const totalDeployments = deploymentHistory.length;
-  const successfulDeployments = deploymentHistory.filter(d => d.status === 'success').length;
+  const totalDeployments = deploymentList.length;
+  const successfulDeployments = deploymentList.filter(d => d.status === 'success').length;
   const activeProjects = projectList.filter(p => p.status !== 'archived').length;
   const successRate = totalDeployments > 0 ? Math.round((successfulDeployments / totalDeployments) * 100) : 0;
 
