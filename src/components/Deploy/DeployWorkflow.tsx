@@ -88,10 +88,12 @@ function DeployWorkflow() {
     );
   }
 
-  // Calculate stats
-  const totalDeployments = history.length;
-  const successfulDeployments = history.filter(d => d.status === 'success').length;
-  const activeProjects = projects.filter(p => p.status !== 'archived').length;
+  // Calculate stats (with safe fallbacks)
+  const deploymentHistory = history || [];
+  const projectList = projects || [];
+  const totalDeployments = deploymentHistory.length;
+  const successfulDeployments = deploymentHistory.filter(d => d.status === 'success').length;
+  const activeProjects = projectList.filter(p => p.status !== 'archived').length;
   const successRate = totalDeployments > 0 ? Math.round((successfulDeployments / totalDeployments) * 100) : 0;
 
   return (

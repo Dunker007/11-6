@@ -18,14 +18,16 @@ function MonetizeWorkflow() {
     refresh();
   }, [refresh]);
 
-  // Calculate stats
-  const totalRevenue = revenue.reduce((sum, r) => sum + r.amount, 0);
-  const activeSubscriptions = subscriptions.filter(s => s.status === 'active').length;
-  const monthlyRecurring = subscriptions
+  // Calculate stats (with safe fallbacks)
+  const revenueList = revenue || [];
+  const subscriptionList = subscriptions || [];
+  const totalRevenue = revenueList.reduce((sum, r) => sum + r.amount, 0);
+  const activeSubscriptions = subscriptionList.filter(s => s.status === 'active').length;
+  const monthlyRecurring = subscriptionList
     .filter(s => s.status === 'active')
     .reduce((sum, s) => sum + s.amount, 0);
-  const churnRate = subscriptions.length > 0 
-    ? Math.round((subscriptions.filter(s => s.status === 'cancelled').length / subscriptions.length) * 100) 
+  const churnRate = subscriptionList.length > 0 
+    ? Math.round((subscriptionList.filter(s => s.status === 'cancelled').length / subscriptionList.length) * 100) 
     : 0;
 
   return (
