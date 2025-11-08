@@ -21,7 +21,7 @@ function BackOffice() {
 
       <div className="back-office-tab-nav">
         <CommandCard 
-          variant="emerald"
+          variant="cyan"
           clickable
           onClick={() => setActiveTab('financial')}
           className={activeTab === 'financial' ? 'active' : ''}

@@ -12,20 +12,19 @@ import '../../styles/MonetizeWorkflow.css';
 
 function MonetizeWorkflow() {
   const [activeTab, setActiveTab] = useState<'streams' | 'pricing' | 'subscriptions' | 'analytics'>('streams');
-  const { revenue, subscriptions, refresh } = useMonetizeStore();
+  const { subscriptions, refresh } = useMonetizeStore();
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
   // Calculate stats (with safe fallbacks)
-  const revenueList = revenue || [];
   const subscriptionList = subscriptions || [];
-  const totalRevenue = revenueList.reduce((sum, r) => sum + r.amount, 0);
+  const totalRevenue = 0; // TODO: Add revenue tracking
   const activeSubscriptions = subscriptionList.filter(s => s.status === 'active').length;
   const monthlyRecurring = subscriptionList
     .filter(s => s.status === 'active')
-    .reduce((sum, s) => sum + s.amount, 0);
+    .reduce((sum, s) => sum + (s.price || 0), 0);
   const churnRate = subscriptionList.length > 0 
     ? Math.round((subscriptionList.filter(s => s.status === 'cancelled').length / subscriptionList.length) * 100) 
     : 0;

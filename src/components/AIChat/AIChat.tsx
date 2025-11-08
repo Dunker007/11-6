@@ -28,7 +28,7 @@ interface StructuredIdea {
 
 function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
   const { streamGenerate, isLoading } = useLLMStore();
-  const { activeProject, getFileContent, activeFile, createProject } = useProjectStore();
+  const { activeProject, createProject } = useProjectStore();
   const { addActivity } = useActivityStore();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -203,7 +203,7 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
             onClick={onToggleMinimize}
             title={isMinimized ? "Expand" : "Minimize"}
           >
-            <TechIcon icon={isMinimized ? ICON_MAP.plus : ICON_MAP.minus} size={16} />
+            <TechIcon icon={isMinimized ? ICON_MAP.plus : ICON_MAP.close} size={16} />
           </button>
         </div>
       </div>
