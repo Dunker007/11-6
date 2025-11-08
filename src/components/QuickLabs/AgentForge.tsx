@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAgentForgeStore } from '../../services/agentforge/agentForgeStore';
+import { useActivityStore } from '../../services/activity/activityStore';
+import TechIcon from '../Icons/TechIcon';
+import { Bot, Plus, Play, Pause, Square, Settings, Cpu, Trash2 } from 'lucide-react';
 import '../../styles/AgentForge.css';
 
 function AgentForge() {
@@ -16,6 +19,7 @@ function AgentForge() {
     runAgent,
   } = useAgentForgeStore();
 
+  const { addActivity } = useActivityStore();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [agentName, setAgentName] = useState('');
@@ -27,9 +31,11 @@ function AgentForge() {
 
   const handleCreateFromTemplate = () => {
     if (selectedTemplate) {
+      const template = templates.find(t => t.id === selectedTemplate);
       createFromTemplate(selectedTemplate, {
         name: agentName || undefined,
       });
+      addActivity('system', 'created', `Created AI agent "${agentName || template?.name}"`);
       setAgentName('');
       setSelectedTemplate(null);
       setShowCreateDialog(false);
@@ -41,7 +47,8 @@ function AgentForge() {
       <div className="agent-forge-header">
         <h2>Agent Forge</h2>
         <button onClick={() => setShowCreateDialog(true)} className="create-btn">
-          + Create Agent
+          <TechIcon icon={Plus} size={18} glow="cyan" />
+          <span>Create Agent</span>
         </button>
       </div>
 
@@ -84,6 +91,7 @@ function AgentForge() {
       <div className="agent-forge-content">
         {agents.length === 0 ? (
           <div className="empty-state">
+            <TechIcon icon={Bot} size={64} glow="violet" animated={false} className="empty-icon" />
             <h3>No Agents Created</h3>
             <p>Create your first AI agent to get started</p>
           </div>
@@ -104,10 +112,12 @@ function AgentForge() {
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteAgent(agent.id);
+                          addActivity('system', 'deleted', `Deleted agent "${agent.config.name}"`);
                         }}
                         className="delete-agent-btn"
+                        title="Delete Agent"
                       >
-                        ×
+                        <TechIcon icon={Trash2} size={14} glow="none" />
                       </button>
                     </div>
                     <div className="agent-item-meta">
@@ -193,8 +203,12 @@ function AgentForge() {
                       />
                     </div>
                   )}
-                  <button onClick={() => runAgent(currentAgent.id)} className="run-btn">
-                    ▶ Run Agent
+                  <button onClick={() => {
+                    runAgent(currentAgent.id);
+                    addActivity('system', 'started', `Running agent "${currentAgent.config.name}"`);
+                  }} className="run-btn">
+                    <TechIcon icon={Play} size={16} glow="cyan" />
+                    <span>Run Agent</span>
                   </button>
                 </div>
               </div>

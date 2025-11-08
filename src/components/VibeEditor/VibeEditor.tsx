@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
+import type { editor } from 'monaco-editor';
 import { useProjectStore } from '../../services/project/projectStore';
 import { useActivityStore } from '../../services/activity/activityStore';
+import { errorContext } from '../../services/errors/errorContext';
 import FileExplorer from './FileExplorer';
 import AIAssistant from '../AIAssistant/AIAssistant';
 import ProjectSearch from '../ProjectSearch/ProjectSearch';
+import TechIcon from '../Icons/TechIcon';
+import { Save, Search, Sliders, Code, ChevronDown, Brain, Sparkles, FolderOpen, Plus, X, Check } from 'lucide-react';
 import '../../styles/VibeEditor.css';
 
 function VibeEditor() {
@@ -18,10 +22,21 @@ function VibeEditor() {
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [showProjectSearch, setShowProjectSearch] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
     loadProjects();
   }, []);
+
+  // Update error context when project or file changes
+  useEffect(() => {
+    errorContext.setProject(activeProject || null);
+  }, [activeProject]);
+
+  useEffect(() => {
+    errorContext.setFile(activeFilePath);
+  }, [activeFilePath]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -123,8 +138,13 @@ function VibeEditor() {
 
   const handleFileSelect = (path: string, line?: number) => {
     setActiveFilePath(path);
-    // TODO: Scroll to line if provided
-    // Monaco editor has a method: editor.revealLineInCenter(line)
+    // Scroll to line if provided
+    if (line && editorRef.current) {
+      setTimeout(() => {
+        editorRef.current?.revealLineInCenter(line);
+        editorRef.current?.setPosition({ lineNumber: line, column: 1 });
+      }, 100);
+    }
   };
 
   const handleNewProject = () => {
@@ -177,9 +197,13 @@ function VibeEditor() {
           <p>Your AI-native development companion</p>
           <div className="welcome-actions">
             <button className="action-button primary" onClick={handleNewProject}>
-              New Project
+              <TechIcon icon={Plus} size={20} glow="cyan" />
+              <span>New Project</span>
             </button>
-            <button className="action-button" onClick={handleOpenProject}>Open Project</button>
+            <button className="action-button" onClick={handleOpenProject}>
+              <TechIcon icon={FolderOpen} size={20} glow="violet" />
+              <span>Open Project</span>
+            </button>
           </div>
         </div>
       </div>
@@ -197,8 +221,9 @@ function VibeEditor() {
                 onClick={() => setShowProjectMenu(!showProjectMenu)}
                 title="Switch project"
               >
+                <TechIcon icon={FolderOpen} size={16} glow="none" />
                 <span className="project-name">{activeProject.name}</span>
-                <span className="dropdown-icon">▼</span>
+                <TechIcon icon={ChevronDown} size={14} glow="none" className="dropdown-icon" />
               </button>
               {showProjectMenu && (
                 <>
@@ -211,7 +236,7 @@ function VibeEditor() {
                         onClick={handleNewProject}
                         title="New Project"
                       >
-                        +
+                        <TechIcon icon={Plus} size={16} glow="cyan" />
                       </button>
                     </div>
                     <div className="project-list">
@@ -221,7 +246,7 @@ function VibeEditor() {
                           className={`project-item ${activeProject.id === project.id ? 'active' : ''}`}
                           onClick={() => handleProjectSwitch(project.id)}
                         >
-                          <span className="project-icon">📁</span>
+                          <TechIcon icon={FolderOpen} size={14} glow="none" className="project-icon" />
                           <span className="project-item-name">{project.name}</span>
                         </div>
                       ))}
@@ -230,13 +255,29 @@ function VibeEditor() {
                 </>
               )}
             </div>
-            <button
-              className="ai-toggle"
-              onClick={() => setShowAIAssistant(!showAIAssistant)}
-              title={showAIAssistant ? 'Hide AI Assistant' : 'Show AI Assistant'}
-            >
-              {showAIAssistant ? '🧠' : '🤖'}
-            </button>
+            <div className="sidebar-actions">
+              <button
+                className="icon-btn"
+                onClick={() => setShowProjectSearch(true)}
+                title="Search Project (Ctrl+Shift+F)"
+              >
+                <TechIcon icon={Search} size={18} glow="none" />
+              </button>
+              <button
+                className="icon-btn"
+                onClick={() => setShowSettings(!showSettings)}
+                title="Editor Settings"
+              >
+                <TechIcon icon={Sliders} size={18} glow="none" />
+              </button>
+              <button
+                className={`icon-btn ai-toggle ${showAIAssistant ? 'active' : ''}`}
+                onClick={() => setShowAIAssistant(!showAIAssistant)}
+                title={showAIAssistant ? 'Hide AI Assistant (Ctrl+\\)' : 'Show AI Assistant (Ctrl+\\)'}
+              >
+                <TechIcon icon={showAIAssistant ? Brain : Sparkles} size={18} glow={showAIAssistant ? 'violet' : 'none'} animated={showAIAssistant} />
+              </button>
+            </div>
           </div>
           <FileExplorer
             files={activeProject.files}
@@ -250,14 +291,41 @@ function VibeEditor() {
             <div className="editor-tabs">
               {activeFilePath && (
                 <div className="editor-tab active">
-                  {unsavedChanges && <span className="unsaved-dot">●</span>}
-                  <span>{activeFilePath.split('/').pop()}</span>
+                  <TechIcon icon={Code} size={14} glow="none" className="tab-icon" />
+                  <span className="tab-name">{activeFilePath.split('/').pop()}</span>
+                  {unsavedChanges && <span className="unsaved-indicator" />}
+                  <button className="tab-close" title="Close file">
+                    <TechIcon icon={X} size={12} glow="none" />
+                  </button>
                 </div>
               )}
             </div>
-            <div className="save-status">
-              {saveStatus === 'saving' && <span className="status-indicator saving">Saving...</span>}
-              {saveStatus === 'saved' && <span className="status-indicator saved">✓ Saved</span>}
+            <div className="editor-toolbar">
+              <div className="save-status">
+                {saveStatus === 'saving' && (
+                  <div className="status-indicator saving">
+                    <TechIcon icon={Save} size={14} glow="amber" animated={true} />
+                    <span>Saving...</span>
+                  </div>
+                )}
+                {saveStatus === 'saved' && (
+                  <div className="status-indicator saved">
+                    <TechIcon icon={Check} size={14} glow="cyan" />
+                    <span>Saved</span>
+                  </div>
+                )}
+                {saveStatus === 'unsaved' && unsavedChanges && (
+                  <div className="status-indicator unsaved">
+                    <span className="unsaved-dot" />
+                    <span>Unsaved changes</span>
+                  </div>
+                )}
+              </div>
+              <div className="editor-info">
+                <span className="language-badge">{language}</span>
+                <span className="separator">|</span>
+                <span className="line-info">Ln {1}, Col {1}</span>
+              </div>
             </div>
           </div>
 
@@ -268,6 +336,9 @@ function VibeEditor() {
                 language={language}
                 value={fileContent}
                 onChange={handleEditorChange}
+                onMount={(editor) => {
+                  editorRef.current = editor;
+                }}
                 theme="vs-dark"
                 options={{
                   minimap: { enabled: true },
@@ -280,6 +351,14 @@ function VibeEditor() {
                   wordWrap: 'on',
                   formatOnPaste: true,
                   formatOnType: true,
+                  cursorBlinking: 'smooth',
+                  cursorSmoothCaretAnimation: 'on',
+                  smoothScrolling: true,
+                  fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
+                  fontLigatures: true,
+                  bracketPairColorization: {
+                    enabled: true,
+                  },
                   find: {
                     addExtraSpaceOnTop: false,
                     autoFindInSelection: 'never',

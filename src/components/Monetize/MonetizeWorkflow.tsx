@@ -4,6 +4,8 @@ import PricingStrategies from './PricingStrategies';
 import SubscriptionManager from './SubscriptionManager';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import { useMonetizeStore } from '../../services/monetize/monetizeStore';
+import TechIcon from '../Icons/TechIcon';
+import { DollarSign, TrendingUp, Tag, Users, BarChart3 } from 'lucide-react';
 import '../../styles/MonetizeWorkflow.css';
 
 function MonetizeWorkflow() {
@@ -17,8 +19,13 @@ function MonetizeWorkflow() {
   return (
     <div className="monetize-workflow">
       <div className="monetize-header">
-        <h2>Monetize Your Project</h2>
-        <p>Track revenue, manage subscriptions, and optimize pricing strategies</p>
+        <div className="monetize-title">
+          <TechIcon icon={DollarSign} size={32} glow="amber" animated={false} />
+          <div>
+            <h2>Monetize Your Project</h2>
+            <p>Track revenue, manage subscriptions, and optimize pricing strategies</p>
+          </div>
+        </div>
       </div>
 
       <div className="monetize-tabs">
@@ -26,25 +33,29 @@ function MonetizeWorkflow() {
           className={`monetize-tab ${activeTab === 'streams' ? 'active' : ''}`}
           onClick={() => setActiveTab('streams')}
         >
-          💰 Revenue Streams
+          <TechIcon icon={TrendingUp} size={18} glow={activeTab === 'streams' ? 'amber' : 'none'} />
+          <span>Revenue Streams</span>
         </button>
         <button
           className={`monetize-tab ${activeTab === 'pricing' ? 'active' : ''}`}
           onClick={() => setActiveTab('pricing')}
         >
-          💵 Pricing Strategies
+          <TechIcon icon={Tag} size={18} glow={activeTab === 'pricing' ? 'amber' : 'none'} />
+          <span>Pricing Strategies</span>
         </button>
         <button
           className={`monetize-tab ${activeTab === 'subscriptions' ? 'active' : ''}`}
           onClick={() => setActiveTab('subscriptions')}
         >
-          📋 Subscriptions
+          <TechIcon icon={Users} size={18} glow={activeTab === 'subscriptions' ? 'amber' : 'none'} />
+          <span>Subscriptions</span>
         </button>
         <button
           className={`monetize-tab ${activeTab === 'analytics' ? 'active' : ''}`}
           onClick={() => setActiveTab('analytics')}
         >
-          📊 Analytics
+          <TechIcon icon={BarChart3} size={18} glow={activeTab === 'analytics' ? 'amber' : 'none'} />
+          <span>Analytics</span>
         </button>
       </div>
 

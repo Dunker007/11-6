@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useCodeReviewStore } from '../../services/codereview/codeReviewStore';
+import { useActivityStore } from '../../services/activity/activityStore';
 import type { CodeIssue } from '@/types/codereview';
+import TechIcon from '../Icons/TechIcon';
+import { ScanEye, AlertCircle, AlertTriangle, Info, CheckCircle, Zap, Lock, Sparkles, Bug, Puzzle } from 'lucide-react';
 import '../../styles/CodeReview.css';
 
 function CodeReview() {
   const { reviews, currentReview, isLoading, analyzeCode, selectReview, deleteReview, loadReviews } =
     useCodeReviewStore();
+  const { addActivity } = useActivityStore();
   const [projectPath, setProjectPath] = useState('');
   const [showAnalyzeDialog, setShowAnalyzeDialog] = useState(false);
 
@@ -16,47 +20,51 @@ function CodeReview() {
   const handleAnalyze = async () => {
     if (!projectPath.trim()) return;
 
+    addActivity('system', 'started', 'Started code review analysis');
+
     await analyzeCode(projectPath.trim(), {
       includePatterns: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
       excludePatterns: ['node_modules/**', 'dist/**'],
       checkTypes: ['performance', 'security', 'style', 'bug', 'complexity', 'best-practice'],
     });
 
+    addActivity('system', 'completed', 'Code review analysis completed');
+
     setProjectPath('');
     setShowAnalyzeDialog(false);
   };
 
-  const getSeverityColor = (severity: CodeIssue['severity']) => {
+  const getSeverityIcon = (severity: CodeIssue['severity']) => {
     switch (severity) {
       case 'error':
-        return '#ef4444';
+        return <TechIcon icon={AlertCircle} size={16} glow="none" className="severity-icon error" />;
       case 'warning':
-        return '#f59e0b';
+        return <TechIcon icon={AlertTriangle} size={16} glow="none" className="severity-icon warning" />;
       case 'info':
-        return '#3b82f6';
+        return <TechIcon icon={Info} size={16} glow="none" className="severity-icon info" />;
       case 'suggestion':
-        return '#10b981';
+        return <TechIcon icon={CheckCircle} size={16} glow="none" className="severity-icon suggestion" />;
       default:
-        return '#6b7280';
+        return <TechIcon icon={Info} size={16} glow="none" className="severity-icon" />;
     }
   };
 
   const getCategoryIcon = (category: CodeIssue['category']) => {
     switch (category) {
       case 'performance':
-        return '⚡';
+        return <TechIcon icon={Zap} size={14} glow="none" className="category-icon performance" />;
       case 'security':
-        return '🔒';
+        return <TechIcon icon={Lock} size={14} glow="none" className="category-icon security" />;
       case 'style':
-        return '✨';
+        return <TechIcon icon={Sparkles} size={14} glow="none" className="category-icon style" />;
       case 'bug':
-        return '🐛';
+        return <TechIcon icon={Bug} size={14} glow="none" className="category-icon bug" />;
       case 'complexity':
-        return '🧩';
+        return <TechIcon icon={Puzzle} size={14} glow="none" className="category-icon complexity" />;
       case 'best-practice':
-        return '✅';
+        return <TechIcon icon={CheckCircle} size={14} glow="none" className="category-icon best-practice" />;
       default:
-        return '📝';
+        return <TechIcon icon={Info} size={14} glow="none" className="category-icon" />;
     }
   };
 
@@ -65,7 +73,8 @@ function CodeReview() {
       <div className="code-review-header">
         <h2>Code Review</h2>
         <button onClick={() => setShowAnalyzeDialog(true)} className="analyze-btn" disabled={isLoading}>
-          {isLoading ? 'Analyzing...' : '+ Analyze Code'}
+          <TechIcon icon={ScanEye} size={18} glow="cyan" animated={isLoading} />
+          <span>{isLoading ? 'Analyzing...' : 'Analyze Code'}</span>
         </button>
       </div>
 
@@ -96,6 +105,7 @@ function CodeReview() {
       <div className="code-review-content">
         {reviews.length === 0 ? (
           <div className="empty-state">
+            <TechIcon icon={ScanEye} size={64} glow="violet" animated={false} className="empty-icon" />
             <h3>No Reviews Yet</h3>
             <p>Start by analyzing your codebase</p>
           </div>
@@ -162,18 +172,16 @@ function CodeReview() {
                       <div key={issue.id} className={`issue-card ${issue.severity}`}>
                         <div className="issue-header">
                           <div className="issue-meta">
-                            <span className="category-icon">{getCategoryIcon(issue.category)}</span>
+                            {getCategoryIcon(issue.category)}
                             <span className="issue-file">{issue.file}</span>
                             <span className="issue-location">
                               Line {issue.line}
                               {issue.column && `, Col ${issue.column}`}
                             </span>
                           </div>
-                          <span
-                            className="severity-badge"
-                            style={{ backgroundColor: getSeverityColor(issue.severity) }}
-                          >
-                            {issue.severity}
+                          <span className={`severity-badge ${issue.severity}`}>
+                            {getSeverityIcon(issue.severity)}
+                            <span>{issue.severity}</span>
                           </span>
                         </div>
                         <div className="issue-message">{issue.message}</div>

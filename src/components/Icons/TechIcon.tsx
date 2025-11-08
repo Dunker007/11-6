@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { LucideIcon } from 'lucide-react';
 import '../../styles/TechIcons.css';
 
@@ -5,13 +6,13 @@ interface TechIconProps {
   icon: LucideIcon;
   size?: number;
   variant?: 'default' | 'hexagon' | 'circle' | 'circuit';
-  glow?: 'cyan' | 'violet' | 'amber' | 'none';
+  glow?: 'cyan' | 'violet' | 'amber' | 'green' | 'yellow' | 'red' | 'none';
   animated?: boolean;
   active?: boolean;
   className?: string;
 }
 
-function TechIcon({ 
+const TechIcon = memo(function TechIcon({ 
   icon: Icon, 
   size = 20, 
   variant = 'default',
@@ -20,14 +21,15 @@ function TechIcon({
   active = false,
   className = ''
 }: TechIconProps) {
-  const wrapperClasses = [
+  // Memoize wrapper classes to avoid recomputation on every render
+  const wrapperClasses = useMemo(() => [
     'tech-icon-wrapper',
     `variant-${variant}`,
     glow !== 'none' && `glow-${glow}`,
     animated && 'animated',
     active && 'active',
     className
-  ].filter(Boolean).join(' ');
+  ].filter(Boolean).join(' '), [variant, glow, animated, active, className]);
 
   return (
     <div className={wrapperClasses}>
@@ -69,7 +71,7 @@ function TechIcon({
 
       {/* The actual icon */}
       <Icon 
-        size={size} 
+        size={typeof size === 'number' ? size : 24} 
         className="tech-icon-svg"
         strokeWidth={1.5}
       />
@@ -90,7 +92,7 @@ function TechIcon({
       {active && <div className="pulse-ring"></div>}
     </div>
   );
-}
+});
 
 export default TechIcon;
 

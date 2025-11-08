@@ -1,11 +1,29 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import '../../styles/CenterPanel.css';
 import NeuralCore from './NeuralCore';
-import VibeEditor from '../VibeEditor/VibeEditor';
-import HealthDashboard from '../Health/HealthDashboard';
-import CreateWorkflow from '../Create/CreateWorkflow';
-import DeployWorkflow from '../Deploy/DeployWorkflow';
-import MonetizeWorkflow from '../Monetize/MonetizeWorkflow';
+
+// Lazy load workflows for better code splitting and faster initial load
+const VibeEditor = lazy(() => import('../VibeEditor/VibeEditor'));
+const HealthDashboard = lazy(() => import('../Health/HealthDashboard'));
+const CreateWorkflow = lazy(() => import('../Create/CreateWorkflow'));
+const DeployWorkflow = lazy(() => import('../Deploy/DeployWorkflow'));
+const MonetizeWorkflow = lazy(() => import('../Monetize/MonetizeWorkflow'));
+
+// Loading fallback component
+const WorkflowLoader = () => (
+  <div className="workflow-loading" style={{
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    color: 'var(--text-muted)',
+    fontSize: '0.9rem',
+  }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ marginBottom: '0.5rem' }}>Loading...</div>
+    </div>
+  </div>
+);
 
 interface CenterPanelProps {
   activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
@@ -80,7 +98,9 @@ function CenterPanel({ activeWorkflow, onWorkflowChange }: CenterPanelProps) {
       </div>
 
       <div className="main-content">
-        {workflowContent}
+        <Suspense fallback={<WorkflowLoader />}>
+          {workflowContent}
+        </Suspense>
       </div>
     </div>
   );

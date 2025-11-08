@@ -1,4 +1,5 @@
-import { Activity, ActivityListener } from '../../types/activity';
+import { Activity, ActivityListener, ActivityType } from '../../types/activity';
+import { getActivityIcon, getActivityColor } from './activityIconMapper';
 
 class ActivityService {
   private static instance: ActivityService;
@@ -95,9 +96,12 @@ class ActivityService {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Note: Icons will be added when activities are created
-        // This just loads the data structure
-        this.activities = parsed;
+        // Restore icons and colors based on activity type and action
+        this.activities = parsed.map((activity: Omit<Activity, 'icon' | 'color'>) => ({
+          ...activity,
+          icon: getActivityIcon(activity.type, activity.action),
+          color: getActivityColor(activity.type, activity.action),
+        }));
       }
     } catch (error) {
       console.error('Failed to load activities from localStorage:', error);

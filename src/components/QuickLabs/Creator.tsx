@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useCreatorStore } from '../../services/creator/creatorStore';
+import { useActivityStore } from '../../services/activity/activityStore';
+import TechIcon from '../Icons/TechIcon';
+import { PenTool, Plus, FileText, Book, Library, Save, Download, Eye } from 'lucide-react';
 import '../../styles/Creator.css';
 
 function Creator() {
   const { documents, templates, currentDocument, loadDocuments, loadTemplates, createDocument, selectDocument, updateDocument, deleteDocument } =
     useCreatorStore();
+  const { addActivity } = useActivityStore();
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
@@ -18,6 +22,7 @@ function Creator() {
   const handleCreate = () => {
     if (newDocTitle.trim()) {
       createDocument(newDocTitle.trim(), 'markdown', selectedTemplate || undefined);
+      addActivity('file', 'created', `Created document "${newDocTitle.trim()}"`);
       setNewDocTitle('');
       setSelectedTemplate(null);
       setShowCreateDialog(false);
@@ -29,7 +34,8 @@ function Creator() {
       <div className="creator-header">
         <h2>Creator</h2>
         <button onClick={() => setShowCreateDialog(true)} className="create-btn">
-          + New Document
+          <TechIcon icon={Plus} size={18} glow="cyan" />
+          <span>New Document</span>
         </button>
       </div>
 
@@ -53,7 +59,13 @@ function Creator() {
                   className={`template-option ${selectedTemplate === template.id ? 'selected' : ''}`}
                   onClick={() => setSelectedTemplate(selectedTemplate === template.id ? null : template.id)}
                 >
-                  <span className="template-icon">{template.category === 'blog' ? '📝' : template.category === 'readme' ? '📖' : '📚'}</span>
+                  {template.category === 'blog' ? (
+                    <TechIcon icon={FileText} size={20} glow="cyan" className="template-icon" />
+                  ) : template.category === 'readme' ? (
+                    <TechIcon icon={Book} size={20} glow="violet" className="template-icon" />
+                  ) : (
+                    <TechIcon icon={Library} size={20} glow="amber" className="template-icon" />
+                  )}
                   <div>
                     <div className="template-name">{template.name}</div>
                     <div className="template-desc">{template.description}</div>
@@ -76,6 +88,7 @@ function Creator() {
       <div className="creator-content">
         {documents.length === 0 ? (
           <div className="empty-state">
+            <TechIcon icon={PenTool} size={64} glow="violet" animated={false} className="empty-icon" />
             <h3>No Documents</h3>
             <p>Create your first document to get started</p>
           </div>
@@ -96,10 +109,12 @@ function Creator() {
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteDocument(doc.id);
+                          addActivity('file', 'deleted', `Deleted document "${doc.title}"`);
                         }}
                         className="delete-doc-btn"
+                        title="Delete Document"
                       >
-                        ×
+                        <TechIcon icon={FileText} size={12} glow="none" />
                       </button>
                     </div>
                     <div className="document-item-meta">

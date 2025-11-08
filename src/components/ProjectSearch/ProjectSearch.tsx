@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useProjectStore } from '../../services/project/projectStore';
+import { useDebounce } from '../../utils/hooks/useDebounce';
 import type { ProjectFile } from '@/types/project';
 import '../../styles/ProjectSearch.css';
 
@@ -23,66 +24,63 @@ function ProjectSearch({ onClose, onFileSelect }: ProjectSearchProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [useRegex, setUseRegex] = useState(false);
+  
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   useEffect(() => {
-    const searchFiles = () => {
-      if (!searchQuery.trim() || !activeProject) {
-        setResults([]);
-        return;
-      }
+    if (!debouncedSearchQuery.trim() || !activeProject) {
+      setResults([]);
+      return;
+    }
 
-      setIsSearching(true);
-      const foundResults: SearchResult[] = [];
+    setIsSearching(true);
+    const foundResults: SearchResult[] = [];
 
-      const searchInFile = (file: ProjectFile) => {
-        if (file.isDirectory && file.children) {
-          file.children.forEach(searchInFile);
-        } else if (!file.isDirectory && file.content) {
-          const lines = file.content.split('\n');
-          lines.forEach((lineText, index) => {
-            let hasMatch = false;
-            
-            if (useRegex) {
-              try {
-                const regex = new RegExp(searchQuery, caseSensitive ? 'g' : 'gi');
-                hasMatch = regex.test(lineText);
-              } catch {
-                // Invalid regex, fallback to plain text
-                hasMatch = caseSensitive
-                  ? lineText.includes(searchQuery)
-                  : lineText.toLowerCase().includes(searchQuery.toLowerCase());
-              }
-            } else {
+    const searchInFile = (file: ProjectFile) => {
+      if (file.isDirectory && file.children) {
+        file.children.forEach(searchInFile);
+      } else if (!file.isDirectory && file.content) {
+        const lines = file.content.split('\n');
+        lines.forEach((lineText, index) => {
+          let hasMatch = false;
+          
+          if (useRegex) {
+            try {
+              const regex = new RegExp(debouncedSearchQuery, caseSensitive ? 'g' : 'gi');
+              hasMatch = regex.test(lineText);
+            } catch {
+              // Invalid regex, fallback to plain text
               hasMatch = caseSensitive
-                ? lineText.includes(searchQuery)
-                : lineText.toLowerCase().includes(searchQuery.toLowerCase());
+                ? lineText.includes(debouncedSearchQuery)
+                : lineText.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
             }
+          } else {
+            hasMatch = caseSensitive
+              ? lineText.includes(debouncedSearchQuery)
+              : lineText.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+          }
 
-            if (hasMatch) {
-              const matchIndex = caseSensitive
-                ? lineText.indexOf(searchQuery)
-                : lineText.toLowerCase().indexOf(searchQuery.toLowerCase());
+          if (hasMatch) {
+            const matchIndex = caseSensitive
+              ? lineText.indexOf(debouncedSearchQuery)
+              : lineText.toLowerCase().indexOf(debouncedSearchQuery.toLowerCase());
 
-              foundResults.push({
-                filePath: file.path,
-                fileName: file.name,
-                line: index + 1,
-                lineText: lineText.trim(),
-                matchIndex,
-              });
-            }
-          });
-        }
-      };
-
-      activeProject.files.forEach(searchInFile);
-      setResults(foundResults);
-      setIsSearching(false);
+            foundResults.push({
+              filePath: file.path,
+              fileName: file.name,
+              line: index + 1,
+              lineText: lineText.trim(),
+              matchIndex,
+            });
+          }
+        });
+      }
     };
 
-    const debounce = setTimeout(searchFiles, 300);
-    return () => clearTimeout(debounce);
-  }, [searchQuery, activeProject, caseSensitive, useRegex]);
+    activeProject.files.forEach(searchInFile);
+    setResults(foundResults);
+    setIsSearching(false);
+  }, [debouncedSearchQuery, activeProject, caseSensitive, useRegex]);
 
   const highlightMatch = (text: string, query: string, matchIndex: number) => {
     if (matchIndex === -1) return text;

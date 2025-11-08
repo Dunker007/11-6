@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import '../../styles/NeuralCore3D.css';
 
-function NeuralCore3D() {
+const NeuralCore3D = memo(function NeuralCore3D() {
   const [rotation, setRotation] = useState(0);
 
   useEffect(() => {
@@ -115,7 +115,7 @@ function NeuralCore3D() {
       </svg>
     </div>
   );
-}
+});
 
 export default NeuralCore3D;
 

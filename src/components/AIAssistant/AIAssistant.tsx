@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { useProjectStore } from '../../services/project/projectStore';
 import { projectKnowledgeService } from '../../services/ai/projectKnowledgeService';
+import TechIcon from '../Icons/TechIcon';
+import { Send, Sparkles, Copy, Check, Code } from 'lucide-react';
 import '../../styles/AIAssistant.css';
 
 interface Message {
@@ -24,6 +26,7 @@ function AIAssistant() {
   ]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -152,17 +155,22 @@ function AIAssistant() {
     inputRef.current?.focus();
   };
 
+  const handleCopyCode = (messageId: string, content: string) => {
+    navigator.clipboard.writeText(content);
+    setCopiedMessageId(messageId);
+    setTimeout(() => setCopiedMessageId(null), 2000);
+  };
+
   return (
     <div className="ai-assistant">
       <div className="assistant-header">
         <div className="vibdee-avatar">
-          <div className="avatar-glow" />
-          <span className="avatar-icon">🧠</span>
+          <TechIcon icon={Sparkles} size={24} glow="violet" animated={isStreaming || isLoading} />
         </div>
         <div className="header-info">
           <h3>Vibed Ed</h3>
           <span className="status-indicator">
-            {isLoading || isStreaming ? 'Hmm, let me think...' : 'Ready to help'}
+            {isLoading || isStreaming ? 'Thinking...' : 'Ready to help'}
           </span>
         </div>
       </div>
@@ -172,29 +180,28 @@ function AIAssistant() {
           className="quick-action-btn"
           onClick={() => handleQuickAction('explain')}
           disabled={!activeFile}
+          title="Explain this code"
         >
-          💡 Explain
+          <TechIcon icon={Code} size={14} glow="none" />
+          <span>Explain</span>
         </button>
         <button
           className="quick-action-btn"
           onClick={() => handleQuickAction('refactor')}
           disabled={!activeFile}
+          title="Suggest improvements"
         >
-          🔧 Refactor
+          <TechIcon icon={Sparkles} size={14} glow="none" />
+          <span>Refactor</span>
         </button>
         <button
           className="quick-action-btn"
           onClick={() => handleQuickAction('fix')}
           disabled={!activeFile}
+          title="Find and fix bugs"
         >
-          🐛 Fix Bugs
-        </button>
-        <button
-          className="quick-action-btn"
-          onClick={() => handleQuickAction('test')}
-          disabled={!activeFile}
-        >
-          ✅ Generate Tests
+          <TechIcon icon={Code} size={14} glow="none" />
+          <span>Fix</span>
         </button>
       </div>
 
@@ -203,7 +210,7 @@ function AIAssistant() {
           <div key={message.id} className={`message ${message.role}`}>
             {message.role === 'assistant' && (
               <div className="message-avatar">
-                <span>🧠</span>
+                <TechIcon icon={Sparkles} size={20} glow="violet" />
               </div>
             )}
             <div className="message-content">
@@ -212,9 +219,24 @@ function AIAssistant() {
                   if (index % 2 === 1) {
                     // Code block
                     return (
-                      <pre key={index} className="code-block">
-                        <code>{part}</code>
-                      </pre>
+                      <div key={index} className="code-block-wrapper">
+                        <div className="code-block-header">
+                          <TechIcon icon={Code} size={14} glow="none" />
+                          <button
+                            className="copy-code-btn"
+                            onClick={() => handleCopyCode(message.id, part)}
+                          >
+                            <TechIcon 
+                              icon={copiedMessageId === message.id ? Check : Copy} 
+                              size={14} 
+                              glow={copiedMessageId === message.id ? 'cyan' : 'none'} 
+                            />
+                          </button>
+                        </div>
+                        <pre className="code-block">
+                          <code>{part}</code>
+                        </pre>
+                      </div>
                     );
                   }
                   return <span key={index}>{part}</span>;
@@ -229,7 +251,7 @@ function AIAssistant() {
         {isStreaming && (
           <div className="message assistant">
             <div className="message-avatar">
-              <span>🧠</span>
+              <TechIcon icon={Sparkles} size={20} glow="violet" animated={true} />
             </div>
             <div className="message-content">
               <div className="typing-indicator">
@@ -258,8 +280,14 @@ function AIAssistant() {
           className="send-button"
           onClick={handleSend}
           disabled={!input.trim() || isLoading || isStreaming}
+          title="Send message"
         >
-          {isStreaming ? '⏳' : '🚀'}
+          <TechIcon 
+            icon={Send} 
+            size={18} 
+            glow={input.trim() && !isLoading && !isStreaming ? 'cyan' : 'none'} 
+            animated={isStreaming || isLoading}
+          />
         </button>
       </div>
     </div>

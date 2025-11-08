@@ -8,7 +8,7 @@ import '../../styles/SystemOverview.css';
 function SystemOverview() {
   const { projects, activeProject } = useProjectStore();
   const { activities } = useActivityStore();
-  const { status: llmStatus } = useLLMStore();
+  const { availableProviders, isLoading: llmLoading } = useLLMStore();
   const [uptime, setUptime] = useState(0);
 
   // Calculate uptime (simulated - starts from page load)
@@ -34,6 +34,7 @@ function SystemOverview() {
   ).length;
 
   // System health (simplified calculation)
+  const llmStatus = availableProviders.length > 0 ? 'connected' : 'offline';
   const systemHealth = llmStatus === 'connected' ? 95 : 75;
 
   return (

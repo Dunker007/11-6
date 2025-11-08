@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Activity } from '../../types/activity';
 import TechIcon from '../Icons/TechIcon';
 import '../../styles/ActivityFeed.css';
@@ -7,7 +8,7 @@ interface ActivityItemProps {
   onClick?: () => void;
 }
 
-function ActivityItem({ activity, onClick }: ActivityItemProps) {
+const ActivityItem = memo(function ActivityItem({ activity, onClick }: ActivityItemProps) {
   const getTimeAgo = (timestamp: number): string => {
     const now = Date.now();
     const diff = now - timestamp;
@@ -46,7 +47,7 @@ function ActivityItem({ activity, onClick }: ActivityItemProps) {
       }}></div>
     </div>
   );
-}
+});
 
 export default ActivityItem;
 

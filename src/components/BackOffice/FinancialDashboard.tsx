@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useFinancialStore } from '../../services/backoffice/financialStore';
 import { useThresholdStore } from '../../services/backoffice/thresholdStore';
+import { formatCurrency } from '../../utils/formatters';
 import type { ExpenseCategory, IncomeSource } from '@/types/backoffice';
 import '../../styles/FinancialDashboard.css';
 
@@ -55,14 +56,6 @@ function FinancialDashboard() {
       useThresholdStore.getState().updateFinancials(summary.totalIncome, summary.totalExpenses);
     }
   }, [summary]);
-
-  // Memoize currency formatter to avoid recreating on every render
-  const formatCurrency = useCallback((amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  }, []);
 
   const handleAddExpense = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

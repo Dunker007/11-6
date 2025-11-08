@@ -13,8 +13,12 @@ import AgentForge from '../QuickLabs/AgentForge';
 import Creator from '../QuickLabs/Creator';
 import LayoutPlayground from '../LayoutPlayground/LayoutPlayground';
 import ProgramRunner from '../ProgramRunner/ProgramRunner';
+import ErrorConsole from '../ErrorConsole/ErrorConsole';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
+import { errorLogger } from '../../services/errors/errorLogger';
+import { errorConsoleShortcut } from '../../services/errors/errorConsoleShortcut';
+import { AlertCircle } from 'lucide-react';
 
 interface LeftPanelProps {
   activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
@@ -50,7 +54,33 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
   const [showBackOffice, setShowBackOffice] = useState(false);
   const [showLayoutPlayground, setShowLayoutPlayground] = useState(false);
   const [showProgramRunner, setShowProgramRunner] = useState(false);
+  const [showErrorConsole, setShowErrorConsole] = useState(false);
   const [activeQuickLab, setActiveQuickLab] = useState<'mindmap' | 'codereview' | 'agentforge' | 'creator' | null>(null);
+  const [errorCount, setErrorCount] = useState(0);
+  const [hasNewErrors, setHasNewErrors] = useState(false);
+
+  // Subscribe to error updates
+  useEffect(() => {
+    const updateErrorCount = () => {
+      const stats = errorLogger.getStats();
+      const newCount = stats.bySeverity.critical + stats.bySeverity.error;
+      if (newCount > errorCount) {
+        setHasNewErrors(true);
+        setTimeout(() => setHasNewErrors(false), 5000); // Clear pulse after 5s
+      }
+      setErrorCount(newCount);
+    };
+
+    updateErrorCount();
+    const unsubscribe = errorLogger.subscribe(updateErrorCount);
+    return unsubscribe;
+  }, []);
+
+  // Activate keyboard shortcut for error console
+  useEffect(() => {
+    errorConsoleShortcut.activate(() => setShowErrorConsole(prev => !prev));
+    return () => errorConsoleShortcut.deactivate();
+  }, []);
 
   // Memoize modal handlers to prevent unnecessary re-renders
   const modalHandlers = useMemo(() => ({
@@ -230,6 +260,25 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
             <span>Program Runner</span>
           </button>
         </div>
+
+        {/* Error Console Badge */}
+        <div className="error-badge-container">
+          <button
+            className={`error-badge-btn ${hasNewErrors ? 'pulse' : ''}`}
+            onClick={() => setShowErrorConsole(true)}
+            title="Error Console"
+          >
+            <TechIcon 
+              icon={AlertCircle}
+              size={20}
+              variant="default"
+              glow={errorCount > 0 ? 'red' : undefined}
+            />
+            {errorCount > 0 && (
+              <span className="error-badge-count">{errorCount}</span>
+            )}
+          </button>
+        </div>
       </div>
 
       {showAPIKeyManager && (
@@ -345,9 +394,15 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
               </div>
             </div>
           )}
-        </>
-      );
-    }
+
+          {/* Error Console */}
+          <ErrorConsole 
+            isOpen={showErrorConsole}
+            onClose={() => setShowErrorConsole(false)}
+          />
+    </>
+  );
+}
 
 export default LeftPanel;
 

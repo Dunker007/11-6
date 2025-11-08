@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import TechIcon from '../Icons/TechIcon';
+import { Rocket, CheckCircle, XCircle, Loader, ExternalLink } from 'lucide-react';
 import type { Deployment } from '@/types/deploy';
 import '../../styles/DeployWorkflow.css';
 
@@ -44,11 +46,33 @@ function LiveDeployment({ deployment }: LiveDeploymentProps) {
     }
   };
 
+  const getStatusIcon = () => {
+    switch (deployment.status) {
+      case 'success':
+        return CheckCircle;
+      case 'failed':
+        return XCircle;
+      default:
+        return Loader;
+    }
+  };
+
   return (
     <div className="live-deployment">
       <div className="live-header">
-        <h3>🚀 Live Deployment</h3>
-        <span className={`status-badge ${deployment.status}`}>{deployment.status}</span>
+        <div className="header-title">
+          <TechIcon icon={Rocket} size={24} glow="cyan" animated={true} />
+          <h3>Live Deployment</h3>
+        </div>
+        <span className={`status-badge ${deployment.status}`}>
+          <TechIcon 
+            icon={getStatusIcon()} 
+            size={14} 
+            glow="none" 
+            animated={deployment.status !== 'success' && deployment.status !== 'failed'} 
+          />
+          <span>{deployment.status}</span>
+        </span>
       </div>
 
       <div className="deployment-progress">
@@ -77,8 +101,9 @@ function LiveDeployment({ deployment }: LiveDeploymentProps) {
         {deployment.url && (
           <div className="detail-item">
             <strong>URL:</strong>{' '}
-            <a href={deployment.url} target="_blank" rel="noopener noreferrer">
-              {deployment.url}
+            <a href={deployment.url} target="_blank" rel="noopener noreferrer" className="deployment-link">
+              <span>{deployment.url}</span>
+              <TechIcon icon={ExternalLink} size={14} glow="cyan" />
             </a>
           </div>
         )}

@@ -1,6 +1,6 @@
-import { LucideIcon } from 'lucide-react';
+import { type LucideIcon } from '../components/Icons/icons';
 
-export type ActivityType = 'file' | 'project' | 'ai' | 'build' | 'deploy' | 'git' | 'error' | 'system';
+export type ActivityType = 'file' | 'project' | 'ai' | 'build' | 'deploy' | 'deployment' | 'code' | 'git' | 'error' | 'system';
 export type ActivityColor = 'cyan' | 'violet' | 'green' | 'yellow' | 'red';
 
 export interface Activity {

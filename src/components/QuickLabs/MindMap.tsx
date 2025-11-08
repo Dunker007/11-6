@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useMindMapStore } from '../../services/mindmap/mindMapStore';
+import { useActivityStore } from '../../services/activity/activityStore';
 import type { MindMapNode } from '@/types/mindmap';
+import TechIcon from '../Icons/TechIcon';
+import { Network, Plus, Brain, Lightbulb, Target, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
 import '../../styles/MindMap.css';
 
 function MindMap() {
@@ -16,6 +19,7 @@ function MindMap() {
     selectNode,
     clearSelection,
   } = useMindMapStore();
+  const { addActivity } = useActivityStore();
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -32,6 +36,7 @@ function MindMap() {
   const handleCreateMap = () => {
     if (newMapName.trim()) {
       createMindMap(newMapName.trim());
+      addActivity('system', 'created', `Created mind map "${newMapName.trim()}"`);
       setNewMapName('');
       setShowNewMapDialog(false);
     }
@@ -78,6 +83,7 @@ function MindMap() {
   const handleDeleteNode = (e: React.KeyboardEvent) => {
     if (e.key === 'Delete' && selectedNode && currentMindMap) {
       deleteNode(selectedNode.id);
+      addActivity('system', 'deleted', `Deleted mind map node "${selectedNode.text}"`);
     }
   };
 
@@ -85,10 +91,12 @@ function MindMap() {
     return (
       <div className="mind-map-container">
         <div className="mind-map-empty">
+          <TechIcon icon={Network} size={64} glow="violet" animated={false} className="empty-icon" />
           <h2>No Mind Maps</h2>
           <p>Create your first mind map to get started</p>
           <button onClick={() => setShowNewMapDialog(true)} className="create-btn">
-            + Create Mind Map
+            <TechIcon icon={Plus} size={18} glow="cyan" />
+            <span>Create Mind Map</span>
           </button>
         </div>
 
@@ -135,16 +143,17 @@ function MindMap() {
             ))}
           </select>
           <button onClick={() => setShowNewMapDialog(true)} className="new-map-btn">
-            + New Map
+            <TechIcon icon={Plus} size={16} glow="cyan" />
+            <span>New Map</span>
           </button>
         </div>
         <div className="header-right">
-          <button onClick={() => setScale(Math.max(0.5, scale - 0.1))} className="zoom-btn">
-            −
+          <button onClick={() => setScale(Math.max(0.5, scale - 0.1))} className="zoom-btn" title="Zoom Out">
+            <TechIcon icon={ZoomOut} size={16} glow="none" />
           </button>
           <span className="zoom-level">{Math.round(scale * 100)}%</span>
-          <button onClick={() => setScale(Math.min(2, scale + 0.1))} className="zoom-btn">
-            +
+          <button onClick={() => setScale(Math.min(2, scale + 0.1))} className="zoom-btn" title="Zoom In">
+            <TechIcon icon={ZoomIn} size={16} glow="none" />
           </button>
         </div>
       </div>
@@ -225,8 +234,12 @@ function MindMap() {
               <option value="hexagon">Hexagon</option>
             </select>
           </div>
-          <button onClick={() => deleteNode(selectedNode.id)} className="delete-btn">
-            Delete Node
+          <button onClick={() => {
+            deleteNode(selectedNode.id);
+            addActivity('system', 'deleted', `Deleted mind map node "${selectedNode.text}"`);
+          }} className="delete-btn">
+            <TechIcon icon={Trash2} size={16} glow="none" />
+            <span>Delete Node</span>
           </button>
         </div>
       )}
