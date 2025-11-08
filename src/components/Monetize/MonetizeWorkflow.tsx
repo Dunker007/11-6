@@ -3,6 +3,8 @@ import RevenueStreams from './RevenueStreams';
 import PricingStrategies from './PricingStrategies';
 import SubscriptionManager from './SubscriptionManager';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import WorkflowHero from '../shared/WorkflowHero';
+import CommandCard from '../shared/CommandCard';
 import { useMonetizeStore } from '../../services/monetize/monetizeStore';
 import TechIcon from '../Icons/TechIcon';
 import { DollarSign, TrendingUp, Tag, Users, BarChart3 } from 'lucide-react';
@@ -10,56 +12,98 @@ import '../../styles/MonetizeWorkflow.css';
 
 function MonetizeWorkflow() {
   const [activeTab, setActiveTab] = useState<'streams' | 'pricing' | 'subscriptions' | 'analytics'>('streams');
-  const { refresh } = useMonetizeStore();
+  const { revenue, subscriptions, refresh } = useMonetizeStore();
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
+  // Calculate stats
+  const totalRevenue = revenue.reduce((sum, r) => sum + r.amount, 0);
+  const activeSubscriptions = subscriptions.filter(s => s.status === 'active').length;
+  const monthlyRecurring = subscriptions
+    .filter(s => s.status === 'active')
+    .reduce((sum, s) => sum + s.amount, 0);
+  const churnRate = subscriptions.length > 0 
+    ? Math.round((subscriptions.filter(s => s.status === 'cancelled').length / subscriptions.length) * 100) 
+    : 0;
+
   return (
-    <div className="monetize-workflow">
-      <div className="monetize-header">
-        <div className="monetize-title">
-          <TechIcon icon={DollarSign} size={32} glow="amber" animated={false} />
-          <div>
-            <h2>Monetize Your Project</h2>
-            <p>Track revenue, manage subscriptions, and optimize pricing strategies</p>
-          </div>
-        </div>
-      </div>
+    <div className="monetize-workflow command-center-layout">
+      {/* Command Center Hero */}
+      <WorkflowHero
+        title="REVENUE COMMAND"
+        subtitle="Monetization & Analytics Hub"
+        showCore={false}
+        stats={[
+          { icon: '◈', value: `$${totalRevenue.toLocaleString()}`, label: 'Total Revenue' },
+          { icon: '◎', value: `$${monthlyRecurring.toLocaleString()}`, label: 'Monthly MRR' },
+          { icon: '◉', value: activeSubscriptions, label: 'Active Subscribers' },
+          { icon: '▣', value: `${churnRate}%`, label: 'Churn Rate' },
+        ]}
+        statusIndicators={[
+          { label: 'BILLING ACTIVE', status: 'online' },
+          { label: 'ANALYTICS LIVE', status: 'online' },
+        ]}
+      />
 
-      <div className="monetize-tabs">
-        <button
-          className={`monetize-tab ${activeTab === 'streams' ? 'active' : ''}`}
+      {/* Tab Navigation */}
+      <div className="monetize-tab-nav">
+        <CommandCard 
+          variant="amber"
+          clickable
           onClick={() => setActiveTab('streams')}
+          className={activeTab === 'streams' ? 'active' : ''}
         >
-          <TechIcon icon={TrendingUp} size={18} glow={activeTab === 'streams' ? 'amber' : 'none'} />
-          <span>Revenue Streams</span>
-        </button>
-        <button
-          className={`monetize-tab ${activeTab === 'pricing' ? 'active' : ''}`}
+          <div className="tab-content">
+            <TechIcon icon={TrendingUp} size={32} glow="amber" animated={activeTab === 'streams'} />
+            <h3>Revenue Streams</h3>
+            <p>Track and optimize income sources</p>
+          </div>
+        </CommandCard>
+
+        <CommandCard 
+          variant="cyan"
+          clickable
           onClick={() => setActiveTab('pricing')}
+          className={activeTab === 'pricing' ? 'active' : ''}
         >
-          <TechIcon icon={Tag} size={18} glow={activeTab === 'pricing' ? 'amber' : 'none'} />
-          <span>Pricing Strategies</span>
-        </button>
-        <button
-          className={`monetize-tab ${activeTab === 'subscriptions' ? 'active' : ''}`}
+          <div className="tab-content">
+            <TechIcon icon={Tag} size={32} glow="cyan" animated={activeTab === 'pricing'} />
+            <h3>Pricing Strategies</h3>
+            <p>Configure pricing models and tiers</p>
+          </div>
+        </CommandCard>
+
+        <CommandCard 
+          variant="violet"
+          clickable
           onClick={() => setActiveTab('subscriptions')}
+          className={activeTab === 'subscriptions' ? 'active' : ''}
         >
-          <TechIcon icon={Users} size={18} glow={activeTab === 'subscriptions' ? 'amber' : 'none'} />
-          <span>Subscriptions</span>
-        </button>
-        <button
-          className={`monetize-tab ${activeTab === 'analytics' ? 'active' : ''}`}
+          <div className="tab-content">
+            <TechIcon icon={Users} size={32} glow="violet" animated={activeTab === 'subscriptions'} />
+            <h3>Subscriptions</h3>
+            <p>Manage customer subscriptions</p>
+          </div>
+        </CommandCard>
+
+        <CommandCard 
+          variant="emerald"
+          clickable
           onClick={() => setActiveTab('analytics')}
+          className={activeTab === 'analytics' ? 'active' : ''}
         >
-          <TechIcon icon={BarChart3} size={18} glow={activeTab === 'analytics' ? 'amber' : 'none'} />
-          <span>Analytics</span>
-        </button>
+          <div className="tab-content">
+            <TechIcon icon={BarChart3} size={32} glow="cyan" animated={activeTab === 'analytics'} />
+            <h3>Analytics</h3>
+            <p>Visualize revenue and trends</p>
+          </div>
+        </CommandCard>
       </div>
 
-      <div className="monetize-content">
+      {/* Content Area */}
+      <div className="monetize-content-wrapper">
         {activeTab === 'streams' && <RevenueStreams />}
         {activeTab === 'pricing' && <PricingStrategies />}
         {activeTab === 'subscriptions' && <SubscriptionManager />}
