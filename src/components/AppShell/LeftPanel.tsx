@@ -85,7 +85,10 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, onHandlersReady, onOpenNo
     };
 
     updateErrorCount(); // Initial call
-    const unsubscribe = errorLogger.subscribe(updateErrorCount);
+    // Defer subscribe callback to next tick to prevent updates during render
+    const unsubscribe = errorLogger.subscribe(() => {
+      setTimeout(updateErrorCount, 0);
+    });
     return unsubscribe;
   }, []);
 
