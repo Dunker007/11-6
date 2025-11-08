@@ -133,10 +133,10 @@ function createWindow() {
   if (url) {
     debugLog('[Electron] Dev mode - loading from URL:', url);
     win.loadURL(url);
-    win.webContents.openDevTools(); // Always open DevTools for debugging
+    if (isDev) {
+      win.webContents.openDevTools();
+    }
   } else {
-    // Open DevTools in production for debugging
-    win.webContents.openDevTools();
     // In production, resolve path relative to the app root
     // __dirname in production points to resources/app.asar/dist-electron
     // We need to go up one level to reach dist
