@@ -9,6 +9,7 @@ import UpdateNotification from './components/UpdateNotification/UpdateNotificati
 import AboutDialog from './components/About/AboutDialog';
 import AIOSInterface from './components/AIOS/AIOSInterface';
 import NotificationCenter from './components/Notifications/NotificationCenter'; // Import NotificationCenter
+import DraggableWidget from './components/shared/DraggableWidget';
 import TechIcon from './components/Icons/TechIcon';
 import { ICON_MAP } from './components/Icons/IconSet';
 import { registerCommands } from './services/command/registerCommands';
@@ -272,20 +273,26 @@ function App() {
             />
           </div>
 
-          {/* Floating OS Mode Toggle Button */}
-          <button
-            className="os-mode-toggle-btn"
-            onClick={() => setOsMode(true)}
-            title="Enter AI OS Mode (⌘⇧O)"
+          {/* Floating OS Mode Toggle Button - Draggable */}
+          <DraggableWidget 
+            defaultPosition={{ x: 20, y: window.innerHeight - 90 }}
+            storageKey="os-mode-toggle"
+            className="os-mode-widget"
           >
-            <TechIcon 
-              icon={ICON_MAP.osMode}
-              size={20}
-              glow="cyan"
-              animated={true}
-            />
-            <span>OS Mode</span>
-          </button>
+            <button
+              className="os-mode-toggle-btn-inner"
+              onClick={() => setOsMode(true)}
+              title="Enter AI OS Mode (⌘⇧O)"
+            >
+              <TechIcon 
+                icon={ICON_MAP.osMode}
+                size={20}
+                glow="cyan"
+                animated={true}
+              />
+              <span>OS Mode</span>
+            </button>
+          </DraggableWidget>
         </>
       )}
     </ErrorBoundary>

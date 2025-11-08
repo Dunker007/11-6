@@ -1,0 +1,41 @@
+.draggable-widget {
+  position: fixed;
+  cursor: grab;
+  user-select: none;
+  z-index: 9999;
+  transition: box-shadow 0.2s ease;
+}
+
+.draggable-widget.dragging {
+  cursor: grabbing;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  opacity: 0.95;
+}
+
+.draggable-widget:active {
+  cursor: grabbing;
+}
+
+/* Add a subtle grab hint */
+.draggable-widget::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 3px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+}
+
+.draggable-widget:hover::before {
+  opacity: 0.6;
+}
+
+.draggable-widget.dragging::before {
+  opacity: 0;
+}
+

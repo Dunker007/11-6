@@ -8,6 +8,7 @@ import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
 import { VIBED_ED_PERSONAS, VibedEdPersona } from '../../services/ai/prompts/vibedEdPersonas';
 import { Plus, X } from 'lucide-react';
+import DraggableWidget from '../shared/DraggableWidget';
 import '../../styles/AIChat.css';
 
 interface Message {
@@ -154,16 +155,22 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
 
   if (isMinimized) {
     return (
-      <div className="ai-chat-minimized" onClick={onToggleMinimize}>
-        <TechIcon 
-          icon={ICON_MAP.vibedEd}
-          size={24}
-          glow="violet"
-          animated={true}
-          className="minimized-avatar"
-        />
-        <span>Vibed Ed</span>
-      </div>
+      <DraggableWidget 
+        defaultPosition={{ x: window.innerWidth - 140, y: window.innerHeight - 90 }}
+        storageKey="ai-chat-minimized"
+        className="ai-chat-minimized-widget"
+      >
+        <div className="ai-chat-minimized-inner" onClick={onToggleMinimize}>
+          <TechIcon 
+            icon={ICON_MAP.vibedEd}
+            size={24}
+            glow="violet"
+            animated={true}
+            className="minimized-avatar"
+          />
+          <span>Vibed Ed</span>
+        </div>
+      </DraggableWidget>
     );
   }
 
