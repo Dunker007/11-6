@@ -19,7 +19,8 @@ const ActivityFeed = () => {
       setErrorCount(stats.bySeverity.critical + stats.bySeverity.error);
     };
     updateErrorCount();
-    const unsubscribe = errorLogger.subscribe(updateErrorCount);
+    // Defer subscribe callback to prevent updates during render
+    const unsubscribe = errorLogger.subscribe(() => setTimeout(updateErrorCount, 0));
     return unsubscribe;
   }, []);
 
