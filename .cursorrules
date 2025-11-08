@@ -1,0 +1,239 @@
+# Cursor AI Rules for DLX Studios Ultimate (Vibed Ed)
+
+## Project Overview
+This is an AI-powered development environment built with Electron, React, and TypeScript. It features intelligent code generation, multi-file context awareness, and AI agents for automation.
+
+## Critical Architecture Rules
+
+### ❌ DO NOT CREATE THESE (DELETED IN NOV 2025)
+- `electron/ai/knowledgeGraph.ts`
+- `electron/ai/projectIndexer.ts`
+- `electron/ai/semanticRetriever.ts`
+- `electron/ai/workflowEngine.ts`
+- `electron/ai/llmService.ts`
+- `electron/ipcHandlers.ts` (for AI services)
+
+**Reason:** These caused performance issues (chat lockup, heavy synchronous dependencies). All AI services now run in the renderer process.
+
+### ✅ USE THESE INSTEAD
+- **Primary AI Entry Point:** `src/services/ai/aiServiceBridge.ts`
+  - Self-contained, no IPC
+  - Methods: `startIndexing()`, `createPlan()`, `structureIdea()`
+  - Uses `llmRouter` directly with graceful fallbacks
+
+### AI Services Architecture (Renderer-Side)
+```
+aiServiceBridge.ts (main entry)
+├── llmRouter.ts (LLM routing)
+│   ├── providers/localLLM.ts (LM Studio, Ollama)
+│   └── providers/cloudLLM.ts (Gemini, NotebookLM)
+├── multiFileContextService.ts (project analysis)
+├── projectKnowledgeService.ts (knowledge management)
+└── refactoringEngine.ts (code refactoring)
+```
+
+## Code Standards
+
+### TypeScript
+- Strict mode enabled
+- Use `@/` for absolute imports from `src/`
+- All AI service methods must have graceful fallbacks
+- Temperature for LLM calls: **0.91** (not 0.7)
+
+### React
+- Functional components with hooks
+- Use `React.memo` for pure components
+- Lazy load heavy components (`React.lazy`)
+- Clean up effects with return functions
+
+### State Management
+- Zustand for global state
+- Store files: `src/services/*/[name]Store.ts`
+- Keep stores focused and modular
+
+### Performance
+- Code splitting via `vite.config.ts` manual chunks
+- Lazy load: workflows, Monaco, QuickLabs
+- Virtual scrolling for long lists (disabled if performance OK)
+- Debounce expensive operations (use `useDebounce` hook)
+
+### AI Integration
+```typescript
+// ✅ CORRECT - Use aiServiceBridge
+import { aiServiceBridge } from '@/services/ai/aiServiceBridge';
+await aiServiceBridge.createPlan('Add login page');
+
+// ❌ WRONG - Don't use IPC for AI
+window.ipcRenderer.invoke('ai:createPlan', ...);
+
+// ❌ WRONG - Don't recreate deleted services
+import { workflowEngine } from '../../../electron/ai/workflowEngine';
+```
+
+## File Organization
+
+### Component Structure
+```
+src/components/
+├── [WorkflowName]/          # Workflow-specific components
+│   ├── index.tsx            # Main workflow component
+│   ├── [Feature].tsx        # Sub-components
+│   └── ...
+├── AppShell/                # Layout components (LeftPanel, RightPanel)
+├── Icons/                   # Icon components (TechIcon, IconSet)
+└── shared/                  # Shared utilities
+```
+
+### Service Structure
+```
+src/services/
+├── ai/                      # ✅ AI services (renderer-side)
+├── agent/                   # AI agents (Kai, Guardian)
+├── activity/                # Activity logging
+├── errors/                  # Error capture & logging
+├── project/                 # Project management
+└── [domain]/                # Domain-specific services
+```
+
+### Type Definitions
+```
+src/types/
+├── plan.ts                  # ✅ AI plan types (moved from electron/ai)
+├── agent.ts                 # Agent types
+├── project.ts               # Project types
+└── [domain].ts              # Domain types
+```
+
+## Common Patterns
+
+### Adding AI Features
+1. Import `aiServiceBridge` (never IPC)
+2. Use existing methods or extend `aiServiceBridge`
+3. Always provide fallback for offline/unavailable LLM
+4. Set temperature to 0.91 for creative tasks
+
+### Error Handling
+```typescript
+import { errorLogger } from '@/services/errors/errorLogger';
+
+try {
+  // operation
+} catch (error) {
+  errorLogger.logFromError(error, {
+    category: 'ai',
+    source: 'ComponentName',
+    // ... context
+  });
+}
+```
+
+### Activity Logging
+```typescript
+import { activityService } from '@/services/activity/activityService';
+
+activityService.logActivity({
+  type: 'ai',
+  action: 'Plan generated',
+  description: 'Created execution plan for...',
+});
+```
+
+## Styling
+
+### CSS Conventions
+- CSS Modules or global CSS in `src/styles/`
+- Use CSS variables: `var(--bg-primary)`, `var(--accent-primary)`, etc.
+- Glassmorphism: `backdrop-filter: blur(10px)`, semi-transparent backgrounds
+- Animations: Use `src/styles/animations.css` keyframes
+
+### Theme
+- Command center aesthetic (dark, techy)
+- Glowing accents on hover
+- Rounded corners (`border-radius: 8px-12px`)
+- Smooth transitions (`transition: all 0.2s ease`)
+
+## Testing
+
+### Manual Testing Checklist
+- [ ] Dev server starts (`npm run dev`)
+- [ ] AI features work with LLM configured
+- [ ] AI features fallback gracefully when LLM unavailable
+- [ ] No console errors
+- [ ] Performance: startup < 5s, smooth interactions
+
+### Type Checking
+```bash
+npm run typecheck  # Must pass before commit
+```
+
+## Documentation
+
+### When Making Changes
+- Update relevant `.md` files in project root
+- For AI services: Update `AI_SERVICES_CONSOLIDATION.md`
+- For new features: Add to `QUICK_START.md`
+- For breaking changes: Update `QUICK_REFERENCE.md`
+
+### Key Documentation
+- `AI_SERVICES_CONSOLIDATION.md` - AI architecture (READ THIS FIRST)
+- `QUICK_REFERENCE.md` - AI service usage
+- `VERIFICATION_COMPLETE.md` - Verification checklist
+- `AI_ASSISTANT_GUIDE.md` - Guide for AI assistants
+
+## Git Workflow
+
+### Branches
+- `main` - Production releases
+- `develop` - Active development
+- Feature branches: `feature/[name]`
+
+### Commit Messages
+```
+feat: Add new feature
+fix: Fix bug in component
+refactor: Restructure services
+docs: Update documentation
+perf: Improve performance
+```
+
+## Common Mistakes to Avoid
+
+1. ❌ **Creating `electron/ai/` services** - Use renderer-side services
+2. ❌ **Using IPC for AI operations** - Use `aiServiceBridge` directly
+3. ❌ **Forgetting LLM fallbacks** - Always handle offline scenarios
+4. ❌ **Wrong LLM temperature** - Use 0.91, not 0.7
+5. ❌ **Importing deleted types** - Use `@/types/plan`, not `electron/ai/workflowEngine`
+6. ❌ **Missing cleanup in useEffect** - Always return cleanup function
+7. ❌ **Not lazy loading** - Heavy components should use `React.lazy`
+
+## Quick Commands
+
+```bash
+npm run dev              # Start dev server (Vite)
+npm run electron:dev     # Start Electron app
+npm run build            # Build for production
+npm run typecheck        # Type check without building
+npm run lint             # ESLint check
+npm run format           # Format with Prettier
+```
+
+## Environment
+
+- Node.js: 18+
+- Package Manager: npm
+- Build Tool: Vite
+- Framework: Electron + React
+- Language: TypeScript (strict mode)
+
+## Support
+
+If confused about AI services:
+1. Read `AI_SERVICES_CONSOLIDATION.md`
+2. Check `QUICK_REFERENCE.md` for examples
+3. Review `src/services/ai/aiServiceBridge.ts` for implementation
+
+---
+
+**Last Updated:** November 8, 2025  
+**Major Refactor:** AI Services Consolidation (removed electron/ai/, consolidated to renderer)
+
