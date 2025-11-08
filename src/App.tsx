@@ -51,8 +51,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     
     // Log to error capture system
     errorLogger.logFromError('react', error, 'critical', {
-      componentStack: errorInfo.componentStack,
-      activeFile: useProjectStore.getState().activeProject?.activeFile,
+      componentStack: errorInfo.componentStack ?? undefined,
+      activeFile: useProjectStore.getState().activeProject?.activeFile ?? undefined,
     });
   }
 
@@ -162,22 +162,16 @@ function App() {
 
   // Project Indexing Effect
   useEffect(() => {
-    const isElectron = !!(window as any).ipcRenderer;
-
-    if (isElectron) {
-      if (activeProjectRoot) {
-        console.log('Active project root changed, starting indexing:', activeProjectRoot);
-        aiServiceBridge.startIndexing(activeProjectRoot).catch(console.error);
-      } else {
-        aiServiceBridge.stopIndexing().catch(console.error);
-      }
+    if (activeProjectRoot) {
+      console.log('Active project root changed, starting indexing:', activeProjectRoot);
+      aiServiceBridge.startIndexing(activeProjectRoot).catch(console.error);
+    } else {
+      aiServiceBridge.stopIndexing().catch(console.error);
     }
 
     // Cleanup on component unmount
     return () => {
-      if (isElectron) {
-        aiServiceBridge.stopIndexing().catch(console.error);
-      }
+      aiServiceBridge.stopIndexing().catch(console.error);
     };
   }, [activeProjectRoot]);
 

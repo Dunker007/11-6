@@ -8,7 +8,6 @@ import fs from 'fs/promises';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { exec, spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
-import { registerIpcHandlers } from './ipcHandlers';
 
 const execAsync = promisify(exec);
 
@@ -311,7 +310,6 @@ app.on('activate', () => {
 });
 
 app.whenReady().then(() => {
-  registerIpcHandlers();
   createMenu();
   createWindow();
 });

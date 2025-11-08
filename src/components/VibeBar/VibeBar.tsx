@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import '../../styles/VibeBar.css';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
-import { Plan } from '../../../electron/ai/workflowEngine';
 import { aiServiceBridge } from '../../services/ai/aiServiceBridge';
+import type { Plan } from '../../types/plan';
 
 const VibeBar = () => {
   const [inputValue, setInputValue] = useState('');
