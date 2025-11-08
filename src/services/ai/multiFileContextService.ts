@@ -83,16 +83,20 @@ class MultiFileContextService {
       dependencies: [],
     };
 
-    // Extract imports (TypeScript/JavaScript/Python patterns)
-    const importRegex = /^import\s+(?:{[^}]+}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/gm;
+    // Extract imports (TypeScript/JavaScript patterns)
+    // This regex captures: default, { named }, * as namespace, and side-effect imports
+    const importRegex = /import(?:(?:.+?\s+from\s+)?['"]([^'"]+)['"]|['"]([^'"]+)['"])/g;
     const requireRegex = /require\s*\(['"]([^'"]+)['"]\)/g;
     const pythonImportRegex = /^(?:from\s+(\S+)\s+)?import\s+(.+)/gm;
 
     let match;
     while ((match = importRegex.exec(content)) !== null) {
-      fileContext.imports.push(match[1]);
-      if (match[1].startsWith('.')) {
-        fileContext.dependencies.push(match[1]);
+      const source = match[1] || match[2];
+      if (source) {
+        fileContext.imports.push(source);
+        if (source.startsWith('.')) {
+          fileContext.dependencies.push(source);
+        }
       }
     }
 

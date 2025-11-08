@@ -1,19 +1,30 @@
-import { useState, Component, ErrorInfo, ReactNode, useEffect, useRef } from 'react';
+import { useState, Component, ErrorInfo, ReactNode, useEffect, useCallback } from 'react';
 import LeftPanel from './components/AppShell/LeftPanel';
 import CenterPanel from './components/AppShell/CenterPanel';
 import RightPanel from './components/AppShell/RightPanel';
+import VibeBar from './components/VibeBar/VibeBar';
 import CommandPalette from './components/CommandPalette/CommandPalette';
 import AIChat from './components/AIChat/AIChat';
 import UpdateNotification from './components/UpdateNotification/UpdateNotification';
 import AboutDialog from './components/About/AboutDialog';
 import AIOSInterface from './components/AIOS/AIOSInterface';
+import NotificationCenter from './components/Notifications/NotificationCenter'; // Import NotificationCenter
 import TechIcon from './components/Icons/TechIcon';
 import { ICON_MAP } from './components/Icons/IconSet';
 import { registerCommands } from './services/command/registerCommands';
 import { errorLogger } from './services/errors/errorLogger';
 import { errorContext } from './services/errors/errorContext';
+import { aiServiceBridge } from './services/ai/aiServiceBridge';
+import { useProjectStore } from './services/project/projectStore';
+import { registerAllAgents } from './services/agent/registerAgents'; // Import agent registration
+import { guardianAgent } from './services/agent/agents/guardian'; // Import Guardian agent
 import './services/theme/themeService'; // Initialize theme on import
 import './styles/index.css';
+import './styles/themes.css';
+import './styles/animations.css';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+import './styles/DesktopWidgets.css';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -41,6 +52,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // Log to error capture system
     errorLogger.logFromError('react', error, 'critical', {
       componentStack: errorInfo.componentStack,
+      activeFile: useProjectStore.getState().activeProject?.activeFile,
     });
   }
 
@@ -116,25 +128,58 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 }
 
+type AppWorkflow = 'create' | 'build' | 'deploy' | 'monitor' | 'monetize' | 'mission-control';
+
 function App() {
   const [osMode, setOsMode] = useState(false);
-  const [activeWorkflow, setActiveWorkflow] = useState<'create' | 'build' | 'deploy' | 'monitor' | 'monetize'>('monitor');
+  const [activeWorkflow, setActiveWorkflow] = useState<AppWorkflow>('monitor');
   const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [isAIChatMinimized, setIsAIChatMinimized] = useState(false);
+  const [isAIChatMinimized, setIsAIChatMinimized] = useState(true);
   const [showAboutDialog, setShowAboutDialog] = useState(false);
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
-  const leftPanelHandlersRef = useRef<{
-    onOpenAPIKeys: () => void;
-    onOpenDevTools: () => void;
-    onOpenGitHub: () => void;
-    onOpenMonitorLayouts: () => void;
-    onOpenByteBot: () => void;
-    onOpenBackOffice: () => void;
-    onOpenMindMap: () => void;
-    onOpenCodeReview: () => void;
-    onOpenAgentForge: () => void;
-    onOpenCreator: () => void;
-  } | null>(null);
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false); // State for NotificationCenter
+  
+  const activeProjectRoot = useProjectStore(state => state.activeProjectRoot);
+
+  const registerAppCommands = useCallback((leftPanelHandlers: any) => {
+    if (leftPanelHandlers) {
+      registerCommands({
+        onWorkflowChange: setActiveWorkflow,
+        ...leftPanelHandlers,
+      });
+    }
+  }, [setActiveWorkflow]);
+
+  // Register all AI agents on startup
+  useEffect(() => {
+    registerAllAgents();
+    guardianAgent.start();
+
+    return () => {
+      guardianAgent.stop();
+    };
+  }, []);
+
+  // Project Indexing Effect
+  useEffect(() => {
+    const isElectron = !!(window as any).ipcRenderer;
+
+    if (isElectron) {
+      if (activeProjectRoot) {
+        console.log('Active project root changed, starting indexing:', activeProjectRoot);
+        aiServiceBridge.startIndexing(activeProjectRoot).catch(console.error);
+      } else {
+        aiServiceBridge.stopIndexing().catch(console.error);
+      }
+    }
+
+    // Cleanup on component unmount
+    return () => {
+      if (isElectron) {
+        aiServiceBridge.stopIndexing().catch(console.error);
+      }
+    };
+  }, [activeProjectRoot]);
 
   // Update error context when workflow changes
   useEffect(() => {
@@ -142,23 +187,6 @@ function App() {
   }, [activeWorkflow]);
 
   useEffect(() => {
-    // Register commands when handlers are available
-    const checkAndRegister = () => {
-      if (leftPanelHandlersRef.current) {
-        registerCommands({
-          onWorkflowChange: setActiveWorkflow,
-          ...leftPanelHandlersRef.current,
-        });
-      }
-    };
-    
-    // Check immediately and after a short delay to ensure handlers are set
-    checkAndRegister();
-    const timeout = setTimeout(checkAndRegister, 100);
-    return () => clearTimeout(timeout);
-  }, []);
-
-      useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
           // Cmd+K on Mac, Ctrl+K on Windows/Linux
           if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -215,21 +243,18 @@ function App() {
       ) : (
         // Regular IDE Mode
         <>
-          <div style={{ 
-            display: 'flex', 
-            height: '100vh',
-            width: '100vw',
-            background: 'transparent',
-            color: 'var(--text-primary)',
-            overflow: 'hidden'
-          }}>
+          <div 
+            className={`app-shell ${osMode ? 'os-mode' : ''} ${activeWorkflow === 'monitor' ? 'monitor-mode' : ''}`}
+          >
             <LeftPanel 
               activeWorkflow={activeWorkflow} 
               onWorkflowChange={setActiveWorkflow}
-              handlersRef={leftPanelHandlersRef}
+              onHandlersReady={registerAppCommands}
+              onOpenNotifications={() => setShowNotificationCenter(true)} // Pass handler
             />
             <CenterPanel activeWorkflow={activeWorkflow} onWorkflowChange={setActiveWorkflow} />
             <RightPanel />
+            <VibeBar />
             <CommandPalette 
               isOpen={showCommandPalette}
               onClose={() => setShowCommandPalette(false)}
@@ -246,6 +271,10 @@ function App() {
             <AboutDialog
               isOpen={showAboutDialog}
               onClose={() => setShowAboutDialog(false)}
+            />
+            <NotificationCenter 
+              isOpen={showNotificationCenter}
+              onClose={() => setShowNotificationCenter(false)}
             />
           </div>
 

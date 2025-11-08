@@ -178,8 +178,8 @@ function GitHubPanel() {
                           {file.status === 'D' && '−'}
                           {file.status === '??' && '?'}
                         </span>
-                        <span className="file-path" title={file.file}>
-                          {file.file}
+                        <span className="file-path" title={file.path}>
+                          {file.path}
                         </span>
                       </div>
                     ))}

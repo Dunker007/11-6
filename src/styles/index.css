@@ -36,11 +36,23 @@
   --glow-violet: 0 0 20px rgba(139, 92, 246, 0.5);
   --glow-cyan: 0 0 20px rgba(6, 182, 212, 0.5);
   --glow-amber: 0 0 20px rgba(245, 158, 11, 0.5);
+
+  /* New Glassmorphism & Soft UI Vars */
+  --glass-bg: rgba(26, 26, 58, 0.6);
+  --glass-blur: 10px;
+  --panel-border-glow: 1px solid rgba(0, 240, 255, 0.2);
+  --border-radius-global: 12px;
+  --glow-interactive: 0 0 15px var(--glow-cyan);
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.3);
   
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, var(--violet-500), var(--cyan-500));
   --gradient-accent: linear-gradient(135deg, var(--violet-500), var(--cyan-500), var(--amber-500));
   --gradient-glow: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+
+  /* Layout Dimensions */
+  --left-panel-width: 280px;
+  --right-panel-width: 450px;
 }
 
 body {
@@ -289,11 +301,21 @@ select:focus {
 
 /* Glassmorphism utility class */
 .glass-panel {
-  background: var(--panel-bg);
-  backdrop-filter: var(--panel-blur);
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: var(--panel-border-glow);
+  box-shadow: var(--shadow-soft);
+  border-radius: var(--border-radius-global); /* Apply global border radius */
+  transition: all 0.3s ease; /* Add transition for hover effects */
 }
+
+/* Add interactive glow to glass panels on hover */
+.glass-panel:hover {
+  box-shadow: var(--glow-interactive);
+  border-color: var(--aios-accent-cyan, var(--cyan-400));
+}
+
 
 /* Gradient border effect */
 .gradient-border {
@@ -313,5 +335,24 @@ select:focus {
   border-radius: inherit;
   z-index: -1;
   opacity: 0.5;
+}
+
+/* App Shell Layout */
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
+  grid-template-rows: 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  transition: grid-template-columns 0.3s ease-in-out;
+}
+
+.app-shell.monitor-mode {
+  grid-template-columns: var(--left-panel-width) 1fr 0; /* Set right panel width to 0 */
+}
+
+.app-shell.monitor-mode > .right-panel {
+  display: none; /* Hide the right panel completely */
 }
 

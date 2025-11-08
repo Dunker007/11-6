@@ -128,7 +128,14 @@ function CommandPalette({ isOpen, onClose, onCommandExecute }: CommandPalettePro
                       <div className="command-item-content">
                         {command.icon && <span className="command-icon">{command.icon}</span>}
                         <div className="command-info">
-                          <div className="command-label">{command.label}</div>
+                          <div className="command-label">
+                            {command.label.split(' > ').map((part, index, arr) => (
+                              <span key={index}>
+                                {part}
+                                {index < arr.length - 1 && <span className="breadcrumb-separator">›</span>}
+                              </span>
+                            ))}
+                          </div>
                           {command.description && (
                             <div className="command-description">{command.description}</div>
                           )}

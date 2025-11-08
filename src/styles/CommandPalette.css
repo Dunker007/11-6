@@ -106,14 +106,20 @@
 }
 
 .command-label {
+  color: var(--text-color-light);
   font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.breadcrumb-separator {
+  color: var(--text-color-medium);
+  font-weight: normal;
 }
 
 .command-description {
-  font-size: 0.875rem;
-  color: var(--text-muted);
+  color: var(--text-color-medium);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

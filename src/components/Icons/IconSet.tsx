@@ -39,6 +39,8 @@ import {
   Bot,
   PenTool,
   Layout,
+  Bell, // Import Bell
+  Shield, // Import Shield
   LucideIcon
 } from 'lucide-react';
 
@@ -50,7 +52,8 @@ export type IconName =
   | 'backoffice' | 'layoutPlayground' | 'programRunner'
   | 'vibedEd' | 'osMode' | 'commandPalette'
   | 'plus' | 'search' | 'settings' | 'layers' | 'play'
-  | 'package' | 'gitbranch' | 'eye' | 'file' | 'folder';
+  | 'package' | 'gitbranch' | 'eye' | 'file' | 'folder'
+  | 'bell' | 'shield'; // Add shield
 
 // Complete icon mapping for the command center
 export const ICON_MAP: Record<IconName, LucideIcon> = {
@@ -93,6 +96,8 @@ export const ICON_MAP: Record<IconName, LucideIcon> = {
   eye: Eye,
   file: FileText,
   folder: FolderPlus,
+  bell: Bell, // Add bell mapping
+  shield: Shield, // Add shield mapping
 };
 
 // Alternate icons for variety
@@ -153,6 +158,8 @@ export {
   Bot,
   PenTool,
   Layout,
+  Bell, // Export Bell
+  Shield, // Export Shield
 };
 
 // Helper function to get icon by name

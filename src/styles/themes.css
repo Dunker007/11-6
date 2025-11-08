@@ -1,0 +1,47 @@
+/* src/styles/themes.css */
+:root {
+  /* ... (previous color definitions) ... */
+
+  /* AI OS Theme Colors */
+  --aios-bg-dark: #0a0a1a;
+  --aios-bg-med: #1a1a3a;
+  --aios-bg-light: #2a2a5a;
+  --aios-text-primary: #e0e0ff;
+  --aios-text-secondary: #a0a0cc;
+  --aios-accent-cyan: #00f0ff;
+  --aios-accent-magenta: #ff00f0;
+  --aios-accent-lime: #a0ff00;
+  --aios-glow-cyan: rgba(0, 240, 255, 0.5);
+  --aios-glow-magenta: rgba(255, 0, 240, 0.5);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(26, 26, 58, 0.6);
+  --glass-blur: 10px;
+  --glass-border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+body[data-theme="ai-os"] {
+  --panel-bg: var(--aios-bg-dark);
+  --panel-bg-lighter: var(--aios-bg-med);
+  --panel-bg-darker: #050510;
+  --panel-border: rgba(0, 240, 255, 0.2);
+
+  --desktop-bg: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+
+  --text-color-light: var(--aios-text-primary);
+  --text-color-medium: var(--aios-text-secondary);
+  --text-color-dark: #8080aa;
+
+  --accent-cyan: var(--aios-accent-cyan);
+  --accent-cyan-rgb: 0, 240, 255;
+  --accent-violet: var(--aios-accent-magenta);
+  --accent-green: var(--aios-accent-lime);
+  --accent-red: #ff4040;
+  --accent-amber: #ffb800;
+
+  --glow-color: var(--aios-glow-cyan);
+  --glow-color-violet: var(--aios-glow-magenta);
+
+  --scrollbar-thumb: var(--aios-accent-cyan);
+  --scrollbar-track: var(--aios-bg-med);
+}

@@ -3,8 +3,10 @@ import { useLLMStore } from '../../services/ai/llmStore';
 import { useProjectStore } from '../../services/project/projectStore';
 import { useActivityStore } from '../../services/activity/activityStore';
 import { projectKnowledgeService } from '../../services/ai/projectKnowledgeService';
+import { aiServiceBridge } from '../../services/ai/aiServiceBridge';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
+import { VIBED_ED_PERSONAS, VibedEdPersona } from '../../services/ai/prompts/vibedEdPersonas';
 import '../../styles/AIChat.css';
 
 interface Message {
@@ -19,20 +21,29 @@ interface AIChatProps {
   onToggleMinimize?: () => void;
 }
 
+interface StructuredIdea {
+  title: string;
+  summary: string;
+}
+
 function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
   const { streamGenerate, isLoading } = useLLMStore();
-  const { activeProject, getFileContent, activeFile } = useProjectStore();
+  const { activeProject, getFileContent, activeFile, createProject } = useProjectStore();
   const { addActivity } = useActivityStore();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: "Hey there! I'm Vibed Ed, your coding buddy. I'm here to help you build awesome stuff - write code, explain functions, refactor, debug, whatever you need. Let's keep it chill and get things done. What's on your mind?",
+      content: "Hey there! I'm Vibed Ed. What's the vibe today?",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState('');
+  const [activePersona, setActivePersona] = useState<VibedEdPersona>('strategic');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [showContextHUD, setShowContextHUD] = useState(false);
+  const [currentContext, setCurrentContext] = useState<string | null>(null);
+  const [ideaModalState, setIdeaModalState] = useState<{ isOpen: boolean; idea: StructuredIdea | null }>({ isOpen: false, idea: null });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -59,53 +70,19 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
     addActivity('ai', 'query', `Asked: "${shortQuery}"`);
 
     try {
-      // Check if user is asking about military background
-      const isMilitaryQuestion = /military|usmc|marine|veteran|vet|service/.test(input.toLowerCase());
-      
-      // Build base prompt with file context
-      let basePrompt = input.trim();
-      
-      if (activeFile) {
-        const fileContent = getFileContent(activeFile);
-        if (fileContent) {
-          basePrompt = `Current file: ${activeFile}\n\nFile content:\n\`\`\`\n${fileContent}\n\`\`\`\n\nUser request: ${input.trim()}`;
-        }
-      }
-      
       // Get full project knowledge
       const projectContext = projectKnowledgeService.getFullProjectContext(activeProject?.id);
-      const navigationSuggestion = projectKnowledgeService.suggestNavigation(input.trim(), activeProject?.id);
+      setCurrentContext(projectContext); // Store context for the HUD
       
-      // Build persona prompt
-      let personaPrompt = '';
-      if (isMilitaryQuestion) {
-        personaPrompt = `You are Vibed Ed, a laid-back coding assistant. The user is asking about your military background. You're a USMC vet but these days you're all about keeping things chill while coding. Respond naturally and casually.`;
-      } else {
-        personaPrompt = `You are Vibed Ed, a laid-back, smart coding assistant with redneck/stoner/beach dude vibes. You're helpful, knowledgeable, and chill. Use casual language like "yeah", "sure thing", "no worries", "let's do this". Keep responses conversational and casual while being accurate and helpful.`;
-      }
+      // Get persona prompt from the active persona
+      let personaPrompt = VIBED_ED_PERSONAS[activePersona].prompt;
       
       // Add project context
       if (projectContext) {
         personaPrompt += `\n\nYou have full knowledge of the current project:\n${projectContext}`;
       }
       
-      // Add navigation suggestion if applicable
-      if (navigationSuggestion) {
-        personaPrompt += `\n\nIMPORTANT: The user's query suggests they might want to use the ${navigationSuggestion.workflow} workflow. You can suggest navigating there, but you CANNOT execute builds or deployments directly. Users must go to the proper workflow environment. You can only guide and suggest - no overrides or direct execution.`;
-        personaPrompt += `\n\nSuggestion: ${navigationSuggestion.reason}. ${navigationSuggestion.action}`;
-      }
-      
-      // Important: Ed cannot execute builds/deploys
-      personaPrompt += `\n\nCRITICAL RULES:
-- You CANNOT execute builds or deployments directly
-- You CANNOT override user actions
-- You CAN suggest workflows and navigation
-- You CAN suggest commands (user must run in Program Runner)
-- You CAN suggest code changes (user must apply them)
-- You CAN guide users to proper environments
-- Always remind users they need to go to the proper workflow for execution`;
-      
-      const prompt = `${personaPrompt}\n\nUser request: ${basePrompt}`;
+      const prompt = `${personaPrompt}\n\nUser request: ${input.trim()}`;
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
@@ -144,6 +121,29 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
     }
   };
 
+  const handleAddToIdeas = async (messageContent: string) => {
+    try {
+      const structuredIdea = await aiServiceBridge.structureIdea(messageContent);
+      setIdeaModalState({ isOpen: true, idea: structuredIdea });
+    } catch (error) {
+      console.error("Failed to structure idea:", error);
+      // Fallback for non-electron or if LLM fails
+      setIdeaModalState({ 
+        isOpen: true, 
+        idea: { title: messageContent.substring(0, 50) + '...', summary: messageContent }
+      });
+    }
+  };
+
+  const confirmAddToIdeas = () => {
+    if (ideaModalState.idea) {
+      createProject(ideaModalState.idea.title, ideaModalState.idea.summary);
+      addActivity('ai', 'idea', `New idea created: "${ideaModalState.idea.title}"`);
+    }
+    setIdeaModalState({ isOpen: false, idea: null });
+  };
+
+
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -167,7 +167,7 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
   }
 
   return (
-    <div className="ai-chat">
+    <div className="ai-chat glass-panel">
       <div className="chat-header">
         <div className="chat-header-left">
           <div className="chat-avatar">
@@ -181,23 +181,82 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
           <div className="chat-header-info">
             <h3>Vibed Ed</h3>
             <span className="chat-status">
-              {isLoading || isStreaming ? 'Hmm, let me think...' : 'Ready to help'}
+              {isLoading || isStreaming ? 'Thinking...' : 'Ready to help'}
             </span>
           </div>
         </div>
-        <button className="chat-minimize-btn" onClick={onToggleMinimize}>
-          −
-        </button>
+        <div className="chat-header-right">
+          <button className="context-hud-btn" onClick={() => setShowContextHUD(!showContextHUD)} title="View Context">
+            <TechIcon icon={ICON_MAP.codereview} size={16} />
+          </button>
+          <select 
+            className="vibe-selector" 
+            value={activePersona} 
+            onChange={(e) => setActivePersona(e.target.value as VibedEdPersona)}
+          >
+            {Object.entries(VIBED_ED_PERSONAS).map(([key, { name }]) => (
+              <option key={key} value={key}>{name}</option>
+            ))}
+          </select>
+          <button className="chat-minimize-btn" onClick={onToggleMinimize}>
+            −
+          </button>
+        </div>
       </div>
+
+      {showContextHUD && (
+        <div className="context-hud">
+          <h4>AI Context</h4>
+          <pre>{currentContext || 'No context available.'}</pre>
+        </div>
+      )}
 
       <div className="chat-messages">
         {messages.map((message) => (
           <div key={message.id} className={`chat-message ${message.role}`}>
             <div className="message-content">{message.content}</div>
+            {message.role === 'assistant' && (
+              <button 
+                className="add-to-ideas-btn" 
+                onClick={() => handleAddToIdeas(message.content)}
+                title="Add to Idea Pipeline"
+              >
+                <TechIcon icon={ICON_MAP.plus} size="sm" />
+              </button>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
+
+      {ideaModalState.isOpen && ideaModalState.idea && (
+        <div className="modal-overlay" onClick={() => setIdeaModalState({ isOpen: false, idea: null })}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Confirm New Idea</h3>
+            </div>
+            <div className="modal-body">
+              <p>Ed drafted this for your Idea Pipeline. Look good?</p>
+              <input 
+                type="text" 
+                className="modal-input"
+                value={ideaModalState.idea.title}
+                onChange={(e) => setIdeaModalState(prev => ({...prev, idea: {...prev.idea!, title: e.target.value}}))}
+              />
+              <textarea 
+                className="modal-input"
+                rows={4}
+                value={ideaModalState.idea.summary}
+                onChange={(e) => setIdeaModalState(prev => ({...prev, idea: {...prev.idea!, summary: e.target.value}}))}
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="modal-button-secondary" onClick={() => setIdeaModalState({ isOpen: false, idea: null })}>Cancel</button>
+              <button className="modal-button-primary" onClick={confirmAddToIdeas}>Add to Ideas</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="chat-input-container">
         <textarea

@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Settings,
   Download,
+  GitBranch,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -36,6 +37,7 @@ export function getActivityIcon(type: ActivityType, action: string): LucideIcon 
       if (action === 'created') return FolderPlus;
       if (action === 'opened') return FolderPlus;
       if (action === 'deleted') return Trash2;
+      if (action === 'status_changed') return GitBranch;
       return FolderPlus;
 
     case 'ai':
@@ -88,6 +90,7 @@ export function getActivityColor(type: ActivityType, action: string): ActivityCo
       if (action === 'created') return 'green';
       if (action === 'opened') return 'cyan';
       if (action === 'deleted') return 'red';
+      if (action === 'status_changed') return 'violet';
       return 'cyan';
 
     case 'ai':

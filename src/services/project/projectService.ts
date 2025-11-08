@@ -67,6 +67,7 @@ export class ProjectService {
           name: dirName,
           rootPath: path,
           files: [],
+          status: 'idea', // Add default status
           createdAt: stats.data ? new Date(stats.data.ctime) : new Date(),
           updatedAt: stats.data ? new Date(stats.data.mtime) : new Date(),
         };
@@ -132,6 +133,7 @@ export class ProjectService {
         id: project.id,
         name: project.name,
         description: project.description,
+        status: project.status, // Ensure status is saved
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
       }, null, 2);
@@ -215,6 +217,7 @@ export class ProjectService {
       ],
       createdAt: new Date(),
       updatedAt: new Date(),
+      status: 'idea', // All new projects start as an idea
     };
 
     this.projects.set(project.id, project);
@@ -225,6 +228,11 @@ export class ProjectService {
 
   getProject(id: string): Project | null {
     return this.projects.get(id) || null;
+  }
+
+  getProjectRoot(id: string): string | null {
+    const project = this.projects.get(id);
+    return project?.rootPath || null;
   }
 
   getAllProjects(): Project[] {
@@ -243,11 +251,22 @@ export class ProjectService {
     }
   }
 
-  updateProject(id: string, updates: Partial<Project>): void {
-    const project = this.projects.get(id);
-    if (project) {
-      Object.assign(project, updates, { updatedAt: new Date() });
-      this.projects.set(id, project);
+  // Overload to accept a full project object for simplicity
+  updateProject(project: Project): void;
+  // Original signature for partial updates
+  updateProject(id: string, updates: Partial<Project>): void;
+  updateProject(idOrProject: string | Project, updates?: Partial<Project>): void {
+    if (typeof idOrProject === 'string') {
+      const project = this.projects.get(idOrProject);
+      if (project) {
+        Object.assign(project, updates, { updatedAt: new Date() });
+        this.projects.set(idOrProject, project);
+        this.saveProjects();
+      }
+    } else {
+      const project = idOrProject;
+      project.updatedAt = new Date();
+      this.projects.set(project.id, project);
       this.saveProjects();
     }
   }

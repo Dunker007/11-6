@@ -21,6 +21,9 @@ export default defineConfig({
           external: [
             'systeminformation',
             'simple-git',
+            'chokidar',
+            'fs/promises',
+            'path',
             'node:buffer',
             'node:path',
             'node:events',

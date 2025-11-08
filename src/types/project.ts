@@ -15,6 +15,7 @@ export interface Project {
   files: ProjectFile[];
   createdAt: Date;
   updatedAt: Date;
+  status: 'idea' | 'backlog' | 'in-progress' | 'completed' | 'deployed' | 'archived';
   activeFile?: string;
 }
 

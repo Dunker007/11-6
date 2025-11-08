@@ -4,10 +4,11 @@ import NeuralCore from './NeuralCore';
 
 // Lazy load workflows for better code splitting and faster initial load
 const VibeEditor = lazy(() => import('../VibeEditor/VibeEditor'));
-const HealthDashboard = lazy(() => import('../Health/HealthDashboard'));
+const DesktopEnvironment = lazy(() => import('../MonitorLayout/MonitorLayoutManager'));
 const CreateWorkflow = lazy(() => import('../Create/CreateWorkflow'));
 const DeployWorkflow = lazy(() => import('../Deploy/DeployWorkflow'));
 const MonetizeWorkflow = lazy(() => import('../Monetize/MonetizeWorkflow'));
+const MissionControl = lazy(() => import('../MissionControl/MissionControl')); // Lazy load MissionControl
 
 // Loading fallback component
 const WorkflowLoader = () => (
@@ -26,8 +27,8 @@ const WorkflowLoader = () => (
 );
 
 interface CenterPanelProps {
-  activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
-  onWorkflowChange?: (workflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize') => void;
+  activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize' | 'mission-control';
+  onWorkflowChange?: (workflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize' | 'mission-control') => void;
 }
 
 const WORKFLOWS = [
@@ -36,6 +37,7 @@ const WORKFLOWS = [
   { id: 'deploy' as const, name: 'Deploy' },
   { id: 'monitor' as const, name: 'Monitor' },
   { id: 'monetize' as const, name: 'Monetize' },
+  { id: 'mission-control' as const, name: 'Missions' },
 ] as const;
 
 function CenterPanel({ activeWorkflow, onWorkflowChange }: CenterPanelProps) {
@@ -61,9 +63,11 @@ function CenterPanel({ activeWorkflow, onWorkflowChange }: CenterPanelProps) {
       case 'deploy':
         return <DeployWorkflow />;
       case 'monitor':
-        return <HealthDashboard />;
+        return <DesktopEnvironment />;
       case 'monetize':
         return <MonetizeWorkflow />;
+      case 'mission-control':
+        return <MissionControl />;
       default:
         const workflow = WORKFLOWS.find((w) => w.id === activeWorkflow);
         return (

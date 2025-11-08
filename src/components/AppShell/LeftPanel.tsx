@@ -14,16 +14,18 @@ import Creator from '../QuickLabs/Creator';
 import LayoutPlayground from '../LayoutPlayground/LayoutPlayground';
 import ProgramRunner from '../ProgramRunner/ProgramRunner';
 import ErrorConsole from '../ErrorConsole/ErrorConsole';
+import AddIdeaModal from '../RightPanel/AddIdeaModal'; // Import the new modal
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
 import { errorLogger } from '../../services/errors/errorLogger';
 import { errorConsoleShortcut } from '../../services/errors/errorConsoleShortcut';
 import { AlertCircle } from 'lucide-react';
+import { useNotificationStore } from '../../services/notification/notificationStore'; // Import store
 
 interface LeftPanelProps {
-  activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize';
-  onWorkflowChange: (workflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize') => void;
-  handlersRef?: React.MutableRefObject<{
+  activeWorkflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize' | 'mission-control';
+  onWorkflowChange: (workflow: 'create' | 'build' | 'deploy' | 'monitor' | 'monetize' | 'mission-control') => void;
+  onHandlersReady: (handlers: {
     onOpenAPIKeys: () => void;
     onOpenDevTools: () => void;
     onOpenGitHub: () => void;
@@ -34,7 +36,8 @@ interface LeftPanelProps {
     onOpenCodeReview: () => void;
     onOpenAgentForge: () => void;
     onOpenCreator: () => void;
-  } | null>;
+  }) => void;
+  onOpenNotifications: () => void;
 }
 
 const WORKFLOWS = [
@@ -43,9 +46,10 @@ const WORKFLOWS = [
   { id: 'deploy' as const, name: 'Deploy', iconName: 'deploy' as const },
   { id: 'monitor' as const, name: 'Monitor', iconName: 'monitor' as const },
   { id: 'monetize' as const, name: 'Monetize', iconName: 'monetize' as const },
+  { id: 'mission-control' as const, name: 'Missions', iconName: 'commandPalette' as const },
 ] as const;
 
-function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelProps) {
+function LeftPanel({ activeWorkflow, onWorkflowChange, onHandlersReady, onOpenNotifications }: LeftPanelProps) {
   const [showAPIKeyManager, setShowAPIKeyManager] = useState(false);
   const [showDevTools, setShowDevTools] = useState(false);
   const [showGitHub, setShowGitHub] = useState(false);
@@ -55,23 +59,32 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
   const [showLayoutPlayground, setShowLayoutPlayground] = useState(false);
   const [showProgramRunner, setShowProgramRunner] = useState(false);
   const [showErrorConsole, setShowErrorConsole] = useState(false);
+  const [showAddIdeaModal, setShowAddIdeaModal] = useState(false); // State for the new modal
   const [activeQuickLab, setActiveQuickLab] = useState<'mindmap' | 'codereview' | 'agentforge' | 'creator' | null>(null);
   const [errorCount, setErrorCount] = useState(0);
   const [hasNewErrors, setHasNewErrors] = useState(false);
+  const unreadNotifications = useNotificationStore((state) => state.notifications.filter(n => !n.read).length);
+
 
   // Subscribe to error updates
   useEffect(() => {
     const updateErrorCount = () => {
       const stats = errorLogger.getStats();
       const newCount = stats.bySeverity.critical + stats.bySeverity.error;
-      if (newCount > errorCount) {
-        setHasNewErrors(true);
-        setTimeout(() => setHasNewErrors(false), 5000); // Clear pulse after 5s
-      }
-      setErrorCount(newCount);
+      
+      // Use the functional form of setState to avoid stale closures.
+      // This ensures that `prevErrorCount` is always the latest state value,
+      // even though the surrounding `useEffect` has an empty dependency array `[]`.
+      setErrorCount(prevErrorCount => {
+        if (newCount > prevErrorCount) {
+          setHasNewErrors(true);
+          setTimeout(() => setHasNewErrors(false), 5000); // Clear pulse after 5s
+        }
+        return newCount;
+      });
     };
 
-    updateErrorCount();
+    updateErrorCount(); // Initial call
     const unsubscribe = errorLogger.subscribe(updateErrorCount);
     return unsubscribe;
   }, []);
@@ -88,7 +101,14 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
     closeAPIKeyManager: () => setShowAPIKeyManager(false),
     openDevTools: () => setShowDevTools(true),
     closeDevTools: () => setShowDevTools(false),
-    openGitHub: () => setShowGitHub(true),
+    openGitHub: () => {
+      if (activeWorkflow === 'monitor') {
+        // Here you might want to flash the window or send a notification
+        // For now, we just prevent the modal from opening.
+        return;
+      }
+      setShowGitHub(true);
+    },
     closeGitHub: () => setShowGitHub(false),
     openMonitorLayouts: () => setShowMonitorLayouts(true),
     closeMonitorLayouts: () => setShowMonitorLayouts(false),
@@ -100,25 +120,23 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
     closeLayoutPlayground: () => setShowLayoutPlayground(false),
     openProgramRunner: () => setShowProgramRunner(true),
     closeProgramRunner: () => setShowProgramRunner(false),
-  }), []);
+  }), [activeWorkflow]);
 
   // Expose handlers for command palette
   useEffect(() => {
-    if (handlersRef) {
-      handlersRef.current = {
-        onOpenAPIKeys: modalHandlers.openAPIKeyManager,
-        onOpenDevTools: modalHandlers.openDevTools,
-        onOpenGitHub: modalHandlers.openGitHub,
-        onOpenMonitorLayouts: modalHandlers.openMonitorLayouts,
-        onOpenByteBot: modalHandlers.openByteBot,
-        onOpenBackOffice: modalHandlers.openBackOffice,
-        onOpenMindMap: () => setActiveQuickLab('mindmap'),
-        onOpenCodeReview: () => setActiveQuickLab('codereview'),
-        onOpenAgentForge: () => setActiveQuickLab('agentforge'),
-        onOpenCreator: () => setActiveQuickLab('creator'),
-      };
-    }
-  }, [handlersRef, modalHandlers]);
+    onHandlersReady({
+      onOpenAPIKeys: modalHandlers.openAPIKeyManager,
+      onOpenDevTools: modalHandlers.openDevTools,
+      onOpenGitHub: modalHandlers.openGitHub,
+      onOpenMonitorLayouts: modalHandlers.openMonitorLayouts,
+      onOpenByteBot: modalHandlers.openByteBot,
+      onOpenBackOffice: modalHandlers.openBackOffice,
+      onOpenMindMap: () => setActiveQuickLab('mindmap'),
+      onOpenCodeReview: () => setActiveQuickLab('codereview'),
+      onOpenAgentForge: () => setActiveQuickLab('agentforge'),
+      onOpenCreator: () => setActiveQuickLab('creator'),
+    });
+  }, [onHandlersReady, modalHandlers]);
 
   const handleQuickLabClick = useCallback((lab: 'mindmap' | 'codereview' | 'agentforge' | 'creator') => {
     setActiveQuickLab(lab === activeQuickLab ? null : lab);
@@ -130,7 +148,7 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
 
   return (
     <>
-      <div className="left-panel">
+      <div className="left-panel glass-panel">
         <div className="panel-header">
           <div className="logo-container">
             <img src="/vibdee-logo.svg" alt="VibDee" className="logo" />
@@ -138,6 +156,13 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
           </div>
         </div>
         
+        <div className="global-actions">
+          <button className="global-action-button" onClick={() => setShowAddIdeaModal(true)}>
+            <TechIcon icon={ICON_MAP.mindmap} size={16} glow="violet" />
+            <span>Add Idea</span>
+          </button>
+        </div>
+
         <nav className="workflow-nav">
           <div className="nav-label">Workflows</div>
           {WORKFLOWS.map((workflow) => (
@@ -202,6 +227,29 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
           <span className="cmd-k-label">Command</span>
         </div>
 
+        <div className="status-indicators">
+          <button
+            className="indicator-btn"
+            onClick={onOpenNotifications}
+            title="Notifications"
+          >
+            <TechIcon icon={ICON_MAP.bell} size={20} glow="cyan" />
+            {unreadNotifications > 0 && <span className="indicator-badge">{unreadNotifications}</span>}
+          </button>
+          <button
+            className={`indicator-btn ${hasNewErrors ? 'pulse' : ''}`}
+            onClick={() => setShowErrorConsole(true)}
+            title="Error Console"
+          >
+            <TechIcon 
+              icon={AlertCircle}
+              size={20}
+              glow={errorCount > 0 ? 'red' : undefined}
+            />
+            {errorCount > 0 && <span className="indicator-badge error">{errorCount}</span>}
+          </button>
+        </div>
+
         <div className="settings-section">
           <button 
             className="settings-button"
@@ -258,25 +306,6 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
           >
             <TechIcon icon={ICON_MAP.programRunner} size={16} glow="cyan" />
             <span>Program Runner</span>
-          </button>
-        </div>
-
-        {/* Error Console Badge */}
-        <div className="error-badge-container">
-          <button
-            className={`error-badge-btn ${hasNewErrors ? 'pulse' : ''}`}
-            onClick={() => setShowErrorConsole(true)}
-            title="Error Console"
-          >
-            <TechIcon 
-              icon={AlertCircle}
-              size={20}
-              variant="default"
-              glow={errorCount > 0 ? 'red' : undefined}
-            />
-            {errorCount > 0 && (
-              <span className="error-badge-count">{errorCount}</span>
-            )}
           </button>
         </div>
       </div>
@@ -367,42 +396,43 @@ function LeftPanel({ activeWorkflow, onWorkflowChange, handlersRef }: LeftPanelP
         </div>
       )}
 
-          {showLayoutPlayground && (
-            <div className="modal-overlay" onClick={modalHandlers.closeLayoutPlayground}>
-              <div className="modal-content layout-playground-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                  <h2>Layout Playground</h2>
-                  <button className="modal-close" onClick={modalHandlers.closeLayoutPlayground}>×</button>
-                </div>
-                <div className="layout-playground-content">
-                  <LayoutPlayground />
-                </div>
-              </div>
+      {showLayoutPlayground && (
+        <div className="modal-overlay" onClick={modalHandlers.closeLayoutPlayground}>
+          <div className="modal-content layout-playground-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Layout Playground</h2>
+              <button className="modal-close" onClick={modalHandlers.closeLayoutPlayground}>×</button>
             </div>
-          )}
-
-          {showProgramRunner && (
-            <div className="modal-overlay" onClick={modalHandlers.closeProgramRunner}>
-              <div className="modal-content program-runner-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                  <h2>Program Runner</h2>
-                  <button className="modal-close" onClick={modalHandlers.closeProgramRunner}>×</button>
-                </div>
-                <div className="program-runner-content">
-                  <ProgramRunner />
-                </div>
-              </div>
+            <div className="layout-playground-content">
+              <LayoutPlayground />
             </div>
-          )}
+          </div>
+        </div>
+      )}
 
-          {/* Error Console */}
-          <ErrorConsole 
-            isOpen={showErrorConsole}
-            onClose={() => setShowErrorConsole(false)}
-          />
+      {showProgramRunner && (
+        <div className="modal-overlay" onClick={modalHandlers.closeProgramRunner}>
+          <div className="modal-content program-runner-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Program Runner</h2>
+              <button className="modal-close" onClick={modalHandlers.closeProgramRunner}>×</button>
+            </div>
+            <div className="program-runner-content">
+              <ProgramRunner />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Console */}
+      <ErrorConsole 
+        isOpen={showErrorConsole}
+        onClose={() => setShowErrorConsole(false)}
+      />
+      
+      {showAddIdeaModal && <AddIdeaModal onClose={() => setShowAddIdeaModal(false)} />}
     </>
   );
 }
 
 export default LeftPanel;
-

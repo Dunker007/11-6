@@ -1,0 +1,21 @@
+// src/services/agent/registerAgents.ts
+import { agentService } from './agentService';
+import { ICON_MAP } from '../../components/Icons/IconSet';
+
+export function registerAllAgents() {
+  agentService.registerAgent({
+    id: 'kai',
+    name: 'Kai, The Strategist',
+    description: 'A creative partner for brainstorming new passive income streams.',
+    icon: ICON_MAP.vibedEd,
+  });
+
+  agentService.registerAgent({
+    id: 'guardian',
+    name: 'Guardian, The System Monitor',
+    description: 'A background agent that proactively monitors application health and errors.',
+    icon: ICON_MAP.shield,
+  });
+
+  // Future agents can be registered here
+}

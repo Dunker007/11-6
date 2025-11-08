@@ -2,9 +2,11 @@ import { memo, useMemo } from 'react';
 import { LucideIcon } from 'lucide-react';
 import '../../styles/TechIcons.css';
 
+type IconSize = number | 'sm' | 'md' | 'lg';
+
 interface TechIconProps {
   icon: LucideIcon;
-  size?: number;
+  size?: IconSize;
   variant?: 'default' | 'hexagon' | 'circle' | 'circuit';
   glow?: 'cyan' | 'violet' | 'amber' | 'green' | 'yellow' | 'red' | 'none';
   animated?: boolean;
@@ -21,6 +23,19 @@ const TechIcon = memo(function TechIcon({
   active = false,
   className = ''
 }: TechIconProps) {
+  // Map size shorthands to numbers
+  const numericSize = useMemo(() => {
+    if (typeof size === 'number') {
+      return size;
+    }
+    switch (size) {
+      case 'sm': return 16;
+      case 'lg': return 24;
+      case 'md':
+      default: return 20;
+    }
+  }, [size]);
+
   // Memoize wrapper classes to avoid recomputation on every render
   const wrapperClasses = useMemo(() => [
     'tech-icon-wrapper',
@@ -71,7 +86,7 @@ const TechIcon = memo(function TechIcon({
 
       {/* The actual icon */}
       <Icon 
-        size={typeof size === 'number' ? size : 24} 
+        size={numericSize} 
         className="tech-icon-svg"
         strokeWidth={1.5}
       />

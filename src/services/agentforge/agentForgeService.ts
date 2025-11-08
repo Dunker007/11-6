@@ -11,6 +11,7 @@ const AGENT_TEMPLATES: AgentTemplate[] = [
     config: {
       name: 'Code Assistant',
       provider: 'lmstudio',
+      model: 'lmstudio-community/gemma-2b-it-GGUF', // Default model
       temperature: 0.7,
       systemPrompt: 'You are a helpful coding assistant.',
       capabilities: [],
@@ -25,6 +26,7 @@ const AGENT_TEMPLATES: AgentTemplate[] = [
     config: {
       name: 'Content Writer',
       provider: 'gemini',
+      model: 'gemini-pro', // Default model
       temperature: 0.9,
       systemPrompt: 'You are a creative content writer.',
       capabilities: [],
@@ -39,6 +41,7 @@ const AGENT_TEMPLATES: AgentTemplate[] = [
     config: {
       name: 'Code Reviewer',
       provider: 'ollama',
+      model: 'llama3', // Default model
       temperature: 0.3,
       systemPrompt: 'You are a thorough code reviewer.',
       capabilities: [],

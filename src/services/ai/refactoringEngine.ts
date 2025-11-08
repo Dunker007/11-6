@@ -219,7 +219,7 @@ class RefactoringEngine {
       if (deps.has(oldPath) || this.hasRelativeImport(deps, oldPath)) {
         const depFile = this.findFileByPath(project.files, depPath);
         if (depFile && depFile.content) {
-          const newContent = this.updateImportPaths(depFile.content, oldPath, newPath);
+          const newContent = this.updateImportPaths(depFile.content, oldPath, newPath, depPath);
           changes.push({
             filePath: depPath,
             oldContent: depFile.content,
@@ -426,9 +426,40 @@ class RefactoringEngine {
     return Array.from(deps).some(dep => dep.includes(path.split('/').pop() || ''));
   }
 
-  private updateImportPaths(content: string, oldPath: string, newPath: string): string {
-    // Simple replacement - in production, would need more sophisticated path resolution
-    return content.replace(new RegExp(oldPath, 'g'), newPath);
+  private updateImportPaths(content: string, fileToMoveOldPath: string, fileToMoveNewPath: string, currentFilePath: string): string {
+    const importRegex = /import\s+(?:.+?\s+from\s+)?['"](.+?)['"]/g;
+    
+    // NOTE: This assumes a 'path' object similar to Node's path module is available.
+    const path = {
+      dirname: (p: string) => p.substring(0, p.lastIndexOf('/')),
+      relative: (from: string, to: string) => {
+        const fromParts = from.split('/').filter(Boolean);
+        const toParts = to.split('/').filter(Boolean);
+        let i = 0;
+        while (i < fromParts.length && i < toParts.length && fromParts[i] === toParts[i]) {
+          i++;
+        }
+        let relPath = '../'.repeat(fromParts.length - 1 - i);
+        relPath += toParts.slice(i).join('/');
+        if (!relPath.startsWith('.')) {
+          relPath = './' + relPath;
+        }
+        return relPath;
+      },
+      join: (...parts: string[]) => parts.join('/').replace(/\/+/g, '/')
+    };
+
+    return content.replace(importRegex, (match, importPath) => {
+      if (!importPath.startsWith('.')) return match; // a non-relative import, ignore
+      const importAbsolutePath = path.join(path.dirname(currentFilePath), importPath);
+      
+      if (importAbsolutePath.startsWith(fileToMoveOldPath.replace(/\.(ts|tsx)$/, ''))) {
+        const newRelativePath = path.relative(path.dirname(currentFilePath), fileToMoveNewPath.replace(/\.(ts|tsx)$/, ''));
+        return match.replace(importPath, newRelativePath);
+      }
+      
+      return match;
+    });
   }
 
   private convertVarToConst(content: string): string {
@@ -454,20 +485,25 @@ class RefactoringEngine {
     return symbols;
   }
 
-  private parseImports(content: string): Array<{ source: string; symbols: string[] }> {
-    const imports: Array<{ source: string; symbols: string[] }> = [];
-    const importRegex = /import\s+{([^}]+)}\s+from\s+['"]([^'"]+)['"]/g;
+  private parseImports(content: string): Array<{ raw: string; source: string; symbols: string[] }> {
+    const imports: Array<{ raw: string; source: string; symbols: string[] }> = [];
+    // This regex captures: default, { named }, * as namespace, and side-effect imports
+    const importRegex = /import(?:(?:([^"'\s]+)\s*,?\s*)?(?:{([^}]+)})?\s*|\s*(\* as \S+)\s*)from\s*['"]([^'"]+)['"]|import\s*['"]([^'"]+)['"]/g;
     let match;
     while ((match = importRegex.exec(content)) !== null) {
-      imports.push({
-        symbols: match[1].split(',').map(s => s.trim()),
-        source: match[2],
-      });
+      const [raw, defaultImport, namedImports, namespaceImport, source1, source2] = match;
+      const source = source1 || source2;
+      const symbols = [];
+      if (defaultImport) symbols.push(defaultImport.trim());
+      if (namedImports) symbols.push(...namedImports.split(',').map(s => s.trim()).filter(Boolean));
+      if (namespaceImport) symbols.push(namespaceImport.trim());
+
+      imports.push({ raw, source, symbols });
     }
     return imports;
   }
 
-  private sortImports(imports: Array<{ source: string; symbols: string[] }>): Array<{ source: string; symbols: string[] }> {
+  private sortImports(imports: Array<{ raw: string; source: string; symbols: string[] }>): Array<{ raw: string; source: string; symbols: string[] }> {
     return imports.sort((a, b) => {
       // External imports first, then relative
       const aExternal = !a.source.startsWith('.');
@@ -477,14 +513,13 @@ class RefactoringEngine {
     });
   }
 
-  private rebuildWithImports(content: string, imports: Array<{ source: string; symbols: string[] }>): string {
+  private rebuildWithImports(content: string, imports: Array<{ raw: string; source: string; symbols: string[] }>): string {
     // Remove old imports
-    const withoutImports = content.replace(/import\s+.+from\s+['"].+['"]/g, '');
+    const importRegex = /import(?:(?:.+?\s+from\s+)?['"].+?['"]|['"].+?['"]);?/g;
+    const withoutImports = content.replace(importRegex, '');
     
     // Add sorted imports
-    const importLines = imports.map(imp => 
-      `import { ${imp.symbols.join(', ')} } from '${imp.source}';`
-    ).join('\n');
+    const importLines = imports.map(imp => imp.raw).join('\n');
     
     return importLines + '\n\n' + withoutImports.trim();
   }
