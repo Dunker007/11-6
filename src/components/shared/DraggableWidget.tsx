@@ -18,6 +18,7 @@ export default function DraggableWidget({
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number } | null>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
+  const dragHandleRef = useRef<HTMLDivElement>(null);
 
   // Load saved position from localStorage
   useEffect(() => {
@@ -79,8 +80,29 @@ export default function DraggableWidget({
     const handleMouseUp = () => {
       if (isDragging) {
         setIsDragging(false);
+        
+        // Snap to nearest edge if close
+        const widget = widgetRef.current;
+        if (widget) {
+          const snapThreshold = 30;
+          const newPos = { ...position };
+          
+          if (position.x < snapThreshold) newPos.x = 20;
+          if (position.y < snapThreshold) newPos.y = 20;
+          
+          const maxX = window.innerWidth - widget.offsetWidth;
+          const maxY = window.innerHeight - widget.offsetHeight;
+          
+          if (position.x > maxX - snapThreshold) newPos.x = maxX - 20;
+          if (position.y > maxY - snapThreshold) newPos.y = maxY - 20;
+          
+          setPosition(newPos);
+          savePosition(newPos);
+        } else {
+          savePosition(position);
+        }
+        
         dragRef.current = null;
-        savePosition(position);
       }
     };
 
@@ -103,8 +125,13 @@ export default function DraggableWidget({
         left: `${position.x}px`,
         top: `${position.y}px`,
       }}
-      onMouseDown={handleMouseDown}
     >
+      <div 
+        ref={dragHandleRef}
+        className="drag-handle"
+        onMouseDown={handleMouseDown}
+        title="Drag to reposition"
+      />
       {children}
     </div>
   );

@@ -95,27 +95,30 @@ body {
 .os-mode-widget {
   width: auto;
   height: auto;
+  min-height: 66px;
 }
 
 .os-mode-toggle-btn-inner {
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem 1rem;
   background: linear-gradient(135deg, var(--violet-500), var(--cyan-500));
   border: 2px solid var(--violet-500);
-  border-radius: 2rem;
+  border-radius: 0.5rem;
   color: white;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
   box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   animation: pulseGlow 3s infinite;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  border: none;
+  outline: none;
 }
 
 .os-mode-toggle-btn-inner:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(139, 92, 246, 0.6);
 }
 
