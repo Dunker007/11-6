@@ -198,8 +198,12 @@ function AIChat({ isMinimized = false, onToggleMinimize }: AIChatProps) {
               <option key={key} value={key}>{name}</option>
             ))}
           </select>
-          <button className="chat-minimize-btn" onClick={onToggleMinimize}>
-            −
+          <button 
+            className="chat-minimize-btn" 
+            onClick={onToggleMinimize}
+            title={isMinimized ? "Expand" : "Minimize"}
+          >
+            <TechIcon icon={isMinimized ? ICON_MAP.plus : ICON_MAP.minus} size={16} />
           </button>
         </div>
       </div>
