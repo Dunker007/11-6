@@ -124,8 +124,18 @@ function createWindow() {
       win.webContents.openDevTools();
     }
   } else {
-    const distPath = process.env.DIST || path.join(__dirname, '../dist');
-    win.loadFile(path.join(distPath, 'index.html'));
+    // In production, resolve path relative to the app root
+    // __dirname in production points to resources/app.asar/dist-electron
+    // We need to go up one level to reach dist
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    
+    console.log('[Electron] isDev:', isDev);
+    console.log('[Electron] __dirname:', __dirname);
+    console.log('[Electron] Loading index.html from:', indexPath);
+    
+    win.loadFile(indexPath).catch(err => {
+      console.error('[Electron] Failed to load index.html:', err);
+    });
   }
 
   // Test active push message to Renderer-process
