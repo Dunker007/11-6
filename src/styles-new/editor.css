@@ -1,0 +1,154 @@
+/* ===============================================
+   EDITOR - Monaco Code Editor Styles
+   =============================================== */
+
+.editor-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.editor-container .monaco-editor {
+  height: 100% !important;
+}
+
+.editor-container .monaco-editor-background {
+  background-color: var(--bg-primary) !important;
+}
+
+.editor-container .monaco-editor .margin {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Line numbers and gutter */
+.editor-container .monaco-editor .margin .line-numbers {
+  color: var(--text-muted) !important;
+  font-size: var(--font-size-xs) !important;
+}
+
+/* Editor content area */
+.editor-container .monaco-editor .view-lines {
+  color: var(--text-primary) !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace !important;
+  font-size: var(--font-size-sm) !important;
+  line-height: 1.5 !important;
+}
+
+/* Syntax highlighting */
+.editor-container .monaco-editor .token.comment {
+  color: var(--text-muted) !important;
+}
+
+.editor-container .monaco-editor .token.keyword {
+  color: var(--accent-primary) !important;
+}
+
+.editor-container .monaco-editor .token.string {
+  color: var(--accent-success) !important;
+}
+
+.editor-container .monaco-editor .token.number {
+  color: var(--boomhauer-orange) !important;
+}
+
+/* Selection and cursor */
+.editor-container .monaco-editor .selected-text {
+  background-color: rgba(6, 182, 212, 0.2) !important;
+}
+
+.editor-container .monaco-editor .cursor {
+  background-color: var(--accent-primary) !important;
+}
+
+/* Minimap */
+.editor-container .monaco-editor .minimap {
+  background-color: var(--bg-secondary) !important;
+}
+
+.editor-container .monaco-editor .minimap-slider {
+  background-color: var(--accent-primary) !important;
+}
+
+/* Scrollbars */
+.editor-container .monaco-editor .scrollbar {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.editor-container .monaco-editor .slider {
+  background-color: var(--accent-primary) !important;
+}
+
+/* ===============================================
+   EDITOR PLACEHOLDER (when no file selected)
+   =============================================== */
+
+.editor-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.placeholder-content {
+  text-align: center;
+  max-width: 400px;
+  padding: var(--spacing-xl);
+}
+
+.placeholder-content h2 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.placeholder-content p {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.placeholder-content .hint {
+  color: var(--accent-primary);
+  font-weight: 500;
+  font-size: var(--font-size-sm);
+}
+
+/* ===============================================
+   RESPONSIVE ADJUSTMENTS
+   =============================================== */
+
+@media (max-width: 768px) {
+  .editor-container .monaco-editor {
+    font-size: var(--font-size-xs) !important;
+  }
+
+  .placeholder-content {
+    padding: var(--spacing-md);
+  }
+
+  .placeholder-content h2 {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* ===============================================
+   ACCESSIBILITY
+   =============================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-container .monaco-editor .cursor {
+    animation: none !important;
+  }
+}
+
+/* Focus indicators for keyboard navigation */
+.editor-container:focus-within {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}

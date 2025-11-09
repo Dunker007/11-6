@@ -1,0 +1,196 @@
+/* ===============================================
+   CONSOLE PANEL - Command Output Display
+   =============================================== */
+
+.console-panel {
+  background-color: var(--bg-primary);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: absolute;
+  bottom: 60px; /* Above toolbar */
+  left: 0;
+  right: 0;
+  z-index: 15;
+  transition: var(--transition-normal);
+}
+
+.console-panel:not(.expanded) {
+  height: 32px; /* Collapsed height */
+}
+
+.console-panel.expanded {
+  height: 200px; /* Expanded height */
+}
+
+/* ===============================================
+   CONSOLE HEADER
+   =============================================== */
+
+.console-header {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-lg);
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.console-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.console-icon {
+  font-size: var(--font-size-base);
+}
+
+.console-status {
+  color: var(--accent-green);
+  font-size: var(--font-size-xs);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; color: var(--accent-green); }
+  50% { opacity: 0.5; color: var(--accent-green); }
+}
+
+.console-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.console-clear-btn,
+.console-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-fast);
+}
+
+.console-clear-btn:hover,
+.console-toggle-btn:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* ===============================================
+   CONSOLE CONTENT
+   =============================================== */
+
+.console-content {
+  height: calc(100% - 32px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.console-output {
+  flex: 1;
+  margin: 0;
+  padding: var(--spacing-md);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  border: none;
+  outline: none;
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+
+@media (max-width: 1024px) {
+  .console-panel.expanded {
+    height: 150px;
+  }
+
+  .console-header {
+    padding: 0 var(--spacing-md);
+  }
+
+  .console-output {
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 768px) {
+  .console-panel.expanded {
+    height: 120px;
+  }
+
+  .console-header {
+    padding: 0 var(--spacing-sm);
+  }
+
+  .console-title {
+    font-size: var(--font-size-xs);
+  }
+
+  .console-output {
+    padding: var(--spacing-xs);
+  }
+}
+
+/* ===============================================
+   ACCESSIBILITY
+   =============================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .console-panel {
+    transition: none !important;
+  }
+
+  .console-status {
+    animation: none !important;
+  }
+
+  .console-clear-btn,
+  .console-toggle-btn {
+    transition: none !important;
+  }
+}
+
+/* Focus indicators */
+.console-header:focus {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: -2px;
+}
+
+.console-clear-btn:focus,
+.console-toggle-btn:focus {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .console-panel {
+    border-top: 2px solid var(--text-primary);
+  }
+
+  .console-header {
+    border-bottom: 2px solid var(--text-primary);
+  }
+
+  .console-output {
+    border: 1px solid var(--text-primary);
+  }
+}

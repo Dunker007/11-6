@@ -2,7 +2,7 @@
  * Centralized Lucide Icon Exports
  * Single source of truth for all icons used in the application
  * Tree-shaking optimization: Only exports icons we actually use (~80 icons instead of 1000+)
- * 
+ *
  * IMPORTANT: When adding new icons to the app, add them here first!
  */
 
@@ -10,7 +10,7 @@
 export {
   // Type
   type LucideIcon,
-  
+
   // Core Actions
   Plus,
   X,
@@ -24,7 +24,7 @@ export {
   Edit2,
   Trash2,
   Dot,
-  
+
   // Navigation & UI
   Search,
   Settings,
@@ -38,7 +38,7 @@ export {
   Square,
   Zap,
   Send,
-  
+
   // Files & Folders
   FileText,
   FilePlus,
@@ -47,7 +47,7 @@ export {
   FolderOpen,
   FolderPlus,
   FileCode,
-  
+
   // Development & Code
   Code,
   Code2,
@@ -60,7 +60,7 @@ export {
   Bug,
   Puzzle,
   Wrench,
-  
+
   // AI & Intelligence
   Brain,
   Bot,
@@ -70,7 +70,7 @@ export {
   Network,
   Orbit,
   Command,
-  
+
   // Status & Alerts
   CheckCircle,
   XCircle,
@@ -80,7 +80,7 @@ export {
   Bell,
   Loader,
   Clock,
-  
+
   // Data & Analytics
   Activity,
   TrendingUp,
@@ -88,7 +88,7 @@ export {
   DollarSign,
   Tag,
   Users,
-  
+
   // Infrastructure
   Server,
   Cloud,
@@ -98,22 +98,21 @@ export {
   Rocket,
   Target,
   History,
-  
+
   // Creation & Design
   PenTool,
   Palette,
   Layout,
   LayoutGrid,
   Layers,
-  
+
   // Content
   Book,
   Library,
-  
+
   // Quick Labs
   ScanEye,
   Lightbulb,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
-

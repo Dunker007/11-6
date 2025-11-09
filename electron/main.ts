@@ -8,6 +8,7 @@ import fs from 'fs/promises';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { exec, spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
+import os from 'os';
 
 const execAsync = promisify(exec);
 
@@ -19,20 +20,35 @@ const __dirname = path.dirname(__filename);
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
-// Debug logging to file
-const DEBUG_LOG_FILE = path.join(app.getPath('userData'), 'electron-debug.log');
+// Debug logging to file - lazy initialization
+function getDebugLogFile(): string {
+  try {
+    return path.join(app.getPath('userData'), 'electron-debug.log');
+  } catch {
+    // Fallback if app not ready yet
+    return path.join(os.tmpdir(), 'electron-debug.log');
+  }
+}
+
 function debugLog(...args: any[]) {
   const message = `[${new Date().toISOString()}] ${args.join(' ')}\n`;
   console.log(...args);
   try {
-    writeFileSync(DEBUG_LOG_FILE, message, { flag: 'a' });
+    writeFileSync(getDebugLogFile(), message, { flag: 'a' });
   } catch (err) {
     console.error('Failed to write debug log:', err);
   }
 }
 
-// Window state persistence
-const WINDOW_STATE_FILE = path.join(app.getPath('userData'), 'window-state.json');
+// Window state persistence - lazy initialization
+function getWindowStateFile(): string {
+  try {
+    return path.join(app.getPath('userData'), 'window-state.json');
+  } catch {
+    // Fallback if app not ready yet
+    return path.join(os.tmpdir(), 'window-state.json');
+  }
+}
 
 interface WindowState {
   width: number;
@@ -44,8 +60,9 @@ interface WindowState {
 
 function getWindowState(): WindowState | null {
   try {
-    if (existsSync(WINDOW_STATE_FILE)) {
-      const data = readFileSync(WINDOW_STATE_FILE, 'utf-8');
+    const stateFile = getWindowStateFile();
+    if (existsSync(stateFile)) {
+      const data = readFileSync(stateFile, 'utf-8');
       return JSON.parse(data);
     }
   } catch (error) {
@@ -56,7 +73,8 @@ function getWindowState(): WindowState | null {
 
 function saveWindowState(state: WindowState) {
   try {
-    writeFileSync(WINDOW_STATE_FILE, JSON.stringify(state, null, 2));
+    const stateFile = getWindowStateFile();
+    writeFileSync(stateFile, JSON.stringify(state, null, 2));
   } catch (error) {
     console.error('Failed to save window state:', error);
   }
@@ -74,7 +92,7 @@ let win: InstanceType<typeof BrowserWindow> | null = null;
 const preload = isDev 
   ? path.join(__dirname, 'preload.ts')
   : path.join(__dirname, 'preload.js');
-const url = isDev ? 'http://localhost:5173' : undefined;
+const url = isDev ? 'http://localhost:5174' : undefined;
 
 function createWindow() {
   const savedState = getWindowState();
@@ -129,6 +147,13 @@ function createWindow() {
   win.on('maximize', saveState);
   win.on('unmaximize', saveState);
 
+  // Clear cache in dev mode to prevent stale content
+  if (isDev && url) {
+    win.webContents.session.clearCache().then(() => {
+      debugLog('[Electron] Cache cleared');
+    });
+  }
+
   // Load the app
   if (url) {
     debugLog('[Electron] Dev mode - loading from URL:', url);
@@ -165,42 +190,50 @@ function createWindow() {
   });
 }
 
-// Auto-updater configuration
-if (!isDev) {
-  autoUpdater.checkForUpdatesAndNotify();
+// Auto-updater configuration - only initialize after app is ready
+function setupAutoUpdater() {
+  if (isDev) {
+    return; // Skip updater in dev mode
+  }
   
-  // Check for updates every 4 hours
-  setInterval(() => {
+  try {
     autoUpdater.checkForUpdatesAndNotify();
-  }, 4 * 60 * 60 * 1000);
+    
+    // Check for updates every 4 hours
+    setInterval(() => {
+      autoUpdater.checkForUpdatesAndNotify();
+    }, 4 * 60 * 60 * 1000);
 
-  autoUpdater.on('update-available', (info) => {
-    win?.webContents.send('update:available', {
-      version: info.version,
-      releaseDate: info.releaseDate,
-      releaseNotes: info.releaseNotes,
+    autoUpdater.on('update-available', (info) => {
+      win?.webContents.send('update:available', {
+        version: info.version,
+        releaseDate: info.releaseDate,
+        releaseNotes: info.releaseNotes,
+      });
     });
-  });
 
-  autoUpdater.on('update-downloaded', (info) => {
-    win?.webContents.send('update:downloaded', {
-      version: info.version,
-      releaseDate: info.releaseDate,
-      releaseNotes: info.releaseNotes,
+    autoUpdater.on('update-downloaded', (info) => {
+      win?.webContents.send('update:downloaded', {
+        version: info.version,
+        releaseDate: info.releaseDate,
+        releaseNotes: info.releaseNotes,
+      });
     });
-  });
 
-  autoUpdater.on('download-progress', (progress) => {
-    win?.webContents.send('update:progress', {
-      percent: progress.percent,
-      transferred: progress.transferred,
-      total: progress.total,
+    autoUpdater.on('download-progress', (progress) => {
+      win?.webContents.send('update:progress', {
+        percent: progress.percent,
+        transferred: progress.transferred,
+        total: progress.total,
+      });
     });
-  });
 
-  autoUpdater.on('error', (error) => {
-    win?.webContents.send('update:error', { error: error.message });
-  });
+    autoUpdater.on('error', (error) => {
+      win?.webContents.send('update:error', { error: error.message });
+    });
+  } catch (error) {
+    console.error('Failed to setup auto-updater:', error);
+  }
 }
 
 // IPC handler for manual update check
@@ -343,6 +376,7 @@ app.on('activate', () => {
 app.whenReady().then(() => {
   createMenu();
   createWindow();
+  setupAutoUpdater();
 });
 
 // File System IPC Handlers
@@ -464,6 +498,189 @@ ipcMain.handle('dialog:openDirectory', async () => {
     buttonLabel: 'Open Project',
   });
   return { success: !result.canceled, filePaths: result.filePaths };
+});
+
+// Drive and Directory IPC Handlers
+ipcMain.handle('fs:listDrives', async () => {
+  try {
+    const drives: Array<{ name: string; path: string; type?: string }> = [];
+    if (process.platform === 'win32') {
+      // Windows: List drive letters
+      const { stdout } = await execAsync('wmic logicaldisk get name,drivetype');
+      const lines = stdout.split('\n').filter(line => line.trim());
+      for (const line of lines.slice(1)) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 2) {
+          const drivePath = parts[0];
+          const driveType = parts[1];
+          if (drivePath.match(/^[A-Z]:$/)) {
+            drives.push({
+              name: drivePath,
+              path: drivePath + '\\',
+              type: driveType === '3' ? 'Fixed' : driveType === '2' ? 'Removable' : 'Network',
+            });
+          }
+        }
+      }
+    } else {
+      // Unix-like: List mount points
+      const { stdout } = await execAsync('df -h');
+      const lines = stdout.split('\n').slice(1);
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 6) {
+          const mountPoint = parts[5];
+          if (mountPoint.startsWith('/')) {
+            drives.push({
+              name: mountPoint,
+              path: mountPoint,
+              type: 'Filesystem',
+            });
+          }
+        }
+      }
+    }
+    return { success: true, drives };
+  } catch (error) {
+    return { success: false, error: (error as Error).message, drives: [] };
+  }
+});
+
+async function calculateDirectorySize(dirPath: string): Promise<number> {
+  let totalSize = 0;
+  try {
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      try {
+        if (entry.isDirectory()) {
+          totalSize += await calculateDirectorySize(fullPath);
+        } else {
+          const stats = await fs.stat(fullPath);
+          totalSize += stats.size;
+        }
+      } catch {
+        // Skip files we can't access
+        continue;
+      }
+    }
+  } catch {
+    // Skip directories we can't access
+  }
+  return totalSize;
+}
+
+ipcMain.handle('fs:getDirectorySize', async (_event, dirPath: string) => {
+  try {
+    const normalizedPath = path.normalize(dirPath);
+    const size = await calculateDirectorySize(normalizedPath);
+    return { success: true, size };
+  } catch (error) {
+    return { success: false, error: (error as Error).message, size: 0 };
+  }
+});
+
+// System Cleanup Functions
+async function cleanTempFiles(): Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }> {
+  const result = { filesDeleted: 0, spaceFreed: 0, errors: [] as string[] };
+  const homeDir = os.homedir();
+  const tempPaths = [
+    os.tmpdir(),
+    path.join(homeDir, 'AppData', 'Local', 'Temp'),
+    ...(process.platform === 'win32' ? ['C:\\Windows\\Temp'] : []),
+  ];
+
+  for (const tempPath of tempPaths) {
+    try {
+      if (!existsSync(tempPath)) continue;
+      const entries = await fs.readdir(tempPath, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(tempPath, entry.name);
+        try {
+          const stats = await fs.stat(fullPath);
+          const daysOld = (Date.now() - stats.mtime.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysOld > 7) {
+            if (entry.isDirectory()) {
+              await fs.rmdir(fullPath, { recursive: true });
+            } else {
+              await fs.unlink(fullPath);
+            }
+            result.filesDeleted++;
+            result.spaceFreed += stats.size;
+          }
+        } catch (err) {
+          result.errors.push(`Failed to delete ${fullPath}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  return result;
+}
+
+async function cleanCache(): Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }> {
+  const result = { filesDeleted: 0, spaceFreed: 0, errors: [] as string[] };
+  const homeDir = os.homedir();
+  const cachePaths = [
+    path.join(homeDir, 'AppData', 'Local', 'npm-cache'),
+    path.join(homeDir, 'AppData', 'Local', 'pip', 'cache'),
+    path.join(homeDir, '.npm'),
+    path.join(homeDir, '.cache'),
+  ];
+
+  // Try npm cache clean
+  try {
+    await execAsync('npm cache clean --force');
+  } catch {
+    // npm might not be installed
+  }
+
+  // Try pip cache purge
+  try {
+    await execAsync('pip cache purge');
+  } catch {
+    // pip might not be installed
+  }
+
+  for (const cachePath of cachePaths) {
+    try {
+      if (!existsSync(cachePath)) continue;
+      const entries = await fs.readdir(cachePath, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(cachePath, entry.name);
+        try {
+          const stats = await fs.stat(fullPath);
+          if (entry.isDirectory()) {
+            await fs.rmdir(fullPath, { recursive: true });
+          } else {
+            await fs.unlink(fullPath);
+          }
+          result.filesDeleted++;
+          result.spaceFreed += stats.size;
+        } catch (err) {
+          result.errors.push(`Failed to delete ${fullPath}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  return result;
+}
+
+// System Cleanup IPC Handlers
+ipcMain.handle('system:cleanTempFiles', async () => cleanTempFiles());
+ipcMain.handle('system:cleanCache', async () => cleanCache());
+
+ipcMain.handle('system:deepClean', async () => {
+  const [tempFiles, cache] = await Promise.all([cleanTempFiles(), cleanCache()]);
+  return {
+    tempFiles,
+    cache,
+    registry: { cleaned: 0, errors: [] },
+    oldInstallations: { found: [], removed: 0, errors: [] },
+  };
 });
 
 // Dev Tools IPC Handlers

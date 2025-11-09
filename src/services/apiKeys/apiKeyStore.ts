@@ -54,7 +54,7 @@ export const useAPIKeyStore = create<APIKeyStore>((set) => ({
   deleteKey: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      apiKeyService.deleteKey(id);
+      await apiKeyService.deleteKey(id);
       const keys = apiKeyService.getAllKeys();
       set({ keys, isLoading: false });
     } catch (error) {

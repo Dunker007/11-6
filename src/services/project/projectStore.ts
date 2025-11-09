@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { projectService } from './projectService';
 import { activityService } from '../activity/activityService';
 import type { Project } from '@/types/project';
-import { FolderPlus, FileText, Trash2, GitBranch } from 'lucide-react';
+import { FolderPlus, FileText, Trash2 } from 'lucide-react';
+import { getActivityIconAndColor } from '@/services/activity/activityIconMapper';
 
 type ProjectStatus = Project['status'];
 
@@ -97,12 +98,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       set({ projects, activeProject });
 
       // Track activity - icon and color are now handled by the mapper
+      const { icon, color } = getActivityIconAndColor('project', 'status_changed');
       activityService.addActivity({
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type: 'project',
         action: 'status_changed',
         description: `Project "${project.name}" status changed to ${status}`,
         timestamp: Date.now(),
+        icon,
+        color,
       });
     }
   },

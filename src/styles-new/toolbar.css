@@ -1,0 +1,300 @@
+/* ===============================================
+   STUDIO TOOLBAR - Project Execution Controls
+   =============================================== */
+
+.toolbar {
+  height: 60px;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-lg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+}
+
+.toolbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(6, 182, 212, 0.03) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* ===============================================
+   TOOLBAR SECTIONS
+   =============================================== */
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.toolbar-section h4 {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===============================================
+   TOOLBAR BUTTONS
+   =============================================== */
+
+.toolbar-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.toolbar-btn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  position: relative;
+  overflow: hidden;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  border-color: var(--accent-cyan);
+  background-color: rgba(6, 182, 212, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(6, 182, 212, 0.2);
+}
+
+.toolbar-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Button specific styles */
+.install-btn {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.install-btn:hover:not(:disabled) {
+  border-color: var(--accent-green);
+  background-color: rgba(34, 197, 94, 0.1);
+  box-shadow: 0 4px 8px rgba(34, 197, 94, 0.2);
+}
+
+.dev-btn {
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.dev-btn:hover:not(:disabled) {
+  border-color: var(--accent-cyan);
+  background-color: rgba(6, 182, 212, 0.1);
+  box-shadow: 0 4px 8px rgba(6, 182, 212, 0.2);
+}
+
+.build-btn {
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.build-btn:hover:not(:disabled) {
+  border-color: var(--accent-yellow);
+  background-color: rgba(234, 179, 8, 0.1);
+  box-shadow: 0 4px 8px rgba(234, 179, 8, 0.2);
+}
+
+.test-btn {
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.test-btn:hover:not(:disabled) {
+  border-color: var(--accent-violet);
+  background-color: rgba(139, 92, 246, 0.1);
+  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.2);
+}
+
+/* ===============================================
+   TOOLBAR STATUS
+   =============================================== */
+
+.toolbar-status {
+  font-size: var(--font-size-sm);
+  color: var(--accent-cyan);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.toolbar-status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-cyan);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ===============================================
+   TOOLBAR ERROR DISPLAY
+   =============================================== */
+
+.toolbar-error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--border-radius-sm);
+  color: var(--accent-red);
+  font-size: var(--font-size-xs);
+  max-width: 400px;
+}
+
+.toolbar-error .error-icon {
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.toolbar-error .error-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===============================================
+   TOOLBAR MESSAGE
+   =============================================== */
+
+.toolbar-message {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  flex: 1;
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+
+@media (max-width: 1024px) {
+  .toolbar {
+    height: 55px;
+    padding: 0 var(--spacing-md);
+  }
+
+  .toolbar-section h4 {
+    display: none; /* Hide labels on smaller screens */
+  }
+
+  .toolbar-buttons {
+    gap: var(--spacing-xs);
+  }
+
+  .toolbar-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    height: 50px;
+    padding: 0 var(--spacing-sm);
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .toolbar-section {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .toolbar-buttons {
+    justify-content: center;
+  }
+
+  .toolbar-status {
+    flex: 1 0 100%;
+    justify-content: center;
+    order: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-buttons {
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .toolbar-btn {
+    flex: 1;
+    min-width: 60px;
+    justify-content: center;
+  }
+}
+
+/* ===============================================
+   ACCESSIBILITY
+   =============================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-btn {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .toolbar-status::before {
+    animation: none !important;
+  }
+}
+
+/* Focus indicators */
+.toolbar-btn:focus {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .toolbar {
+    border-top: 2px solid var(--text-primary);
+  }
+
+  .toolbar-btn {
+    border: 2px solid var(--text-primary);
+  }
+}

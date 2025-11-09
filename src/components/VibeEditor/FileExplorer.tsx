@@ -1,16 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ProjectFile } from '@/types/project';
-import { useProjectStore } from '../../services/project/projectStore';
-import { useActivityStore } from '../../services/activity/activityStore';
-import TechIcon from '../Icons/TechIcon';
-import { FileText, FolderOpen, Folder, ChevronRight, ChevronDown, FilePlus, FolderPlus, Edit2, Copy, Scissors, Clipboard, Trash2, Dot } from 'lucide-react';
-import '../../styles/FileExplorer.css';
+import { useProjectStore } from '@/services/project/projectStore';
+import { useActivityStore } from '@/services/activity/activityStore';
+import { fileSystemService } from '@/services/filesystem/fileSystemService';
+import { llmOptimizerService } from '@/services/ai/llmOptimizerService';
+import TechIcon from '@/components/Icons/TechIcon';
+import { FileText, FolderOpen, Folder, ChevronRight, ChevronDown, FilePlus, FolderPlus, Edit2, Copy, Scissors, Clipboard, Trash2, Dot, HardDrive, Search, FolderTree } from 'lucide-react';
+import '@/styles/FileExplorer.css';
 
 interface FileExplorerProps {
   files: ProjectFile[];
   activeFile: string | null;
   onFileSelect: (path: string) => void;
 }
+
+interface SystemFileEntry {
+  name: string;
+  path: string;
+  isDirectory: boolean;
+  size?: number;
+}
+
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+};
 
 function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
   const { addFile, deleteFile, activeProject } = useProjectStore();
@@ -19,6 +36,11 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; path: string; isDirectory: boolean } | null>(null);
   const [clipboard, setClipboard] = useState<{ path: string; operation: 'copy' | 'cut' } | null>(null);
   const [renamingPath, setRenamingPath] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'project' | 'system'>('project');
+  const [systemDrives, setSystemDrives] = useState<Array<{ name: string; path: string; type?: string }>>([]);
+  const [systemFiles, setSystemFiles] = useState<Map<string, SystemFileEntry[]>>(new Map());
+  const [directorySizes, setDirectorySizes] = useState<Map<string, number>>(new Map());
+  const [loadingSize, setLoadingSize] = useState<string | null>(null);
 
   const toggleDir = (path: string) => {
     setExpandedDirs((prev) => {
@@ -133,6 +155,43 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
     setContextMenu(null);
   };
 
+  const handleGetSize = async (dirPath: string) => {
+    setLoadingSize(dirPath);
+    try {
+      const result = await fileSystemService.getDirectorySize(dirPath);
+      if (result.success && result.data !== undefined) {
+        setDirectorySizes(prev => new Map(prev).set(dirPath, result.data!));
+        alert(`Directory size: ${formatBytes(result.data)}`);
+      }
+    } catch (error) {
+      console.error('Failed to get directory size:', error);
+    } finally {
+      setLoadingSize(null);
+      setContextMenu(null);
+    }
+  };
+
+  const handleCleanTempFiles = async (_dirPath: string) => {
+    if (!confirm('Clean temporary files in this directory?')) {
+      setContextMenu(null);
+      return;
+    }
+    try {
+      const result = await llmOptimizerService.cleanTempFiles();
+      alert(`Cleaned ${result.filesDeleted} files, freed ${formatBytes(result.spaceFreed)}`);
+    } catch (error) {
+      console.error('Failed to clean temp files:', error);
+    } finally {
+      setContextMenu(null);
+    }
+  };
+
+  const handleFindLargeFiles = async (_dirPath: string) => {
+    // This would scan for files > 100MB
+    alert('Find Large Files feature coming soon');
+    setContextMenu(null);
+  };
+
   const handleDeleteFile = (path: string) => {
     const fileName = path.split('/').pop() || path;
     if (confirm(`Delete ${fileName}?`)) {
@@ -140,6 +199,96 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
       addActivity('file', 'deleted', `Deleted ${fileName}`);
     }
     setContextMenu(null);
+  };
+
+  const renderSystemFile = (entry: SystemFileEntry, level: number = 0) => {
+    const isExpanded = expandedDirs.has(entry.path);
+    const dirSize = directorySizes.get(entry.path);
+    
+    if (entry.isDirectory) {
+      return (
+        <div key={entry.path}>
+          <div
+            className={`file-item directory ${isExpanded ? 'expanded' : ''}`}
+            style={{ paddingLeft: `${level * 16 + 8}px` }}
+            onClick={() => {
+              toggleDir(entry.path);
+              if (!isExpanded) {
+                loadSystemDirectory(entry.path);
+              }
+            }}
+            onContextMenu={(e) => handleContextMenu(e, entry.path, true)}
+          >
+            <TechIcon 
+              icon={isExpanded ? ChevronDown : ChevronRight} 
+              size={14} 
+              glow="none" 
+              className="expand-icon" 
+            />
+            <TechIcon 
+              icon={isExpanded ? FolderOpen : Folder} 
+              size={16} 
+              glow="none" 
+              className="file-icon" 
+            />
+            <span className="file-name">{entry.name}</span>
+            {dirSize !== undefined && (
+              <span className="file-size" title={`Size: ${formatBytes(dirSize)}`}>
+                {formatBytes(dirSize)}
+              </span>
+            )}
+            {loadingSize === entry.path && (
+              <span className="loading-indicator">...</span>
+            )}
+          </div>
+          {isExpanded && systemFiles.has(entry.path) && (
+            <div className="file-children">
+              {systemFiles.get(entry.path)!.map((child) => renderSystemFile(child, level + 1))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={entry.path}
+        className="file-item file"
+        style={{ paddingLeft: `${level * 16 + 24}px` }}
+        onContextMenu={(e) => handleContextMenu(e, entry.path, false)}
+      >
+        <TechIcon icon={FileText} size={16} glow="none" className="file-icon" />
+        <span className="file-name">{entry.name}</span>
+      </div>
+    );
+  };
+
+  useEffect(() => {
+    if (viewMode === 'system') {
+      const loadDrives = async () => {
+        const result = await fileSystemService.listDrives();
+        if (result.success && result.data) {
+          setSystemDrives(result.data);
+        }
+      };
+      loadDrives();
+    }
+  }, [viewMode]);
+
+  const loadSystemDirectory = async (path: string) => {
+    if (systemFiles.has(path)) return;
+    try {
+      const result = await fileSystemService.readdir(path);
+      if (result.success && result.data) {
+        setSystemFiles(prev => new Map(prev).set(path, result.data!.map(entry => ({
+          name: entry.name,
+          path: entry.path,
+          isDirectory: entry.isDirectory,
+        }))));
+      }
+    } catch (error) {
+      console.error('Failed to load directory:', error);
+    }
   };
 
   const detectLanguage = (fileName: string): string => {
@@ -159,10 +308,17 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
   };
 
   const getGitStatus = (path: string): 'modified' | 'added' | 'untracked' | null => {
-    // Simulated Git status - in production, this would check actual Git status
-    // For now, randomly assign status to demonstrate UI
-    if (Math.random() > 0.8) return 'modified';
-    if (Math.random() > 0.9) return 'added';
+    // Simulated Git status - in production, this would check actual Git status.
+    // Use a deterministic hash so the same path always yields the same mock status.
+    const hash = Array.from(path).reduce((acc, char) => {
+      acc = (acc << 5) - acc + char.charCodeAt(0);
+      return acc & acc;
+    }, 0);
+
+    const normalized = Math.abs(hash % 100);
+    if (normalized < 5) return 'added';
+    if (normalized < 15) return 'modified';
+    if (normalized < 20) return 'untracked';
     return null;
   };
 
@@ -263,29 +419,83 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
     <div className="file-explorer">
       <div className="explorer-toolbar">
         <button
-          className="toolbar-button"
-          onClick={() => {
-            const rootPath = files[0]?.path || '';
-            handleNewFile(rootPath);
-          }}
-          title="New File"
+          className={`toolbar-button ${viewMode === 'project' ? 'active' : ''}`}
+          onClick={() => setViewMode('project')}
+          title="Project View"
         >
-          <TechIcon icon={FilePlus} size={16} glow="none" />
+          <TechIcon icon={FolderTree} size={16} glow="none" />
         </button>
         <button
-          className="toolbar-button"
-          onClick={() => {
-            const rootPath = files[0]?.path || '';
-            handleNewFolder(rootPath);
-          }}
-          title="New Folder"
+          className={`toolbar-button ${viewMode === 'system' ? 'active' : ''}`}
+          onClick={() => setViewMode('system')}
+          title="System View"
         >
-          <TechIcon icon={FolderPlus} size={16} glow="none" />
+          <TechIcon icon={HardDrive} size={16} glow="none" />
         </button>
+        {viewMode === 'project' && (
+          <>
+            <button
+              className="toolbar-button"
+              onClick={() => {
+                const rootPath = files[0]?.path || '';
+                handleNewFile(rootPath);
+              }}
+              title="New File"
+            >
+              <TechIcon icon={FilePlus} size={16} glow="none" />
+            </button>
+            <button
+              className="toolbar-button"
+              onClick={() => {
+                const rootPath = files[0]?.path || '';
+                handleNewFolder(rootPath);
+              }}
+              title="New Folder"
+            >
+              <TechIcon icon={FolderPlus} size={16} glow="none" />
+            </button>
+          </>
+        )}
       </div>
 
       <div className="file-tree">
-        {files.map((file) => renderFile(file))}
+        {viewMode === 'system' ? (
+          systemDrives.length > 0 ? (
+            systemDrives.map((drive) => (
+              <div key={drive.path}>
+                <div
+                  className={`file-item directory ${expandedDirs.has(drive.path) ? 'expanded' : ''}`}
+                  onClick={() => {
+                    toggleDir(drive.path);
+                    if (!expandedDirs.has(drive.path)) {
+                      loadSystemDirectory(drive.path);
+                    }
+                  }}
+                  onContextMenu={(e) => handleContextMenu(e, drive.path, true)}
+                >
+                  <TechIcon 
+                    icon={expandedDirs.has(drive.path) ? ChevronDown : ChevronRight} 
+                    size={14} 
+                    glow="none" 
+                    className="expand-icon" 
+                  />
+                  <TechIcon icon={HardDrive} size={16} glow="none" className="file-icon" />
+                  <span className="file-name">{drive.name}</span>
+                  {drive.type && <span className="drive-type">{drive.type}</span>}
+                </div>
+                {expandedDirs.has(drive.path) && systemFiles.has(drive.path) && (
+                  <div className="file-children">
+                    {systemFiles.get(drive.path)!.map((entry) => renderSystemFile(entry, 1))}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">Loading drives...</div>
+          )
+        ) : (
+          files.map((file) => renderFile(file))
+        )}
       </div>
 
       {contextMenu && (
@@ -297,64 +507,97 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
           <div
             className="context-menu"
             style={{ left: contextMenu.x, top: contextMenu.y }}
+            onClick={(e) => e.stopPropagation()}
           >
             {contextMenu.isDirectory && (
               <>
                 <button
                   className="context-menu-item"
-                  onClick={() => handleNewFile(contextMenu.path)}
+                  onClick={() => handleGetSize(contextMenu.path)}
                 >
-                  <TechIcon icon={FilePlus} size={14} glow="none" />
-                  <span>New File</span>
+                  <TechIcon icon={Search} size={14} glow="none" />
+                  <span>Get Size</span>
                 </button>
+                {contextMenu.path.toLowerCase().includes('temp') && (
+                  <button
+                    className="context-menu-item"
+                    onClick={() => handleCleanTempFiles(contextMenu.path)}
+                  >
+                    <TechIcon icon={Trash2} size={14} glow="none" />
+                    <span>Clean Temp Files</span>
+                  </button>
+                )}
                 <button
                   className="context-menu-item"
-                  onClick={() => handleNewFolder(contextMenu.path)}
+                  onClick={() => handleFindLargeFiles(contextMenu.path)}
                 >
-                  <TechIcon icon={FolderPlus} size={14} glow="none" />
-                  <span>New Folder</span>
+                  <TechIcon icon={Search} size={14} glow="none" />
+                  <span>Find Large Files</span>
                 </button>
                 <div className="context-menu-divider" />
               </>
             )}
-            <button
-              className="context-menu-item"
-              onClick={() => handleRename(contextMenu.path)}
-            >
-              <TechIcon icon={Edit2} size={14} glow="none" />
-              <span>Rename</span>
-            </button>
-            <button
-              className="context-menu-item"
-              onClick={() => handleCopy(contextMenu.path)}
-            >
-              <TechIcon icon={Copy} size={14} glow="none" />
-              <span>Copy</span>
-            </button>
-            <button
-              className="context-menu-item"
-              onClick={() => handleCut(contextMenu.path)}
-            >
-              <TechIcon icon={Scissors} size={14} glow="none" />
-              <span>Cut</span>
-            </button>
-            {clipboard && contextMenu.isDirectory && (
-              <button
-                className="context-menu-item"
-                onClick={() => handlePaste(contextMenu.path)}
-              >
-                <TechIcon icon={Clipboard} size={14} glow="none" />
-                <span>Paste</span>
-              </button>
+            {viewMode === 'project' && (
+              <>
+                {contextMenu.isDirectory && (
+                  <>
+                    <button
+                      className="context-menu-item"
+                      onClick={() => handleNewFile(contextMenu.path)}
+                    >
+                      <TechIcon icon={FilePlus} size={14} glow="none" />
+                      <span>New File</span>
+                    </button>
+                    <button
+                      className="context-menu-item"
+                      onClick={() => handleNewFolder(contextMenu.path)}
+                    >
+                      <TechIcon icon={FolderPlus} size={14} glow="none" />
+                      <span>New Folder</span>
+                    </button>
+                    <div className="context-menu-divider" />
+                  </>
+                )}
+                <button
+                  className="context-menu-item"
+                  onClick={() => handleRename(contextMenu.path)}
+                >
+                  <TechIcon icon={Edit2} size={14} glow="none" />
+                  <span>Rename</span>
+                </button>
+                <button
+                  className="context-menu-item"
+                  onClick={() => handleCopy(contextMenu.path)}
+                >
+                  <TechIcon icon={Copy} size={14} glow="none" />
+                  <span>Copy</span>
+                </button>
+                <button
+                  className="context-menu-item"
+                  onClick={() => handleCut(contextMenu.path)}
+                >
+                  <TechIcon icon={Scissors} size={14} glow="none" />
+                  <span>Cut</span>
+                </button>
+                {clipboard && contextMenu.isDirectory && (
+                  <button
+                    className="context-menu-item"
+                    onClick={() => handlePaste(contextMenu.path)}
+                  >
+                    <TechIcon icon={Clipboard} size={14} glow="none" />
+                    <span>Paste</span>
+                  </button>
+                )}
+                <div className="context-menu-divider" />
+                <button
+                  className="context-menu-item danger"
+                  onClick={() => handleDeleteFile(contextMenu.path)}
+                >
+                  <TechIcon icon={Trash2} size={14} glow="none" />
+                  <span>Delete</span>
+                </button>
+              </>
             )}
-            <div className="context-menu-divider" />
-            <button
-              className="context-menu-item danger"
-              onClick={() => handleDeleteFile(contextMenu.path)}
-            >
-              <TechIcon icon={Trash2} size={14} glow="none" />
-              <span>Delete</span>
-            </button>
           </div>
         </>
       )}

@@ -167,6 +167,36 @@ export class FileSystemService {
       return { success: false, error: (error as Error).message };
     }
   }
+
+  async listDrives(): Promise<FileSystemResult<Array<{ name: string; path: string; type?: string }>>> {
+    try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
+      const result = await window.fileSystem.listDrives();
+      if (result.success && result.drives) {
+        return { success: true, data: result.drives };
+      }
+      return { success: false, error: result.error || 'Failed to list drives' };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  async getDirectorySize(dirPath: string): Promise<FileSystemResult<number>> {
+    try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
+      const result = await window.fileSystem.getDirectorySize(dirPath);
+      if (result.success && result.size !== undefined) {
+        return { success: true, data: result.size };
+      }
+      return { success: false, error: result.error || 'Failed to get directory size' };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }
 }
 
 export const fileSystemService = FileSystemService.getInstance();

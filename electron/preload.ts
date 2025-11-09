@@ -32,6 +32,15 @@ contextBridge.exposeInMainWorld('fileSystem', {
   readdir: (path: string) => ipcRenderer.invoke('fs:readdir', path),
   stat: (path: string) => ipcRenderer.invoke('fs:stat', path),
   exists: (path: string) => ipcRenderer.invoke('fs:exists', path),
+  listDrives: () => ipcRenderer.invoke('fs:listDrives'),
+  getDirectorySize: (path: string) => ipcRenderer.invoke('fs:getDirectorySize', path),
+});
+
+// --------- Expose System API ---------
+contextBridge.exposeInMainWorld('system', {
+  cleanTempFiles: () => ipcRenderer.invoke('system:cleanTempFiles'),
+  cleanCache: () => ipcRenderer.invoke('system:cleanCache'),
+  deepClean: () => ipcRenderer.invoke('system:deepClean'),
 });
 
 // --------- Expose Dialog API ---------
@@ -64,13 +73,22 @@ contextBridge.exposeInMainWorld('program', {
     ipcRenderer.invoke('program:execute', command, workingDirectory),
   kill: (executionId: string) => ipcRenderer.invoke('program:kill', executionId),
   onOutput: (callback: (executionId: string, data: { type: 'stdout' | 'stderr'; data: string }) => void) => {
-    ipcRenderer.on('program:output', (_event, executionId, data) => callback(executionId, data));
+    const listener = (_event: any, executionId: string, data: { type: 'stdout' | 'stderr'; data: string }) => 
+      callback(executionId, data);
+    ipcRenderer.on('program:output', listener);
+    return () => ipcRenderer.off('program:output', listener);
   },
   onComplete: (callback: (executionId: string, result: { exitCode: number; stdout: string; stderr: string }) => void) => {
-    ipcRenderer.on('program:complete', (_event, executionId, result) => callback(executionId, result));
+    const listener = (_event: any, executionId: string, result: { exitCode: number; stdout: string; stderr: string }) => 
+      callback(executionId, result);
+    ipcRenderer.on('program:complete', listener);
+    return () => ipcRenderer.off('program:complete', listener);
   },
   onError: (callback: (executionId: string, error: { error: string }) => void) => {
-    ipcRenderer.on('program:error', (_event, executionId, error) => callback(executionId, error));
+    const listener = (_event: any, executionId: string, error: { error: string }) => 
+      callback(executionId, error);
+    ipcRenderer.on('program:error', listener);
+    return () => ipcRenderer.off('program:error', listener);
   },
 });
 
@@ -79,26 +97,42 @@ contextBridge.exposeInMainWorld('updater', {
   check: () => ipcRenderer.invoke('update:check'),
   install: () => ipcRenderer.invoke('update:install'),
   onAvailable: (callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void) => {
-    ipcRenderer.on('update:available', (_event, info) => callback(info));
+    const listener = (_event: any, info: { version: string; releaseDate: string; releaseNotes?: string }) => 
+      callback(info);
+    ipcRenderer.on('update:available', listener);
+    return () => ipcRenderer.off('update:available', listener);
   },
   onDownloaded: (callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void) => {
-    ipcRenderer.on('update:downloaded', (_event, info) => callback(info));
+    const listener = (_event: any, info: { version: string; releaseDate: string; releaseNotes?: string }) => 
+      callback(info);
+    ipcRenderer.on('update:downloaded', listener);
+    return () => ipcRenderer.off('update:downloaded', listener);
   },
   onProgress: (callback: (progress: { percent: number; transferred: number; total: number }) => void) => {
-    ipcRenderer.on('update:progress', (_event, progress) => callback(progress));
+    const listener = (_event: any, progress: { percent: number; transferred: number; total: number }) => 
+      callback(progress);
+    ipcRenderer.on('update:progress', listener);
+    return () => ipcRenderer.off('update:progress', listener);
   },
   onError: (callback: (error: { error: string }) => void) => {
-    ipcRenderer.on('update:error', (_event, error) => callback(error));
+    const listener = (_event: any, error: { error: string }) => 
+      callback(error);
+    ipcRenderer.on('update:error', listener);
+    return () => ipcRenderer.off('update:error', listener);
   },
 });
 
 // --------- Expose Menu Events ---------
 contextBridge.exposeInMainWorld('menu', {
   onAbout: (callback: () => void) => {
-    ipcRenderer.on('menu:about', () => callback());
+    const listener = () => callback();
+    ipcRenderer.on('menu:about', listener);
+    return () => ipcRenderer.off('menu:about', listener);
   },
   onShortcuts: (callback: () => void) => {
-    ipcRenderer.on('menu:shortcuts', () => callback());
+    const listener = () => callback();
+    ipcRenderer.on('menu:shortcuts', listener);
+    return () => ipcRenderer.off('menu:shortcuts', listener);
   },
 });
 

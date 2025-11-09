@@ -1,5 +1,5 @@
 // src/components/RightPanel/SystemStatusWidget.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { errorLogger } from '../../services/errors/errorLogger';
 import TechIcon from '../Icons/TechIcon';

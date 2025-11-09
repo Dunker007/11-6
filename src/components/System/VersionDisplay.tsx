@@ -1,14 +1,31 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useVersionStore } from '../../services/system/versionStore';
+import { RefreshCw } from 'lucide-react';
 import '../../styles/VersionDisplay.css';
 
 function VersionDisplay() {
   const { appVersion, componentVersions, loadAppVersion, loadComponentVersions } = useVersionStore();
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
   useEffect(() => {
     loadAppVersion();
     loadComponentVersions();
   }, []);
+
+  const handleCheckForUpdates = async () => {
+    if (typeof window === 'undefined' || !(window as any).updater) {
+      return;
+    }
+
+    setIsCheckingUpdate(true);
+    try {
+      await (window as any).updater.check();
+    } catch (error) {
+      console.error('Failed to check for updates:', error);
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
 
   if (!appVersion) {
     return null;
@@ -25,6 +42,16 @@ function VersionDisplay() {
           <span className="version-date">
             Built {appVersion.buildDate.toLocaleDateString()}
           </span>
+          {typeof window !== 'undefined' && (window as any).updater && (
+            <button
+              className="version-check-update"
+              onClick={handleCheckForUpdates}
+              disabled={isCheckingUpdate}
+              title="Check for updates"
+            >
+              <RefreshCw size={12} className={isCheckingUpdate ? 'spinning' : ''} />
+            </button>
+          )}
         </div>
       )}
       {componentVersions.length > 0 && (

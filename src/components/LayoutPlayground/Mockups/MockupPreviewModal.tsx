@@ -1,27 +1,33 @@
+import React from 'react';
 import { type MockupType } from '../LayoutMockupSelector';
 
 interface MockupPreviewModalProps {
   mockupId: MockupType;
   onClose: () => void;
   onNavigate: (mockupId: MockupType) => void;
+  onApply?: (mockupId: MockupType) => void;
   children: React.ReactNode;
 }
 
-const MOCKUP_ORDER: MockupType[] = ['command-center', 'desktop-experience', 'ai-os'];
+const MOCKUP_ORDER: MockupType[] = [
+  'studio-hub',
+  'llm-revenue-command-center',
+  'bolt-ai-workspace',
+];
 
 const MOCKUP_NAMES: Record<MockupType, string> = {
-  'command-center': 'Command Center',
-  'desktop-experience': 'Desktop Experience',
-  'ai-os': 'AI OS Mode',
+  'studio-hub': 'Studio Hub',
+  'llm-revenue-command-center': 'LLM & Revenue Command Center',
+  'bolt-ai-workspace': 'Bolt AI Workspace',
 };
 
 const MOCKUP_DESCRIPTIONS: Record<MockupType, string> = {
-  'command-center': 'Foundation Layer - Mission Control layout with organized workflows',
-  'desktop-experience': 'Intelligence Layer - AI-powered desktop with tool apps',
-  'ai-os': 'Ultimate Vibe Coding - Full OS experience with system-level AI',
+  'studio-hub': 'Professional development workspace focused on project management, code editing, and workflow orchestration.',
+  'llm-revenue-command-center': 'Unified dashboard combining LLM optimization, model management, and revenue tracking with cost analysis.',
+  'bolt-ai-workspace': 'AI-first conversational coding interface with turbo edits, smart context, and real-time AI assistance.',
 };
 
-function MockupPreviewModal({ mockupId, onClose, onNavigate, children }: MockupPreviewModalProps) {
+function MockupPreviewModal({ mockupId, onClose, onNavigate, onApply, children }: MockupPreviewModalProps) {
   const currentIndex = MOCKUP_ORDER.indexOf(mockupId);
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < MOCKUP_ORDER.length - 1;
@@ -87,7 +93,7 @@ function MockupPreviewModal({ mockupId, onClose, onNavigate, children }: MockupP
               ← Previous
             </button>
             <div className="mockup-indicator">
-              {MOCKUP_ORDER.map((id, index) => (
+              {MOCKUP_ORDER.map((id) => (
                 <div
                   key={id}
                   className={`indicator-dot ${id === mockupId ? 'active' : ''}`}
@@ -117,8 +123,24 @@ function MockupPreviewModal({ mockupId, onClose, onNavigate, children }: MockupP
             <button className="action-btn secondary" onClick={onClose}>
               Back to Selector
             </button>
-            <button className="action-btn primary" disabled>
-              Apply Layout (Coming Soon)
+            <button 
+              className="action-btn primary" 
+              onClick={() => {
+                if (onApply) {
+                  onApply(mockupId);
+                } else if (mockupId === 'llm-revenue-command-center') {
+                  // Open the LLM Optimizer panel - this will also close LayoutPlayground
+                  window.dispatchEvent(new CustomEvent('open-quicklab', { detail: 'optimizer' }));
+                  // Close the preview modal
+                  onClose();
+                } else if (mockupId === 'studio-hub' || mockupId === 'bolt-ai-workspace') {
+                  // These mockups are previews - for now, just close the modal
+                  // In the future, these could dispatch events to switch to these layouts
+                  onClose();
+                }
+              }}
+            >
+              Apply Layout
             </button>
           </div>
         </div>
@@ -128,4 +150,3 @@ function MockupPreviewModal({ mockupId, onClose, onNavigate, children }: MockupP
 }
 
 export default MockupPreviewModal;
-

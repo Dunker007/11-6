@@ -12,7 +12,7 @@ interface ActivityState {
 
 export const useActivityStore = create<ActivityState>((set) => {
   // Subscribe to activity service updates
-  activityService.subscribe((activity) => {
+  activityService.subscribe((_activity) => {
     set({ activities: activityService.getActivities() });
   });
 

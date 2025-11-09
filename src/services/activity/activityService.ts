@@ -1,4 +1,4 @@
-import { Activity, ActivityListener, ActivityType } from '../../types/activity';
+import { Activity, ActivityListener } from '../../types/activity';
 import { getActivityIcon, getActivityColor } from './activityIconMapper';
 
 class ActivityService {

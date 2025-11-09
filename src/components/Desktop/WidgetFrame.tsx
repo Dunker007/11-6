@@ -5,12 +5,14 @@ interface WidgetFrameProps {
   children: React.ReactNode;
 }
 
-const WidgetFrame = React.forwardRef<HTMLDivElement, WidgetFrameProps>(({ children }, ref) => {
-  return (
-    <div ref={ref} className="desktop-widget">
-      {children}
-    </div>
-  );
-});
+const WidgetFrame = React.forwardRef<HTMLDivElement, WidgetFrameProps>(
+  ({ children }, ref) => {
+    return (
+      <div ref={ref} className="desktop-widget">
+        {children}
+      </div>
+    );
+  }
+);
 
 export default WidgetFrame;

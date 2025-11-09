@@ -1,0 +1,208 @@
+/* ===============================================
+   STUDIO LAYOUT - Main Application Interface
+   =============================================== */
+
+.studio {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+.studio-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ===============================================
+   SIDEBAR - Project Management Panel
+   =============================================== */
+
+.studio-sidebar {
+  width: 280px;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  transition: var(--transition-normal);
+  z-index: 50;
+}
+
+.studio-sidebar.collapsed {
+  width: 0;
+  border-right: none;
+  overflow: hidden;
+}
+
+/* ===============================================
+   MAIN CONTENT AREA
+   =============================================== */
+
+.studio-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+
+@media (max-width: 1024px) {
+  .studio-sidebar {
+    width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .studio-sidebar {
+    position: fixed;
+    top: 48px;
+    left: 0;
+    height: calc(100vh - 48px);
+    width: 280px;
+    transform: translateX(-100%);
+    transition: var(--transition-normal);
+    z-index: 1000;
+  }
+
+  .studio-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .studio-main.has-overlay::after {
+    content: '';
+    position: fixed;
+    top: 48px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+}
+
+@media (max-width: 480px) {
+  .studio-sidebar {
+    width: 100vw;
+  }
+}
+
+/* ===============================================
+   ACCESSIBILITY
+   =============================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-sidebar {
+    transition: none !important;
+  }
+}
+
+/* Focus management for mobile */
+@media (max-width: 768px) {
+  .studio-sidebar:focus-within {
+    transform: translateX(0) !important;
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .studio-sidebar {
+    border-right: 2px solid var(--text-primary);
+  }
+
+  .studio {
+    background: var(--bg-primary);
+  }
+}
+
+/* ===============================================
+   LOADING STATES
+   =============================================== */
+
+.studio.loading {
+  position: relative;
+}
+
+.studio.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 3px solid var(--accent-primary);
+  border-top: 3px solid transparent;
+  border-radius: 50%;
+  animation: studio-loading 1s linear infinite;
+  z-index: 1000;
+}
+
+@keyframes studio-loading {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===============================================
+   ERROR STATES
+   =============================================== */
+
+.studio.error {
+  position: relative;
+}
+
+.studio.error .studio-content::after {
+  content: 'Connection Error - Please check your internet and try again';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-secondary);
+  color: var(--accent-error);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--accent-error);
+  text-align: center;
+  max-width: 300px;
+  z-index: 1000;
+}
+
+/* ===============================================
+   SUCCESS STATES
+   =============================================== */
+
+.studio.success .studio-content::before {
+  content: '✓';
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: var(--accent-success);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+  z-index: 1000;
+  animation: success-pulse 0.6s ease-out;
+}
+
+@keyframes success-pulse {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}

@@ -1,5 +1,4 @@
 // src/components/RightPanel/GitStatusWidget.tsx
-import React from 'react';
 import { useGitHubStore } from '../../services/github/githubStore';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';

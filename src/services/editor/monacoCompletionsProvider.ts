@@ -268,7 +268,7 @@ class MonacoCompletionsProvider {
    */
   private getSnippetCompletions(
     language: string,
-    context: CompletionContext,
+    _context: CompletionContext,
     range: any
   ): Monaco.languages.CompletionItem[] {
     if (!this.monaco) return [];
@@ -362,8 +362,8 @@ class MonacoCompletionsProvider {
       return [];
     }
 
-    // Build prompt for AI completion
-    const prompt = this.buildAIPrompt(context);
+    // Build prompt for AI completion (currently unused - placeholder for future AI integration)
+    // const prompt = this.buildAIPrompt(context);
     
     try {
       // In real implementation, would call LLM for suggestions
@@ -382,16 +382,7 @@ class MonacoCompletionsProvider {
     }
   }
 
-  /**
-   * Build prompt for AI completions
-   */
-  private buildAIPrompt(context: CompletionContext): string {
-    let prompt = `Language: ${context.fileLanguage}\n\n`;
-    prompt += `Context:\n${context.previousLines.join('\n')}\n\n`;
-    prompt += `Current line: ${context.currentLine}\n\n`;
-    prompt += `Complete the code naturally and concisely.`;
-    return prompt;
-  }
+  // Removed unused _buildAIPrompt method - can be re-added when AI completion is implemented
 
   /**
    * Get relative path between two files

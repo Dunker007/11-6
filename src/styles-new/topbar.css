@@ -1,0 +1,411 @@
+/* ===============================================
+   TOP BAR - Professional Navigation Header
+   =============================================== */
+
+.topbar {
+  height: 48px;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-lg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 100;
+}
+
+.topbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(6, 182, 212, 0.05) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* ===============================================
+   LEFT SECTION - Logo & Navigation
+   =============================================== */
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-toggle:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.sidebar-toggle:active {
+  transform: scale(0.95);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  user-select: none;
+}
+
+.brand-text {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===============================================
+   CENTER SECTION - Project Info
+   =============================================== */
+
+.topbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.project-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 300px;
+}
+
+.project-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.project-status {
+  font-size: var(--font-size-xs);
+  color: var(--accent-success);
+  text-transform: capitalize;
+  font-weight: 500;
+  padding: 2px 6px;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-radius: var(--radius-sm);
+}
+
+/* ===============================================
+   RIGHT SECTION - Actions & Settings
+   =============================================== */
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.topbar-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.topbar-button:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.topbar-button:active {
+  transform: scale(0.95);
+}
+
+/* Notification indicators */
+.topbar-button::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent-error);
+  border-radius: 50%;
+  opacity: 0;
+  transition: var(--transition-fast);
+}
+
+.topbar-button[data-notifications]::after {
+  opacity: 1;
+}
+
+/* Special styling for automation button */
+.automation-button {
+  transition: var(--transition-normal);
+}
+
+.automation-button.active {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: var(--accent-success);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.automation-button.active:hover {
+  background-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 var(--spacing-md);
+    height: 44px;
+  }
+
+  .brand-text {
+    font-size: var(--font-size-base);
+  }
+
+  .project-info {
+    max-width: 200px;
+  }
+
+  .project-name {
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-center {
+    display: none; /* Hide project info on very small screens */
+  }
+
+  .topbar {
+    padding: 0 var(--spacing-sm);
+  }
+}
+
+/* ===============================================
+   ACCESSIBILITY
+   =============================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Focus indicators */
+.topbar-button:focus,
+.sidebar-toggle:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .topbar {
+    border-bottom: 2px solid var(--text-primary);
+  }
+
+  .project-info {
+    border: 2px solid var(--text-primary);
+  }
+}
+
+/* ===============================================
+   MARKETPLACE MODAL
+   =============================================== */
+
+.marketplace-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1002; /* Above revenue modal */
+  backdrop-filter: blur(4px);
+}
+
+.marketplace-modal-content {
+  background: var(--color-bg-primary);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 95vw;
+  max-width: 1400px;
+  height: 90vh;
+  max-height: 900px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-medium);
+}
+
+.marketplace-modal-content .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-tertiary);
+  flex-shrink: 0;
+}
+
+.marketplace-modal-content .modal-header h2 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-primary);
+}
+
+.marketplace-modal-content .modal-close {
+  background: none;
+  border: none;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+}
+
+.marketplace-modal-content .modal-close:hover {
+  color: var(--accent-red);
+  background-color: var(--color-bg-primary);
+}
+
+/* ===============================================
+   LLM OPTIMIZER MODAL
+   =============================================== */
+
+.llm-optimizer-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1003; /* Above marketplace modal */
+  backdrop-filter: blur(4px);
+}
+
+.llm-optimizer-modal-content {
+  background: var(--color-bg-primary);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 95vw;
+  max-width: 1600px;
+  height: 90vh;
+  max-height: 1000px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-medium);
+}
+
+.llm-optimizer-modal-content .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-tertiary);
+  flex-shrink: 0;
+}
+
+.llm-optimizer-modal-content .modal-header h2 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-primary);
+}
+
+.llm-optimizer-modal-content .modal-close {
+  background: none;
+  border: none;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+}
+
+.llm-optimizer-modal-content .modal-close:hover {
+  color: var(--accent-red);
+  background-color: var(--color-bg-primary);
+}
+
+/* LLM Optimizer button styling */
+.llm-optimizer-button {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.llm-optimizer-button:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.3));
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+}

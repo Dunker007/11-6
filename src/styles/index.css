@@ -345,22 +345,4 @@ select:focus {
   opacity: 0.5;
 }
 
-/* App Shell Layout */
-.app-shell {
-  display: grid;
-  grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
-  grid-template-rows: 1fr;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  transition: grid-template-columns 0.3s ease-in-out;
-}
-
-.app-shell.monitor-mode {
-  grid-template-columns: var(--left-panel-width) 1fr 0; /* Set right panel width to 0 */
-}
-
-.app-shell.monitor-mode > .right-panel {
-  display: none; /* Hide the right panel completely */
-}
 

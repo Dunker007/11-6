@@ -3,7 +3,8 @@
   "productName": "DLX Studios Ultimate",
   "copyright": "Copyright © 2024 DLX Studios",
   "extraMetadata": {
-    "description": "AI-Native Development Platform with VibeEditor"
+    "description": "AI-Native Development Platform with VibeEditor",
+    "version": "1.0.0"
   },
   "directories": {
     "output": "release",
@@ -34,7 +35,9 @@
     ],
     "icon": "build/icon.ico",
     "forceCodeSigning": false,
-    "verifyUpdateCodeSignature": false
+    "verifyUpdateCodeSignature": false,
+    "requestedExecutionLevel": "asInvoker",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
   },
   "mac": {
     "target": [
@@ -48,7 +51,9 @@
       }
     ],
     "icon": "build/icon.icns",
-    "category": "public.app-category.developer-tools"
+    "category": "public.app-category.developer-tools",
+    "hardenedRuntime": false,
+    "gatekeeperAssess": false
   },
   "linux": {
     "target": [
@@ -77,12 +82,14 @@
     "installerHeaderIcon": "build/icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "DLX Studios Ultimate"
+    "shortcutName": "DLX Studios Ultimate",
+    "installerLanguages": ["en_US"],
+    "multiLanguageInstaller": false
   },
   "publish": {
     "provider": "github",
     "owner": "Dunker007",
-    "repo": "11-6"
+    "repo": "11-6",
+    "releaseType": "release"
   }
 }
-

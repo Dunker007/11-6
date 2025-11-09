@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useProjectStore } from '../../services/project/projectStore';
-import { useDebounce } from '../../utils/hooks/useDebounce';
+import { useProjectStore } from '@/services/project/projectStore';
+import { useDebounce } from '@/utils/hooks/useDebounce';
 import type { ProjectFile } from '@/types/project';
-import '../../styles/ProjectSearch.css';
+import '@/styles/ProjectSearch.css';
 
 interface SearchResult {
   filePath: string;

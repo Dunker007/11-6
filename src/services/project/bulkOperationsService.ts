@@ -200,7 +200,7 @@ class BulkOperationsService {
    * Bulk rename files
    */
   async renameFiles(
-    project: Project,
+    _project: Project,
     selectedFiles: string[],
     options: FileRenameOptions
   ): Promise<BulkOperation> {
@@ -230,7 +230,8 @@ class BulkOperationsService {
         ? `${newBaseName}.${fileExt}`
         : newBaseName;
 
-      const newPath = filePath.replace(fileName, newFileName);
+      // newPath computed but not used in preview - only fileName needed
+      // const newPath = filePath.replace(fileName, newFileName);
 
       operation.preview?.push({
         filePath,

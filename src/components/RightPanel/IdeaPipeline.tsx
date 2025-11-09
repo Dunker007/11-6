@@ -1,5 +1,4 @@
 // src/components/RightPanel/IdeaPipeline.tsx
-import React from 'react';
 import { useProjectStore } from '../../services/project/projectStore';
 import type { Project } from '../../types/project';
 import '../../styles/RightPanel.css';
@@ -9,11 +8,7 @@ import KaiCreativeRoom from './KaiCreativeRoom'; // Import the extracted compone
 
 type ProjectStatus = Project['status'];
 
-interface Message {
-  sender: 'user' | 'kai';
-  text: string;
-  idea?: { title: string; };
-}
+// Removed unused Message interface
 
 const DraggableProjectItem = ({ project, statusOrder }: { project: Project, statusOrder: ProjectStatus[] }) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({

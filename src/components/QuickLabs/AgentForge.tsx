@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAgentForgeStore } from '../../services/agentforge/agentForgeStore';
 import { useActivityStore } from '../../services/activity/activityStore';
 import TechIcon from '../Icons/TechIcon';
-import { Bot, Plus, Play, Pause, Square, Settings, Cpu, Trash2 } from 'lucide-react';
+import { Bot, Plus, Play, Trash2 } from 'lucide-react';
 import '../../styles/AgentForge.css';
 
 function AgentForge() {

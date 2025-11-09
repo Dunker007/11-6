@@ -20,7 +20,8 @@ function AIAssistant() {
     {
       id: '1',
       role: 'assistant',
-      content: "Hey there! I'm Vibed Ed, your coding buddy. I'm here to help you build awesome stuff - write code, explain functions, refactor, debug, whatever you need. Let's keep it chill and get things done. What's on your mind?",
+      content:
+        "Hey there! I'm Vibed Ed, your coding buddy. I'm here to help you build awesome stuff - write code, explain functions, refactor, debug, whatever you need. Let's keep it chill and get things done. What's on your mind?",
       timestamp: new Date(),
     },
   ]);
@@ -51,24 +52,30 @@ function AIAssistant() {
     try {
       // Build context-aware prompt with Vibed Ed persona
       let prompt = input.trim();
-      
+
       // Check if user is asking about military background
-      const isMilitaryQuestion = /military|usmc|marine|veteran|vet|service/.test(input.toLowerCase());
-      
+      const isMilitaryQuestion =
+        /military|usmc|marine|veteran|vet|service/.test(input.toLowerCase());
+
       // Build base prompt with file context
       let basePrompt = input.trim();
-      
+
       if (activeFile) {
         const fileContent = getFileContent(activeFile);
         if (fileContent) {
           basePrompt = `Current file: ${activeFile}\n\nFile content:\n\`\`\`\n${fileContent}\n\`\`\`\n\nUser request: ${input.trim()}`;
         }
       }
-      
+
       // Get full project knowledge
-      const projectContext = projectKnowledgeService.getFullProjectContext(activeProject?.id);
-      const navigationSuggestion = projectKnowledgeService.suggestNavigation(input.trim(), activeProject?.id);
-      
+      const projectContext = projectKnowledgeService.getFullProjectContext(
+        activeProject?.id
+      );
+      const navigationSuggestion = projectKnowledgeService.suggestNavigation(
+        input.trim(),
+        activeProject?.id
+      );
+
       // Build persona prompt
       let personaPrompt = '';
       if (isMilitaryQuestion) {
@@ -76,18 +83,18 @@ function AIAssistant() {
       } else {
         personaPrompt = `You are Vibed Ed, a laid-back, smart coding assistant with redneck/stoner/beach dude vibes. You're helpful, knowledgeable, and chill. Use casual language like "yeah", "sure thing", "no worries", "let's do this". Keep responses conversational and casual while being accurate and helpful.`;
       }
-      
+
       // Add project context
       if (projectContext) {
         personaPrompt += `\n\nYou have full knowledge of the current project:\n${projectContext}`;
       }
-      
+
       // Add navigation suggestion if applicable
       if (navigationSuggestion) {
         personaPrompt += `\n\nIMPORTANT: The user's query suggests they might want to use the ${navigationSuggestion.workflow} workflow. You can suggest navigating there, but you CANNOT execute builds or deployments directly. Users must go to the proper workflow environment. You can only guide and suggest - no overrides or direct execution.`;
         personaPrompt += `\n\nSuggestion: ${navigationSuggestion.reason}. ${navigationSuggestion.action}`;
       }
-      
+
       // Important: Ed cannot execute builds/deploys
       personaPrompt += `\n\nCRITICAL RULES:
 - You CANNOT execute builds or deployments directly
@@ -97,7 +104,7 @@ function AIAssistant() {
 - You CAN suggest code changes (user must apply them)
 - You CAN guide users to proper environments
 - Always remind users they need to go to the proper workflow for execution`;
-      
+
       prompt = `${personaPrompt}\n\nUser request: ${basePrompt}`;
 
       // Stream the response
@@ -145,10 +152,12 @@ function AIAssistant() {
   const handleQuickAction = (action: string) => {
     const prompts: Record<string, string> = {
       explain: 'Can you break down what this code does? Keep it simple for me.',
-      refactor: 'This code works but feels messy. Can you clean it up and make it better?',
-      fix: 'Something\'s not working right here. Mind taking a look and fixing it?',
+      refactor:
+        'This code works but feels messy. Can you clean it up and make it better?',
+      fix: "Something's not working right here. Mind taking a look and fixing it?",
       test: 'I need some tests for this. Can you hook me up?',
-      document: 'This could use some comments so I remember what it does later.',
+      document:
+        'This could use some comments so I remember what it does later.',
     };
 
     setInput(prompts[action] || action);
@@ -165,7 +174,12 @@ function AIAssistant() {
     <div className="ai-assistant">
       <div className="assistant-header">
         <div className="vibdee-avatar">
-          <TechIcon icon={Sparkles} size={24} glow="violet" animated={isStreaming || isLoading} />
+          <TechIcon
+            icon={Sparkles}
+            size={24}
+            glow="violet"
+            animated={isStreaming || isLoading}
+          />
         </div>
         <div className="header-info">
           <h3>Vibed Ed</h3>
@@ -226,10 +240,14 @@ function AIAssistant() {
                             className="copy-code-btn"
                             onClick={() => handleCopyCode(message.id, part)}
                           >
-                            <TechIcon 
-                              icon={copiedMessageId === message.id ? Check : Copy} 
-                              size={14} 
-                              glow={copiedMessageId === message.id ? 'cyan' : 'none'} 
+                            <TechIcon
+                              icon={
+                                copiedMessageId === message.id ? Check : Copy
+                              }
+                              size={14}
+                              glow={
+                                copiedMessageId === message.id ? 'cyan' : 'none'
+                              }
                             />
                           </button>
                         </div>
@@ -251,7 +269,12 @@ function AIAssistant() {
         {isStreaming && (
           <div className="message assistant">
             <div className="message-avatar">
-              <TechIcon icon={Sparkles} size={20} glow="violet" animated={true} />
+              <TechIcon
+                icon={Sparkles}
+                size={20}
+                glow="violet"
+                animated={true}
+              />
             </div>
             <div className="message-content">
               <div className="typing-indicator">
@@ -282,10 +305,10 @@ function AIAssistant() {
           disabled={!input.trim() || isLoading || isStreaming}
           title="Send message"
         >
-          <TechIcon 
-            icon={Send} 
-            size={18} 
-            glow={input.trim() && !isLoading && !isStreaming ? 'cyan' : 'none'} 
+          <TechIcon
+            icon={Send}
+            size={18}
+            glow={input.trim() && !isLoading && !isStreaming ? 'cyan' : 'none'}
             animated={isStreaming || isLoading}
           />
         </button>
@@ -295,4 +318,3 @@ function AIAssistant() {
 }
 
 export default AIAssistant;
-

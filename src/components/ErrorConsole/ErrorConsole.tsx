@@ -1,9 +1,24 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { errorLogger } from '../../services/errors/errorLogger';
-import { CapturedError, ErrorCategory, ErrorSeverity, ErrorFilter } from '../../types/error';
+import {
+  CapturedError,
+  ErrorCategory,
+  ErrorSeverity,
+  ErrorFilter,
+} from '../../types/error';
 import { formatTimeAgo } from '../../utils/formatters';
 import TechIcon from '../Icons/TechIcon';
-import { AlertCircle, X, Copy, Check, Download, Trash2, ChevronDown, ChevronRight, Filter } from 'lucide-react';
+import {
+  AlertCircle,
+  X,
+  Copy,
+  Check,
+  Download,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Filter,
+} from 'lucide-react';
 import '../../styles/ErrorConsole.css';
 
 interface ErrorConsoleProps {
@@ -70,20 +85,17 @@ ${JSON.stringify(error.context, null, 2)}
   };
 
   const handleClearErrors = () => {
-    if (confirm('Are you sure you want to clear all errors? This cannot be undone.')) {
+    if (
+      confirm(
+        'Are you sure you want to clear all errors? This cannot be undone.'
+      )
+    ) {
       errorLogger.clearErrors();
       loadErrors();
     }
   };
 
-  const getSeverityColor = (severity: ErrorSeverity) => {
-    switch (severity) {
-      case 'critical': return 'red';
-      case 'error': return 'red';
-      case 'warning': return 'amber';
-      case 'info': return 'cyan';
-    }
-  };
+  // Removed unused getSeverityColor function
 
   if (!isOpen) return null;
 
@@ -119,11 +131,7 @@ ${JSON.stringify(error.context, null, 2)}
             >
               <TechIcon icon={Trash2} size="sm" />
             </button>
-            <button
-              className="icon-btn"
-              onClick={onClose}
-              title="Close"
-            >
+            <button className="icon-btn" onClick={onClose} title="Close">
               <TechIcon icon={X} size="sm" />
             </button>
           </div>
@@ -133,7 +141,9 @@ ${JSON.stringify(error.context, null, 2)}
         <div className="error-stats">
           <div className="stat-item">
             <span className="stat-label">Critical</span>
-            <span className="stat-value critical">{stats.bySeverity.critical}</span>
+            <span className="stat-value critical">
+              {stats.bySeverity.critical}
+            </span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Errors</span>
@@ -141,7 +151,9 @@ ${JSON.stringify(error.context, null, 2)}
           </div>
           <div className="stat-item">
             <span className="stat-label">Warnings</span>
-            <span className="stat-value warning">{stats.bySeverity.warning}</span>
+            <span className="stat-value warning">
+              {stats.bySeverity.warning}
+            </span>
           </div>
           <div className="stat-item">
             <span className="stat-label">This Session</span>
@@ -155,15 +167,20 @@ ${JSON.stringify(error.context, null, 2)}
             <div className="filter-group">
               <label>Severity</label>
               <div className="filter-buttons">
-                {(['critical', 'error', 'warning', 'info'] as ErrorSeverity[]).map(severity => (
+                {(
+                  ['critical', 'error', 'warning', 'info'] as ErrorSeverity[]
+                ).map((severity) => (
                   <button
                     key={severity}
                     className={`filter-btn ${filter.severity?.includes(severity) ? 'active' : ''}`}
                     onClick={() => {
                       const newSeverity = filter.severity?.includes(severity)
-                        ? filter.severity.filter(s => s !== severity)
+                        ? filter.severity.filter((s) => s !== severity)
                         : [...(filter.severity || []), severity];
-                      setFilter({ ...filter, severity: newSeverity.length ? newSeverity : undefined });
+                      setFilter({
+                        ...filter,
+                        severity: newSeverity.length ? newSeverity : undefined,
+                      });
                     }}
                   >
                     {severity}
@@ -174,15 +191,26 @@ ${JSON.stringify(error.context, null, 2)}
             <div className="filter-group">
               <label>Category</label>
               <div className="filter-buttons">
-                {(['react', 'console', 'network', 'runtime', 'build'] as ErrorCategory[]).map(category => (
+                {(
+                  [
+                    'react',
+                    'console',
+                    'network',
+                    'runtime',
+                    'build',
+                  ] as ErrorCategory[]
+                ).map((category) => (
                   <button
                     key={category}
                     className={`filter-btn ${filter.category?.includes(category) ? 'active' : ''}`}
                     onClick={() => {
                       const newCategory = filter.category?.includes(category)
-                        ? filter.category.filter(c => c !== category)
+                        ? filter.category.filter((c) => c !== category)
                         : [...(filter.category || []), category];
-                      setFilter({ ...filter, category: newCategory.length ? newCategory : undefined });
+                      setFilter({
+                        ...filter,
+                        category: newCategory.length ? newCategory : undefined,
+                      });
                     }}
                   >
                     {category}
@@ -197,19 +225,30 @@ ${JSON.stringify(error.context, null, 2)}
         <div className="error-list">
           {filteredErrors.length === 0 ? (
             <div className="empty-state">
-              <TechIcon icon={Check} size="xl" glow="green" />
+              <TechIcon icon={Check} size="lg" glow="green" />
               <p>No errors found</p>
               <span className="empty-hint">
-                {filter.category || filter.severity ? 'Try adjusting your filters' : 'The error capture system is active and monitoring'}
+                {filter.category || filter.severity
+                  ? 'Try adjusting your filters'
+                  : 'The error capture system is active and monitoring'}
               </span>
             </div>
           ) : (
-            filteredErrors.map(error => (
+            filteredErrors.map((error) => (
               <div key={error.id} className={`error-item ${error.severity}`}>
-                <div className="error-item-header" onClick={() => setExpandedError(expandedError === error.id ? null : error.id)}>
+                <div
+                  className="error-item-header"
+                  onClick={() =>
+                    setExpandedError(
+                      expandedError === error.id ? null : error.id
+                    )
+                  }
+                >
                   <div className="error-item-left">
                     <TechIcon
-                      icon={expandedError === error.id ? ChevronDown : ChevronRight}
+                      icon={
+                        expandedError === error.id ? ChevronDown : ChevronRight
+                      }
                       size="sm"
                     />
                     <div className={`severity-badge ${error.severity}`}>
@@ -223,7 +262,9 @@ ${JSON.stringify(error.context, null, 2)}
                     )}
                   </div>
                   <div className="error-item-right">
-                    <span className="error-time">{formatTimeAgo(error.timestamp)}</span>
+                    <span className="error-time">
+                      {formatTimeAgo(error.timestamp)}
+                    </span>
                     <button
                       className="icon-btn"
                       onClick={(e) => {
@@ -232,13 +273,15 @@ ${JSON.stringify(error.context, null, 2)}
                       }}
                       title="Copy Error"
                     >
-                      <TechIcon icon={copiedId === error.id ? Check : Copy} size="sm" glow={copiedId === error.id ? 'green' : undefined} />
+                      <TechIcon
+                        icon={copiedId === error.id ? Check : Copy}
+                        size="sm"
+                        glow={copiedId === error.id ? 'green' : undefined}
+                      />
                     </button>
                   </div>
                 </div>
-                <div className="error-message">
-                  {error.message}
-                </div>
+                <div className="error-message">{error.message}</div>
                 {expandedError === error.id && (
                   <div className="error-details">
                     {error.stack && (
@@ -254,7 +297,11 @@ ${JSON.stringify(error.context, null, 2)}
                           {Object.entries(error.context).map(([key, value]) => (
                             <div key={key} className="context-item">
                               <span className="context-key">{key}:</span>
-                              <span className="context-value">{typeof value === 'object' ? JSON.stringify(value) : String(value)}</span>
+                              <span className="context-value">
+                                {typeof value === 'object'
+                                  ? JSON.stringify(value)
+                                  : String(value)}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -262,7 +309,9 @@ ${JSON.stringify(error.context, null, 2)}
                     )}
                     <div className="error-meta">
                       <span>ID: {error.id}</span>
-                      <span>Timestamp: {new Date(error.timestamp).toLocaleString()}</span>
+                      <span>
+                        Timestamp: {new Date(error.timestamp).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -274,4 +323,3 @@ ${JSON.stringify(error.context, null, 2)}
     </div>
   );
 }
-

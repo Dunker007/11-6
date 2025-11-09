@@ -1,0 +1,58 @@
+{
+  "name": "llm-optimizer",
+  "version": "1.0.0",
+  "description": "LLM Optimization Tool - Optimize LM Studio/Ollama, benchmark models, and optimize bolt.diy",
+  "main": "dist-electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development tsx electron/main.ts\"",
+    "electron:build:main": "tsc -p tsconfig.electron.json",
+    "electron:build:all": "npm run build && npm run electron:build:main && electron-builder",
+    "electron:build": "npm run build && npm run electron:build:main && electron-builder",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
+  },
+  "keywords": [
+    "llm",
+    "optimization",
+    "benchmark",
+    "lm-studio",
+    "ollama",
+    "bolt.diy",
+    "electron"
+  ],
+  "author": "DLX Studios",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "@vitejs/plugin-react": "^5.1.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.1.1",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.1",
+    "wait-on": "^9.0.1"
+  },
+  "dependencies": {
+    "lucide-react": "^0.553.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "systeminformation": "^5.27.11",
+    "zustand": "^5.0.8"
+  }
+}
+

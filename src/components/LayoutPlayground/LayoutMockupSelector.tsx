@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import '../../styles/LayoutMockups.css';
 
-export type MockupType = 'command-center' | 'desktop-experience' | 'ai-os';
+export type MockupType =
+  | 'studio-hub'
+  | 'llm-revenue-command-center'
+  | 'bolt-ai-workspace';
 
 export interface LayoutMockup {
   id: MockupType;
@@ -18,51 +21,50 @@ interface LayoutMockupSelectorProps {
 
 const MOCKUPS: LayoutMockup[] = [
   {
-    id: 'command-center',
-    name: 'Command Center',
-    description: 'Mission Control layout with all workflows visible at once',
-    tagline: 'Foundation Layer - Get organized',
+    id: 'studio-hub',
+    name: 'Studio Hub',
+    description: 'Professional development workspace focused on project management, code editing, and workflow orchestration.',
+    tagline: 'Studio · Project Management & Code Editing',
     features: [
-      'Grid-based workflow cards',
-      'Collapsible tools drawer',
-      'Quick Labs dock',
-      'Context-aware completions',
-      'Multi-file awareness indicator',
-      'Real-time collaboration status',
+      'Large code editor with syntax highlighting',
+      'Project selector and file explorer',
+      'Workflow switcher (Create/Build/Deploy/Monitor/Monetize)',
+      'AI assistant sidebar for code help',
+      'Activity feed and git status',
+      'Integrated terminal and build output',
+      'AI-powered code suggestions',
     ],
-    vibeLevel: 1,
+    vibeLevel: 3,
   },
   {
-    id: 'desktop-experience',
-    name: 'Desktop Experience',
-    description: 'Familiar desktop metaphor with tools as applications',
-    tagline: 'Intelligence Layer - AI as your co-pilot',
+    id: 'llm-revenue-command-center',
+    name: 'LLM & Revenue Command Center',
+    description: 'Unified dashboard combining LLM optimization, model management, and revenue tracking with cost analysis.',
+    tagline: 'LLMs & Revenue · Optimization & Monetization',
     features: [
-      'Multi-window management',
-      'App-based workflows',
-      'Multi-file editing panel',
-      'Critic Agent QA assistant',
-      'Automated test generator',
-      'Hybrid Mode (AI/Deep coding)',
-      'Mood-based environments',
+      'LLM model catalog with cost tracking',
+      'Hardware profiler and system health',
+      'Revenue streams with LLM cost attribution',
+      'ROI analysis and profit optimization',
+      'Benchmark runner and model comparison',
+      'AI-powered cost and revenue insights',
+      'Unified optimization dashboard',
     ],
-    vibeLevel: 2,
+    vibeLevel: 3,
   },
   {
-    id: 'ai-os',
-    name: 'AI OS Mode',
-    description: 'Full operating system experience with Vibed Ed as system intelligence',
-    tagline: 'Ultimate Vibe Coding - The future is here',
+    id: 'bolt-ai-workspace',
+    name: 'Bolt AI Workspace',
+    description: 'AI-first conversational coding interface with turbo edits, smart context, and real-time AI assistance.',
+    tagline: 'Bolt · AI-Powered Coding Assistant',
     features: [
-      'Natural language command center',
-      'Codebase graph visualization',
-      'Cross-project AI reasoning',
-      'Error forecasting dashboard',
-      'Auto-test suite generation',
-      'Flow state management',
-      'Multiplayer coding',
-      'Smart code review',
-      'Security scanner integration',
+      'Large AI chat interface as primary surface',
+      'Real-time code preview and updates',
+      'Context HUD showing project understanding',
+      'Turbo Edit panel for quick modifications',
+      'Multi-file context visualization',
+      'AI agent status (Kai, Guardian, ByteBot)',
+      'Conversation-driven development workflow',
     ],
     vibeLevel: 3,
   },
@@ -132,9 +134,8 @@ function LayoutMockupSelector({ onPreview }: LayoutMockupSelectorProps) {
         <div className="info-card">
           <h4>What are these mockups?</h4>
           <p>
-            These are interactive previews showing three possible evolution paths for DLX Studios Ultimate.
-            Each mockup is fully explorable and demonstrates how the platform could integrate the most-requested
-            vibe coding features for 2025.
+            Three focused layout options emphasizing Studio workflows, unified LLM optimization & revenue tracking, and Bolt AI coding.
+            Each mockup is fully functional and demonstrates how DLX Studios Ultimate integrates AI throughout the development experience.
           </p>
         </div>
       </div>

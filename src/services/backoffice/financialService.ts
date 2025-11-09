@@ -1,3 +1,16 @@
+/**
+ * Financial Service - Revenue & Monetization Tracking
+ * 
+ * IMPORTANT SEPARATION:
+ * - This service tracks BUSINESS revenue, expenses, and P&L (Revenue & Monetization tab)
+ * - This is SEPARATE from Wealth Lab, which tracks PERSONAL net worth, assets, and liabilities
+ * - Crypto trading profits are tracked here ONLY when withdrawn from exchanges (via trackCryptoIncome)
+ * 
+ * Key Distinction:
+ * - Revenue/Monetization = Business income/expenses, SaaS revenue, crypto profits (when withdrawn)
+ * - Wealth = Personal net worth, retirement planning, budgeting, personal assets
+ */
+
 import type { Expense, Income, FinancialSummary, PnLReport, ExpenseCategory, IncomeSource } from '@/types/backoffice';
 import { useThresholdStore } from './thresholdStore';
 
@@ -290,6 +303,19 @@ export class FinancialService {
     });
   }
 
+  /**
+   * Track crypto income from withdrawals
+   * 
+   * IMPORTANT: This method is called when crypto profits are withdrawn from exchanges.
+   * Crypto trading profits stay in Crypto Lab until explicitly withdrawn.
+   * When withdrawn, they become business revenue and are tracked here.
+   * 
+   * This is SEPARATE from Wealth Lab, which tracks personal net worth.
+   * 
+   * @param amount - USD value of the withdrawal
+   * @param source - 'trading' for trading profits, 'staking' for staking rewards
+   * @param date - Date of withdrawal (defaults to now)
+   */
   trackCryptoIncome(amount: number, source: 'trading' | 'staking', date: Date = new Date()): void {
     this.addIncome({
       source: source === 'trading' ? 'crypto_trading' : 'crypto_staking',

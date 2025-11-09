@@ -10,7 +10,9 @@ import '../../styles/ActivityFeed.css';
 const ActivityFeed = () => {
   const activities = useActivityStore((state) => state.activities);
   const { activeProject } = useProjectStore();
-  const [filterMode, setFilterMode] = useState<'all' | 'errors' | 'project'>('all');
+  const [filterMode, setFilterMode] = useState<'all' | 'errors' | 'project'>(
+    'all'
+  );
   const [errorCount, setErrorCount] = React.useState(0);
 
   React.useEffect(() => {
@@ -20,7 +22,9 @@ const ActivityFeed = () => {
     };
     updateErrorCount();
     // Defer subscribe callback to prevent updates during render
-    const unsubscribe = errorLogger.subscribe(() => setTimeout(updateErrorCount, 0));
+    const unsubscribe = errorLogger.subscribe(() =>
+      setTimeout(updateErrorCount, 0)
+    );
     return unsubscribe;
   }, []);
 
@@ -31,9 +35,11 @@ const ActivityFeed = () => {
     }
     if (filterMode === 'project' && activeProject) {
       // This is a simple filter. We can make it more robust by adding project IDs to metadata.
-      return filtered.filter(activity => 
-        (activity.description.includes(activeProject.name)) || 
-        (activity.type === 'file' && activity.metadata?.path?.startsWith(activeProject.rootPath))
+      return filtered.filter(
+        (activity) =>
+          activity.description.includes(activeProject.name) ||
+          (activity.type === 'file' &&
+            activity.metadata?.path?.startsWith(activeProject.rootPath))
       );
     }
     return filtered;
@@ -63,7 +69,9 @@ const ActivityFeed = () => {
             onClick={() => setFilterMode('errors')}
           >
             Errors
-            {errorCount > 0 && <span className="error-badge">{errorCount}</span>}
+            {errorCount > 0 && (
+              <span className="error-badge">{errorCount}</span>
+            )}
           </button>
         </div>
       </div>
@@ -76,9 +84,11 @@ const ActivityFeed = () => {
           <div className="empty-feed">
             <TechIcon icon={Filter} size={32} />
             <span>
-              {filterMode === 'errors' ? 'No errors recorded.' : 
-               filterMode === 'project' ? 'No activity for this project.' :
-               'No recent activity.'}
+              {filterMode === 'errors'
+                ? 'No errors recorded.'
+                : filterMode === 'project'
+                  ? 'No activity for this project.'
+                  : 'No recent activity.'}
             </span>
           </div>
         )}
@@ -88,4 +98,3 @@ const ActivityFeed = () => {
 };
 
 export default ActivityFeed;
-

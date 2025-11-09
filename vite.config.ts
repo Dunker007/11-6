@@ -1,17 +1,43 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { readFileSync } from 'fs';
+import { execSync } from 'child_process';
+
+// Read package.json for version
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
+const appVersion = packageJson.version;
+
+// Get git info (if available)
+let gitCommit: string | undefined;
+let gitBranch: string | undefined;
+try {
+  gitCommit = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+  gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
+} catch {
+  // Git not available or not a git repo
+  gitCommit = undefined;
+  gitBranch = undefined;
+}
+
+const buildDate = new Date().toISOString();
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+    __BUILD_DATE__: JSON.stringify(buildDate),
+    __GIT_COMMIT__: JSON.stringify(gitCommit),
+    __GIT_BRANCH__: JSON.stringify(gitBranch),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
   server: {
-    port: 5173,
+    port: 5174,
     strictPort: true,
   },
       build: {

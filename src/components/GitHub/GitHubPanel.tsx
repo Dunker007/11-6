@@ -99,7 +99,11 @@ function GitHubPanel() {
             placeholder="ghp_xxxxxxxxxxxx"
             className="token-input"
           />
-          <button onClick={handleAuth} className="auth-btn" disabled={!token.trim() || isLoading}>
+          <button
+            onClick={handleAuth}
+            className="auth-btn"
+            disabled={!token.trim() || isLoading}
+          >
             {isLoading ? 'Authenticating...' : 'Authenticate'}
           </button>
           <a
@@ -152,7 +156,7 @@ function GitHubPanel() {
       {currentDirectory && (
         <div className="git-operations">
           <h4>Git Operations</h4>
-          
+
           {status && (
             <>
               <div className="git-status">
@@ -173,10 +177,11 @@ function GitHubPanel() {
                     {status.files.map((file, index) => (
                       <div key={index} className="file-change-item">
                         <span className={`file-status ${file.status}`}>
-                          {file.status === 'M' && '●'}
-                          {file.status === 'A' && '+'}
-                          {file.status === 'D' && '−'}
-                          {file.status === '??' && '?'}
+                          {file.status === 'modified' && '●'}
+                          {file.status === 'added' && '+'}
+                          {file.status === 'deleted' && '−'}
+                          {file.status === 'untracked' && '?'}
+                          {file.status === 'renamed' && '↻'}
                         </span>
                         <span className="file-path" title={file.path}>
                           {file.path}
@@ -199,7 +204,11 @@ function GitHubPanel() {
               rows={3}
             />
             <div className="action-buttons">
-              <button onClick={handleCommit} className="action-btn" disabled={!commitMessage.trim()}>
+              <button
+                onClick={handleCommit}
+                className="action-btn"
+                disabled={!commitMessage.trim()}
+              >
                 💾 Commit
               </button>
               <button onClick={handlePush} className="action-btn">
@@ -218,7 +227,9 @@ function GitHubPanel() {
                 <div key={branch.name} className="branch-item">
                   <span>{branch.name}</span>
                   <button
-                    onClick={() => checkoutBranch(currentDirectory, branch.name)}
+                    onClick={() =>
+                      checkoutBranch(currentDirectory, branch.name)
+                    }
                     className="checkout-btn"
                   >
                     Checkout
@@ -234,7 +245,11 @@ function GitHubPanel() {
                 placeholder="New branch name..."
                 className="branch-input"
               />
-              <button onClick={handleCreateBranch} className="create-btn" disabled={!newBranchName.trim()}>
+              <button
+                onClick={handleCreateBranch}
+                className="create-btn"
+                disabled={!newBranchName.trim()}
+              >
                 Create Branch
               </button>
             </div>
@@ -246,4 +261,3 @@ function GitHubPanel() {
 }
 
 export default GitHubPanel;
-

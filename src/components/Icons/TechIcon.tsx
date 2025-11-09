@@ -14,14 +14,14 @@ interface TechIconProps {
   className?: string;
 }
 
-const TechIcon = memo(function TechIcon({ 
-  icon: Icon, 
-  size = 20, 
+const TechIcon = memo(function TechIcon({
+  icon: Icon,
+  size = 20,
   variant = 'default',
   glow = 'cyan',
   animated = false,
   active = false,
-  className = ''
+  className = '',
 }: TechIconProps) {
   // Map size shorthands to numbers
   const numericSize = useMemo(() => {
@@ -29,35 +29,48 @@ const TechIcon = memo(function TechIcon({
       return size;
     }
     switch (size) {
-      case 'sm': return 16;
-      case 'lg': return 24;
+      case 'sm':
+        return 16;
+      case 'lg':
+        return 24;
       case 'md':
-      default: return 20;
+      default:
+        return 20;
     }
   }, [size]);
 
   // Memoize wrapper classes to avoid recomputation on every render
-  const wrapperClasses = useMemo(() => [
-    'tech-icon-wrapper',
-    `variant-${variant}`,
-    glow !== 'none' && `glow-${glow}`,
-    animated && 'animated',
-    active && 'active',
-    className
-  ].filter(Boolean).join(' '), [variant, glow, animated, active, className]);
+  const wrapperClasses = useMemo(
+    () =>
+      [
+        'tech-icon-wrapper',
+        `variant-${variant}`,
+        glow !== 'none' && `glow-${glow}`,
+        animated && 'animated',
+        active && 'active',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' '),
+    [variant, glow, animated, active, className]
+  );
 
   return (
     <div className={wrapperClasses}>
       {/* Hexagonal frame overlay */}
       {variant === 'hexagon' && (
         <div className="hex-frame">
-          <svg className="hex-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <polygon 
-              points="50 1, 95 25, 95 75, 50 99, 5 75, 5 25" 
+          <svg
+            className="hex-svg"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <polygon
+              points="50 1, 95 25, 95 75, 50 99, 5 75, 5 25"
               className="hex-border"
             />
-            <polygon 
-              points="50 1, 95 25, 95 75, 50 99, 5 75, 5 25" 
+            <polygon
+              points="50 1, 95 25, 95 75, 50 99, 5 75, 5 25"
               className="hex-fill"
             />
           </svg>
@@ -75,8 +88,14 @@ const TechIcon = memo(function TechIcon({
       {variant === 'circuit' && (
         <div className="circuit-pattern">
           <svg className="circuit-svg" viewBox="0 0 100 100">
-            <path d="M0,50 L20,50 L30,40 L40,60 L50,50 L60,50" className="circuit-line" />
-            <path d="M50,0 L50,20 L40,30 L60,40 L50,50" className="circuit-line" />
+            <path
+              d="M0,50 L20,50 L30,40 L40,60 L50,50 L60,50"
+              className="circuit-line"
+            />
+            <path
+              d="M50,0 L50,20 L40,30 L60,40 L50,50"
+              className="circuit-line"
+            />
             <circle cx="50" cy="50" r="3" className="circuit-node" />
             <circle cx="20" cy="50" r="2" className="circuit-node" />
             <circle cx="50" cy="20" r="2" className="circuit-node" />
@@ -85,11 +104,7 @@ const TechIcon = memo(function TechIcon({
       )}
 
       {/* The actual icon */}
-      <Icon 
-        size={numericSize} 
-        className="tech-icon-svg"
-        strokeWidth={1.5}
-      />
+      <Icon size={numericSize} className="tech-icon-svg" strokeWidth={1.5} />
 
       {/* Scan line effect */}
       {animated && <div className="scan-line"></div>}
@@ -110,4 +125,3 @@ const TechIcon = memo(function TechIcon({
 });
 
 export default TechIcon;
-

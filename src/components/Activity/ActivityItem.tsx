@@ -8,7 +8,10 @@ interface ActivityItemProps {
   onClick?: () => void;
 }
 
-const ActivityItem = memo(function ActivityItem({ activity, onClick }: ActivityItemProps) {
+const ActivityItem = memo(function ActivityItem({
+  activity,
+  onClick,
+}: ActivityItemProps) {
   const getTimeAgo = (timestamp: number): string => {
     const now = Date.now();
     const diff = now - timestamp;
@@ -24,12 +27,12 @@ const ActivityItem = memo(function ActivityItem({ activity, onClick }: ActivityI
   };
 
   return (
-    <div 
+    <div
       className={`activity-item ${onClick ? 'clickable' : ''}`}
       onClick={onClick}
     >
       <div className="activity-icon-wrapper">
-        <TechIcon 
+        <TechIcon
           icon={activity.icon}
           size={16}
           glow={activity.color}
@@ -42,12 +45,14 @@ const ActivityItem = memo(function ActivityItem({ activity, onClick }: ActivityI
         <div className="activity-time">{getTimeAgo(activity.timestamp)}</div>
       </div>
 
-      <div className="activity-glow" style={{
-        background: `radial-gradient(circle, var(--${activity.color}-500) 0%, transparent 70%)`
-      }}></div>
+      <div
+        className="activity-glow"
+        style={{
+          background: `radial-gradient(circle, var(--${activity.color}-500) 0%, transparent 70%)`,
+        }}
+      ></div>
     </div>
   );
 });
 
 export default ActivityItem;
-

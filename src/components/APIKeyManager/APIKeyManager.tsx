@@ -9,7 +9,9 @@ interface APIKeyManagerProps {
 
 function APIKeyManager({ onClose }: APIKeyManagerProps) {
   const { keys, loadKeys, addKey, deleteKey, healthCheck } = useAPIKeyStore();
-  const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(
+    null
+  );
   const [keyValue, setKeyValue] = useState('');
   const [keyName, setKeyName] = useState('');
   const [healthStatus, setHealthStatus] = useState<Record<string, boolean>>({});
@@ -33,7 +35,13 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
 
     setIsValidating(true);
     try {
-      await addKey(selectedProvider, keyValue.trim(), keyName || PROVIDER_CONFIGS.find(p => p.provider === selectedProvider)?.name || '');
+      await addKey(
+        selectedProvider,
+        keyValue.trim(),
+        keyName ||
+          PROVIDER_CONFIGS.find((p) => p.provider === selectedProvider)?.name ||
+          ''
+      );
       setKeyValue('');
       setKeyName('');
       setSelectedProvider(null);
@@ -50,14 +58,17 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
     await checkAllHealth();
   };
 
-  const providerKeys = (provider: LLMProvider) => keys.filter(k => k.provider === provider);
+  const providerKeys = (provider: LLMProvider) =>
+    keys.filter((k) => k.provider === provider);
 
   return (
     <div className="api-key-manager-overlay" onClick={onClose}>
       <div className="api-key-manager" onClick={(e) => e.stopPropagation()}>
         <div className="manager-header">
           <h2>API Key Management</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <div className="manager-content">
@@ -71,9 +82,13 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
                   <div className="provider-header">
                     <div className="provider-info">
                       <h3>{config.name}</h3>
-                      <p className="provider-description">{config.description}</p>
+                      <p className="provider-description">
+                        {config.description}
+                      </p>
                     </div>
-                    <div className={`health-indicator ${isHealthy ? 'healthy' : 'unhealthy'}`}>
+                    <div
+                      className={`health-indicator ${isHealthy ? 'healthy' : 'unhealthy'}`}
+                    >
                       <span className="health-dot" />
                       {isHealthy ? 'Connected' : 'Disconnected'}
                     </div>
@@ -127,7 +142,9 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
                             </div>
                           ) : (
                             <button
-                              onClick={() => setSelectedProvider(config.provider)}
+                              onClick={() =>
+                                setSelectedProvider(config.provider)
+                              }
                               className="add-key-button"
                             >
                               + Add API Key
@@ -139,8 +156,12 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
                           {providerKeysList.map((key) => (
                             <div key={key.id} className="key-item">
                               <div className="key-info">
-                                <span className="key-name">{key.name || 'Unnamed'}</span>
-                                <span className={`key-status ${key.isValid ? 'valid' : 'invalid'}`}>
+                                <span className="key-name">
+                                  {key.name || 'Unnamed'}
+                                </span>
+                                <span
+                                  className={`key-status ${key.isValid ? 'valid' : 'invalid'}`}
+                                >
                                   {key.isValid ? '✓ Valid' : '✗ Invalid'}
                                 </span>
                               </div>
@@ -202,8 +223,13 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
 
                   {!config.requiresKey && (
                     <div className="local-provider-info">
-                      <p>No API key required. Make sure {config.name} is running.</p>
-                      <button onClick={checkAllHealth} className="refresh-button">
+                      <p>
+                        No API key required. Make sure {config.name} is running.
+                      </p>
+                      <button
+                        onClick={checkAllHealth}
+                        className="refresh-button"
+                      >
                         🔄 Check Connection
                       </button>
                     </div>
@@ -219,4 +245,3 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
 }
 
 export default APIKeyManager;
-

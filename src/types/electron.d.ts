@@ -14,6 +14,18 @@ declare global {
       readdir(path: string): Promise<{ success: boolean; entries?: FileSystemEntry[]; error?: string }>;
       stat(path: string): Promise<{ success: boolean; stats?: FileStats; error?: string }>;
       exists(path: string): Promise<{ success: boolean; exists?: boolean; error?: string }>;
+      listDrives(): Promise<{ success: boolean; drives?: Array<{ name: string; path: string; type?: string }>; error?: string }>;
+      getDirectorySize(path: string): Promise<{ success: boolean; size?: number; error?: string }>;
+    };
+    system: {
+      cleanTempFiles(): Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }>;
+      cleanCache(): Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }>;
+      deepClean(): Promise<{
+        tempFiles: { filesDeleted: number; spaceFreed: number; errors: string[] };
+        cache: { filesDeleted: number; spaceFreed: number; errors: string[] };
+        registry: { cleaned: number; errors: string[] };
+        oldInstallations: { found: Array<{ name: string; path: string; size: number }>; removed: number; errors: string[] };
+      }>;
     };
     dialogs: {
       openFile(options?: { filters?: { name: string; extensions: string[] }[] }): Promise<{ success: boolean; filePaths?: string[] }>;
@@ -33,21 +45,21 @@ declare global {
     program: {
       execute(command: string, workingDirectory?: string): Promise<{ success: boolean; executionId?: string; error?: string }>;
       kill(executionId: string): Promise<{ success: boolean; error?: string }>;
-      onOutput(callback: (executionId: string, data: { type: 'stdout' | 'stderr'; data: string }) => void): void;
-      onComplete(callback: (executionId: string, result: { exitCode: number; stdout: string; stderr: string }) => void): void;
-      onError(callback: (executionId: string, error: { error: string }) => void): void;
+      onOutput(callback: (executionId: string, data: { type: 'stdout' | 'stderr'; data: string }) => void): () => void;
+      onComplete(callback: (executionId: string, result: { exitCode: number; stdout: string; stderr: string }) => void): () => void;
+      onError(callback: (executionId: string, error: { error: string }) => void): () => void;
     };
     updater: {
       check(): Promise<{ success: boolean; error?: string; updateInfo?: any }>;
       install(): Promise<{ success: boolean; error?: string }>;
-      onAvailable(callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void): void;
-      onDownloaded(callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void): void;
-      onProgress(callback: (progress: { percent: number; transferred: number; total: number }) => void): void;
-      onError(callback: (error: { error: string }) => void): void;
+      onAvailable(callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void): () => void;
+      onDownloaded(callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void): () => void;
+      onProgress(callback: (progress: { percent: number; transferred: number; total: number }) => void): () => void;
+      onError(callback: (error: { error: string }) => void): () => void;
     };
     menu: {
-      onAbout(callback: () => void): void;
-      onShortcuts(callback: () => void): void;
+      onAbout(callback: () => void): () => void;
+      onShortcuts(callback: () => void): () => void;
     };
   }
 }

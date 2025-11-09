@@ -8,15 +8,18 @@ export type LLMProvider =
   | 'openrouter'
   | 'github';
 
+export type APIProvider = LLMProvider | 'coinbase' | 'schwab' | 'plaid' | 'yodlee';
+
 export interface APIKey {
   id: string;
-  provider: LLMProvider;
+  provider: APIProvider;
   key: string; // encrypted
   name: string;
   createdAt: Date;
   lastUsed: Date | null;
   isValid: boolean;
   usage: UsageStats;
+  metadata?: Record<string, any>; // For additional provider-specific data (e.g., Coinbase secret, passphrase)
 }
 
 export interface UsageStats {

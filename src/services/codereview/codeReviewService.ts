@@ -1,6 +1,72 @@
-import type { CodeReview, CodeIssue, ReviewSettings } from '@/types/codereview';
+import type { CodeReview, CodeIssue, ReviewSettings, SecuritySummary } from '@/types/codereview';
+import { fileSystemService } from '@/services/filesystem/fileSystemService';
 
 const REVIEWS_STORAGE_KEY = 'dlx_code_reviews';
+
+/**
+ * Compare semantic versions
+ * Returns: -1 if v1 < v2, 0 if v1 === v2, 1 if v1 > v2
+ */
+function compareVersions(v1: string, v2: string): number {
+  // Remove leading 'v' or 'V' if present
+  const clean1 = v1.replace(/^[vV]/, '');
+  const clean2 = v2.replace(/^[vV]/, '');
+  
+  // Split into parts and convert to numbers
+  const parts1 = clean1.split('.').map(part => {
+    // Handle pre-release versions (e.g., "4.18.0-beta")
+    const numPart = part.split('-')[0];
+    return parseInt(numPart, 10) || 0;
+  });
+  
+  const parts2 = clean2.split('.').map(part => {
+    const numPart = part.split('-')[0];
+    return parseInt(numPart, 10) || 0;
+  });
+  
+  // Pad arrays to same length
+  const maxLength = Math.max(parts1.length, parts2.length);
+  while (parts1.length < maxLength) parts1.push(0);
+  while (parts2.length < maxLength) parts2.push(0);
+  
+  // Compare each part
+  for (let i = 0; i < maxLength; i++) {
+    if (parts1[i] < parts2[i]) return -1;
+    if (parts1[i] > parts2[i]) return 1;
+  }
+  
+  return 0;
+}
+
+/**
+ * Extract version from version range string
+ * Handles: "^4.17.0", "~4.18.0", ">=4.0.0", "4.18.0", etc.
+ */
+function extractVersion(versionRange: string): string {
+  // Remove range operators and whitespace
+  const cleaned = versionRange
+    .replace(/^[\^~>=<]+/, '') // Remove ^, ~, >=, <=, >, <
+    .replace(/\s+/g, '') // Remove whitespace
+    .split('||')[0] // Take first version if multiple (OR)
+    .split(' ')[0]; // Take first version if space-separated
+  
+  // Extract version number (e.g., "4.18.0" from "4.18.0-beta.1")
+  const match = cleaned.match(/^(\d+\.\d+\.\d+)/);
+  if (match) {
+    return match[1];
+  }
+  
+  // Fallback: try to parse as-is
+  return cleaned;
+}
+
+/**
+ * Check if a version is less than the required minimum version
+ */
+function isVersionLessThan(versionRange: string, minVersion: string): boolean {
+  const extractedVersion = extractVersion(versionRange);
+  return compareVersions(extractedVersion, minVersion) < 0;
+}
 
 export class CodeReviewService {
   private static instance: CodeReviewService;
@@ -154,6 +220,125 @@ export class CodeReviewService {
     const deleted = this.reviews.delete(id);
     if (deleted) this.saveReviews();
     return deleted;
+  }
+
+  async analyzeSecurity(projectPath: string): Promise<{ issues: CodeIssue[]; summary: SecuritySummary }> {
+    const issues: CodeIssue[] = [];
+    const dependencyVulns: SecuritySummary['dependencyVulnerabilities'] = [];
+
+    try {
+      // Generate sample security issues
+      // TODO: Implement actual file scanning with pattern matching
+      issues.push(
+        {
+          id: crypto.randomUUID(),
+          file: 'src/config/api.ts',
+          line: 12,
+          column: 5,
+          severity: 'error',
+          message: 'Hardcoded API key detected',
+          rule: 'no-hardcoded-secrets',
+          code: "const API_KEY = 'sk-1234567890abcdef';",
+          fix: "const API_KEY = process.env.API_KEY;",
+          category: 'security',
+          securityType: 'secrets',
+        },
+        {
+          id: crypto.randomUUID(),
+          file: 'src/db/query.ts',
+          line: 45,
+          column: 10,
+          severity: 'error',
+          message: 'Potential SQL injection vulnerability',
+          rule: 'no-sql-injection',
+          code: "const query = `SELECT * FROM users WHERE id = ${userId}`;",
+          fix: 'Use parameterized queries',
+          category: 'security',
+          securityType: 'injection',
+        },
+        {
+          id: crypto.randomUUID(),
+          file: 'src/components/UserProfile.tsx',
+          line: 23,
+          column: 8,
+          severity: 'warning',
+          message: 'Potential XSS vulnerability - using innerHTML with user input',
+          rule: 'no-xss',
+          code: "element.innerHTML = userInput;",
+          fix: 'Use textContent or sanitize input',
+          category: 'security',
+          securityType: 'xss',
+        },
+        {
+          id: crypto.randomUUID(),
+          file: 'src/api/routes.ts',
+          line: 8,
+          column: 1,
+          severity: 'warning',
+          message: 'Route handler missing authentication check',
+          rule: 'require-auth',
+          code: 'router.get("/api/users", (req, res) => {',
+          fix: 'Add authentication middleware',
+          category: 'security',
+          securityType: 'auth',
+        }
+      );
+
+      // Check package.json for vulnerable dependencies (simplified)
+      try {
+        const packageJsonResult = await fileSystemService.readFile(`${projectPath}/package.json`);
+        if (packageJsonResult.success && packageJsonResult.data) {
+          const packageJson = JSON.parse(packageJsonResult.data);
+          const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
+          
+          // Sample vulnerability check - using semantic version comparison
+          if (deps['express'] && isVersionLessThan(deps['express'], '4.18.0')) {
+            dependencyVulns.push({
+              package: 'express',
+              version: deps['express'],
+              vulnerability: 'CVE-2022-24999',
+              severity: 'high',
+            });
+          }
+        }
+      } catch {
+        // Ignore package.json read errors
+      }
+
+      // Calculate security summary
+      const securityIssues = issues.filter((i) => i.category === 'security');
+      const summary: SecuritySummary = {
+        score: Math.max(0, 100 - (securityIssues.length * 10) - (dependencyVulns.length * 15)),
+        criticalIssues: securityIssues.filter((i) => i.severity === 'error').length,
+        highIssues: securityIssues.filter((i) => i.severity === 'warning').length,
+        mediumIssues: securityIssues.filter((i) => i.severity === 'info').length,
+        lowIssues: securityIssues.filter((i) => i.severity === 'suggestion').length,
+        byType: {},
+        dependencyVulnerabilities: dependencyVulns,
+      };
+
+      securityIssues.forEach((issue) => {
+        if (issue.securityType) {
+          summary.byType[issue.securityType] = (summary.byType[issue.securityType] || 0) + 1;
+        }
+      });
+
+      return { issues, summary };
+    } catch (error) {
+      console.error('Security analysis error:', error);
+      return {
+        issues: [],
+        summary: {
+          score: 0,
+          criticalIssues: 0,
+          highIssues: 0,
+          mediumIssues: 0,
+          lowIssues: 0,
+          byType: {},
+          dependencyVulnerabilities: [],
+        },
+      };
+    }
   }
 }
 

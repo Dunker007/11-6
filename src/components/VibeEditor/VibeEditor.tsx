@@ -1,14 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Editor from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { useProjectStore } from '../../services/project/projectStore';
 import { useActivityStore } from '../../services/activity/activityStore';
 import { errorContext } from '../../services/errors/errorContext';
 import FileExplorer from './FileExplorer';
+import TurboEdit from './TurboEdit';
 import AIAssistant from '../AIAssistant/AIAssistant';
 import ProjectSearch from '../ProjectSearch/ProjectSearch';
 import TechIcon from '../Icons/TechIcon';
-import { Save, Search, Sliders, Code, ChevronDown, Brain, Sparkles, FolderOpen, Plus, X, Check } from 'lucide-react';
+import { ICON_MAP } from '../Icons/IconSet';
+import { Save, Search, Sliders, Code, ChevronDown, Brain, Sparkles, FolderOpen, Plus, X, Check, Zap } from 'lucide-react';
+import WorkflowHero from '../shared/WorkflowHero';
+import CommandCard from '../shared/CommandCard';
 import '../../styles/VibeEditor.css';
 
 function VibeEditor() {
@@ -23,6 +27,8 @@ function VibeEditor() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [showProjectSearch, setShowProjectSearch] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showTurboEdit, setShowTurboEdit] = useState(false);
+  const [selectedCode, setSelectedCode] = useState('');
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -79,6 +85,26 @@ function VibeEditor() {
       if (ctrlKey && e.shiftKey && e.key === 'F') {
         e.preventDefault();
         setShowProjectSearch(true);
+      }
+
+      // Ctrl+Shift+E: Turbo Edit
+      if (ctrlKey && e.shiftKey && e.key === 'E') {
+        e.preventDefault();
+        if (editorRef.current) {
+          const selection = editorRef.current.getSelection();
+          if (selection) {
+            const selectedText = editorRef.current.getModel()?.getValueInRange(selection) || '';
+            if (selectedText.trim()) {
+              setSelectedCode(selectedText);
+              setShowTurboEdit(true);
+            } else {
+              // If no selection, use entire file
+              const fullText = editorRef.current.getValue();
+              setSelectedCode(fullText);
+              setShowTurboEdit(true);
+            }
+          }
+        }
       }
     };
 
@@ -206,12 +232,69 @@ function VibeEditor() {
     }
   };
 
+  const handleTurboEditApply = (editedCode: string) => {
+    if (activeFilePath && editorRef.current) {
+      const selection = editorRef.current.getSelection();
+      if (selection) {
+        // Replace selected text
+        editorRef.current.executeEdits('turbo-edit', [{
+          range: selection,
+          text: editedCode,
+        }]);
+      } else {
+        // Replace entire file
+        editorRef.current.setValue(editedCode);
+      }
+      setFileContent(editedCode);
+      setUnsavedChanges(true);
+      setShowTurboEdit(false);
+      addActivity('ai', 'turbo-edit', `Applied Turbo Edit to ${activeFilePath.split('/').pop()}`);
+    }
+  };
+
+  const fileCount = activeProject?.files.length ?? 0;
+  const activeFileName = activeFilePath?.split('/').pop() ?? 'No file selected';
+  const saveStateLabel = useMemo(() => {
+    if (saveStatus === 'saving') return 'Saving…';
+    if (unsavedChanges) return 'Unsaved';
+    return 'Synced';
+  }, [saveStatus, unsavedChanges]);
+
+  const heroStats = useMemo(() => [
+    { icon: '🧠', value: activeProject?.name ?? '—', label: 'Active Project' },
+    { icon: '📁', value: fileCount, label: 'Files Indexed' },
+    { icon: '⚡', value: saveStateLabel, label: 'Save State' },
+  ], [activeProject?.name, fileCount, saveStateLabel]);
+
+  const heroIndicators = useMemo(() => [
+    {
+      label: showAIAssistant ? 'AI Co-Pilot Online' : 'AI Co-Pilot Offline',
+      status: showAIAssistant ? 'online' as const : 'offline' as const,
+    },
+    {
+      label: unsavedChanges ? 'Autosave Pending' : 'Autosave Stable',
+      status: unsavedChanges ? 'warning' as const : 'online' as const,
+    },
+    {
+      label: activeFilePath ? `Editing ${activeFileName}` : 'Awaiting file selection',
+      status: activeFilePath ? 'online' as const : 'warning' as const,
+    },
+  ], [showAIAssistant, unsavedChanges, activeFilePath, activeFileName]);
+
   if (!activeProject) {
     return (
       <div className="vibe-editor">
         <div className="welcome-screen">
           <div className="welcome-logo">
-            <img src="/vibdee-logo.svg" alt="VibeEditor" />
+            <img 
+              src="/vibdee-logo.svg" 
+              alt="VibeEditor" 
+              onError={(e) => {
+                // Fallback if logo fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
           </div>
           <h1>Welcome to VibeEditor</h1>
           <p>Your AI-native development companion</p>
@@ -231,8 +314,57 @@ function VibeEditor() {
   }
 
   return (
-    <div className="vibdee-editor">
-      <div className="editor-layout">
+    <div className="vibdee-editor build-workflow">
+      <WorkflowHero
+        title="Build & Refine"
+        subtitle={activeProject ? `Live inside ${activeProject.name}` : 'Select a project to begin'}
+        stats={heroStats}
+        statusIndicators={heroIndicators}
+      />
+
+      <div className="build-command-row">
+        <CommandCard variant="violet" clickable onClick={() => setShowAIAssistant(true)}>
+          <div className="command-card-body">
+            <div className="card-icon">
+              <TechIcon icon={Brain} size={20} glow="violet" animated />
+            </div>
+            <div className="card-copy">
+              <h3>Start AI Pairing</h3>
+              <p>Summon Ed to co-write, refactor, or explain the active file.</p>
+            </div>
+            <span className="card-hint">⌘⇧A</span>
+          </div>
+        </CommandCard>
+
+        <CommandCard variant="cyan" clickable onClick={() => setShowProjectSearch(true)}>
+          <div className="command-card-body">
+            <div className="card-icon">
+              <TechIcon icon={ICON_MAP.search} size={20} glow="cyan" />
+            </div>
+            <div className="card-copy">
+              <h3>Project Graph Search</h3>
+              <p>Jump across files, symbols, and references with full context.</p>
+            </div>
+            <span className="card-hint">⌘⇧F</span>
+          </div>
+        </CommandCard>
+
+        <CommandCard variant="amber" clickable onClick={handleNewProject}>
+          <div className="command-card-body">
+            <div className="card-icon">
+              <TechIcon icon={ICON_MAP.plus} size={20} glow="amber" />
+            </div>
+            <div className="card-copy">
+              <h3>Spin Up Sandbox</h3>
+              <p>Launch a fresh project playground without leaving flow.</p>
+            </div>
+            <span className="card-hint">New Project</span>
+          </div>
+        </CommandCard>
+      </div>
+
+      <div className="editor-shell glass-panel">
+        <div className="editor-layout">
         <div className="editor-sidebar">
           <div className="sidebar-header">
             <div className="project-selector">
@@ -321,6 +453,34 @@ function VibeEditor() {
               )}
             </div>
             <div className="editor-toolbar">
+              <div className="toolbar-actions">
+                <button
+                  className="icon-btn"
+                  onClick={() => {
+                    if (editorRef.current) {
+                      const selection = editorRef.current.getSelection();
+                      if (selection) {
+                        const selectedText = editorRef.current.getModel()?.getValueInRange(selection) || '';
+                        if (selectedText.trim()) {
+                          setSelectedCode(selectedText);
+                          setShowTurboEdit(true);
+                        } else {
+                          const fullText = editorRef.current.getValue();
+                          setSelectedCode(fullText);
+                          setShowTurboEdit(true);
+                        }
+                      } else {
+                        const fullText = editorRef.current.getValue();
+                        setSelectedCode(fullText);
+                        setShowTurboEdit(true);
+                      }
+                    }
+                  }}
+                  title="Turbo Edit (Ctrl+Shift+E)"
+                >
+                  <TechIcon icon={Zap} size={18} glow="cyan" />
+                </button>
+              </div>
               <div className="save-status">
                 {saveStatus === 'saving' && (
                   <div className="status-indicator saving">
@@ -399,6 +559,7 @@ function VibeEditor() {
             <AIAssistant />
           </div>
         )}
+        </div>
       </div>
 
       {showProjectSearch && (
@@ -406,6 +567,19 @@ function VibeEditor() {
           onClose={() => setShowProjectSearch(false)}
           onFileSelect={handleFileSelect}
         />
+      )}
+
+      {showTurboEdit && (
+        <div className="modal-overlay" onClick={() => setShowTurboEdit(false)}>
+          <div className="modal-content turbo-edit-modal-wrapper" onClick={(e) => e.stopPropagation()}>
+            <TurboEdit
+              selectedCode={selectedCode}
+              filePath={activeFilePath || undefined}
+              onApply={handleTurboEditApply}
+              onCancel={() => setShowTurboEdit(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

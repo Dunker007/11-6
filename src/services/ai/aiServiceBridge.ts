@@ -255,6 +255,90 @@ Return a JSON object with:
   getCurrentProjectRoot(): string | null {
     return this.currentProjectRoot;
   }
+
+  /**
+   * Turbo Edit: Generate code changes from natural language instruction
+   * Returns the edited code with a diff preview
+   */
+  async turboEdit(selectedCode: string, instruction: string, filePath?: string): Promise<{
+    success: boolean;
+    editedCode?: string;
+    diff?: string;
+    error?: string;
+  }> {
+    console.log('Turbo Edit:', instruction);
+
+    try {
+      const projectContext = projectKnowledgeService.getFullProjectContext();
+      
+      const prompt = `
+You are a code editor assistant. The user wants to edit some code.
+
+${filePath ? `File: ${filePath}\n` : ''}
+${projectContext ? `Project Context:\n${projectContext}\n` : ''}
+
+Current Code:
+\`\`\`
+${selectedCode}
+\`\`\`
+
+User Instruction: ${instruction}
+
+Generate the edited code that fulfills the user's instruction. Return ONLY the edited code, no explanations or markdown formatting. If the instruction is unclear, return the original code unchanged.
+`;
+
+      try {
+        const response = await llmRouter.generate(prompt, {
+          temperature: 0.7,
+          maxTokens: 2048,
+        });
+
+        // Extract code from response (remove markdown code blocks if present)
+        let editedCode = response.text.trim();
+        editedCode = editedCode.replace(/^```[\w]*\n?/g, '').replace(/\n?```$/g, '').trim();
+
+        // Simple diff calculation
+        const diff = this.calculateDiff(selectedCode, editedCode);
+
+        return {
+          success: true,
+          editedCode,
+          diff,
+        };
+      } catch (llmError) {
+        console.warn('LLM turbo edit failed:', llmError);
+        return {
+          success: false,
+          error: (llmError as Error).message,
+        };
+      }
+    } catch (error) {
+      console.error('Error in turbo edit:', error);
+      return {
+        success: false,
+        error: (error as Error).message,
+      };
+    }
+  }
+
+  private calculateDiff(oldCode: string, newCode: string): string {
+    // Simple diff: show lines that changed
+    const oldLines = oldCode.split('\n');
+    const newLines = newCode.split('\n');
+    const diff: string[] = [];
+
+    const maxLines = Math.max(oldLines.length, newLines.length);
+    for (let i = 0; i < maxLines; i++) {
+      const oldLine = oldLines[i] || '';
+      const newLine = newLines[i] || '';
+      if (oldLine !== newLine) {
+        if (oldLine) diff.push(`- ${oldLine}`);
+        if (newLine) diff.push(`+ ${newLine}`);
+      }
+    }
+
+    return diff.join('\n');
+  }
 }
 
 // Export singleton instance

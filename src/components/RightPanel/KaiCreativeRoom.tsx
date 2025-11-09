@@ -1,11 +1,10 @@
 // src/components/RightPanel/KaiCreativeRoom.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useProjectStore } from '../../services/project/projectStore';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
 import '../../styles/RightPanel.css';
 import { Send } from 'lucide-react';
-import type { Project } from '../../types/project';
 
 interface Message {
   sender: 'user' | 'kai';

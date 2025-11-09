@@ -4,7 +4,15 @@ import { multiFileContextService } from '../../services/ai/multiFileContextServi
 import { useProjectStore } from '../../services/project/projectStore';
 import { useActivityStore } from '../../services/activity/activityStore';
 import TechIcon from '../Icons/TechIcon';
-import { Code, Sparkles, Copy, Check, FileText, Brain, Zap } from 'lucide-react';
+import {
+  Code,
+  Sparkles,
+  Copy,
+  Check,
+  FileText,
+  Brain,
+  Zap,
+} from 'lucide-react';
 import '../../styles/CodeGenerator.css';
 
 interface GenerationTemplate {
@@ -71,14 +79,17 @@ function CodeGenerator() {
   const { streamGenerate, isLoading } = useLLMStore();
   const { activeProject } = useProjectStore();
   const { addActivity } = useActivityStore();
-  
-  const [selectedTemplate, setSelectedTemplate] = useState<GenerationTemplate | null>(null);
+
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<GenerationTemplate | null>(null);
   const [userPrompt, setUserPrompt] = useState('');
   const [additionalContext, setAdditionalContext] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<'typescript' | 'javascript' | 'python'>('typescript');
+  const [selectedLanguage, setSelectedLanguage] = useState<
+    'typescript' | 'javascript' | 'python'
+  >('typescript');
 
   const handleGenerate = async () => {
     if (!selectedTemplate || !userPrompt.trim()) return;
@@ -90,14 +101,16 @@ function CodeGenerator() {
       // Build comprehensive prompt with project context
       let fullPrompt = `${selectedTemplate.prompt} ${userPrompt.trim()}.\n\n`;
       fullPrompt += `Language: ${selectedLanguage}\n`;
-      
+
       if (additionalContext.trim()) {
         fullPrompt += `Additional requirements: ${additionalContext.trim()}\n`;
       }
 
       // Add project context if available
       if (activeProject) {
-        const context = multiFileContextService.getProjectContext(activeProject.id);
+        const context = multiFileContextService.getProjectContext(
+          activeProject.id
+        );
         if (context) {
           const stats = multiFileContextService.getStats(activeProject.id);
           fullPrompt += `\nProject context:\n`;
@@ -121,7 +134,11 @@ function CodeGenerator() {
       }
 
       // Track activity
-      addActivity('code', 'generated', `Generated ${selectedTemplate.name}: ${userPrompt.substring(0, 50)}`);
+      addActivity(
+        'code',
+        'generated',
+        `Generated ${selectedTemplate.name}: ${userPrompt.substring(0, 50)}`
+      );
     } catch (error) {
       console.error('Generation failed:', error);
       setGeneratedCode(`// Error: ${(error as Error).message}`);
@@ -220,16 +237,18 @@ function CodeGenerator() {
             <div className="form-group">
               <label>Target Language</label>
               <div className="language-selector">
-                {(['typescript', 'javascript', 'python'] as const).map((lang) => (
-                  <button
-                    key={lang}
-                    className={`lang-btn ${selectedLanguage === lang ? 'active' : ''}`}
-                    onClick={() => setSelectedLanguage(lang)}
-                    disabled={isGenerating}
-                  >
-                    {lang}
-                  </button>
-                ))}
+                {(['typescript', 'javascript', 'python'] as const).map(
+                  (lang) => (
+                    <button
+                      key={lang}
+                      className={`lang-btn ${selectedLanguage === lang ? 'active' : ''}`}
+                      onClick={() => setSelectedLanguage(lang)}
+                      disabled={isGenerating}
+                    >
+                      {lang}
+                    </button>
+                  )
+                )}
               </div>
             </div>
 
@@ -238,11 +257,11 @@ function CodeGenerator() {
               onClick={handleGenerate}
               disabled={!userPrompt.trim() || isGenerating || isLoading}
             >
-              <TechIcon 
-                icon={Sparkles} 
-                size={20} 
-                glow="cyan" 
-                animated={isGenerating || isLoading} 
+              <TechIcon
+                icon={Sparkles}
+                size={20}
+                glow="cyan"
+                animated={isGenerating || isLoading}
               />
               <span>{isGenerating ? 'Generating...' : 'Generate Code'}</span>
             </button>
@@ -257,10 +276,10 @@ function CodeGenerator() {
                   onClick={handleCopy}
                   title="Copy to clipboard"
                 >
-                  <TechIcon 
-                    icon={copied ? Check : Copy} 
-                    size={18} 
-                    glow={copied ? 'cyan' : 'none'} 
+                  <TechIcon
+                    icon={copied ? Check : Copy}
+                    size={18}
+                    glow={copied ? 'cyan' : 'none'}
                   />
                 </button>
               </div>
@@ -280,4 +299,3 @@ function CodeGenerator() {
 }
 
 export default CodeGenerator;
-

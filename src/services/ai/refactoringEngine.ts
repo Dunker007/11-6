@@ -51,13 +51,17 @@ class RefactoringEngine {
     }
 
     // Find all occurrences across project
-    const context = multiFileContextService.getProjectContext(project.id);
+    const normalizedFilePath = this.normalizePath(filePath);
+    let context = multiFileContextService.getProjectContext(project.id);
     if (!context) {
-      await multiFileContextService.analyzeProject(project);
+      context = await multiFileContextService.analyzeProject(project);
+    }
+    if (!context) {
+      throw new Error('Unable to analyze project context');
     }
 
     const changes: FileChange[] = [];
-    const relatedFiles = multiFileContextService.getRelatedFiles(project.id, filePath, 3);
+    const relatedFiles = multiFileContextService.getRelatedFiles(project.id, normalizedFilePath, 3);
 
     relatedFiles.forEach(path => {
       const file = this.findFileByPath(project.files, path);
@@ -65,7 +69,7 @@ class RefactoringEngine {
         const newContent = this.replaceSymbol(file.content, oldName, newName);
         if (newContent !== file.content) {
           changes.push({
-            filePath: path,
+            filePath: file.path,
             oldContent: file.content,
             newContent,
             lineChanges: this.getLineChanges(file.content, newContent),
@@ -139,13 +143,17 @@ class RefactoringEngine {
     filePath: string,
     functionName: string
   ): Promise<RefactoringOperation> {
-    const context = multiFileContextService.getProjectContext(project.id);
+    const normalizedFilePath = this.normalizePath(filePath);
+    let context = multiFileContextService.getProjectContext(project.id);
     if (!context) {
-      await multiFileContextService.analyzeProject(project);
+      context = await multiFileContextService.analyzeProject(project);
+    }
+    if (!context) {
+      throw new Error('Unable to analyze project context');
     }
 
     // Find function definition
-    const fileContext = context?.files.get(filePath);
+    const fileContext = context.files.get(normalizedFilePath);
     if (!fileContext) {
       throw new Error('File not found in context');
     }
@@ -157,7 +165,7 @@ class RefactoringEngine {
 
     // Find all call sites
     const changes: FileChange[] = [];
-    const relatedFiles = multiFileContextService.getRelatedFiles(project.id, filePath, 2);
+    const relatedFiles = multiFileContextService.getRelatedFiles(project.id, normalizedFilePath, 2);
 
     relatedFiles.forEach(path => {
       const file = this.findFileByPath(project.files, path);
@@ -165,7 +173,7 @@ class RefactoringEngine {
         const newContent = this.replaceFunctionCalls(file.content, functionName, functionBody);
         if (newContent !== file.content) {
           changes.push({
-            filePath: path,
+            filePath: file.path,
             oldContent: file.content,
             newContent,
             lineChanges: this.getLineChanges(file.content, newContent),
@@ -193,12 +201,18 @@ class RefactoringEngine {
     oldPath: string,
     newPath: string
   ): Promise<RefactoringOperation> {
-    const context = multiFileContextService.getProjectContext(project.id);
+    let context = multiFileContextService.getProjectContext(project.id);
     if (!context) {
-      await multiFileContextService.analyzeProject(project);
+      context = await multiFileContextService.analyzeProject(project);
+    }
+    if (!context) {
+      throw new Error('Unable to analyze project context');
     }
 
-    const file = this.findFileByPath(project.files, oldPath);
+    const normalizedOldPath = this.normalizePath(oldPath);
+    const normalizedNewPath = this.normalizePath(newPath);
+
+    const file = this.findFileByPath(project.files, normalizedOldPath);
     if (!file) {
       throw new Error('File not found');
     }
@@ -208,20 +222,25 @@ class RefactoringEngine {
     
     // Add the file move itself
     changes.push({
-      filePath: oldPath,
+      filePath: file.path,
       oldContent: file.content || '',
       newContent: file.content || '',
       lineChanges: [],
     });
 
     // Update imports in other files
-    context?.dependencyGraph.forEach((deps, depPath) => {
-      if (deps.has(oldPath) || this.hasRelativeImport(deps, oldPath)) {
+    context.dependencyGraph.forEach((deps, depPath) => {
+      if (deps.has(normalizedOldPath)) {
         const depFile = this.findFileByPath(project.files, depPath);
         if (depFile && depFile.content) {
-          const newContent = this.updateImportPaths(depFile.content, oldPath, newPath, depPath);
+          const newContent = this.updateImportPaths(
+            depFile.content,
+            normalizedOldPath,
+            normalizedNewPath,
+            depPath
+          );
           changes.push({
-            filePath: depPath,
+            filePath: depFile.path,
             oldContent: depFile.content,
             newContent,
             lineChanges: this.getLineChanges(depFile.content, newContent),
@@ -412,18 +431,16 @@ class RefactoringEngine {
   }
 
   private findFileByPath(files: ProjectFile[], path: string): ProjectFile | null {
+    const target = this.normalizePath(path);
     for (const file of files) {
-      if (file.path === path) return file;
+      const candidatePath = this.normalizePath(file.path);
+      if (candidatePath === target) return file;
       if (file.children) {
         const found = this.findFileByPath(file.children, path);
         if (found) return found;
       }
     }
     return null;
-  }
-
-  private hasRelativeImport(deps: Set<string>, path: string): boolean {
-    return Array.from(deps).some(dep => dep.includes(path.split('/').pop() || ''));
   }
 
   private updateImportPaths(content: string, fileToMoveOldPath: string, fileToMoveNewPath: string, currentFilePath: string): string {
@@ -453,8 +470,11 @@ class RefactoringEngine {
       if (!importPath.startsWith('.')) return match; // a non-relative import, ignore
       const importAbsolutePath = path.join(path.dirname(currentFilePath), importPath);
       
-      if (importAbsolutePath.startsWith(fileToMoveOldPath.replace(/\.(ts|tsx)$/, ''))) {
-        const newRelativePath = path.relative(path.dirname(currentFilePath), fileToMoveNewPath.replace(/\.(ts|tsx)$/, ''));
+      if (importAbsolutePath.startsWith(fileToMoveOldPath.replace(/\.(ts|tsx|js|jsx)$/, ''))) {
+        const newRelativePath = path.relative(
+          path.dirname(currentFilePath),
+          fileToMoveNewPath.replace(/\.(ts|tsx|js|jsx)$/, '')
+        );
         return match.replace(importPath, newRelativePath);
       }
       
@@ -473,6 +493,10 @@ class RefactoringEngine {
   private convertClassToFunction(content: string): string {
     // Simplified - would need full AST parsing for production
     return content; // Placeholder
+  }
+
+  private normalizePath(path: string): string {
+    return path.replace(/\\/g, '/');
   }
 
   private findUsedSymbols(content: string): Set<string> {
