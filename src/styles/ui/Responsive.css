@@ -1,5 +1,54 @@
 /* Responsive Design Enhancements */
 
+/* Screen size data attribute based styles */
+.mockup-container[data-screen-size="mobile"] {
+  --left-panel-width: 0px;
+  --right-panel-width: 0px;
+}
+
+.mockup-container[data-screen-size="mobile"] .mockup-main-layout {
+  grid-template-columns: 1fr !important;
+}
+
+.mockup-container[data-screen-size="mobile"] .mockup-sidebar {
+  display: none;
+}
+
+.mockup-container[data-screen-size="mobile"] .tab-btn-large span:not(.tab-shortcut-hint) {
+  display: none;
+}
+
+.mockup-container[data-screen-size="mobile"] .tab-btn-large {
+  min-width: 48px;
+  padding: var(--spacing-2);
+  justify-content: center;
+}
+
+.mockup-container[data-screen-size="tablet"] {
+  --left-panel-width: 240px;
+  --right-panel-width: 0px;
+}
+
+.mockup-container[data-screen-size="tablet"] .mockup-main-layout {
+  grid-template-columns: var(--left-panel-width) 1fr;
+}
+
+.mockup-container[data-screen-size="tablet"] .mockup-sidebar.right {
+  display: none;
+}
+
+.mockup-container[data-screen-size="desktop"] {
+  --left-panel-width: 280px;
+  --right-panel-width: 450px;
+}
+
+.mockup-container[data-screen-size="large-desktop"] {
+  --left-panel-width: 320px;
+  --right-panel-width: 500px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
 /* Mobile First Approach */
 @media (max-width: 480px) {
   /* Mobile - Extra Small Screens */

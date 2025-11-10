@@ -212,13 +212,16 @@ function setupAutoUpdater() {
   }
   
   try {
-    autoUpdater.checkForUpdatesAndNotify();
-    
-    // Check for updates every 4 hours
-    setInterval(() => {
-      autoUpdater.checkForUpdatesAndNotify();
-    }, 4 * 60 * 60 * 1000);
+    // Configure updater with better error handling
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'Dunker007',
+      repo: '11-6',
+    });
 
+    // Suppress automatic update checks on startup to avoid 406 errors
+    // Users can manually check via menu or button
+    
     autoUpdater.on('update-available', (info) => {
       win?.webContents.send('update:available', {
         version: info.version,
@@ -244,7 +247,17 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on('error', (error) => {
-      win?.webContents.send('update:error', { error: error.message });
+      // Only send error if it's not a 406 (Not Acceptable) which is common for GitHub API
+      // when releases feed format doesn't match expectations
+      const errorMessage = error.message || '';
+      const is406Error = errorMessage.includes('406') || errorMessage.includes('Not Acceptable');
+      
+      if (!is406Error) {
+        win?.webContents.send('update:error', { error: error.message });
+      } else {
+        // Silently ignore 406 errors - they're usually due to GitHub API format issues
+        debugLog('[Updater] GitHub API 406 error (suppressed):', error.message);
+      }
     });
   } catch (error) {
     console.error('Failed to setup auto-updater:', error);
@@ -260,7 +273,19 @@ ipcMain.handle('update:check', async () => {
     const result = await autoUpdater.checkForUpdates();
     return { success: true, updateInfo: result?.updateInfo };
   } catch (error) {
-    return { success: false, error: (error as Error).message };
+    const errorMessage = (error as Error).message || '';
+    // Suppress 406 errors - they're common with GitHub API format issues
+    const is406Error = errorMessage.includes('406') || errorMessage.includes('Not Acceptable');
+    
+    if (is406Error) {
+      return { 
+        success: false, 
+        error: 'Update check unavailable. Please check GitHub releases manually.',
+        suppressed: true 
+      };
+    }
+    
+    return { success: false, error: errorMessage };
   }
 });
 

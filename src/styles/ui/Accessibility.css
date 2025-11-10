@@ -11,11 +11,19 @@
   font-weight: var(--font-weight-semibold);
   border-radius: var(--radius-md);
   transition: var(--transition-transform);
+  opacity: 0;
+  pointer-events: none;
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
 }
 
 .skip-link:focus {
   top: var(--spacing-2);
   left: var(--spacing-2);
+  opacity: 1;
+  pointer-events: auto;
+  clip: auto;
+  overflow: visible;
 }
 
 /* Focus visible styles for better accessibility */

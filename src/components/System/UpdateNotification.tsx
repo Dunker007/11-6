@@ -162,8 +162,14 @@ function UpdateNotification() {
     );
   }
 
-  // Show error notification
+  // Show error notification (but suppress 406 errors)
   if (updateError) {
+    // Don't show 406 errors - they're GitHub API format issues
+    const is406Error = updateError.includes('406') || updateError.includes('Not Acceptable') || updateError.includes('suppressed');
+    if (is406Error) {
+      return null; // Silently ignore
+    }
+    
     return (
       <div className="update-notification update-error">
         <div className="update-notification-content">

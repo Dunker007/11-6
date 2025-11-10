@@ -5,6 +5,7 @@ import { useLLMStore } from '@/services/ai/llmStore';
 import { useFinancialStore } from '@/services/backoffice/financialStore';
 import { CommandPalette, useCommandPalette } from '@/components/ui';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
+import { useScreenSize } from '@/utils/hooks/useScreenSize';
 import ConnectionStatusBar from './ConnectionStatusBar';
 import HardwareProfiler from './HardwareProfiler';
 import ModelCatalog from './ModelCatalog';
@@ -41,6 +42,7 @@ function LLMRevenueCommandCenter() {
   const [activeTab, setActiveTab] = useState<TabType>('llm');
   const [activeWorkflow, setActiveWorkflow] = useState<WorkflowType>(null);
   const commandPalette = useCommandPalette();
+  const screenSize = useScreenSize();
   
   // LLM Store
   const discoverProviders = useLLMStore((state) => state.discoverProviders);
@@ -193,8 +195,8 @@ function LLMRevenueCommandCenter() {
 
 
   return (
-    <div className="mockup-container llm-revenue-command-center">
-      {/* Skip Links */}
+    <div className="mockup-container llm-revenue-command-center" data-screen-size={screenSize.isMobile ? 'mobile' : screenSize.isTablet ? 'tablet' : screenSize.isLargeDesktop ? 'large-desktop' : 'desktop'}>
+      {/* Skip Links - Hidden by default, visible on focus */}
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
