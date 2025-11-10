@@ -18,7 +18,7 @@ interface GitHubStore {
   setCurrentRepository: (repo: Repository | null) => void;
   cloneRepository: (url: string, path: string) => Promise<boolean>;
   initRepository: (path: string) => Promise<boolean>;
-  getStatus: (path: string) => Promise<void>;
+  getStatus: (path: string) => Promise<GitStatus | null>;
   commit: (path: string, message: string, files?: string[]) => Promise<boolean>;
   push: (path: string, remote?: string, branch?: string) => Promise<boolean>;
   pull: (path: string, remote?: string, branch?: string) => Promise<boolean>;

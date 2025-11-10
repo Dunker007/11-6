@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody } from '../ui';
+import { Card, CardBody } from '../ui';
 
 function GeneralSettings() {
   return (

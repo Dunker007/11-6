@@ -333,7 +333,7 @@ export class GitHubService {
   /**
    * Auto-commit all changes with a generated message
    */
-  async autoCommit(path: string, message?: string): Promise<{ success: boolean; error?: string }> {
+  async autoCommit(path: string, message?: string): Promise<{ success: boolean; hash?: string; error?: string }> {
     try {
       const git = await getSimpleGit(path);
       await git.add('.');

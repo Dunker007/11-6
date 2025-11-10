@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useWealthStore } from '@/services/wealth/wealthStore';
 import { schwabService } from '@/services/wealth/schwabService';
-import { accountAggregationService } from '@/services/wealth/accountAggregationService';
 import { Link2, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import SecureInputModal from '@/components/shared/SecureInputModal';
 

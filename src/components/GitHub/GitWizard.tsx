@@ -51,7 +51,6 @@ function GitWizard() {
     createPullRequest,
     getStatus,
     currentRepository,
-    status,
   } = useGitHubStore();
 
   const { currentDirectory, openDirectoryDialog } = useFileSystemStore();

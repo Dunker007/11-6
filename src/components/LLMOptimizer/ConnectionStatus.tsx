@@ -16,6 +16,9 @@ interface ProviderStatus {
 
 const ConnectionStatus = () => {
   const { models, availableProviders, isLoading, discoverProviders } = useLLMStore();
+  const [autoRetry, setAutoRetry] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  
   // Calculate provider statuses from available data (memoized)
   const providerStatuses = useMemo(() => {
     const ollama: ProviderStatus = {
@@ -65,6 +68,11 @@ const ConnectionStatus = () => {
 
     return [ollama, lmstudio, gemini, notebooklm, openrouter];
   }, [models, availableProviders]);
+
+  // Calculate if all providers are offline
+  const allOffline = useMemo(() => {
+    return providerStatuses.every(p => !p.isOnline);
+  }, [providerStatuses]);
 
   // Auto-retry connection every 30 seconds if enabled
   useEffect(() => {
