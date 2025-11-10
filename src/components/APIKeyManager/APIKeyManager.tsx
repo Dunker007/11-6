@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAPIKeyStore } from '../../services/apiKeys/apiKeyStore';
+import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
 import { PROVIDER_CONFIGS, type LLMProvider } from '../../types/apiKeys';
 import '../../styles/APIKeyManager.css';
 
@@ -17,18 +18,21 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
   const [healthStatus, setHealthStatus] = useState<Record<string, boolean>>({});
   const [isValidating, setIsValidating] = useState(false);
 
-  useEffect(() => {
-    loadKeys();
-    checkAllHealth();
-  }, []);
-
-  const checkAllHealth = async () => {
+  const checkAllHealth = useCallback(async () => {
     const status: Record<string, boolean> = {};
     for (const provider of PROVIDER_CONFIGS) {
       status[provider.provider] = await healthCheck(provider.provider);
     }
     setHealthStatus(status);
-  };
+  }, [healthCheck]);
+
+  // Debounced version for user-triggered checks (500ms delay)
+  const debouncedCheckHealth = useDebouncedCallback(checkAllHealth, 500);
+
+  useEffect(() => {
+    loadKeys();
+    checkAllHealth(); // Initial check without debounce
+  }, [loadKeys, checkAllHealth]);
 
   const handleAddKey = async () => {
     if (!selectedProvider || !keyValue.trim()) return;
@@ -227,7 +231,7 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
                         No API key required. Make sure {config.name} is running.
                       </p>
                       <button
-                        onClick={checkAllHealth}
+                        onClick={debouncedCheckHealth}
                         className="refresh-button"
                       >
                         🔄 Check Connection

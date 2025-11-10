@@ -140,6 +140,7 @@ class WebContainerService {
 
       let output = '';
       let errorOutput = '';
+      const errorChunks: string[] = [];
 
       // Collect stdout
       process.output.pipeTo(new WritableStream({
@@ -148,10 +149,86 @@ class WebContainerService {
         }
       }));
 
-      // Collect stderr - WebContainerProcess doesn't have stderr property
-      // Error output is typically included in the main output stream
+      // Try to collect stderr if available (some WebContainer versions may have it)
+      // Note: stderr may not be in type definitions but could exist at runtime
+      const processAny = process as any;
+      if (processAny.stderr) {
+        processAny.stderr.pipeTo(new WritableStream({
+          write(chunk) {
+            errorChunks.push(chunk);
+          }
+        }));
+      }
 
-      const exitCode = await process.exit;
+      // Listen for error events on the process
+      // Create a promise that resolves when process completes or errors occur
+      let errorPromiseResolved = false;
+      const errorPromise = new Promise<string>((resolve) => {
+        const safeResolve = (value: string) => {
+          if (!errorPromiseResolved) {
+            errorPromiseResolved = true;
+            resolve(value);
+          }
+        };
+        
+        // Check if process has error event listener capability
+        if (typeof processAny.addEventListener === 'function') {
+          const errorHandler = (event: any) => {
+            const errorMsg = event?.error?.message || event?.message || 'Process error occurred';
+            errorChunks.push(errorMsg);
+            safeResolve(errorMsg);
+          };
+          processAny.addEventListener('error', errorHandler);
+          
+          // Also resolve when process exits (if no error occurred)
+          process.exit.then(() => {
+            // Small delay to allow error events to fire first
+            setTimeout(() => safeResolve(''), 100);
+          }).catch(() => safeResolve(''));
+        } else {
+          // If no error event support, resolve immediately (no error event)
+          safeResolve('');
+        }
+      });
+
+      // Wait for process to complete and error promise
+      const [exitCode] = await Promise.all([
+        process.exit,
+        errorPromise
+      ]);
+
+      // Combine collected error chunks
+      if (errorChunks.length > 0) {
+        errorOutput = errorChunks.join('\n');
+      }
+
+      // If exit code is non-zero and we have no error output, provide meaningful error message
+      if (exitCode !== 0 && !errorOutput) {
+        // Check if output contains error patterns
+        const errorPatterns = [
+          /error:/i,
+          /failed/i,
+          /cannot/i,
+          /not found/i,
+          /permission denied/i,
+          /EACCES/i,
+          /ENOENT/i,
+          /ECONNREFUSED/i
+        ];
+
+        const hasErrorPattern = errorPatterns.some(pattern => pattern.test(output));
+        
+        if (hasErrorPattern) {
+          // Extract error lines from output
+          const lines = output.split('\n');
+          const errorLines = lines.filter(line => 
+            errorPatterns.some(pattern => pattern.test(line))
+          );
+          errorOutput = errorLines.join('\n') || `Command failed with exit code ${exitCode}`;
+        } else {
+          errorOutput = `Command failed with exit code ${exitCode}`;
+        }
+      }
 
       instance.status = 'ready';
       instance.currentProcess = undefined;
@@ -159,11 +236,14 @@ class WebContainerService {
       const duration = Date.now() - startTime;
 
       console.log(`Command completed with exit code ${exitCode} in ${duration}ms`);
+      if (errorOutput) {
+        console.error(`Error output: ${errorOutput}`);
+      }
 
       return {
         success: exitCode === 0,
         output,
-        error: errorOutput,
+        error: errorOutput || undefined,
         exitCode,
         duration
       };

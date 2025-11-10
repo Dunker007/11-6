@@ -2,8 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { useProjectStore } from '../../services/project/projectStore';
 import { projectKnowledgeService } from '../../services/ai/projectKnowledgeService';
+import { multiFileContextService } from '../../services/ai/multiFileContextService';
+import { useAgentStore } from '../../services/agents/agentStore';
+import EdAvatar from '../Agents/EdAvatar';
 import TechIcon from '../Icons/TechIcon';
-import { Send, Sparkles, Copy, Check, Code } from 'lucide-react';
+import { Send, Sparkles, Copy, Check, Code, Lightbulb } from 'lucide-react';
 import '../../styles/AIAssistant.css';
 
 interface Message {
@@ -16,6 +19,7 @@ interface Message {
 function AIAssistant() {
   const { streamGenerate, isLoading } = useLLMStore();
   const { activeProject, getFileContent, activeFile } = useProjectStore();
+  const { setEdStatus } = useAgentStore();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -28,12 +32,66 @@ function AIAssistant() {
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [proactiveSuggestions, setProactiveSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Generate proactive suggestions based on project state
+  useEffect(() => {
+    if (!activeProject) {
+      setProactiveSuggestions([
+        "Create a new project to get started",
+        "Open an existing project from disk",
+      ]);
+      return;
+    }
+
+    const suggestions: string[] = [];
+    const knowledge = projectKnowledgeService.getProjectKnowledge(activeProject.id);
+    const deepContext = multiFileContextService.getProjectContext(activeProject.id);
+
+    if (knowledge) {
+      if (!knowledge.structure.hasTests) {
+        suggestions.push("Add unit tests for better code quality");
+      }
+      if (!knowledge.structure.hasDocs) {
+        suggestions.push("Create documentation for your project");
+      }
+      if (knowledge.structure.entryPoints.length === 0) {
+        suggestions.push("Set up an entry point file (index.ts, main.ts, etc.)");
+      }
+    }
+
+    if (deepContext) {
+      const todos = Array.from(deepContext.files.values())
+        .reduce((sum, file) => sum + file.todoCount, 0);
+      if (todos > 0) {
+        suggestions.push(`Review ${todos} TODO/FIXME comments in your code`);
+      }
+
+      const hotspots = Array.from(deepContext.dependentsGraph.entries())
+        .filter(([_, dependents]) => dependents.size > 5)
+        .map(([path]) => path);
+      if (hotspots.length > 0) {
+        suggestions.push(`Consider refactoring ${hotspots.length} highly-coupled files`);
+      }
+    }
+
+    if (activeFile) {
+      const relatedFiles = deepContext 
+        ? multiFileContextService.getRelatedFiles(activeProject.id, activeFile, 1)
+        : [];
+      if (relatedFiles.length > 0) {
+        suggestions.push(`Review ${relatedFiles.length} related files for context`);
+      }
+    }
+
+    setProactiveSuggestions(suggestions.slice(0, 3));
+  }, [activeProject, activeFile]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading || isStreaming) return;
@@ -48,6 +106,7 @@ function AIAssistant() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsStreaming(true);
+    setEdStatus('thinking');
 
     try {
       // Build context-aware prompt with Vibed Ed persona
@@ -67,7 +126,7 @@ function AIAssistant() {
         }
       }
 
-      // Get full project knowledge
+      // Get full project knowledge with deep context
       const projectContext = projectKnowledgeService.getFullProjectContext(
         activeProject?.id
       );
@@ -76,17 +135,45 @@ function AIAssistant() {
         activeProject?.id
       );
 
+      // Get related files for better context
+      let relatedFilesContext = '';
+      if (activeFile && activeProject) {
+        const deepContext = multiFileContextService.getProjectContext(activeProject.id);
+        if (deepContext) {
+          const relatedFiles = multiFileContextService.getRelatedFiles(
+            activeProject.id,
+            activeFile,
+            2
+          ).filter(f => f !== activeFile).slice(0, 3);
+          
+          if (relatedFiles.length > 0) {
+            relatedFilesContext = '\n\nRelated files that might be relevant:\n';
+            relatedFiles.forEach(filePath => {
+              const fileContext = deepContext.files.get(filePath);
+              if (fileContext) {
+                relatedFilesContext += `- ${filePath}: ${fileContext.functions.length} functions, ${fileContext.classes.length} classes\n`;
+              }
+            });
+          }
+        }
+      }
+
       // Build persona prompt
       let personaPrompt = '';
       if (isMilitaryQuestion) {
         personaPrompt = `You are Vibed Ed, a laid-back coding assistant. The user is asking about your military background. You're a USMC vet but these days you're all about keeping things chill while coding. Respond naturally and casually.`;
       } else {
-        personaPrompt = `You are Vibed Ed, a laid-back, smart coding assistant with redneck/stoner/beach dude vibes. You're helpful, knowledgeable, and chill. Use casual language like "yeah", "sure thing", "no worries", "let's do this". Keep responses conversational and casual while being accurate and helpful.`;
+        personaPrompt = `You are Ed (Vibed Ed), a laid-back, smart coding assistant with redneck/stoner/beach dude vibes. You're helpful, knowledgeable, and chill. Use casual language like "yeah", "sure thing", "no worries", "let's do this". Keep responses conversational and casual while being accurate and helpful. You're the code writer - you generate code, explain things, and help build features.`;
       }
 
       // Add project context
       if (projectContext) {
         personaPrompt += `\n\nYou have full knowledge of the current project:\n${projectContext}`;
+      }
+
+      // Add related files context
+      if (relatedFilesContext) {
+        personaPrompt += relatedFilesContext;
       }
 
       // Add navigation suggestion if applicable
@@ -108,6 +195,7 @@ function AIAssistant() {
       prompt = `${personaPrompt}\n\nUser request: ${basePrompt}`;
 
       // Stream the response
+      setEdStatus('coding');
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -129,7 +217,10 @@ function AIAssistant() {
           return updated;
         });
       }
+      
+      setEdStatus('success');
     } catch (error) {
+      setEdStatus('error');
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -139,6 +230,7 @@ function AIAssistant() {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsStreaming(false);
+      setTimeout(() => setEdStatus('idle'), 2000); // Reset to idle after 2 seconds
     }
   };
 
@@ -220,6 +312,29 @@ function AIAssistant() {
       </div>
 
       <div className="messages-container">
+        {proactiveSuggestions.length > 0 && messages.length === 1 && (
+          <div className="proactive-suggestions">
+            <div className="suggestions-header">
+              <Lightbulb size={16} />
+              <span>Suggestions</span>
+            </div>
+            <div className="suggestions-list">
+              {proactiveSuggestions.map((suggestion, idx) => (
+                <button
+                  key={idx}
+                  className="suggestion-chip"
+                  onClick={() => {
+                    setInput(suggestion);
+                    inputRef.current?.focus();
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.role}`}>
             {message.role === 'assistant' && (
@@ -289,10 +404,13 @@ function AIAssistant() {
       </div>
 
       <div className="input-container">
+        <div className="ed-avatar-container">
+          <EdAvatar size="md" animated={true} />
+        </div>
         <textarea
           ref={inputRef}
           className="message-input"
-          placeholder="Ask Vibed Ed anything... (Shift+Enter for new line)"
+          placeholder="Ask Ed anything... (Shift+Enter for new line)"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}

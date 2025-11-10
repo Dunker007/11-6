@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { aiServiceBridge } from '@/services/ai/aiServiceBridge';
+import { agentPairService } from '@/services/agents/agentPairService';
+import { useAgentStore } from '@/services/agents/agentStore';
+import EdAvatar from '@/components/Agents/EdAvatar';
+import ItorAvatar from '@/components/Agents/ItorAvatar';
 import TechIcon from '@/components/Icons/TechIcon';
 import { Zap, X, Check, Loader } from 'lucide-react';
 import '@/styles/TurboEdit.css';
@@ -15,19 +18,51 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
   const [instruction, setInstruction] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [preview, setPreview] = useState<{ editedCode?: string; diff?: string; error?: string } | null>(null);
+  const { edStatus, itorStatus, currentWorkflow } = useAgentStore();
 
   const handleGenerate = async () => {
     if (!instruction.trim()) return;
     
     setIsProcessing(true);
     try {
-      const result = await aiServiceBridge.turboEdit(selectedCode, instruction.trim(), filePath);
-      setPreview(result);
+      // Use agent pair service for Ed → Itor workflow
+      const workflow = await agentPairService.generateAndReview(
+        `Edit this code: ${instruction.trim()}\n\nCurrent code:\n\`\`\`\n${selectedCode}\n\`\`\``,
+        {
+          filePath,
+          existingCode: selectedCode,
+          maxIterations: 2, // Quick iteration for Turbo Edit
+        }
+      );
+
+      if (workflow.refinedCode || workflow.edResult.code) {
+        const editedCode = workflow.refinedCode || workflow.edResult.code;
+        const diff = calculateDiff(selectedCode, editedCode);
+        setPreview({ editedCode, diff });
+      } else {
+        setPreview({ error: 'Failed to generate edited code' });
+      }
     } catch (error) {
       setPreview({ error: (error as Error).message });
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const calculateDiff = (oldCode: string, newCode: string): string => {
+    const oldLines = oldCode.split('\n');
+    const newLines = newCode.split('\n');
+    const diff: string[] = [];
+    const maxLines = Math.max(oldLines.length, newLines.length);
+    for (let i = 0; i < maxLines; i++) {
+      const oldLine = oldLines[i] || '';
+      const newLine = newLines[i] || '';
+      if (oldLine !== newLine) {
+        if (oldLine) diff.push(`- ${oldLine}`);
+        if (newLine) diff.push(`+ ${newLine}`);
+      }
+    }
+    return diff.join('\n');
   };
 
   const handleApply = () => {
@@ -47,6 +82,30 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
       </div>
 
       <div className="turbo-edit-content">
+        {/* Agent Status Display */}
+        <div className="turbo-edit-agents">
+          <div className="agent-status agent-ed">
+            <EdAvatar 
+              status={edStatus} 
+              size="sm" 
+              animated={isProcessing && currentWorkflow === 'ed-generating'} 
+            />
+            <span className="agent-label">Ed</span>
+            {currentWorkflow === 'ed-generating' && <span className="agent-status-text">Generating...</span>}
+            {currentWorkflow === 'ed-refining' && <span className="agent-status-text">Refining...</span>}
+          </div>
+          <div className="agent-arrow">→</div>
+          <div className="agent-status agent-itor">
+            <ItorAvatar 
+              status={itorStatus} 
+              size="sm" 
+              animated={isProcessing && currentWorkflow === 'itor-reviewing'} 
+            />
+            <span className="agent-label">Itor</span>
+            {currentWorkflow === 'itor-reviewing' && <span className="agent-status-text">Reviewing...</span>}
+          </div>
+        </div>
+
         <div className="instruction-input">
           <label>What would you like to change?</label>
           <textarea

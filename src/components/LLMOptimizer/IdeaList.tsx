@@ -2,6 +2,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, CheckSquare, Square, Download, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
 import { ideaInventoryService, Idea } from '@/services/idea/ideaInventoryService';
+import { useDebounce } from '@/utils/hooks/useDebounce';
 
 interface IdeaListProps {
   onIdeaSelect?: (idea: Idea | null) => void;
@@ -11,6 +12,7 @@ interface IdeaListProps {
 function IdeaList({ onIdeaSelect, selectedIdeaId }: IdeaListProps) {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
@@ -34,8 +36,8 @@ function IdeaList({ onIdeaSelect, selectedIdeaId }: IdeaListProps) {
       filtered = filtered.filter(idea => idea.topic === selectedTopic);
     }
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    if (debouncedSearchQuery.trim()) {
+      const query = debouncedSearchQuery.toLowerCase();
       filtered = filtered.filter(idea =>
         idea.title.toLowerCase().includes(query) ||
         idea.description.toLowerCase().includes(query) ||
@@ -44,7 +46,7 @@ function IdeaList({ onIdeaSelect, selectedIdeaId }: IdeaListProps) {
     }
 
     return filtered;
-  }, [ideas, selectedTopic, searchQuery]);
+  }, [ideas, selectedTopic, debouncedSearchQuery]);
 
   const handleToggleStatus = (id: string, currentStatus: 'keep' | 'delete' | 'pending') => {
     const newStatus = currentStatus === 'keep' ? 'delete' : 'keep';

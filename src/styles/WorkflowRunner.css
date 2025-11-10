@@ -1,0 +1,295 @@
+/* Workflow Runner Styles */
+.workflow-runner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.workflow-runner-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.workflow-runner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.workflow-runner-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.workflow-runner-title h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.workflow-type-badge {
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.workflow-runner-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.workflow-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.workflow-action-btn:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-cyan);
+}
+
+.workflow-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.workflow-action-btn.execute-btn {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: white;
+}
+
+.workflow-action-btn.execute-btn:hover:not(:disabled) {
+  background: var(--accent-cyan-dark);
+}
+
+.workflow-action-btn.cancel-btn {
+  background: var(--orange-500);
+  border-color: var(--orange-500);
+  color: white;
+}
+
+.workflow-action-btn.cancel-btn:hover:not(:disabled) {
+  background: var(--orange-600);
+}
+
+.workflow-action-btn.delete-btn {
+  padding: 0.5rem;
+  background: var(--bg-tertiary);
+  color: var(--red-400);
+}
+
+.workflow-action-btn.delete-btn:hover:not(:disabled) {
+  background: var(--red-500);
+  color: white;
+  border-color: var(--red-500);
+}
+
+.workflow-description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.workflow-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: var(--red-400);
+  font-size: 0.875rem;
+}
+
+.workflow-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.workflow-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.workflow-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.workflow-progress-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.workflow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.workflow-steps h4 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.workflow-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.workflow-step {
+  padding: 0.75rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.workflow-step.current {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 255, 255, 0.05);
+}
+
+.workflow-step.pending {
+  opacity: 0.6;
+}
+
+.workflow-step.running {
+  border-color: var(--accent-cyan);
+  animation: workflowStepPulse 1.5s ease-in-out infinite;
+}
+
+.workflow-step.completed {
+  border-color: var(--green-500);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.workflow-step.failed {
+  border-color: var(--red-500);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.workflow-step-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.workflow-step-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.workflow-step-duration {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.workflow-step-description {
+  margin: 0.5rem 0 0 1.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.workflow-step-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  margin-left: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--red-400);
+}
+
+.status-icon,
+.step-icon {
+  flex-shrink: 0;
+}
+
+.status-icon.success,
+.step-icon.success {
+  color: var(--green-500);
+}
+
+.status-icon.error,
+.step-icon.error {
+  color: var(--red-500);
+}
+
+.status-icon.cancelled {
+  color: var(--orange-500);
+}
+
+.status-icon.idle {
+  color: var(--text-muted);
+}
+
+.step-icon.pending {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background: transparent;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes workflowStepPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(0, 255, 255, 0);
+  }
+}
+

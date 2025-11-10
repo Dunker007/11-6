@@ -136,3 +136,11 @@ contextBridge.exposeInMainWorld('menu', {
   },
 });
 
+// --------- Expose Window Controls API ---------
+contextBridge.exposeInMainWorld('windowControls', {
+  minimize: () => ipcRenderer.invoke('window:minimize'),
+  maximize: () => ipcRenderer.invoke('window:maximize'),
+  close: () => ipcRenderer.invoke('window:close'),
+  isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+});
+

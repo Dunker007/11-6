@@ -68,8 +68,9 @@ function TradingChart({ productId }: TradingChartProps) {
     
     if (dataLength === 0) return null;
 
-    const min = Math.min(...chartData.map((c) => parseFloat(c.low)));
-    const max = Math.max(...chartData.map((c) => parseFloat(c.high)));
+    // Calculate min/max from slicedData (visible data) instead of entire chartData
+    const min = Math.min(...slicedData.map((c) => parseFloat(c.low)));
+    const max = Math.max(...slicedData.map((c) => parseFloat(c.high)));
     const range = max - min || 1;
 
     return {

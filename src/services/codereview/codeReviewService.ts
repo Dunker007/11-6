@@ -136,6 +136,95 @@ export class CodeReviewService {
     return review;
   }
 
+  /**
+   * Review a code string directly (for use in agent services)
+   */
+  async reviewCode(
+    code: string,
+    options?: {
+      filePath?: string;
+      language?: string;
+      includeSecurity?: boolean;
+      includePerformance?: boolean;
+      includeStyle?: boolean;
+    }
+  ): Promise<CodeReview> {
+    const review: CodeReview = {
+      id: crypto.randomUUID(),
+      projectPath: options?.filePath || 'inline',
+      files: options?.filePath ? [options.filePath] : [],
+      issues: [],
+      summary: {
+        totalIssues: 0,
+        errors: 0,
+        warnings: 0,
+        suggestions: 0,
+        byCategory: {},
+        byFile: {},
+      },
+      createdAt: new Date(),
+      status: 'analyzing',
+    };
+
+    // Simple code review - check for common issues
+    const issues: CodeIssue[] = [];
+    const lines = code.split('\n');
+
+    lines.forEach((line, index) => {
+      const lineNum = index + 1;
+
+      // Check for common issues
+      if (line.includes('console.log') && !line.includes('//')) {
+        issues.push({
+          id: crypto.randomUUID(),
+          file: options?.filePath || 'inline',
+          line: lineNum,
+          column: 1,
+          severity: 'suggestion',
+          message: 'Consider removing console.log in production code',
+          rule: 'no-console',
+          code: line.trim(),
+          category: 'style',
+        });
+      }
+
+      if (line.includes('any') && options?.language === 'typescript') {
+        issues.push({
+          id: crypto.randomUUID(),
+          file: options?.filePath || 'inline',
+          line: lineNum,
+          column: 1,
+          severity: 'warning',
+          message: 'Avoid using "any" type',
+          rule: 'no-any',
+          code: line.trim(),
+          category: 'style',
+        });
+      }
+
+      if (line.includes('TODO') || line.includes('FIXME')) {
+        issues.push({
+          id: crypto.randomUUID(),
+          file: options?.filePath || 'inline',
+          line: lineNum,
+          column: 1,
+          severity: 'suggestion',
+          message: 'TODO/FIXME comment found',
+          rule: 'no-todo',
+          code: line.trim(),
+          category: 'best-practice',
+        });
+      }
+    });
+
+    review.issues = issues;
+    review.summary = this.calculateSummary(issues);
+    review.status = 'completed';
+    review.completedAt = new Date();
+
+    return review;
+  }
+
   private async simulateAnalysis(review: CodeReview, _settings: ReviewSettings): Promise<void> {
     // Simulate analysis delay
     await new Promise((resolve) => setTimeout(resolve, 2000));

@@ -88,10 +88,11 @@ async function decrypt(encrypted: string): Promise<string> {
 export class APIKeyService {
   private static instance: APIKeyService;
   private keys: Map<string, APIKey> = new Map();
+  private initializationPromise: Promise<void> | null = null;
 
   private constructor() {
-    // Load keys asynchronously - this will complete before first use
-    this.loadKeys().catch((error) => {
+    // Initialize and track the promise
+    this.initializationPromise = this.loadKeys().catch((error) => {
       console.error('Failed to initialize API keys:', error);
     });
   }
@@ -101,6 +102,16 @@ export class APIKeyService {
       APIKeyService.instance = new APIKeyService();
     }
     return APIKeyService.instance;
+  }
+
+  /**
+   * Ensures initialization is complete before proceeding
+   * This method can be awaited to guarantee keys are loaded
+   */
+  async ensureInitialized(): Promise<void> {
+    if (this.initializationPromise) {
+      await this.initializationPromise;
+    }
   }
 
   private async loadKeys(): Promise<void> {
@@ -188,6 +199,9 @@ export class APIKeyService {
   }
 
   async addKey(provider: APIProvider, key: string, name: string, metadata?: Record<string, any>): Promise<APIKey> {
+    // Ensure initialization is complete before adding keys
+    await this.ensureInitialized();
+    
     const apiKey: APIKey = {
       id: crypto.randomUUID(),
       provider,
@@ -214,6 +228,13 @@ export class APIKeyService {
   }
 
   getKeys(): APIKey[] {
+    // If initialization hasn't completed, return empty array
+    // Callers should use ensureInitialized() or await initializationPromise if they need keys immediately
+    return Array.from(this.keys.values());
+  }
+
+  async getKeysAsync(): Promise<APIKey[]> {
+    await this.ensureInitialized();
     return Array.from(this.keys.values());
   }
 
@@ -255,6 +276,8 @@ export class APIKeyService {
   }
 
   async updateKey(id: string, updates: Partial<APIKey>): Promise<APIKey | null> {
+    await this.ensureInitialized();
+    
     const key = this.keys.get(id);
     if (!key) return null;
 
@@ -271,6 +294,8 @@ export class APIKeyService {
   }
 
   async deleteKey(id: string): Promise<boolean> {
+    await this.ensureInitialized();
+    
     const deleted = this.keys.delete(id);
     if (deleted) {
       await this.saveKeys();
@@ -279,24 +304,52 @@ export class APIKeyService {
   }
 
   getKey(id: string): APIKey | null {
+    // Synchronous getter - may return null if initialization hasn't completed
+    return this.keys.get(id) || null;
+  }
+
+  async getKeyAsync(id: string): Promise<APIKey | null> {
+    await this.ensureInitialized();
     return this.keys.get(id) || null;
   }
 
   getKeysByProvider(provider: APIProvider): APIKey[] {
+    // Synchronous getter - may return empty array if initialization hasn't completed
+    return Array.from(this.keys.values()).filter((key) => key.provider === provider);
+  }
+
+  async getKeysByProviderAsync(provider: APIProvider): Promise<APIKey[]> {
+    await this.ensureInitialized();
     return Array.from(this.keys.values()).filter((key) => key.provider === provider);
   }
 
   getAllKeys(): APIKey[] {
+    // Synchronous getter - may return empty array if initialization hasn't completed
+    return Array.from(this.keys.values());
+  }
+
+  async getAllKeysAsync(): Promise<APIKey[]> {
+    await this.ensureInitialized();
     return Array.from(this.keys.values());
   }
 
   getKeyForProvider(provider: APIProvider): string | null {
+    // Synchronous getter - may return null if initialization hasn't completed
     const keys = this.getKeysByProvider(provider);
     const activeKey = keys.find((key) => key.isValid) || keys[0];
     return activeKey?.key || null;
   }
 
+  async getKeyForProviderAsync(provider: APIProvider): Promise<string | null> {
+    await this.ensureInitialized();
+    const keys = await this.getKeysByProviderAsync(provider);
+    const activeKey = keys.find((key) => key.isValid) || keys[0];
+    return activeKey?.key || null;
+  }
+
   async healthCheck(provider: APIProvider): Promise<boolean> {
+    await this.ensureInitialized();
+    
     const key = this.getKeyForProvider(provider);
     if (!key && provider !== 'lmstudio' && provider !== 'ollama') {
       return false;
@@ -332,6 +385,8 @@ export class APIKeyService {
   }
 
   async recordUsage(id: string, tokens: number, cost: number): Promise<void> {
+    await this.ensureInitialized();
+    
     const key = this.keys.get(id);
     if (key) {
       key.usage.requests += 1;
@@ -344,6 +399,8 @@ export class APIKeyService {
   }
 
   async resetUsage(id: string): Promise<void> {
+    await this.ensureInitialized();
+    
     const key = this.keys.get(id);
     if (key) {
       key.usage = {

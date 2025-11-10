@@ -99,11 +99,26 @@ function createWindow() {
   const defaultWidth = 1400;
   const defaultHeight = 900;
 
+  // Calculate centered position if no saved state
+  let windowX: number | undefined;
+  let windowY: number | undefined;
+  
+  if (savedState?.x !== undefined && savedState?.y !== undefined) {
+    windowX = savedState.x;
+    windowY = savedState.y;
+  } else {
+    // Center on primary display
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+    windowX = Math.floor((screenWidth - defaultWidth) / 2);
+    windowY = Math.floor((screenHeight - defaultHeight) / 2);
+  }
+
   win = new BrowserWindow({
     width: savedState?.width || defaultWidth,
     height: savedState?.height || defaultHeight,
-    x: savedState?.x,
-    y: savedState?.y,
+    x: windowX,
+    y: windowY,
     titleBarStyle: 'hidden',
     titleBarOverlay: {
       color: '#0F172A',
@@ -260,6 +275,42 @@ ipcMain.handle('update:install', async () => {
   } catch (error) {
     return { success: false, error: (error as Error).message };
   }
+});
+
+// --------- Window Control IPC Handlers ---------
+ipcMain.handle('window:minimize', () => {
+  if (win && !win.isDestroyed()) {
+    win.minimize();
+    return { success: true };
+  }
+  return { success: false, error: 'Window not available' };
+});
+
+ipcMain.handle('window:maximize', () => {
+  if (win && !win.isDestroyed()) {
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+    return { success: true, isMaximized: win.isMaximized() };
+  }
+  return { success: false, error: 'Window not available' };
+});
+
+ipcMain.handle('window:close', () => {
+  if (win && !win.isDestroyed()) {
+    win.close();
+    return { success: true };
+  }
+  return { success: false, error: 'Window not available' };
+});
+
+ipcMain.handle('window:isMaximized', () => {
+  if (win && !win.isDestroyed()) {
+    return { success: true, isMaximized: win.isMaximized() };
+  }
+  return { success: false, error: 'Window not available' };
 });
 
 // App menu
@@ -587,7 +638,8 @@ async function cleanTempFiles(): Promise<{ filesDeleted: number; spaceFreed: num
   const tempPaths = [
     os.tmpdir(),
     path.join(homeDir, 'AppData', 'Local', 'Temp'),
-    ...(process.platform === 'win32' ? ['C:\\Windows\\Temp'] : []),
+    // Removed C:\Windows\Temp - requires admin privileges
+    // Users can manually clean system temp if needed
   ];
 
   for (const tempPath of tempPaths) {
@@ -675,10 +727,22 @@ ipcMain.handle('system:cleanCache', async () => cleanCache());
 
 ipcMain.handle('system:deepClean', async () => {
   const [tempFiles, cache] = await Promise.all([cleanTempFiles(), cleanCache()]);
+  
+  // Registry cleaning requires admin privileges on Windows
+  // Since we use "asInvoker" execution level, we skip registry operations
+  // and provide a helpful message
+  const registryResult = process.platform === 'win32' 
+    ? { 
+        cleaned: 0, 
+        errors: ['Registry cleaning requires administrator privileges. Please run the application as administrator to clean registry entries.'],
+        requiresAdmin: true
+      }
+    : { cleaned: 0, errors: [] };
+  
   return {
     tempFiles,
     cache,
-    registry: { cleaned: 0, errors: [] },
+    registry: registryResult,
     oldInstallations: { found: [], removed: 0, errors: [] },
   };
 });
@@ -706,10 +770,33 @@ ipcMain.handle('tools:getVersion', async (_event, command: string) => {
 
 ipcMain.handle('tools:install', async (_event, command: string) => {
   try {
+    // Check if command requires admin privileges
+    const adminCommands = ['choco install', 'winget install', 'scoop install', 'npm install -g'];
+    const requiresAdmin = adminCommands.some(adminCmd => command.toLowerCase().includes(adminCmd.toLowerCase()));
+    
+    if (requiresAdmin && process.platform === 'win32') {
+      // On Windows with "asInvoker" execution level, admin commands will fail
+      // Provide helpful error message
+      return { 
+        success: false, 
+        error: 'This command requires administrator privileges. Please run the application as administrator or use a user-level package manager.',
+        requiresAdmin: true
+      };
+    }
+    
     const { stdout, stderr } = await execAsync(command);
     return { success: true, output: stdout, error: stderr };
   } catch (error) {
-    return { success: false, error: (error as Error).message };
+    const errorMessage = (error as Error).message;
+    // Check for permission denied errors
+    if (errorMessage.includes('permission') || errorMessage.includes('EACCES') || errorMessage.includes('access denied')) {
+      return { 
+        success: false, 
+        error: 'Permission denied. This operation may require administrator privileges.',
+        requiresAdmin: true
+      };
+    }
+    return { success: false, error: errorMessage };
   }
 });
 

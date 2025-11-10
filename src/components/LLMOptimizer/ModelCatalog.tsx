@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Filter, Info, Package, Search } from 'lucide-react';
+import { useDebounce } from '@/utils/hooks/useDebounce';
 import type { ModelCatalogEntry } from '@/types/optimizer';
 import '../../styles/LLMOptimizer.css';
 
@@ -11,6 +12,7 @@ interface ModelCatalogProps {
 const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
   const [providerFilter, setProviderFilter] = useState<'all' | ModelCatalogEntry['provider']>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const filteredEntries = useMemo(() => {
     if (!entries || !Array.isArray(entries)) {
@@ -19,15 +21,15 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
     return entries
       .filter((entry) => providerFilter === 'all' || entry.provider === providerFilter)
       .filter((entry) => {
-        if (!searchTerm) return true;
-        const needle = searchTerm.toLowerCase();
+        if (!debouncedSearchTerm) return true;
+        const needle = debouncedSearchTerm.toLowerCase();
         return (
           entry.displayName.toLowerCase().includes(needle) ||
           entry.family.toLowerCase().includes(needle) ||
           entry.tags.some((tag) => tag.toLowerCase().includes(needle))
         );
       });
-  }, [entries, providerFilter, searchTerm]);
+  }, [entries, providerFilter, debouncedSearchTerm]);
 
   return (
     <div className="model-catalog-card">

@@ -1,0 +1,56 @@
+/* Code Review Styles */
+.code-review-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary);
+}
+
+.code-review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.code-review-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.code-review-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.review-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.review-tab {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.review-tab:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.review-tab.active {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: white;
+}
+

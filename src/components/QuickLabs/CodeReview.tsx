@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useCodeReviewStore } from '../../services/codereview/codeReviewStore';
 import { codeReviewService } from '../../services/codereview/codeReviewService';
 import { useActivityStore } from '../../services/activity/activityStore';
+import { useAgentStore } from '../../services/agents/agentStore';
+import ItorAvatar from '../Agents/ItorAvatar';
 import type { CodeIssue, SecuritySummary } from '@/types/codereview';
 import TechIcon from '../Icons/TechIcon';
 import { ScanEye, AlertCircle, AlertTriangle, Info, CheckCircle, Zap, Lock, Sparkles, Bug, Puzzle, Shield } from 'lucide-react';
@@ -11,6 +13,7 @@ function CodeReview() {
   const { reviews, currentReview, isLoading, analyzeCode, selectReview, deleteReview, loadReviews } =
     useCodeReviewStore();
   const { addActivity } = useActivityStore();
+  const { itorStatus, setItorStatus } = useAgentStore();
   const [projectPath, setProjectPath] = useState('');
   const [showAnalyzeDialog, setShowAnalyzeDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<'review' | 'security'>('review');
@@ -25,6 +28,7 @@ function CodeReview() {
   const handleAnalyze = async () => {
     if (!projectPath.trim()) return;
 
+    setItorStatus('scanning');
     addActivity('system', 'started', 'Started code review analysis');
 
     await analyzeCode(projectPath.trim(), {
@@ -33,7 +37,18 @@ function CodeReview() {
       checkTypes: ['performance', 'security', 'style', 'bug', 'complexity', 'best-practice'],
     });
 
+    setItorStatus('reviewing');
     addActivity('system', 'completed', 'Code review analysis completed');
+    
+    setTimeout(() => {
+      if (currentReview && currentReview.issues.length === 0) {
+        setItorStatus('approved');
+      } else if (currentReview && currentReview.issues.length > 0) {
+        setItorStatus('alert');
+      } else {
+        setItorStatus('idle');
+      }
+    }, 1000);
 
     setProjectPath('');
     setShowAnalyzeDialog(false);
@@ -76,13 +91,16 @@ function CodeReview() {
   const handleSecurityAnalysis = async () => {
     if (!projectPath.trim()) return;
     setIsAnalyzingSecurity(true);
+    setItorStatus('scanning');
     addActivity('system', 'started', 'Started security analysis');
     try {
       const result = await codeReviewService.analyzeSecurity(projectPath.trim());
       setSecurityIssues(result.issues);
       setSecuritySummary(result.summary);
+      setItorStatus(result.issues.length === 0 ? 'approved' : 'alert');
       addActivity('system', 'completed', 'Security analysis completed');
     } catch (error) {
+      setItorStatus('error');
       console.error('Security analysis failed:', error);
     } finally {
       setIsAnalyzingSecurity(false);
@@ -92,7 +110,10 @@ function CodeReview() {
   return (
     <div className="code-review-container">
       <div className="code-review-header">
-        <h2>Code Review</h2>
+        <div className="code-review-header-left">
+          <ItorAvatar status={itorStatus} size="md" animated={isLoading || isAnalyzingSecurity} />
+          <h2>Code Review</h2>
+        </div>
         <div className="review-tabs">
           <button
             className={`review-tab ${activeTab === 'review' ? 'active' : ''}`}

@@ -5,11 +5,14 @@ import TopBar from './TopBar';
 import Toolbar from './Toolbar';
 import ConsolePanel from './ConsolePanel';
 import HWStatus from './HWStatus';
+import { ErrorBoundary } from '../components/shared/ErrorBoundary';
 // CommandPalette component has been removed
 import { useProjectStore } from '../core/project/projectStore';
 import { useWebContainerStore } from '../core/webcontainer/webContainerStore';
 import { projectService } from '../core/project/projectService';
 import { aiServiceBridge } from '../core/ai/aiServiceBridge';
+import { llmRouter } from '../services/ai/router';
+import { apiKeyService } from '../services/apiKeys/apiKeyService';
 import '../styles-new/studio.css';
 
 function Studio() {
@@ -24,6 +27,34 @@ function Studio() {
   useEffect(() => {
     // Load projects on studio startup
     loadProjects();
+
+    // Auto-configure Gemini Flash 2.5 when Studio opens
+    const configureGemini = async () => {
+      try {
+        // Ensure API keys are initialized before checking
+        await apiKeyService.ensureInitialized();
+        // Check if Gemini API key is available
+        const geminiKey = await apiKeyService.getKeyForProviderAsync('gemini');
+        if (geminiKey) {
+          // Set Studio context to prioritize Gemini
+          llmRouter.setStudioContext(true);
+          // Set Gemini as preferred provider
+          llmRouter.setPreferredProvider('gemini');
+          console.log('Studio: Gemini Flash 2.5 configured as default provider');
+        } else {
+          console.log('Studio: Gemini API key not found, using default provider strategy');
+        }
+      } catch (error) {
+        console.error('Studio: Failed to configure Gemini:', error);
+      }
+    };
+
+    configureGemini();
+
+    // Cleanup: Reset Studio context when component unmounts
+    return () => {
+      llmRouter.setStudioContext(false);
+    };
   }, [loadProjects]);
 
   // Auto-start project indexing when active project changes
@@ -94,7 +125,8 @@ function Studio() {
   const activeProjectId = activeProject?.id || null;
 
   return (
-    <div className="studio">
+    <ErrorBoundary sectionName="Studio">
+      <div className="studio">
       <TopBar
         activeProject={activeProject}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
@@ -139,6 +171,7 @@ function Studio() {
 
       {/* CommandPalette component has been removed */}
     </div>
+    </ErrorBoundary>
   );
 }
 

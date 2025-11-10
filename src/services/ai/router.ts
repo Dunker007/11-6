@@ -12,6 +12,7 @@ export class LLMRouter {
   private preferredProvider: 'lmstudio' | 'ollama' | 'gemini' | 'notebooklm' | 'openrouter' | null = null;
   private strategy: ProviderStrategy = 'cloud-fallback'; // Default to cloud fallback for reliability
   private openRouterProvider: OpenRouterProvider;
+  private studioContext: boolean = false; // Track if Studio is active
 
   constructor() {
     // Local providers
@@ -65,6 +66,15 @@ export class LLMRouter {
   }
 
   async getAvailableProvider(): Promise<LLMProvider | null> {
+    // If Studio context is active, prioritize Gemini Flash 2.5
+    if (this.studioContext) {
+      const gemini = this.providers.get('gemini');
+      if (gemini && (await gemini.healthCheck())) {
+        this.preferredProvider = 'gemini';
+        return gemini;
+      }
+    }
+
     // Check preferred provider first
     if (this.preferredProvider) {
       const provider = this.providers.get(this.preferredProvider);
@@ -257,6 +267,14 @@ export class LLMRouter {
 
   setPreferredProvider(provider: 'lmstudio' | 'ollama' | 'gemini' | 'notebooklm'): void {
     this.preferredProvider = provider;
+  }
+
+  setStudioContext(enabled: boolean): void {
+    this.studioContext = enabled;
+    if (enabled) {
+      // When Studio is active, prioritize Gemini
+      this.preferredProvider = 'gemini';
+    }
   }
 
   getProvider(name: string): LLMProvider | undefined {

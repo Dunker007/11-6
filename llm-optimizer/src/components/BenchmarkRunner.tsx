@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useModelLibrary } from '../services/modelLibrary';
 
 interface BenchmarkResult {
@@ -20,6 +20,15 @@ function BenchmarkRunner() {
   const [currentTest, setCurrentTest] = useState('');
   const [result, setResult] = useState<BenchmarkResult | null>(null);
   const { addBenchmarkResult } = useModelLibrary();
+
+  // Update API URL when provider changes
+  useEffect(() => {
+    if (provider === 'lm-studio') {
+      setApiUrl('http://localhost:1234/v1');
+    } else if (provider === 'ollama') {
+      setApiUrl('http://localhost:11434/api');
+    }
+  }, [provider]);
 
   const testPrompts = [
     'The quick brown fox jumps over the lazy dog.',
@@ -237,27 +246,27 @@ function BenchmarkRunner() {
           <div className="info-grid">
             <div className="info-item">
               <label>Model</label>
-              <value>{result.modelName}</value>
+              <div className="info-value">{result.modelName}</div>
             </div>
             <div className="info-item">
               <label>Provider</label>
-              <value>{result.provider}</value>
+              <div className="info-value">{result.provider}</div>
             </div>
             <div className="info-item">
               <label>Tokens/Second</label>
-              <value>{result.tokensPerSecond.toFixed(2)}</value>
+              <div className="info-value">{result.tokensPerSecond.toFixed(2)}</div>
             </div>
             <div className="info-item">
               <label>Avg Latency</label>
-              <value>{result.latency.toFixed(0)} ms</value>
+              <div className="info-value">{result.latency.toFixed(0)} ms</div>
             </div>
             <div className="info-item">
               <label>Memory Usage</label>
-              <value>{result.memoryUsage.toFixed(2)} GB</value>
+              <div className="info-value">{result.memoryUsage.toFixed(2)} GB</div>
             </div>
             <div className="info-item">
               <label>Quality Score</label>
-              <value>{result.quality}/100</value>
+              <div className="info-value">{result.quality}/100</div>
             </div>
           </div>
           <div style={{ marginTop: '1rem' }}>

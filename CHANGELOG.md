@@ -5,6 +5,39 @@ All notable changes to DLX Studios Ultimate will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-01-09
+
+### Added
+- **ESLint v9 Configuration**: Migrated from ESLint v8 to v9 with new flat config format
+- **Test Infrastructure**: Set up Vitest and Playwright test frameworks
+- **Test Results Documentation**: Created comprehensive test results report
+- **Connection Status Bar**: New horizontal connection status display component
+- **Error Boundaries**: Granular error boundaries for major application sections
+- **Agent Pair Service**: Enhanced workflow with proper maxIterations loop implementation
+
+### Changed
+- **Site-wide Visual Cleanup**: Standardized spacing, colors, and component styling across all tabs
+- **Navigation Bar**: Centered navigation bar site-wide with repositioned quick stats
+- **Itor Toolbar**: Moved to right side of navigation bar
+- **Model Catalog**: Made frameless while maintaining scroll functionality
+- **Command Hub**: Removed padding for frameless design
+- **Card Components**: Standardized padding (1.25rem), colors, and hover effects
+- **Action Buttons**: Unified styling across all components
+
+### Fixed
+- Fixed `generateAndReview` maxIterations parameter to properly loop through refinement cycles
+- Fixed TypeScript unused import/variable errors in LLMRevenueCommandCenter
+- Fixed ESLint configuration migration issues
+- Fixed center content layout when Command Hub expands
+- Fixed Model Catalog width and styling
+
+### Technical
+- Migrated ESLint config from `.eslintrc.cjs` to `eslint.config.js` (v9 format)
+- Added `globals` package for proper browser/Node.js global definitions
+- Standardized card component styling (padding, borders, backgrounds, hover states)
+- Improved responsive design consistency
+- Enhanced error handling with granular boundaries
+
 ## [1.0.0] - 2025-01-08
 
 ### Added

@@ -22,9 +22,11 @@ class CoinbaseService {
   private static instance: CoinbaseService;
   private credentials: CoinbaseCredentials | null = null;
   private tradingMode: 'paper' | 'live' = 'paper'; // Default to paper trading
+  private credentialsLoaded: Promise<void>;
 
   private constructor() {
-    this.loadCredentials();
+    // Load credentials asynchronously to avoid race condition
+    this.credentialsLoaded = this.loadCredentialsAsync();
     this.loadTradingMode();
   }
 
@@ -33,6 +35,13 @@ class CoinbaseService {
       CoinbaseService.instance = new CoinbaseService();
     }
     return CoinbaseService.instance;
+  }
+
+  /**
+   * Ensure credentials are loaded before use
+   */
+  async ensureCredentialsLoaded(): Promise<void> {
+    await this.credentialsLoaded;
   }
 
   private loadTradingMode(): void {
@@ -59,9 +68,11 @@ class CoinbaseService {
     return this.tradingMode;
   }
 
-  private loadCredentials(): void {
+  private async loadCredentialsAsync(): Promise<void> {
     try {
-      const keys = apiKeyService.getKeys();
+      // Ensure API key service is initialized before accessing keys
+      await apiKeyService.ensureInitialized();
+      const keys = await apiKeyService.getKeysAsync();
       const coinbaseKey = keys.find((k) => k.provider === 'coinbase');
       if (coinbaseKey && coinbaseKey.metadata) {
         this.credentials = {
@@ -76,6 +87,13 @@ class CoinbaseService {
     }
   }
 
+  /**
+   * Reload credentials from storage (useful after API key updates)
+   */
+  async reloadCredentials(): Promise<void> {
+    await this.loadCredentialsAsync();
+  }
+
   async setCredentials(credentials: CoinbaseCredentials): Promise<void> {
     this.credentials = credentials;
     // Save to apiKeyService
@@ -84,6 +102,8 @@ class CoinbaseService {
       passphrase: credentials.passphrase,
       sandbox: credentials.sandbox || false,
     });
+    // Reload to ensure consistency
+    await this.reloadCredentials();
   }
 
   isConfigured(): boolean {
@@ -92,6 +112,14 @@ class CoinbaseService {
       this.credentials?.secret &&
       this.credentials?.passphrase
     );
+  }
+
+  /**
+   * Check if credentials are configured (async version that waits for loading)
+   */
+  async isConfiguredAsync(): Promise<boolean> {
+    await this.ensureCredentialsLoaded();
+    return this.isConfigured();
   }
 
   private getBaseUrl(): string {
@@ -127,6 +155,9 @@ class CoinbaseService {
     path: string,
     body?: any
   ): Promise<T> {
+    // Ensure credentials are loaded before making requests
+    await this.ensureCredentialsLoaded();
+    
     if (!this.isConfigured()) {
       throw new Error('Coinbase API not configured. Please add API credentials.');
     }

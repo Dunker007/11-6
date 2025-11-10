@@ -1,0 +1,361 @@
+.command-hub {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(139, 92, 246, 0.3);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  z-index: 2000;
+  overflow-y: auto;
+  padding-top: 60px; /* Account for title bar */
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.5);
+  transition: width 0.3s ease;
+}
+
+.command-hub.collapsed {
+  width: 80px;
+  padding: 16px 8px;
+}
+
+.command-hub-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.command-hub.collapsed .command-hub-header {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  align-items: center;
+}
+
+.command-hub-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.command-hub.collapsed .command-hub-toggle {
+  position: static;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.command-hub-toggle:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--violet-500);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+.command-hub-toggle svg {
+  transition: transform 0.3s ease;
+}
+
+.command-hub-toggle:hover svg {
+  transform: scale(1.1);
+}
+
+.command-hub-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.command-hub-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.command-hub-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.metric-card {
+  background: var(--bg-tertiary);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 0.75rem;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card.collapsed {
+  padding: 12px;
+  justify-content: center;
+  min-height: 56px;
+}
+
+.metric-card:hover {
+  border-color: var(--violet-500);
+  box-shadow: var(--glow-violet);
+  transform: translateY(-2px);
+}
+
+.metric-card.collapsed:hover {
+  transform: scale(1.05);
+}
+
+.metric-card-violet {
+  border-left: 3px solid var(--violet-500);
+}
+
+.metric-card-cyan {
+  border-left: 3px solid var(--cyan-500);
+}
+
+.metric-card-amber {
+  border-left: 3px solid var(--amber-500);
+}
+
+.metric-card-emerald {
+  border-left: 3px solid var(--emerald-500);
+}
+
+.metric-card-red {
+  border-left: 3px solid var(--red-500);
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.metric-card.collapsed .metric-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.metric-card.collapsed:hover .metric-icon {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: var(--violet-500);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.metric-content {
+  flex: 1;
+  min-width: 0;
+  transition: opacity 0.3s ease, max-width 0.3s ease;
+}
+
+.metric-card.collapsed .metric-content {
+  display: none;
+}
+
+.metric-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-value-up {
+  color: var(--emerald-400);
+}
+
+.metric-value-down {
+  color: var(--red-400);
+}
+
+.metric-value-neutral {
+  color: var(--text-primary);
+}
+
+.metric-trend {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.metric-trend-up {
+  color: var(--emerald-400);
+}
+
+.metric-trend-down {
+  color: var(--red-400);
+}
+
+.command-hub-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(139, 92, 246, 0.15);
+  transition: opacity 0.3s ease;
+}
+
+.command-hub.collapsed .command-hub-footer {
+  display: none;
+}
+
+.command-hub-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-online {
+  background: var(--emerald-500);
+  box-shadow: 0 0 8px var(--emerald-500);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Scrollbar styling for command hub */
+.command-hub::-webkit-scrollbar {
+  width: 6px;
+}
+
+.command-hub::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.command-hub::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+}
+
+.command-hub::-webkit-scrollbar-thumb:hover {
+  background: var(--violet-500);
+}
+
+/* Responsive Design */
+/* Tablet breakpoint (768px - 1024px) */
+@media (max-width: 1024px) {
+  .command-hub {
+    width: 280px;
+  }
+
+  .command-hub.collapsed {
+    width: 70px;
+  }
+}
+
+/* Mobile breakpoint (< 768px) */
+@media (max-width: 768px) {
+  .command-hub {
+    width: 240px;
+    padding: 12px;
+  }
+
+  .command-hub.collapsed {
+    width: 60px;
+    padding: 12px 6px;
+  }
+
+  .metric-card {
+    padding: 10px;
+  }
+
+  .metric-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .metric-card.collapsed .metric-icon {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Small mobile (< 480px) */
+@media (max-width: 480px) {
+  .command-hub {
+    width: 200px;
+    padding: 10px;
+  }
+
+  .command-hub.collapsed {
+    width: 50px;
+    padding: 10px 4px;
+  }
+
+  .metric-card {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .metric-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .metric-card.collapsed .metric-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .metric-value {
+    font-size: 14px;
+  }
+}
+

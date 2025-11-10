@@ -16,8 +16,20 @@ class AIServiceBridge {
   private currentProjectRoot: string | null = null;
 
   /**
-   * Start indexing/analyzing a project
-   * Uses multiFileContextService to build project understanding
+   * Start indexing and analyzing a project to build comprehensive project understanding.
+   * 
+   * Uses multiFileContextService to analyze project structure, dependencies, and context.
+   * This enables AI features to have deep awareness of the codebase.
+   * 
+   * @param projectRoot - The root path of the project to index
+   * @returns A promise that resolves when indexing is complete
+   * @throws {Error} If indexing fails or project cannot be found
+   * 
+   * @example
+   * ```typescript
+   * await aiServiceBridge.startIndexing('/path/to/project');
+   * console.log('Project indexed successfully');
+   * ```
    */
   async startIndexing(projectRoot: string): Promise<void> {
     console.log('Starting project indexing (renderer-side):', projectRoot);
@@ -39,8 +51,18 @@ class AIServiceBridge {
   }
 
   /**
-   * Stop indexing
-   * Cleanup method for consistency with previous IPC implementation
+   * Stop the current indexing process and clean up resources.
+   * 
+   * This method resets the indexing state and clears the current project root.
+   * Useful for cleanup when switching projects or canceling indexing.
+   * 
+   * @returns A promise that resolves when cleanup is complete
+   * 
+   * @example
+   * ```typescript
+   * await aiServiceBridge.stopIndexing();
+   * console.log('Indexing stopped');
+   * ```
    */
   async stopIndexing(): Promise<void> {
     console.log('Stopping project indexing');
@@ -49,8 +71,22 @@ class AIServiceBridge {
   }
 
   /**
-   * Create an execution plan from a natural language prompt
-   * Uses LLM to generate structured steps
+   * Create an execution plan from a natural language prompt.
+   * 
+   * Uses LLM to generate structured, step-by-step plans for accomplishing tasks.
+   * The plan includes project context for better understanding and more accurate planning.
+   * Falls back to a mock plan if LLM is unavailable.
+   * 
+   * @param prompt - The natural language description of the task to plan
+   * @returns A promise that resolves to a PlanResponse containing the generated plan or error
+   * 
+   * @example
+   * ```typescript
+   * const response = await aiServiceBridge.createPlan('Add a login page with email and password');
+   * if (response.success && response.plan) {
+   *   console.log(`Plan has ${response.plan.steps.length} steps`);
+   * }
+   * ```
    */
   async createPlan(prompt: string): Promise<PlanResponse> {
     console.log('Creating plan for prompt:', prompt);
@@ -119,8 +155,20 @@ Keep the plan concise and actionable.
   }
 
   /**
-   * Structure a raw text idea into a formatted idea
-   * Uses LLM or simple text processing
+   * Structure a raw text idea into a formatted idea with title and summary.
+   * 
+   * Uses LLM to extract a concise title and summary from unstructured text.
+   * Falls back to simple text processing if LLM is unavailable.
+   * 
+   * @param rawText - The raw, unstructured idea text
+   * @returns A promise that resolves to a StructuredIdea with title and summary
+   * 
+   * @example
+   * ```typescript
+   * const idea = await aiServiceBridge.structureIdea('I want to build a todo app with React');
+   * console.log(`Title: ${idea.title}`);
+   * console.log(`Summary: ${idea.summary}`);
+   * ```
    */
   async structureIdea(rawText: string): Promise<StructuredIdea> {
     console.log('Structuring idea from raw text');
@@ -243,22 +291,61 @@ Return a JSON object with:
   }
 
   /**
-   * Check if indexing is currently active
+   * Check if project indexing is currently active.
+   * 
+   * @returns True if indexing is in progress, false otherwise
+   * 
+   * @example
+   * ```typescript
+   * if (aiServiceBridge.isIndexing()) {
+   *   console.log('Indexing in progress...');
+   * }
+   * ```
    */
   isIndexing(): boolean {
     return this.indexingActive;
   }
 
   /**
-   * Get current project root being indexed
+   * Get the current project root path being indexed.
+   * 
+   * @returns The project root path if indexing is active, null otherwise
+   * 
+   * @example
+   * ```typescript
+   * const projectRoot = aiServiceBridge.getCurrentProjectRoot();
+   * if (projectRoot) {
+   *   console.log(`Indexing project at: ${projectRoot}`);
+   * }
+   * ```
    */
   getCurrentProjectRoot(): string | null {
     return this.currentProjectRoot;
   }
 
   /**
-   * Turbo Edit: Generate code changes from natural language instruction
-   * Returns the edited code with a diff preview
+   * Turbo Edit: Generate code changes from a natural language instruction.
+   * 
+   * Uses LLM to modify code based on user instructions, returning the edited code
+   * along with a diff showing what changed. Includes project context for better understanding.
+   * 
+   * @param selectedCode - The code to be edited
+   * @param instruction - Natural language instruction describing the desired changes
+   * @param filePath - Optional file path for context-aware editing
+   * @returns A promise that resolves to an object containing success status, edited code, diff, or error
+   * 
+   * @example
+   * ```typescript
+   * const result = await aiServiceBridge.turboEdit(
+   *   'function add(a, b) { return a + b; }',
+   *   'Add input validation to check if both parameters are numbers',
+   *   'src/utils/math.ts'
+   * );
+   * if (result.success && result.editedCode) {
+   *   console.log('Edited code:', result.editedCode);
+   *   console.log('Diff:', result.diff);
+   * }
+   * ```
    */
   async turboEdit(selectedCode: string, instruction: string, filePath?: string): Promise<{
     success: boolean;

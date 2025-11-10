@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo, useCallback } from 'react';
 import { useActivityStore } from '../../services/activity/activityStore';
 import { useProjectStore } from '../../services/project/projectStore';
 import ActivityItem from './ActivityItem';
@@ -7,7 +7,7 @@ import TechIcon from '../Icons/TechIcon';
 import { Filter } from 'lucide-react';
 import '../../styles/ActivityFeed.css';
 
-const ActivityFeed = () => {
+const ActivityFeed = memo(() => {
   const activities = useActivityStore((state) => state.activities);
   const { activeProject } = useProjectStore();
   const [filterMode, setFilterMode] = useState<'all' | 'errors' | 'project'>(
@@ -45,6 +45,10 @@ const ActivityFeed = () => {
     return filtered;
   }, [activities, filterMode, activeProject]);
 
+  const handleFilterChange = useCallback((mode: 'all' | 'errors' | 'project') => {
+    setFilterMode(mode);
+  }, []);
+
   return (
     <div className="activity-feed-container redesigned">
       <div className="feed-header">
@@ -52,21 +56,21 @@ const ActivityFeed = () => {
         <div className="filter-buttons">
           <button
             className={`filter-toggle ${filterMode === 'all' ? 'active' : ''}`}
-            onClick={() => setFilterMode('all')}
+            onClick={() => handleFilterChange('all')}
           >
             All
           </button>
           {activeProject && (
             <button
               className={`filter-toggle ${filterMode === 'project' ? 'active' : ''}`}
-              onClick={() => setFilterMode('project')}
+              onClick={() => handleFilterChange('project')}
             >
               {activeProject.name}
             </button>
           )}
           <button
             className={`filter-toggle ${filterMode === 'errors' ? 'active' : ''}`}
-            onClick={() => setFilterMode('errors')}
+            onClick={() => handleFilterChange('errors')}
           >
             Errors
             {errorCount > 0 && (
@@ -95,6 +99,8 @@ const ActivityFeed = () => {
       </div>
     </div>
   );
-};
+});
+
+ActivityFeed.displayName = 'ActivityFeed';
 
 export default ActivityFeed;

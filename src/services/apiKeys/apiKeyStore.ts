@@ -22,7 +22,8 @@ export const useAPIKeyStore = create<APIKeyStore>((set) => ({
   loadKeys: async () => {
     set({ isLoading: true, error: null });
     try {
-      const keys = apiKeyService.getAllKeys();
+      // Use async version to ensure initialization is complete
+      const keys = await apiKeyService.getAllKeysAsync();
       set({ keys, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
@@ -33,7 +34,8 @@ export const useAPIKeyStore = create<APIKeyStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await apiKeyService.addKey(provider, key, name);
-      const keys = apiKeyService.getAllKeys();
+      // Use async version to ensure we get the latest keys
+      const keys = await apiKeyService.getAllKeysAsync();
       set({ keys, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
@@ -44,7 +46,8 @@ export const useAPIKeyStore = create<APIKeyStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await apiKeyService.updateKey(id, updates);
-      const keys = apiKeyService.getAllKeys();
+      // Use async version to ensure we get the latest keys
+      const keys = await apiKeyService.getAllKeysAsync();
       set({ keys, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
@@ -55,7 +58,8 @@ export const useAPIKeyStore = create<APIKeyStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await apiKeyService.deleteKey(id);
-      const keys = apiKeyService.getAllKeys();
+      // Use async version to ensure we get the latest keys
+      const keys = await apiKeyService.getAllKeysAsync();
       set({ keys, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });

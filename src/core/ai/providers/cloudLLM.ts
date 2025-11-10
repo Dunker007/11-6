@@ -8,15 +8,17 @@ export class GeminiProvider implements LLMProvider {
   private apiKey: string | null = null;
 
   constructor() {
-    this.loadAPIKey();
+    // Don't load synchronously - will be loaded on first async call
+    // This prevents race condition with API key initialization
   }
 
-  private loadAPIKey(): void {
-    this.apiKey = apiKeyService.getKeyForProvider('gemini');
+  private async loadAPIKey(): Promise<void> {
+    await apiKeyService.ensureInitialized();
+    this.apiKey = await apiKeyService.getKeyForProviderAsync('gemini');
   }
 
   async healthCheck(): Promise<boolean> {
-    this.loadAPIKey();
+    await this.loadAPIKey();
     return this.apiKey !== null && this.apiKey.length > 0;
   }
 
@@ -41,7 +43,7 @@ export class GeminiProvider implements LLMProvider {
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse> {
-    this.loadAPIKey();
+    await this.loadAPIKey();
     if (!this.apiKey) {
       throw new Error('Gemini API key not configured');
     }
@@ -87,7 +89,7 @@ export class GeminiProvider implements LLMProvider {
   }
 
   async *streamGenerate(prompt: string, options?: GenerateOptions): AsyncGenerator<StreamChunk> {
-    this.loadAPIKey();
+    await this.loadAPIKey();
     if (!this.apiKey) {
       throw new Error('Gemini API key not configured');
     }
@@ -174,15 +176,17 @@ export class NotebookLMProvider implements LLMProvider {
   private apiKey: string | null = null;
 
   constructor() {
-    this.loadAPIKey();
+    // Don't load synchronously - will be loaded on first async call
+    // This prevents race condition with API key initialization
   }
 
-  private loadAPIKey(): void {
-    this.apiKey = apiKeyService.getKeyForProvider('notebooklm');
+  private async loadAPIKey(): Promise<void> {
+    await apiKeyService.ensureInitialized();
+    this.apiKey = await apiKeyService.getKeyForProviderAsync('notebooklm');
   }
 
   async healthCheck(): Promise<boolean> {
-    this.loadAPIKey();
+    await this.loadAPIKey();
     return this.apiKey !== null && this.apiKey.length > 0;
   }
 
@@ -200,7 +204,7 @@ export class NotebookLMProvider implements LLMProvider {
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse> {
-    this.loadAPIKey();
+    await this.loadAPIKey();
     if (!this.apiKey) {
       throw new Error('NotebookLM API key not configured');
     }
@@ -234,7 +238,7 @@ export class NotebookLMProvider implements LLMProvider {
   }
 
   async *streamGenerate(prompt: string, options?: GenerateOptions): AsyncGenerator<StreamChunk> {
-    this.loadAPIKey();
+    await this.loadAPIKey();
     if (!this.apiKey) {
       throw new Error('NotebookLM API key not configured');
     }

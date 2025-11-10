@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
+import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
 import '../../styles/LLMStatus.css';
 
 function LLMStatus() {
@@ -16,10 +17,13 @@ function LLMStatus() {
     return () => clearInterval(interval);
   }, [discoverProviders]);
 
-  const handleRefresh = useCallback(async () => {
+  const handleRefreshInternal = useCallback(async () => {
     await discoverProviders();
     setLastChecked(new Date());
   }, [discoverProviders]);
+
+  // Debounce manual refresh button clicks (500ms delay)
+  const handleRefresh = useDebouncedCallback(handleRefreshInternal, 500);
 
   // Memoize model filtering to avoid recalculating on every render
   const modelGroups = useMemo(() => ({
