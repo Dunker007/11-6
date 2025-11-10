@@ -347,6 +347,68 @@ export class APIKeyService {
     return activeKey?.key || null;
   }
 
+  /**
+   * Get a global key for a provider, with fallback support.
+   * This allows services to share API keys (e.g., NotebookLM can use Gemini key).
+   * @param provider The provider to get key for
+   * @param fallbackProviders Optional array of providers to try as fallback
+   * @returns The API key string or null if not found
+   */
+  async getGlobalKey(provider: APIProvider, fallbackProviders?: APIProvider[]): Promise<string | null> {
+    await this.ensureInitialized();
+    
+    // Try primary provider first
+    let key = await this.getKeyForProviderAsync(provider);
+    if (key) return key;
+    
+    // Try fallback providers
+    if (fallbackProviders) {
+      for (const fallbackProvider of fallbackProviders) {
+        key = await this.getKeyForProviderAsync(fallbackProvider);
+        if (key) return key;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Record that a key was used by a service
+   * @param keyId The key ID
+   * @param serviceName The service that used the key
+   */
+  async recordKeyUsage(keyId: string, serviceName: string): Promise<void> {
+    await this.ensureInitialized();
+    const key = this.keys.get(keyId);
+    if (key) {
+      if (!key.metadata) {
+        key.metadata = {};
+      }
+      if (!key.metadata.usedBy) {
+        key.metadata.usedBy = [];
+      }
+      const usedBy = key.metadata.usedBy as string[];
+      if (!usedBy.includes(serviceName)) {
+        usedBy.push(serviceName);
+      }
+      this.keys.set(keyId, key);
+      await this.saveKeys();
+    }
+  }
+
+  /**
+   * Get all services that use a specific key
+   * @param keyId The key ID
+   * @returns Array of service names
+   */
+  getKeyUsage(keyId: string): string[] {
+    const key = this.keys.get(keyId);
+    if (key?.metadata?.usedBy) {
+      return key.metadata.usedBy as string[];
+    }
+    return [];
+  }
+
   async healthCheck(provider: APIProvider): Promise<boolean> {
     await this.ensureInitialized();
     

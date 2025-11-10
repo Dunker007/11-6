@@ -332,7 +332,7 @@ perf: Improve performance
 
 ## 📜 License
 
-Copyright © 2025 DLX Studios
+Copyright © 2025 DLXStudios.a1
 
 ---
 

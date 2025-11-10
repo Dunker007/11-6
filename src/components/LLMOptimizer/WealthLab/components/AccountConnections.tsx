@@ -3,41 +3,28 @@ import { useWealthStore } from '@/services/wealth/wealthStore';
 import { schwabService } from '@/services/wealth/schwabService';
 import { accountAggregationService } from '@/services/wealth/accountAggregationService';
 import { Link2, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
+import SecureInputModal from '@/components/shared/SecureInputModal';
 
 function AccountConnections() {
   const { accountConnections, addAccountConnection, updateAccountConnection, refresh } = useWealthStore();
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionType, setConnectionType] = useState<'schwab' | 'plaid' | 'yodlee' | 'manual' | null>(null);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [showApiSecretModal, setShowApiSecretModal] = useState(false);
+  const [apiKey, setApiKey] = useState<string>('');
 
   const handleConnectSchwab = useCallback(async () => {
     setIsConnecting(true);
     try {
       if (!schwabService.isConfigured()) {
-        // Show API key input modal (simplified - in production, use proper modal)
-        const apiKey = prompt('Enter Schwab API Key:');
-        const apiSecret = prompt('Enter Schwab API Secret:');
-        if (apiKey && apiSecret) {
-          const authenticated = await schwabService.authenticate(apiKey, apiSecret);
-          if (authenticated) {
-            const accounts = await schwabService.getAccounts();
-            // Add connection
-            addAccountConnection({
-              institution: 'Charles Schwab',
-              provider: 'schwab',
-              status: 'connected',
-              lastSynced: new Date(),
-              accountIds: accounts.map((acc) => acc.accountNumber),
-            });
-            refresh();
-          }
-        }
+        // Show secure API key input modal
+        setShowApiKeyModal(true);
       } else {
         // Sync existing connection
         await schwabService.getAccounts();
         updateAccountConnection(accountConnections[0]?.id || '', {
           status: 'syncing',
         });
-        // Update accounts in store
         refresh();
         updateAccountConnection(accountConnections[0]?.id || '', {
           status: 'connected',
@@ -49,42 +36,56 @@ function AccountConnections() {
       if (accountConnections.length > 0) {
         updateAccountConnection(accountConnections[0].id, {
           status: 'error',
+        });
+      }
+    } finally {
+      setIsConnecting(false);
+    }
+  }, [accountConnections, addAccountConnection, updateAccountConnection, refresh]);
+
+  const handleApiKeyConfirm = useCallback(async (key: string) => {
+    setApiKey(key);
+    setShowApiKeyModal(false);
+    setShowApiSecretModal(true);
+  }, []);
+
+  const handleApiSecretConfirm = useCallback(async (secret: string) => {
+    setIsConnecting(true);
+    try {
+      if (apiKey && secret) {
+        const authenticated = await schwabService.authenticate(apiKey, secret);
+        if (authenticated) {
+          const accounts = await schwabService.getAccounts();
+          addAccountConnection({
+            institution: 'Charles Schwab',
+            provider: 'schwab',
+            status: 'connected',
+            lastSynced: new Date(),
+            accountIds: accounts.map((acc) => acc.accountNumber),
+          });
+          refresh();
+        }
+      }
+      setApiKey('');
+      setShowApiSecretModal(false);
+    } catch (error) {
+      console.error('Failed to authenticate Schwab:', error);
+      if (accountConnections.length > 0) {
+        updateAccountConnection(accountConnections[0].id, {
+          status: 'error',
           errorMessage: (error as Error).message,
         });
       }
     } finally {
       setIsConnecting(false);
-      setConnectionType(null);
     }
-  }, [accountConnections, addAccountConnection, updateAccountConnection, refresh]);
+  }, [apiKey, addAccountConnection, refresh, accountConnections, updateAccountConnection]);
 
   const handleConnectPlaid = useCallback(async () => {
-    setIsConnecting(true);
-    try {
-      // In production, this would open Plaid Link
-      const clientId = prompt('Enter Plaid Client ID:');
-      const secret = prompt('Enter Plaid Secret:');
-      if (clientId && secret) {
-        const connected = await accountAggregationService.connectPlaid(clientId, secret);
-        if (connected) {
-          const accounts = await accountAggregationService.getAccounts();
-          addAccountConnection({
-            institution: 'Plaid',
-            provider: 'plaid',
-            status: 'connected',
-            lastSynced: new Date(),
-            accountIds: accounts.map((acc) => acc.id),
-          });
-          refresh();
-        }
-      }
-    } catch (error) {
-      console.error('Failed to connect Plaid:', error);
-    } finally {
-      setIsConnecting(false);
-      setConnectionType(null);
-    }
-  }, [addAccountConnection, refresh]);
+    // Note: Plaid integration should use Plaid Link SDK in production
+    // For now, this is a placeholder that would need secure input modals similar to Schwab
+    alert('Plaid integration requires Plaid Link SDK. This feature is not yet implemented.');
+  }, []);
 
   const handleManualAccount = useCallback(() => {
     setConnectionType('manual');
@@ -187,6 +188,31 @@ function AccountConnections() {
           onCancel={() => setConnectionType(null)}
         />
       )}
+
+      {/* Secure input modals for API credentials */}
+      <SecureInputModal
+        isOpen={showApiKeyModal}
+        onClose={() => {
+          setShowApiKeyModal(false);
+          setIsConnecting(false);
+        }}
+        onConfirm={handleApiKeyConfirm}
+        title="Schwab API Configuration"
+        label="Enter Schwab API Key"
+        placeholder="API Key"
+      />
+      <SecureInputModal
+        isOpen={showApiSecretModal}
+        onClose={() => {
+          setShowApiSecretModal(false);
+          setApiKey('');
+          setIsConnecting(false);
+        }}
+        onConfirm={handleApiSecretConfirm}
+        title="Schwab API Configuration"
+        label="Enter Schwab API Secret"
+        placeholder="API Secret"
+      />
     </div>
   );
 }

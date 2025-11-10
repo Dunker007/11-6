@@ -4,9 +4,11 @@ import { useProjectStore } from '../../services/project/projectStore';
 import { projectKnowledgeService } from '../../services/ai/projectKnowledgeService';
 import { multiFileContextService } from '../../services/ai/multiFileContextService';
 import { useAgentStore } from '../../services/agents/agentStore';
+import { agentMemoryService } from '../../services/agents/agentMemoryService';
 import EdAvatar from '../Agents/EdAvatar';
 import TechIcon from '../Icons/TechIcon';
 import { Send, Sparkles, Copy, Check, Code, Lightbulb } from 'lucide-react';
+import { Button, Textarea } from '../ui';
 import '../../styles/AIAssistant.css';
 
 interface Message {
@@ -20,6 +22,7 @@ function AIAssistant() {
   const { streamGenerate, isLoading } = useLLMStore();
   const { activeProject, getFileContent, activeFile } = useProjectStore();
   const { setEdStatus } = useAgentStore();
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -35,6 +38,36 @@ function AIAssistant() {
   const [proactiveSuggestions, setProactiveSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Load conversation from memory on mount
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (activeProject) {
+        const conversations = await agentMemoryService.searchConversations({
+          agent: 'vibed-ed',
+          projectId: activeProject.id,
+          limit: 1,
+        });
+        
+        if (conversations.length > 0) {
+          const conv = conversations[0];
+          setConversationId(conv.id);
+          setMessages(conv.messages.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            timestamp: msg.timestamp,
+          })));
+        } else {
+          // Create new conversation
+          const newConv = await agentMemoryService.createConversation('vibed-ed', activeProject.id);
+          setConversationId(newConv.id);
+        }
+      }
+    };
+    
+    loadConversation();
+  }, [activeProject?.id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -219,6 +252,27 @@ function AIAssistant() {
       }
       
       setEdStatus('success');
+      
+      // Save messages to memory
+      if (conversationId) {
+        await agentMemoryService.addMessage(conversationId, {
+          id: userMessage.id,
+          role: 'user',
+          content: userMessage.content,
+          timestamp: userMessage.timestamp,
+          agent: 'vibed-ed',
+          projectId: activeProject?.id,
+        });
+        
+        await agentMemoryService.addMessage(conversationId, {
+          id: assistantMessage.id,
+          role: 'assistant',
+          content: fullContent,
+          timestamp: assistantMessage.timestamp,
+          agent: 'vibed-ed',
+          projectId: activeProject?.id,
+        });
+      }
     } catch (error) {
       setEdStatus('error');
       const errorMessage: Message = {
@@ -282,33 +336,36 @@ function AIAssistant() {
       </div>
 
       <div className="quick-actions">
-        <button
-          className="quick-action-btn"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => handleQuickAction('explain')}
           disabled={!activeFile}
           title="Explain this code"
+          leftIcon={Code}
         >
-          <TechIcon icon={Code} size={14} glow="none" />
-          <span>Explain</span>
-        </button>
-        <button
-          className="quick-action-btn"
+          Explain
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => handleQuickAction('refactor')}
           disabled={!activeFile}
           title="Suggest improvements"
+          leftIcon={Sparkles}
         >
-          <TechIcon icon={Sparkles} size={14} glow="none" />
-          <span>Refactor</span>
-        </button>
-        <button
-          className="quick-action-btn"
+          Refactor
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => handleQuickAction('fix')}
           disabled={!activeFile}
           title="Find and fix bugs"
+          leftIcon={Code}
         >
-          <TechIcon icon={Code} size={14} glow="none" />
-          <span>Fix</span>
-        </button>
+          Fix
+        </Button>
       </div>
 
       <div className="messages-container">
@@ -320,8 +377,10 @@ function AIAssistant() {
             </div>
             <div className="suggestions-list">
               {proactiveSuggestions.map((suggestion, idx) => (
-                <button
+                <Button
                   key={idx}
+                  variant="ghost"
+                  size="sm"
                   className="suggestion-chip"
                   onClick={() => {
                     setInput(suggestion);
@@ -329,7 +388,7 @@ function AIAssistant() {
                   }}
                 >
                   {suggestion}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -351,20 +410,18 @@ function AIAssistant() {
                       <div key={index} className="code-block-wrapper">
                         <div className="code-block-header">
                           <TechIcon icon={Code} size={14} glow="none" />
-                          <button
-                            className="copy-code-btn"
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleCopyCode(message.id, part)}
+                            title="Copy code"
                           >
-                            <TechIcon
-                              icon={
-                                copiedMessageId === message.id ? Check : Copy
-                              }
-                              size={14}
-                              glow={
-                                copiedMessageId === message.id ? 'cyan' : 'none'
-                              }
-                            />
-                          </button>
+                            {copiedMessageId === message.id ? (
+                              <Check size={14} />
+                            ) : (
+                              <Copy size={14} />
+                            )}
+                          </Button>
                         </div>
                         <pre className="code-block">
                           <code>{part}</code>
@@ -407,29 +464,27 @@ function AIAssistant() {
         <div className="ed-avatar-container">
           <EdAvatar size="md" animated={true} />
         </div>
-        <textarea
+        <Textarea
           ref={inputRef}
-          className="message-input"
           placeholder="Ask Ed anything... (Shift+Enter for new line)"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
           rows={3}
           disabled={isLoading || isStreaming}
+          className="message-input"
+          fullWidth
         />
-        <button
-          className="send-button"
+        <Button
+          variant="primary"
           onClick={handleSend}
           disabled={!input.trim() || isLoading || isStreaming}
+          isLoading={isStreaming || isLoading}
           title="Send message"
+          leftIcon={Send}
         >
-          <TechIcon
-            icon={Send}
-            size={18}
-            glow={input.trim() && !isLoading && !isStreaming ? 'cyan' : 'none'}
-            animated={isStreaming || isLoading}
-          />
-        </button>
+          Send
+        </Button>
       </div>
     </div>
   );

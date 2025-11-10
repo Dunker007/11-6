@@ -190,7 +190,8 @@ export class NotebookLMProvider implements LLMProvider {
 
   private async loadAPIKey(): Promise<void> {
     await apiKeyService.ensureInitialized();
-    this.apiKey = await apiKeyService.getKeyForProviderAsync('notebooklm');
+    // Try NotebookLM key first, fallback to Gemini (same API)
+    this.apiKey = await apiKeyService.getGlobalKey('notebooklm', ['gemini']);
   }
 
   async healthCheck(): Promise<boolean> {
@@ -214,46 +215,130 @@ export class NotebookLMProvider implements LLMProvider {
   async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse> {
     await this.loadAPIKey();
     if (!this.apiKey) {
-      throw new Error('NotebookLM API key not configured');
+      throw new Error('NotebookLM API key not configured. Please configure NotebookLM or Gemini API key.');
     }
 
-    // Note: NotebookLM API endpoints may vary - this is a placeholder structure
-    // Adjust based on actual NotebookLM API documentation
-    const url = 'https://notebooklm.googleapis.com/v1/generate';
+    // NotebookLM uses the same API as Gemini, so we can use Gemini endpoints
+    // If user has a specific NotebookLM endpoint, it would be configured here
+    const model = options?.model || 'gemini-2.0-flash-exp';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
-        prompt,
-        temperature: options?.temperature ?? 0.91,
-        maxTokens: options?.maxTokens ?? 2048,
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: options?.temperature ?? 0.91,
+          maxOutputTokens: options?.maxTokens ?? 2048,
+        },
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`NotebookLM API error: ${response.statusText}`);
+      const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
+      throw new Error(`NotebookLM API error: ${error.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
     return {
-      text: data.text || '',
-      tokensUsed: data.tokensUsed,
+      text,
+      tokensUsed: data.usageMetadata?.totalTokenCount,
+      finishReason: data.candidates?.[0]?.finishReason,
     };
   }
 
   async *streamGenerate(prompt: string, options?: GenerateOptions): AsyncGenerator<StreamChunk> {
     await this.loadAPIKey();
     if (!this.apiKey) {
-      throw new Error('NotebookLM API key not configured');
+      throw new Error('NotebookLM API key not configured. Please configure NotebookLM or Gemini API key.');
     }
 
-    // Placeholder - adjust based on actual NotebookLM streaming API
-    const response = await this.generate(prompt, options);
-    yield { text: response.text, done: true };
+    // Use Gemini streaming API (same as NotebookLM)
+    const model = options?.model || 'gemini-2.0-flash-exp';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${this.apiKey}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: options?.temperature ?? 0.91,
+          maxOutputTokens: options?.maxTokens ?? 2048,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
+      throw new Error(`NotebookLM API error: ${error.error?.message || response.statusText}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('Failed to get response stream');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.slice(6);
+            if (jsonStr === '[DONE]') {
+              yield { text: '', done: true };
+              return;
+            }
+
+            try {
+              const data = JSON.parse(jsonStr);
+              const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              if (text) {
+                yield { text, done: false };
+              }
+            } catch {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    yield { text: '', done: true };
   }
 }
 

@@ -33,12 +33,18 @@ function WorkflowRunner({ workflowId, onComplete, onError }: WorkflowRunnerProps
 
   useEffect(() => {
     refreshWorkflows();
+    
+    // Only poll when there are running workflows to reduce resource consumption
+    const hasRunningWorkflows = workflows.some(w => w.status === 'running');
+    if (!hasRunningWorkflows) return;
+
+    // Use 5 second interval instead of 1 second to reduce CPU/battery usage
     const interval = setInterval(() => {
       refreshWorkflows();
-    }, 1000); // Refresh every second to update progress
+    }, 5000); // Refresh every 5 seconds instead of 1 second
 
     return () => clearInterval(interval);
-  }, [refreshWorkflows]);
+  }, [refreshWorkflows, workflows]);
 
   useEffect(() => {
     if (workflowId) {

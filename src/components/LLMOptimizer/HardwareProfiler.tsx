@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
-import { Cpu, HardDrive, MonitorDot, RefreshCw, Save, XCircle, Wrench, CheckCircle, X } from 'lucide-react';
+import { Cpu, HardDrive, MonitorDot, RefreshCw, Save, XCircle, Wrench, CheckCircle, X, Database } from 'lucide-react';
 import { useLLMOptimizerStore } from '@/services/ai/llmOptimizerStore';
 import { llmOptimizerService } from '@/services/ai/llmOptimizerService';
-import type { HardwareProfile, DevToolsStatus } from '@/types/optimizer';
+import type { HardwareProfile, DevToolsStatus, StorageDriversStatus } from '@/types/optimizer';
 import '../../styles/LLMOptimizer.css';
 
 const formatNumber = (value: number | null | undefined, unit = ''): string => {
@@ -21,6 +21,8 @@ const HardwareProfiler = () => {
   const [overrideDraft, setOverrideDraft] = useState<Partial<HardwareProfile>>({});
   const [devToolsStatus, setDevToolsStatus] = useState<DevToolsStatus | null>(null);
   const [isDetectingDevTools, setIsDetectingDevTools] = useState(false);
+  const [storageDriversStatus, setStorageDriversStatus] = useState<StorageDriversStatus | null>(null);
+  const [isDetectingStorage, setIsDetectingStorage] = useState(false);
 
   useEffect(() => {
     const loadDevTools = async () => {
@@ -35,6 +37,19 @@ const HardwareProfiler = () => {
       }
     };
     loadDevTools();
+
+    const loadStorageDrivers = async () => {
+      setIsDetectingStorage(true);
+      try {
+        const status = await llmOptimizerService.detectStorageDrivers();
+        setStorageDriversStatus(status);
+      } catch {
+        // Ignore errors
+      } finally {
+        setIsDetectingStorage(false);
+      }
+    };
+    loadStorageDrivers();
   }, []);
 
   const hasOverrideChanges = useMemo(() => {
@@ -282,6 +297,81 @@ const HardwareProfiler = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {storageDriversStatus && (storageDriversStatus.controllers.length > 0 || storageDriversStatus.drivers.length > 0) && (
+        <div className="dev-tools-section">
+          <div className="dev-tools-header">
+            <Database size={18} />
+            <h4>Storage Controllers & Drivers</h4>
+            <button
+              className="hp-action-button subtle"
+              onClick={async () => {
+                setIsDetectingStorage(true);
+                try {
+                  const status = await llmOptimizerService.detectStorageDrivers();
+                  setStorageDriversStatus(status);
+                } finally {
+                  setIsDetectingStorage(false);
+                }
+              }}
+              disabled={isDetectingStorage}
+              title="Refresh storage detection"
+            >
+              <RefreshCw size={14} className={isDetectingStorage ? 'spinning' : ''} />
+            </button>
+          </div>
+          {storageDriversStatus.controllers.length > 0 && (
+            <div className="dev-tools-list" style={{ marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                CONTROLLERS
+              </div>
+              {storageDriversStatus.controllers.map((controller, idx) => (
+                <div key={idx} className={`dev-tool-item ${controller.driverInstalled ? 'installed' : 'missing'}`}>
+                  <div className="dev-tool-status">
+                    {controller.driverInstalled ? (
+                      <CheckCircle size={14} className="success-icon" />
+                    ) : (
+                      <X size={14} className="error-icon" />
+                    )}
+                  </div>
+                  <div className="dev-tool-info">
+                    <span className="dev-tool-name">{controller.name}</span>
+                    <span className="dev-tool-version">{controller.type}</span>
+                    {controller.model && <span className="dev-tool-version">{controller.model}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {storageDriversStatus.drivers.length > 0 && (
+            <div className="dev-tools-list">
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                DRIVERS
+              </div>
+              {storageDriversStatus.drivers.map((driver, idx) => (
+                <div key={idx} className={`dev-tool-item ${driver.installed ? 'installed' : 'missing'}`}>
+                  <div className="dev-tool-status">
+                    {driver.installed ? (
+                      <CheckCircle size={14} className="success-icon" />
+                    ) : (
+                      <X size={14} className="error-icon" />
+                    )}
+                  </div>
+                  <div className="dev-tool-info">
+                    <span className="dev-tool-name">{driver.name}</span>
+                    {driver.version && <span className="dev-tool-version">{driver.version}</span>}
+                    {driver.description && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
+                        {driver.description}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

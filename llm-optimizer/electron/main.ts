@@ -330,54 +330,30 @@ ipcMain.handle('clean-cache', async () => {
   const cachePaths = [
     path.join(homeDir, 'AppData', 'Local', 'npm-cache'),
     path.join(homeDir, 'AppData', 'Local', 'pip', 'cache'),
-    path.join(homeDir, 'AppData', 'Local', 'Google', 'Chrome', 'User Data', 'Default', 'Cache'),
-    path.join(homeDir, 'AppData', 'Local', 'Microsoft', 'Edge', 'User Data', 'Default', 'Cache'),
+    // Removed browser cache paths - these should be cleared via browser APIs, not direct filesystem manipulation
   ];
 
   let filesDeleted = 0;
   let spaceFreed = 0;
   const errors: string[] = [];
 
-  // Clean npm cache via command
+  // Clean npm cache via command (safe - uses npm's own API)
   try {
     await execAsync('npm cache clean --force');
   } catch (err) {
     errors.push(`npm cache clean failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
   }
 
-  // Clean pip cache via command
+  // Clean pip cache via command (safe - uses pip's own API)
   try {
     await execAsync('pip cache purge');
   } catch (err) {
-    // pip might not be installed
+    // pip might not be installed - this is fine
   }
 
-  // Clean browser caches
-  for (const cachePath of cachePaths) {
-    try {
-      await fs.access(cachePath);
-      const entries = await fs.readdir(cachePath, { withFileTypes: true });
-      
-      for (const entry of entries) {
-        const fullPath = path.join(cachePath, entry.name);
-        try {
-          const stats = await fs.stat(fullPath);
-          if (entry.isDirectory()) {
-            await fs.rmdir(fullPath, { recursive: true });
-          } else {
-            await fs.unlink(fullPath);
-          }
-          filesDeleted++;
-          spaceFreed += stats.size;
-        } catch (err) {
-          errors.push(`Failed to delete ${fullPath}: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        }
-      }
-    } catch {
-      // Cache path doesn't exist
-      continue;
-    }
-  }
+  // Only clean npm and pip caches via their official commands
+  // Browser caches should be cleared through browser settings or APIs, not direct filesystem access
+  // Direct deletion of browser cache files can cause corruption and crashes
 
   return { filesDeleted, spaceFreed, errors };
 });

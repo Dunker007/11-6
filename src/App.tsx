@@ -3,6 +3,7 @@ import LLMRevenueCommandCenter from './components/LLMOptimizer/LLMRevenueCommand
 import UpdateNotification from './components/System/UpdateNotification';
 import WindowControls from './components/System/WindowControls';
 import ItorToolbar from './components/Agents/ItorToolbar';
+import { ToastProvider } from './components/ui';
 import { errorLogger } from './services/errors/errorLogger';
 import { useProjectStore } from './services/project/projectStore';
 import './services/theme/themeService'; // Initialize theme on import
@@ -285,16 +286,18 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
-        <div className="title-bar-draggable">
-          <WindowControls />
+    <ToastProvider>
+      <ErrorBoundary>
+        <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative', background: 'var(--bg-primary-gradient)' }}>
+          <div className="title-bar-draggable">
+            <WindowControls />
+          </div>
           <ItorToolbar />
+          <LLMRevenueCommandCenter />
+          <UpdateNotification />
         </div>
-        <LLMRevenueCommandCenter />
-        <UpdateNotification />
-      </div>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </ToastProvider>
   );
 }
 

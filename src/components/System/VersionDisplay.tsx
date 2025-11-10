@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useVersionStore } from '../../services/system/versionStore';
 import { RefreshCw } from 'lucide-react';
 import '../../styles/VersionDisplay.css';
@@ -10,9 +10,9 @@ function VersionDisplay() {
   useEffect(() => {
     loadAppVersion();
     loadComponentVersions();
-  }, []);
+  }, [loadAppVersion, loadComponentVersions]);
 
-  const handleCheckForUpdates = async () => {
+  const handleCheckForUpdates = useCallback(async () => {
     if (typeof window === 'undefined' || !(window as any).updater) {
       return;
     }
@@ -21,11 +21,22 @@ function VersionDisplay() {
     try {
       await (window as any).updater.check();
     } catch (error) {
-      console.error('Failed to check for updates:', error);
+      // Error logging handled by errorLogger service
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to check for updates:', error);
+      }
     } finally {
       setIsCheckingUpdate(false);
     }
-  };
+  }, []);
+
+  const formattedBuildDate = useMemo(() => {
+    return appVersion?.buildDate?.toLocaleDateString() ?? null;
+  }, [appVersion?.buildDate]);
+
+  const hasUpdater = useMemo(() => {
+    return typeof window !== 'undefined' && (window as any).updater;
+  }, []);
 
   if (!appVersion) {
     return null;
@@ -37,12 +48,12 @@ function VersionDisplay() {
         <span className="version-label">Version</span>
         <span className="version-number">{appVersion.version}</span>
       </div>
-      {appVersion.buildDate && (
+      {formattedBuildDate && (
         <div className="version-meta">
           <span className="version-date">
-            Built {appVersion.buildDate.toLocaleDateString()}
+            Built {formattedBuildDate}
           </span>
-          {typeof window !== 'undefined' && (window as any).updater && (
+          {hasUpdater && (
             <button
               className="version-check-update"
               onClick={handleCheckForUpdates}

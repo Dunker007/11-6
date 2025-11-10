@@ -1,17 +1,19 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { Zap, TrendingUp, BarChart3, Settings, DollarSign, TrendingDown, Code, Bitcoin, Lightbulb, FolderPlus, Rocket, Activity, Play } from 'lucide-react';
+import { Zap, TrendingUp, BarChart3, Settings as SettingsIcon, DollarSign, TrendingDown, Code, Bitcoin, Lightbulb, FolderPlus, Rocket, Activity, Play } from 'lucide-react';
 import { useLLMOptimizerStore } from '@/services/ai/llmOptimizerStore';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { useFinancialStore } from '@/services/backoffice/financialStore';
-import { useLocalStorage } from '@/utils/hooks/useLocalStorage';
+import { CommandPalette, useCommandPalette } from '@/components/ui';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import ConnectionStatusBar from './ConnectionStatusBar';
 import HardwareProfiler from './HardwareProfiler';
 import ModelCatalog from './ModelCatalog';
 import SystemHealth from './SystemHealth';
-import CommandHub from '../CommandHub/CommandHub';
 import '../../styles/LLMOptimizer.css';
 import '../../styles/LayoutMockups.css';
+import '../../styles/ui/Navigation.css';
+import '../../styles/ui/Accessibility.css';
+import '../../styles/ui/Responsive.css';
 
 // Lazy load heavy components
 const IdeaLab = lazy(() => import('./IdeaLab'));
@@ -29,53 +31,16 @@ const MonetizeWorkflow = lazy(() => import('../Workflows/MonetizeWorkflow'));
 // Lazy load Quick Labs
 const QuickLabs = lazy(() => import('../QuickLabs/QuickLabs'));
 
-type TabType = 'llm' | 'revenue' | 'vibed-ed' | 'crypto-lab' | 'wealth-lab' | 'idea-lab' | 'workflows' | 'quick-labs';
+// Lazy load Settings
+const Settings = lazy(() => import('../Settings/Settings'));
+
+type TabType = 'llm' | 'revenue' | 'vibed-ed' | 'crypto-lab' | 'wealth-lab' | 'idea-lab' | 'workflows' | 'quick-labs' | 'settings';
 type WorkflowType = 'project' | 'build' | 'deploy' | 'monitor' | 'monetize' | null;
 
 function LLMRevenueCommandCenter() {
   const [activeTab, setActiveTab] = useState<TabType>('llm');
   const [activeWorkflow, setActiveWorkflow] = useState<WorkflowType>(null);
-  // Read Command Hub collapsed state to adjust container width
-  const [isCommandHubCollapsed] = useLocalStorage<boolean>('commandHubCollapsed', true);
-  
-  // Detect screen size for responsive Command Hub width
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
-  
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenWidth(window.innerWidth);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  // Calculate Command Hub width based on screen size and collapsed state
-  const commandHubWidth = useMemo(() => {
-    if (screenWidth <= 480) {
-      return isCommandHubCollapsed ? 50 : 200;
-    } else if (screenWidth <= 768) {
-      return isCommandHubCollapsed ? 60 : 240;
-    } else if (screenWidth <= 1024) {
-      return isCommandHubCollapsed ? 70 : 280;
-    } else {
-      return isCommandHubCollapsed ? 80 : 320;
-    }
-  }, [isCommandHubCollapsed, screenWidth]);
-  
-  // Calculate container width and margin based on Command Hub state
-  const containerStyle = useMemo(() => ({
-    minHeight: '100vh',
-    width: `calc(100vw - ${commandHubWidth}px)`,
-    marginRight: `${commandHubWidth}px`,
-    display: 'flex',
-    flexDirection: 'column' as const,
-    backgroundColor: 'var(--bg-primary)',
-    color: 'var(--text-primary)',
-    position: 'relative' as const,
-    overflow: 'hidden' as const,
-    transition: 'width 0.3s ease, margin-right 0.3s ease',
-  }), [commandHubWidth]);
+  const commandPalette = useCommandPalette();
   
   // LLM Store
   const discoverProviders = useLLMStore((state) => state.discoverProviders);
@@ -148,14 +113,70 @@ function LLMRevenueCommandCenter() {
       'idea-lab': 'Idea Lab',
       'workflows': 'Workflows',
       'quick-labs': 'Quick Labs',
+      'settings': 'Settings',
     };
     return names[tab];
   }, []);
+
+  // Tab configuration with shortcuts
+  const tabs: Array<{ id: TabType; icon: React.ReactNode; shortcut: string }> = useMemo(() => [
+    { id: 'llm', icon: <Zap size={18} />, shortcut: 'Alt+1' },
+    { id: 'revenue', icon: <DollarSign size={18} />, shortcut: 'Alt+2' },
+    { id: 'vibed-ed', icon: <Code size={18} />, shortcut: 'Alt+3' },
+    { id: 'crypto-lab', icon: <Bitcoin size={18} />, shortcut: 'Alt+4' },
+    { id: 'wealth-lab', icon: <TrendingUp size={18} />, shortcut: 'Alt+5' },
+    { id: 'idea-lab', icon: <Lightbulb size={18} />, shortcut: 'Alt+6' },
+    { id: 'workflows', icon: <Play size={18} />, shortcut: 'Alt+7' },
+    { id: 'quick-labs', icon: <Code size={18} />, shortcut: 'Alt+8' },
+    { id: 'settings', icon: <SettingsIcon size={18} />, shortcut: 'Alt+9' },
+  ], []);
 
   // Memoize tab change handler
   const handleTabChange = useCallback((tab: TabType) => {
     setActiveTab(tab);
   }, []);
+
+  // Keyboard navigation for tabs
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if not in input/textarea and not command palette
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      // Alt + number keys for quick tab switching (1-9)
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const tabs: TabType[] = ['llm', 'revenue', 'vibed-ed', 'crypto-lab', 'wealth-lab', 'idea-lab', 'workflows', 'quick-labs', 'settings'];
+        const key = e.key;
+        if (key >= '1' && key <= '9') {
+          const index = parseInt(key) - 1;
+          if (tabs[index]) {
+            e.preventDefault();
+            handleTabChange(tabs[index]);
+          }
+        }
+      }
+
+      // Arrow keys for tab navigation (when tab selector is focused)
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        const tabs: TabType[] = ['llm', 'revenue', 'vibed-ed', 'crypto-lab', 'wealth-lab', 'idea-lab', 'workflows', 'quick-labs', 'settings'];
+        const currentIndex = tabs.indexOf(activeTab);
+        if (currentIndex !== -1) {
+          if (e.key === 'ArrowLeft' && currentIndex > 0) {
+            e.preventDefault();
+            handleTabChange(tabs[currentIndex - 1]);
+          } else if (e.key === 'ArrowRight' && currentIndex < tabs.length - 1) {
+            e.preventDefault();
+            handleTabChange(tabs[currentIndex + 1]);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, handleTabChange]);
 
   // Refresh handler
   const handleRefresh = useCallback(() => {
@@ -172,70 +193,38 @@ function LLMRevenueCommandCenter() {
 
 
   return (
-    <div className="mockup-container llm-revenue-command-center" style={containerStyle}>
+    <div className="mockup-container llm-revenue-command-center">
+      {/* Skip Links */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <a href="#navigation" className="skip-link">
+        Skip to navigation
+      </a>
+      
       {/* Top Status Bar */}
       <div className="mockup-top-bar llm-revenue-bar">
-        <div className="tab-selector">
-          <button
-            className={`tab-btn-large ${activeTab === 'llm' ? 'active' : ''}`}
-            onClick={() => handleTabChange('llm')}
-          >
-            <Zap size={18} />
-            <span>LLM Optimization</span>
-          </button>
-          <button
-            className={`tab-btn-large ${activeTab === 'revenue' ? 'active' : ''}`}
-            onClick={() => handleTabChange('revenue')}
-          >
-            <DollarSign size={18} />
-            <span>Revenue & Monetization</span>
-          </button>
-          <button
-            className={`tab-btn-large ${activeTab === 'vibed-ed' ? 'active' : ''}`}
-            onClick={() => handleTabChange('vibed-ed')}
-          >
-            <Code size={18} />
-            <span>Vibed Ed</span>
-          </button>
-          <button
-            className={`tab-btn-large ${activeTab === 'crypto-lab' ? 'active' : ''}`}
-            onClick={() => handleTabChange('crypto-lab')}
-          >
-            <Bitcoin size={18} />
-            <span>Crypto Lab</span>
-          </button>
-          <button
-            className={`tab-btn-large ${activeTab === 'wealth-lab' ? 'active' : ''}`}
-            onClick={() => handleTabChange('wealth-lab')}
-          >
-            <TrendingUp size={18} />
-            <span>Wealth Lab</span>
-          </button>
-          <button
-            className={`tab-btn-large ${activeTab === 'idea-lab' ? 'active' : ''}`}
-            onClick={() => handleTabChange('idea-lab')}
-          >
-            <Lightbulb size={18} />
-            <span>Idea Lab</span>
-          </button>
-          <button
-            className={`tab-btn-large ${activeTab === 'workflows' ? 'active' : ''}`}
-            onClick={() => handleTabChange('workflows')}
-          >
-            <Play size={18} />
-            <span>Workflows</span>
-          </button>
-          <button
-            className={`tab-btn-large ${activeTab === 'quick-labs' ? 'active' : ''}`}
-            onClick={() => handleTabChange('quick-labs')}
-          >
-            <Code size={18} />
-            <span>Quick Labs</span>
-          </button>
+        <div className="tab-selector" role="tablist" aria-label="Main navigation tabs" id="navigation">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`tab-btn-large ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => handleTabChange(tab.id)}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`tabpanel-${tab.id}`}
+              id={`tab-${tab.id}`}
+              tabIndex={activeTab === tab.id ? 0 : -1}
+            >
+              {tab.icon}
+              <span>{getTabName(tab.id)}</span>
+              <span className="tab-shortcut-hint" aria-label={tab.shortcut}>{tab.shortcut}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className={`mockup-main-layout llm-revenue-layout ${activeTab === 'idea-lab' || activeTab === 'crypto-lab' || activeTab === 'wealth-lab' || activeTab === 'vibed-ed' || activeTab === 'workflows' || activeTab === 'quick-labs' ? 'full-width-tab' : ''}`} style={{ position: 'relative', zIndex: 1 }}>
+      <div className={`mockup-main-layout llm-revenue-layout ${activeTab === 'idea-lab' || activeTab === 'crypto-lab' || activeTab === 'wealth-lab' || activeTab === 'vibed-ed' || activeTab === 'workflows' || activeTab === 'quick-labs' || activeTab === 'settings' ? 'full-width-tab' : ''}`} style={{ position: 'relative', zIndex: 1 }}>
         {/* Left Panel */}
         {activeTab === 'llm' && (
           <div className="mockup-sidebar left">
@@ -247,7 +236,7 @@ function LLMRevenueCommandCenter() {
         )}
 
         {/* Center - Main Dashboard */}
-        <div className="mockup-center">
+        <div className="mockup-center" role="tabpanel" id="main-content" aria-labelledby={`tab-${activeTab}`}>
           {activeTab === 'llm' && (
             <div className="connection-status-section">
               <h3 className="connection-status-heading">Connection Status</h3>
@@ -301,7 +290,7 @@ function LLMRevenueCommandCenter() {
                 <h2>Revenue Dashboard</h2>
                 <div className="dashboard-actions">
                   <button className="action-btn" onClick={handleRefresh}>
-                    <Settings size={16} />
+                    <SettingsIcon size={16} />
                     <span>Refresh Data</span>
                   </button>
                 </div>
@@ -442,6 +431,15 @@ function LLMRevenueCommandCenter() {
                 <QuickLabs />
               </Suspense>
             </ErrorBoundary>
+          ) : activeTab === 'settings' ? (
+            <ErrorBoundary sectionName="Settings">
+              <Suspense fallback={<div className="loading-state slide-up-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', gap: '0.75rem' }}>
+                <div className="loading-spinner" style={{ width: '20px', height: '20px', border: '2px solid rgba(139, 92, 246, 0.3)', borderTopColor: 'var(--violet-500)', borderRadius: '50%' }}></div>
+                <span>Loading Settings...</span>
+              </div>}>
+                <Settings />
+              </Suspense>
+            </ErrorBoundary>
           ) : (
             <div style={{ 
               display: 'flex', 
@@ -513,8 +511,12 @@ function LLMRevenueCommandCenter() {
         )}
       </div>
       
-      {/* Right Sidebar - Command Hub (always visible, fixed position) */}
-      <CommandHub />
+      {/* Command Palette */}
+      <CommandPalette
+        isOpen={commandPalette.isOpen}
+        onClose={commandPalette.close}
+        onNavigate={(tab) => handleTabChange(tab as TabType)}
+      />
     </div>
   );
 }

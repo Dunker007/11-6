@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, memo } from 'react';
 import { Filter, Info, Package, Search } from 'lucide-react';
 import { useDebounce } from '@/utils/hooks/useDebounce';
 import type { ModelCatalogEntry } from '@/types/optimizer';
@@ -107,5 +107,5 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
   );
 };
 
-export default ModelCatalog;
+export default memo(ModelCatalog);
 

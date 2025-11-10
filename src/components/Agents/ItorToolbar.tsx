@@ -1,20 +1,112 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAgentStore } from '@/services/agents/agentStore';
+import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
 import ItorAvatar from './ItorAvatar';
 import '../../styles/Agents.css';
 
 /**
  * Itor Toolbar Widget
- * Small hawk icon in top toolbar, always visible
+ * Floating, draggable hawk icon widget
  * Shows review status and issue count
  */
 function ItorToolbar() {
   const [showPopover, setShowPopover] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const dragRef = useRef<HTMLDivElement>(null);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  
   const itorStatus = useAgentStore((state) => state.itorStatus);
   const reviewCount = useAgentStore((state) => state.reviewCount);
   const issuesFound = useAgentStore((state) => state.issuesFound);
 
-  const getStatusColor = () => {
+  // Load saved position from localStorage
+  useEffect(() => {
+    const savedPosition = localStorage.getItem('itor-toolbar-position');
+    if (savedPosition) {
+      try {
+        const { x, y } = JSON.parse(savedPosition);
+        setPosition({ x, y });
+      } catch (e) {
+        // Invalid saved position, use default
+        setPosition({ x: window.innerWidth - 100, y: 60 });
+      }
+    } else {
+      // Default position: top right
+      setPosition({ x: window.innerWidth - 100, y: 60 });
+    }
+  }, []);
+
+  // Save position to localStorage (debounced to avoid excessive writes)
+  const debouncedSavePosition = useDebouncedCallback((pos: { x: number; y: number }) => {
+    if (pos.x !== 0 || pos.y !== 0) {
+      localStorage.setItem('itor-toolbar-position', JSON.stringify(pos));
+    }
+  }, 500);
+
+  useEffect(() => {
+    debouncedSavePosition(position);
+  }, [position, debouncedSavePosition]);
+
+  // Handle window resize - keep widget in bounds
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition(prev => ({
+        x: Math.min(prev.x, window.innerWidth - 50),
+        y: Math.min(prev.y, window.innerHeight - 50),
+      }));
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Don't start drag if clicking directly on the button
+    const target = e.target as HTMLElement;
+    if (target.closest('.itor-toolbar-btn')) {
+      return;
+    }
+    
+    e.preventDefault();
+    setIsDragging(true);
+    dragStartPos.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
+  }, [position]);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newX = e.clientX - dragStartPos.current.x;
+      const newY = e.clientY - dragStartPos.current.y;
+
+      // Keep widget within viewport bounds
+      const maxX = window.innerWidth - 50;
+      const maxY = window.innerHeight - 50;
+      
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  const getStatusColor = useCallback(() => {
     switch (itorStatus) {
       case 'alert':
         return 'var(--red-500)';
@@ -28,14 +120,25 @@ function ItorToolbar() {
       default:
         return 'var(--cyan-400)';
     }
-  };
+  }, [itorStatus]);
 
   return (
-    <div className="itor-toolbar-widget">
+    <div 
+      ref={dragRef}
+      className={`itor-toolbar-widget itor-floating ${isDragging ? 'dragging' : ''}`}
+      style={{
+        position: 'fixed',
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        zIndex: 10002,
+      }}
+      onMouseDown={handleMouseDown}
+    >
       <button
         className="itor-toolbar-btn"
         onClick={() => setShowPopover(!showPopover)}
-        title={`Itor - ${itorStatus} | Reviews: ${reviewCount} | Issues: ${issuesFound}`}
+        onMouseDown={(e) => e.stopPropagation()}
+        title={`Itor - ${itorStatus} | Reviews: ${reviewCount} | Issues: ${issuesFound} | Drag to move`}
         style={{
           '--itor-glow-color': getStatusColor(),
         } as React.CSSProperties}

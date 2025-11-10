@@ -1,0 +1,163 @@
+/* Micro-interactions and Enhanced Interactions */
+
+/* Smooth transitions for all interactive elements */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"],
+[tabindex] {
+  transition: var(--transition-base);
+}
+
+/* Enhanced hover effects */
+button:not(:disabled):hover,
+a:hover,
+[role="button"]:hover {
+  cursor: pointer;
+}
+
+/* Click feedback */
+button:not(:disabled):active,
+[role="button"]:active {
+  transform: scale(0.98);
+}
+
+/* Focus ring improvements */
+*:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better image loading */
+img {
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+img[loading="lazy"] {
+  opacity: 0;
+}
+
+img[loading="lazy"].loaded {
+  opacity: 1;
+}
+
+/* List item hover effects */
+li:hover {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+}
+
+/* Table row hover */
+tr:hover {
+  background: var(--color-bg-secondary);
+  transition: var(--transition-fast);
+}
+
+/* Form element enhancements */
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+input[type="checkbox"]:hover,
+input[type="radio"]:hover {
+  transform: scale(1.1);
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.5));
+}
+
+/* Smooth opacity transitions */
+.fade-in {
+  animation: fade-in var(--duration-base) var(--ease-out);
+}
+
+.fade-out {
+  animation: fade-out var(--duration-base) var(--ease-in);
+}
+
+/* Stagger animations for lists */
+.stagger-children > * {
+  animation: fade-in-up var(--duration-base) var(--ease-out);
+  animation-fill-mode: both;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+
+/* Hover lift effect */
+.hover-lift {
+  transition: var(--transition-base);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Scale on hover */
+.hover-scale {
+  transition: var(--transition-base);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* Glow on hover */
+.hover-glow {
+  transition: var(--transition-base);
+}
+
+.hover-glow:hover {
+  box-shadow: var(--shadow-glow-primary);
+}
+
+/* Pulse animation for important elements */
+.pulse-important {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Smooth color transitions */
+.color-transition {
+  transition: color var(--duration-base) var(--ease-in-out),
+              background-color var(--duration-base) var(--ease-in-out),
+              border-color var(--duration-base) var(--ease-in-out);
+}
+
+/* Disable pointer events during loading */
+.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Smooth height transitions */
+.height-transition {
+  transition: height var(--duration-slow) var(--ease-in-out),
+              max-height var(--duration-slow) var(--ease-in-out);
+}
+
+/* Smooth width transitions */
+.width-transition {
+  transition: width var(--duration-slow) var(--ease-in-out),
+              max-width var(--duration-slow) var(--ease-in-out);
+}
+

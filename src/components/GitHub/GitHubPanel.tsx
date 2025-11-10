@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useGitHubStore } from '../../services/github/githubStore';
 import { useFileSystemStore } from '../../services/filesystem/fileSystemStore';
+import { githubService } from '../../services/github/githubService';
+import { Zap, RefreshCw, ArrowRight } from 'lucide-react';
+import GitWizard from './GitWizard';
 import '../../styles/GitHubPanel.css';
 
 function GitHubPanel() {
@@ -21,6 +24,7 @@ function GitHubPanel() {
     createBranch,
     checkoutBranch,
     loadBranches,
+    getStatus,
   } = useGitHubStore();
 
   const { currentDirectory } = useFileSystemStore();
@@ -28,6 +32,8 @@ function GitHubPanel() {
   const [showAuth, setShowAuth] = useState(!isAuthenticated);
   const [commitMessage, setCommitMessage] = useState('');
   const [newBranchName, setNewBranchName] = useState('');
+
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -38,6 +44,7 @@ function GitHubPanel() {
   useEffect(() => {
     if (currentDirectory && isAuthenticated) {
       loadBranches(currentDirectory);
+      getStatus(currentDirectory);
     }
   }, [currentDirectory, isAuthenticated]);
 
@@ -84,6 +91,18 @@ function GitHubPanel() {
     if (success) {
       setNewBranchName('');
     }
+  };
+
+  const handleAutoCommit = async () => {
+    if (!currentDirectory) return;
+    await githubService.autoCommit(currentDirectory);
+    await getStatus(currentDirectory);
+  };
+
+  const handleSmartSync = async () => {
+    if (!currentDirectory) return;
+    await githubService.smartSync(currentDirectory);
+    await getStatus(currentDirectory);
   };
 
   if (showAuth || !isAuthenticated) {
@@ -154,7 +173,35 @@ function GitHubPanel() {
       </div>
 
       {currentDirectory && (
-        <div className="git-operations">
+        <>
+          <div className="quick-actions-section">
+            <h4>Quick Actions</h4>
+            <div className="quick-actions-grid">
+              <button onClick={handleAutoCommit} className="quick-action-btn" title="Auto-commit all changes">
+                <Zap size={20} />
+                <span>Save & Commit All</span>
+              </button>
+              <button onClick={handleSmartSync} className="quick-action-btn" title="Pull then push">
+                <RefreshCw size={20} />
+                <span>Sync with GitHub</span>
+              </button>
+              <button onClick={() => setShowWizard(true)} className="quick-action-btn" title="Guided workflows">
+                <ArrowRight size={20} />
+                <span>Git Wizard</span>
+              </button>
+            </div>
+          </div>
+
+          {showWizard && (
+            <div className="wizard-overlay">
+              <div className="wizard-container">
+                <button onClick={() => setShowWizard(false)} className="wizard-close">×</button>
+                <GitWizard />
+              </div>
+            </div>
+          )}
+
+          <div className="git-operations">
           <h4>Git Operations</h4>
 
           {status && (
@@ -255,6 +302,7 @@ function GitHubPanel() {
             </div>
           </div>
         </div>
+        </>
       )}
     </div>
   );

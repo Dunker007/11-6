@@ -1,0 +1,114 @@
+/* Card Component Styles - Enhanced */
+.ui-card {
+  background: var(--color-bg-glass-light);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-radius: var(--radius-md);
+  transition: var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle glow effect on cards */
+.ui-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-in-out);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ui-card:hover::before {
+  opacity: 1;
+}
+
+.ui-card--elevated {
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-primary);
+}
+
+.ui-card--flat {
+  box-shadow: none;
+  border: 1px solid var(--color-border-muted);
+}
+
+.ui-card--outlined {
+  box-shadow: none;
+  border: 2px solid var(--color-border-primary);
+  background: var(--color-bg-secondary);
+}
+
+.ui-card--hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow-primary);
+  border-color: var(--color-primary-500);
+}
+
+/* Card content should be above the glow effect */
+.ui-card__header,
+.ui-card__body,
+.ui-card__footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* Padding Variants */
+.ui-card--padding-none {
+  padding: 0;
+}
+
+.ui-card--padding-sm {
+  padding: var(--spacing-3);
+}
+
+.ui-card--padding-md {
+  padding: var(--spacing-5);
+}
+
+.ui-card--padding-lg {
+  padding: var(--spacing-6);
+}
+
+/* Card Sections */
+.ui-card__header {
+  padding: var(--spacing-5);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border-muted);
+}
+
+.ui-card__body {
+  padding: var(--spacing-5);
+}
+
+.ui-card__footer {
+  padding: var(--spacing-5);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-border-muted);
+}
+
+/* Nested padding handling */
+.ui-card--padding-none .ui-card__header,
+.ui-card--padding-none .ui-card__body,
+.ui-card--padding-none .ui-card__footer {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.ui-card--padding-sm .ui-card__header,
+.ui-card--padding-sm .ui-card__body,
+.ui-card--padding-sm .ui-card__footer {
+  padding: var(--spacing-3);
+}
+
+.ui-card--padding-lg .ui-card__header,
+.ui-card--padding-lg .ui-card__body,
+.ui-card--padding-lg .ui-card__footer {
+  padding: var(--spacing-6);
+}
+

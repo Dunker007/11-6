@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Activity, AlertCircle, CheckCircle, XCircle, RefreshCw, Zap, Server, Cloud } from 'lucide-react';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
@@ -16,12 +16,8 @@ interface ProviderStatus {
 
 const ConnectionStatus = () => {
   const { models, availableProviders, isLoading, discoverProviders } = useLLMStore();
-  const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
-  const [autoRetry, setAutoRetry] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-
-  // Calculate provider statuses from available data
-  useEffect(() => {
+  // Calculate provider statuses from available data (memoized)
+  const providerStatuses = useMemo(() => {
     const ollama: ProviderStatus = {
       name: 'Ollama',
       provider: 'ollama',
@@ -67,7 +63,7 @@ const ConnectionStatus = () => {
       type: 'cloud',
     };
 
-    setProviderStatuses([ollama, lmstudio, gemini, notebooklm, openrouter]);
+    return [ollama, lmstudio, gemini, notebooklm, openrouter];
   }, [models, availableProviders]);
 
   // Auto-retry connection every 30 seconds if enabled
@@ -183,7 +179,7 @@ const ConnectionStatus = () => {
         ))}
       </div>
 
-      {providerStatuses.every(p => !p.isOnline) && !isLoading && (
+      {allOffline && (
         <div className="connection-status-warning">
           <AlertCircle size={16} />
           <div className="warning-content">

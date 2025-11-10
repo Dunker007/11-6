@@ -1,0 +1,113 @@
+/* Toast Component Styles */
+.ui-toast-container {
+  position: fixed;
+  top: var(--spacing-4);
+  right: var(--spacing-4);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  max-width: 400px;
+  pointer-events: none;
+}
+
+.ui-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  pointer-events: auto;
+  animation: slide-in-from-right var(--duration-base) var(--ease-out);
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.ui-toast--success {
+  border-color: var(--color-success);
+  box-shadow: var(--shadow-glow-success);
+}
+
+.ui-toast--error {
+  border-color: var(--color-error);
+  box-shadow: var(--shadow-glow-error);
+}
+
+.ui-toast--warning {
+  border-color: var(--color-warning);
+  box-shadow: var(--shadow-glow-warning);
+}
+
+.ui-toast--info {
+  border-color: var(--color-info);
+  box-shadow: var(--shadow-glow-secondary);
+}
+
+.ui-toast__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ui-toast--success .ui-toast__icon {
+  color: var(--color-success);
+}
+
+.ui-toast--error .ui-toast__icon {
+  color: var(--color-error);
+}
+
+.ui-toast--warning .ui-toast__icon {
+  color: var(--color-warning);
+}
+
+.ui-toast--info .ui-toast__icon {
+  color: var(--color-info);
+}
+
+.ui-toast__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-toast__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-1);
+}
+
+.ui-toast__message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.ui-toast__action {
+  margin-top: var(--spacing-2);
+}
+
+.ui-toast__close {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.ui-toast__close:hover {
+  opacity: 1;
+}
+
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+

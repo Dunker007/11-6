@@ -127,3 +127,27 @@ export interface DevToolsStatus {
   lastChecked: string;
 }
 
+export interface StorageController {
+  name: string;
+  type: string; // e.g., "NVMe", "SATA", "USB"
+  interfaceType?: string;
+  model?: string;
+  vendor?: string;
+  driverInstalled?: boolean;
+  driverVersion?: string;
+}
+
+export interface DriverInfo {
+  name: string;
+  version: string | null;
+  installed: boolean;
+  type: 'storage' | 'graphics' | 'network' | 'other';
+  description?: string;
+}
+
+export interface StorageDriversStatus {
+  controllers: StorageController[];
+  drivers: DriverInfo[];
+  lastChecked: string;
+}
+

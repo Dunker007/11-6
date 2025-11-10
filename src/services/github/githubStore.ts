@@ -98,12 +98,14 @@ export const useGitHubStore = create<GitHubStore>((set, get) => ({
     }
   },
 
-  getStatus: async (path: string) => {
+  getStatus: async (path: string): Promise<GitStatus | null> => {
     try {
       const status = await githubService.getStatus(path);
       set({ status });
+      return status;
     } catch (error) {
       set({ error: (error as Error).message });
+      return null;
     }
   },
 

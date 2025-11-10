@@ -1,0 +1,80 @@
+/* Progress Component Styles */
+.ui-progress {
+  width: 100%;
+}
+
+.ui-progress__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ui-progress__track {
+  width: 100%;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.ui-progress--sm .ui-progress__track {
+  height: 4px;
+}
+
+.ui-progress--md .ui-progress__track {
+  height: 8px;
+}
+
+.ui-progress--lg .ui-progress__track {
+  height: 12px;
+}
+
+.ui-progress__bar {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.ui-progress__bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+.ui-progress--success .ui-progress__bar {
+  background: var(--color-success);
+}
+
+.ui-progress--warning .ui-progress__bar {
+  background: var(--color-warning);
+}
+
+.ui-progress--error .ui-progress__bar {
+  background: var(--color-error);
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+

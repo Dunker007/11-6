@@ -13,6 +13,9 @@ import type {
   SystemCleanupResults,
   DevTool,
   DevToolsStatus,
+  StorageController,
+  DriverInfo,
+  StorageDriversStatus,
 } from '@/types/optimizer';
 
 const DEFAULT_BENCHMARK_PROMPT =
@@ -168,6 +171,53 @@ async function detectGPUInfo(): Promise<{
   memoryGB: number | null;
   isDiscrete: boolean | null;
 }> {
+  // Try Electron systeminformation first for accurate GPU detection
+  if (typeof process !== 'undefined' && process.versions?.electron) {
+    try {
+      const si = require('systeminformation');
+      const graphics = await si.graphics();
+      
+      if (graphics && graphics.controllers && graphics.controllers.length > 0) {
+        // Find discrete GPU (prefer NVIDIA, AMD, or non-Intel)
+        let discreteGPU = graphics.controllers.find((gpu: any) => {
+          const vendor = (gpu.vendor || '').toLowerCase();
+          const model = (gpu.model || '').toLowerCase();
+          // Check for discrete GPU vendors
+          return vendor.includes('nvidia') || 
+                 vendor.includes('amd') || 
+                 vendor.includes('ati') ||
+                 (!vendor.includes('intel') && !model.includes('integrated'));
+        });
+        
+        // If no discrete GPU found, use first GPU
+        const gpu = discreteGPU || graphics.controllers[0];
+        
+        if (gpu) {
+          const gpuName = gpu.model || gpu.vendor || 'Unknown GPU';
+          const memoryGB = gpu.memoryTotal ? Math.round(gpu.memoryTotal / 1024) : null;
+          
+          // Determine if discrete: check vendor/model or if it's not Intel integrated
+          const vendor = (gpu.vendor || '').toLowerCase();
+          const model = (gpu.model || '').toLowerCase();
+          const isDiscrete = vendor.includes('nvidia') || 
+                            vendor.includes('amd') || 
+                            vendor.includes('ati') ||
+                            (!vendor.includes('intel') && !model.includes('integrated') && !model.includes('uhd') && !model.includes('iris'));
+          
+          return {
+            name: gpuName,
+            memoryGB,
+            isDiscrete,
+          };
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to detect GPU via systeminformation:', error);
+      // Fall through to browser APIs
+    }
+  }
+
+  // Fallback to browser APIs
   if (typeof navigator === 'undefined') {
     return { name: null, memoryGB: null, isDiscrete: null };
   }
@@ -201,26 +251,21 @@ async function detectGPUInfo(): Promise<{
       if (debugInfo) {
         const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
         const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+        const rendererLower = (renderer || '').toLowerCase();
+        const vendorLower = (vendor || '').toLowerCase();
+        const isDiscrete = rendererLower.includes('discrete') || 
+                          vendorLower.includes('nvidia') || 
+                          vendorLower.includes('amd') ||
+                          (!vendorLower.includes('intel') && !rendererLower.includes('integrated'));
         return {
           name: `${vendor} ${renderer}`.trim(),
           memoryGB: null,
-          isDiscrete: renderer?.toLowerCase().includes('discrete') ?? null,
+          isDiscrete,
         };
       }
     }
   } catch {
     // Ignore WebGL failures
-  }
-
-  const electronProcess = typeof window !== 'undefined' ? (window as any).process : undefined;
-  if (electronProcess?.getGPUFeatureStatus) {
-    const gpuInfo = electronProcess.getGPUFeatureStatus?.();
-    const description = gpuInfo ? JSON.stringify(gpuInfo) : null;
-    return {
-      name: description,
-      memoryGB: null,
-      isDiscrete: null,
-    };
   }
 
   return { name: null, memoryGB: null, isDiscrete: null };
@@ -229,6 +274,73 @@ async function detectGPUInfo(): Promise<{
 export async function detectHardwareProfile(): Promise<HardwareProfile> {
   const now = new Date().toISOString();
 
+  // Try Electron systeminformation first for accurate hardware detection
+  if (typeof process !== 'undefined' && process.versions?.electron) {
+    try {
+      const si = require('systeminformation');
+      const [cpu, mem, osInfo, diskLayout] = await Promise.all([
+        si.cpu(),
+        si.mem(),
+        si.osInfo(),
+        si.diskLayout().catch(() => []),
+      ]);
+
+      // Get CPU info
+      const cpuModel = cpu.manufacturer && cpu.brand 
+        ? `${cpu.manufacturer} ${cpu.brand}`.trim()
+        : cpu.brand || cpu.manufacturer || 'Unknown CPU';
+      const cpuCores = cpu.cores || cpu.physicalCores || null;
+      const cpuThreads = cpu.processors || cpuCores || null;
+
+      // Get memory info (convert bytes to GB)
+      const systemMemoryGB = mem.total ? Math.round(mem.total / (1024 * 1024 * 1024)) : null;
+
+      // Get GPU info
+      const gpuInfo = await detectGPUInfo();
+      
+      // Determine storage type from disk layout
+      let storageType: 'ssd' | 'hdd' | 'nvme' | null = null;
+      if (diskLayout && diskLayout.length > 0) {
+        const firstDisk = diskLayout[0];
+        const diskType = (firstDisk.type || firstDisk.interfaceType || '').toLowerCase();
+        if (diskType.includes('nvme')) {
+          storageType = 'nvme';
+        } else if (diskType.includes('ssd') || diskType.includes('solid')) {
+          storageType = 'ssd';
+        } else if (diskType.includes('hdd') || diskType.includes('hard')) {
+          storageType = 'hdd';
+        }
+      }
+
+      // Get OS info
+      const os = osInfo.platform === 'win32' ? 'Windows' :
+                 osInfo.platform === 'darwin' ? 'macOS' :
+                 osInfo.platform === 'linux' ? 'Linux' :
+                 getOperatingSystem();
+
+      return {
+        cpuModel,
+        cpuCores,
+        cpuThreads,
+        gpuModel: gpuInfo.name,
+        gpuMemoryGB: gpuInfo.memoryGB,
+        hasDiscreteGPU: gpuInfo.isDiscrete,
+        systemMemoryGB,
+        storageType,
+        operatingSystem: os,
+        supportsAVX: os === 'Windows' || os === 'Linux' || os === 'macOS' ? true : null,
+        supportsMetal: os === 'macOS' ? true : null,
+        notes: undefined,
+        collectedAt: now,
+        source: 'auto-detected',
+      };
+    } catch (error) {
+      console.warn('Failed to detect hardware via systeminformation:', error);
+      // Fall through to browser APIs
+    }
+  }
+
+  // Fallback to browser APIs
   const cpuCores =
     typeof navigator !== 'undefined' && typeof navigator.hardwareConcurrency === 'number'
       ? navigator.hardwareConcurrency
@@ -604,6 +716,92 @@ async function detectDevTool(name: string, command: string, installUrl?: string)
   }
 }
 
+export async function detectStorageDrivers(): Promise<StorageDriversStatus> {
+  const controllers: StorageController[] = [];
+  const drivers: DriverInfo[] = [];
+
+  // Try Electron systeminformation for storage detection
+  if (typeof process !== 'undefined' && process.versions?.electron) {
+    try {
+      const si = require('systeminformation');
+      const diskLayout = await si.diskLayout().catch(() => []);
+      const usb = await si.usb().catch(() => []);
+
+      // Process disk layout for storage controllers
+      if (diskLayout && diskLayout.length > 0) {
+        for (const disk of diskLayout) {
+          const controller: StorageController = {
+            name: disk.name || 'Unknown Storage',
+            type: disk.type || disk.interfaceType || 'Unknown',
+            interfaceType: disk.interfaceType,
+            model: disk.model,
+            vendor: disk.vendor,
+            driverInstalled: true, // If disk is detected, driver is likely installed
+          };
+
+          // Check for NVMe drivers specifically
+          if (disk.type === 'NVMe' || disk.interfaceType === 'NVMe') {
+            controller.driverInstalled = true;
+            drivers.push({
+              name: 'NVMe Driver',
+              version: null,
+              installed: true,
+              type: 'storage',
+              description: `NVMe controller driver for ${disk.model || 'storage device'}`,
+            });
+          }
+
+          controllers.push(controller);
+        }
+      }
+
+      // Check for USB storage drivers
+      if (usb && usb.length > 0) {
+        const usbStorage = usb.filter((device: any) => 
+          device.type && device.type.toLowerCase().includes('storage')
+        );
+        if (usbStorage.length > 0) {
+          drivers.push({
+            name: 'USB Storage Driver',
+            version: null,
+            installed: true,
+            type: 'storage',
+            description: 'USB mass storage driver',
+          });
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to detect storage drivers:', error);
+    }
+  }
+
+  // Check for Micron NVMe driver (based on project file)
+  // This is a placeholder - in a real implementation, you'd check Windows registry
+  // or system files for installed drivers
+  if (typeof process !== 'undefined' && process.platform === 'win32') {
+    try {
+      // Check if Micron NVMe driver might be installed
+      // In a real implementation, query Windows registry:
+      // HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\stornvme
+      drivers.push({
+        name: 'Micron NVMe Driver',
+        version: null,
+        installed: false, // Would check registry in real implementation
+        type: 'storage',
+        description: 'Micron NVMe storage driver (MicronNVMeDrivers_x64.msi)',
+      });
+    } catch {
+      // Ignore errors
+    }
+  }
+
+  return {
+    controllers,
+    drivers,
+    lastChecked: new Date().toISOString(),
+  };
+}
+
 export async function detectDevTools(): Promise<DevToolsStatus> {
   const tools: DevTool[] = await Promise.all([
     detectDevTool('Node.js', 'node --version', 'https://nodejs.org/'),
@@ -674,6 +872,7 @@ export const llmOptimizerService = {
   runBenchmark,
   getUseCaseOptions,
   detectDevTools,
+  detectStorageDrivers,
   cleanTempFiles,
   cleanCache,
   deepCleanSystem,

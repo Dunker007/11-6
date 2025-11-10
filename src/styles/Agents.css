@@ -560,8 +560,40 @@
   position: relative;
   display: flex;
   align-items: center;
-  margin-left: 8px;
   -webkit-app-region: no-drag;
+}
+
+/* Floating Itor Widget */
+.itor-floating {
+  cursor: move;
+  user-select: none;
+  transition: transform 0.1s ease-out, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-2);
+  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.itor-floating:hover {
+  transform: scale(1.05);
+  border-color: rgba(34, 211, 238, 0.4);
+  box-shadow: 0 6px 24px rgba(34, 211, 238, 0.3);
+}
+
+.itor-floating.dragging {
+  cursor: grabbing;
+  transform: scale(1.1);
+  box-shadow: 0 8px 32px rgba(34, 211, 238, 0.5);
+  z-index: 10003 !important;
+  border-color: rgba(34, 211, 238, 0.6);
+}
+
+.itor-floating.dragging .itor-toolbar-btn {
+  pointer-events: none;
 }
 
 .itor-toolbar-btn {

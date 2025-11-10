@@ -308,6 +308,132 @@ export class GitHubService {
     // For now, return a simple message
     return `Update ${files.length} file${files.length > 1 ? 's' : ''}`;
   }
+
+  /**
+   * Suggest a commit message based on changed files
+   */
+  async suggestCommitMessage(files: string[]): Promise<string> {
+    if (files.length === 0) {
+      return 'Update files';
+    }
+
+    // Analyze file changes to suggest a message
+    const added = files.filter(f => f.includes('new') || f.includes('add')).length;
+    const modified = files.length - added;
+
+    if (added > 0 && modified === 0) {
+      return `Add ${added} file${added > 1 ? 's' : ''}`;
+    } else if (modified > 0 && added === 0) {
+      return `Update ${modified} file${modified > 1 ? 's' : ''}`;
+    } else {
+      return `Update ${files.length} file${files.length > 1 ? 's' : ''}`;
+    }
+  }
+
+  /**
+   * Auto-commit all changes with a generated message
+   */
+  async autoCommit(path: string, message?: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const git = await getSimpleGit(path);
+      await git.add('.');
+
+      if (!message) {
+        const status = await git.status();
+        const files = status.files.map(f => f.path);
+        message = await this.suggestCommitMessage(files);
+      }
+
+      const commit = await git.commit(message);
+      return { success: true, hash: commit.commit };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  /**
+   * Smart sync: pull then push with conflict detection
+   */
+  async smartSync(path: string, remote = 'origin'): Promise<{ success: boolean; error?: string; hasConflicts?: boolean }> {
+    try {
+      const git = await getSimpleGit(path);
+      
+      // Check if there are uncommitted changes
+      const status = await git.status();
+      if (status.files.length > 0) {
+        return { success: false, error: 'Please commit or stash your changes before syncing' };
+      }
+
+      // Pull first
+      try {
+        await git.pull(remote);
+      } catch (pullError) {
+        // Check for conflicts
+        const pullStatus = await git.status();
+        if (pullStatus.conflicted.length > 0) {
+          return { success: false, error: 'Merge conflicts detected. Please resolve them manually.', hasConflicts: true };
+        }
+        throw pullError;
+      }
+
+      // Push after successful pull
+      const currentBranch = await git.revparse(['--abbrev-ref', 'HEAD']);
+      await git.push(remote, currentBranch);
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  /**
+   * Detect Git state and suggest next actions
+   */
+  async detectGitState(path: string): Promise<{ state: 'clean' | 'dirty' | 'conflicts' | 'ahead' | 'behind'; suggestedActions: string[] }> {
+    try {
+      const git = await getSimpleGit(path);
+      const status = await git.status();
+
+      const suggestedActions: string[] = [];
+
+      if (status.conflicted.length > 0) {
+        return {
+          state: 'conflicts',
+          suggestedActions: ['Resolve merge conflicts', 'Commit resolved files', 'Push changes'],
+        };
+      }
+
+      if (status.files.length > 0) {
+        suggestedActions.push('Commit changes', 'Review changes');
+        return {
+          state: 'dirty',
+          suggestedActions,
+        };
+      }
+
+      if (status.ahead > 0) {
+        suggestedActions.push('Push changes');
+      }
+
+      if (status.behind > 0) {
+        suggestedActions.push('Pull changes');
+      }
+
+      if (status.ahead > 0 && status.behind > 0) {
+        suggestedActions.push('Sync with remote (pull then push)');
+      }
+
+      return {
+        state: status.ahead > 0 ? 'ahead' : status.behind > 0 ? 'behind' : 'clean',
+        suggestedActions: suggestedActions.length > 0 ? suggestedActions : ['Repository is up to date'],
+      };
+    } catch (error) {
+      return {
+        state: 'clean',
+        suggestedActions: ['Initialize repository', 'Connect to remote'],
+      };
+    }
+  }
 }
 
 export const githubService = GitHubService.getInstance();
