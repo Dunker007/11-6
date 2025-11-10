@@ -1,6 +1,6 @@
 {
   "name": "dlx-studios-ultimate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "DLX Studios Ultimate - AI-Native Development Platform with VibeEditor",
   "main": "dist-electron/main.js",
   "type": "module",

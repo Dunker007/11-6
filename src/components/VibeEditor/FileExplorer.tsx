@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { ProjectFile } from '@/types/project';
-import { useProjectStore } from '@/services/project/projectStore';
+import { useProjectStore } from '@/core/project/projectStore';
 import { useActivityStore } from '@/services/activity/activityStore';
 import { fileSystemService } from '@/services/filesystem/fileSystemService';
-import { llmOptimizerService } from '@/services/ai/llmOptimizerService';
 import TechIcon from '@/components/Icons/TechIcon';
 import { FileText, FolderOpen, Folder, ChevronRight, ChevronDown, FilePlus, FolderPlus, Edit2, Copy, Scissors, Clipboard, Trash2, Dot, HardDrive, Search, FolderTree } from 'lucide-react';
 import '@/styles/FileExplorer.css';
@@ -30,7 +29,7 @@ const formatBytes = (bytes: number): string => {
 };
 
 function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
-  const { addFile, deleteFile, activeProject } = useProjectStore();
+  const { addFile, deleteFile, activeProject, getFileContent } = useProjectStore();
   const { addActivity } = useActivityStore();
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set([files[0]?.path || '']));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; path: string; isDirectory: boolean } | null>(null);
@@ -101,8 +100,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
       const file = findFile(files, oldPath);
       if (file && !file.isDirectory) {
         // For files: copy content and delete old
-        const { projectService } = require('../../services/project/projectService');
-        const content = projectService.getFileContent(activeProject.id, oldPath);
+        const content = getFileContent(oldPath);
         addFile(newPath, content || '', detectLanguage(newName));
         deleteFile(oldPath);
         addActivity('file', 'updated', `Renamed ${file.name} to ${newName}`);
@@ -140,8 +138,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
     const fileName = file.name;
     const newPath = `${targetDirPath}/${fileName}`;
 
-    const { projectService } = require('../../services/project/projectService');
-    const content = projectService.getFileContent(activeProject.id, clipboard.path);
+    const content = getFileContent(clipboard.path);
 
     if (clipboard.operation === 'copy') {
       addFile(newPath, content || '', file.language);
@@ -171,16 +168,68 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
     }
   };
 
-  const handleCleanTempFiles = async (_dirPath: string) => {
-    if (!confirm('Clean temporary files in this directory?')) {
+  const handleCleanTempFiles = async (dirPath: string) => {
+    if (!confirm(`Clean temporary files in "${dirPath}"?\n\nThis will delete temporary files (.tmp, .temp, ~ files) in this directory only.`)) {
       setContextMenu(null);
       return;
     }
     try {
-      const result = await llmOptimizerService.cleanTempFiles();
-      alert(`Cleaned ${result.filesDeleted} files, freed ${formatBytes(result.spaceFreed)}`);
+      // Read directory contents
+      const result = await fileSystemService.readdir(dirPath);
+      if (!result.success || !result.data) {
+        alert(`Failed to read directory: ${result.error || 'Unknown error'}`);
+        setContextMenu(null);
+        return;
+      }
+
+      // Filter for temporary files
+      const tempFilePatterns = ['.tmp', '.temp', '.log', '~'];
+      const tempFiles = result.data.filter(entry => 
+        !entry.isDirectory && tempFilePatterns.some(pattern => 
+          entry.name.toLowerCase().endsWith(pattern.toLowerCase())
+        )
+      );
+
+      if (tempFiles.length === 0) {
+        alert('No temporary files found in this directory.');
+        setContextMenu(null);
+        return;
+      }
+
+      // Delete temp files
+      let deletedCount = 0;
+      let totalSize = 0;
+      const errors: string[] = [];
+
+      for (const file of tempFiles) {
+        try {
+          // Get file size before deletion
+          const statResult = await fileSystemService.stat(file.path);
+          const fileSize = statResult.success && statResult.data ? statResult.data.size : 0;
+          
+          const deleteResult = await fileSystemService.rm(file.path, false);
+          if (deleteResult.success) {
+            deletedCount++;
+            totalSize += fileSize;
+          } else {
+            errors.push(`${file.name}: ${deleteResult.error || 'Failed to delete'}`);
+          }
+        } catch (error) {
+          errors.push(`${file.name}: ${(error as Error).message}`);
+        }
+      }
+
+      const message = `Cleaned ${deletedCount} file(s), freed ${formatBytes(totalSize)}${errors.length > 0 ? `\n\nErrors:\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? `\n...and ${errors.length - 5} more` : ''}` : ''}`;
+      alert(message);
+      addActivity('file', 'deleted', `Cleaned ${deletedCount} temp file(s) from ${dirPath}`);
+      
+      // Refresh directory view if it's currently expanded
+      if (systemFiles.has(dirPath)) {
+        loadSystemDirectory(dirPath);
+      }
     } catch (error) {
       console.error('Failed to clean temp files:', error);
+      alert(`Failed to clean temp files: ${(error as Error).message}`);
     } finally {
       setContextMenu(null);
     }
@@ -250,15 +299,41 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
       );
     }
 
+    const handleSystemFileClick = async () => {
+      try {
+        // Read the system file content
+        const result = await fileSystemService.readFile(entry.path);
+        if (result.success && result.data !== undefined) {
+          // Add file to project store temporarily so it can be opened in editor
+          // Use a special path prefix to indicate it's a system file
+          const systemFilePath = `[SYSTEM]${entry.path}`;
+          addFile(systemFilePath, result.data, detectLanguage(entry.name));
+          onFileSelect(systemFilePath);
+          addActivity('file', 'opened', `Opened system file: ${entry.name}`);
+        } else {
+          alert(`Failed to read file: ${result.error || 'Unknown error'}`);
+        }
+      } catch (error) {
+        console.error('Failed to open system file:', error);
+        alert(`Failed to open file: ${(error as Error).message}`);
+      }
+    };
+
     return (
       <div
         key={entry.path}
         className="file-item file"
         style={{ paddingLeft: `${level * 16 + 24}px` }}
+        onClick={handleSystemFileClick}
         onContextMenu={(e) => handleContextMenu(e, entry.path, false)}
       >
         <TechIcon icon={FileText} size={16} glow="none" className="file-icon" />
         <span className="file-name">{entry.name}</span>
+        {entry.size !== undefined && (
+          <span className="file-size" title={`Size: ${formatBytes(entry.size)}`}>
+            {formatBytes(entry.size)}
+          </span>
+        )}
       </div>
     );
   };
@@ -280,11 +355,27 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
     try {
       const result = await fileSystemService.readdir(path);
       if (result.success && result.data) {
-        setSystemFiles(prev => new Map(prev).set(path, result.data!.map(entry => ({
-          name: entry.name,
-          path: entry.path,
-          isDirectory: entry.isDirectory,
-        }))));
+        // Load file sizes for non-directory entries
+        const entriesWithSize = await Promise.all(
+          result.data.map(async (entry) => {
+            if (entry.isDirectory) {
+              return {
+                name: entry.name,
+                path: entry.path,
+                isDirectory: true,
+              };
+            }
+            // Get file size
+            const statResult = await fileSystemService.stat(entry.path);
+            return {
+              name: entry.name,
+              path: entry.path,
+              isDirectory: false,
+              size: statResult.success && statResult.data ? statResult.data.size : undefined,
+            };
+          })
+        );
+        setSystemFiles(prev => new Map(prev).set(path, entriesWithSize));
       }
     } catch (error) {
       console.error('Failed to load directory:', error);

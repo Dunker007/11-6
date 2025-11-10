@@ -55,6 +55,70 @@ export class SchwabService {
     return !!this.accessToken;
   }
 
+  /**
+   * Get OAuth authorization URL
+   */
+  async getAuthorizationUrl(redirectUri: string): Promise<string> {
+    const clientId = apiKeyService.getKeysByProvider('schwab')[0]?.key || '';
+    if (!clientId) {
+      throw new Error('Schwab API key not configured');
+    }
+
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      scope: 'api',
+    });
+
+    return `${this.baseUrl}/oauth/authorize?${params.toString()}`;
+  }
+
+  /**
+   * Exchange authorization code for access token
+   */
+  async exchangeAuthorizationCode(authCode: string): Promise<string> {
+    const keys = apiKeyService.getKeysByProvider('schwab');
+    if (keys.length === 0) {
+      throw new Error('Schwab API credentials not configured');
+    }
+
+    const apiKey = keys[0].key;
+    const apiSecret = keys[0].metadata?.apiSecret as string | undefined;
+
+    if (!apiSecret) {
+      throw new Error('Schwab API secret not configured');
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/oauth/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: authCode,
+          client_id: apiKey,
+          client_secret: apiSecret,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.accessToken = data.access_token;
+        if (!this.accessToken) {
+          throw new Error('No access token received');
+        }
+        return this.accessToken;
+      }
+      throw new Error(`OAuth token exchange failed: ${response.statusText}`);
+    } catch (error) {
+      console.error('Schwab OAuth token exchange failed:', error);
+      throw error;
+    }
+  }
+
   async authenticate(apiKey: string, apiSecret: string): Promise<boolean> {
     try {
       // Schwab uses OAuth 2.0 - this is a placeholder for the actual OAuth flow

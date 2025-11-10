@@ -1,93 +1,202 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { useWealthStore } from '@/services/wealth/wealthStore';
-import { schwabService } from '@/services/wealth/schwabService';
-import { Link2, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { accountAggregationService, type AggregationProvider, type Institution } from '@/services/wealth/accountAggregationService';
+import { Search, RefreshCw, AlertCircle, CheckCircle2, Link2, X, ChevronRight, Loader2, Building2 } from 'lucide-react';
 import SecureInputModal from '@/components/shared/SecureInputModal';
+import { useDebounce } from '@/utils/hooks/useDebounce';
+import { DEBOUNCE_DELAYS } from '@/utils/constants';
+import '@/styles/WealthLab.css';
 
-function AccountConnections() {
+type ConnectionWizardStep = 'select-provider' | 'select-institution' | 'authenticate' | 'connecting' | 'complete' | null;
+
+interface ConnectionWizardState {
+  step: ConnectionWizardStep;
+  provider: AggregationProvider | null;
+  institution: Institution | null;
+  connectionId: string | null;
+  authUrl: string | null;
+}
+
+const AccountConnections = memo(function AccountConnections() {
   const { accountConnections, addAccountConnection, updateAccountConnection, refresh } = useWealthStore();
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [connectionType, setConnectionType] = useState<'schwab' | 'plaid' | 'yodlee' | 'manual' | null>(null);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoadingInstitutions, setIsLoadingInstitutions] = useState(false);
+  const [wizardState, setWizardState] = useState<ConnectionWizardState>({
+    step: null,
+    provider: null,
+    institution: null,
+    connectionId: null,
+    authUrl: null,
+  });
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [showApiSecretModal, setShowApiSecretModal] = useState(false);
-  const [apiKey, setApiKey] = useState<string>('');
+  const [syncingConnectionId, setSyncingConnectionId] = useState<string | null>(null);
 
-  const handleConnectSchwab = useCallback(async () => {
-    setIsConnecting(true);
-    try {
-      if (!schwabService.isConfigured()) {
-        // Show secure API key input modal
-        setShowApiKeyModal(true);
-      } else {
-        // Sync existing connection
-        await schwabService.getAccounts();
-        updateAccountConnection(accountConnections[0]?.id || '', {
-          status: 'syncing',
-        });
-        refresh();
-        updateAccountConnection(accountConnections[0]?.id || '', {
-          status: 'connected',
-          lastSynced: new Date(),
-        });
-      }
-    } catch (error) {
-      console.error('Failed to connect Schwab:', error);
-      if (accountConnections.length > 0) {
-        updateAccountConnection(accountConnections[0].id, {
-          status: 'error',
-        });
-      }
-    } finally {
-      setIsConnecting(false);
-    }
-  }, [accountConnections, addAccountConnection, updateAccountConnection, refresh]);
+  const debouncedSearch = useDebounce(searchQuery, DEBOUNCE_DELAYS.SEARCH_INPUT);
 
-  const handleApiKeyConfirm = useCallback(async (key: string) => {
-    setApiKey(key);
-    setShowApiKeyModal(false);
-    setShowApiSecretModal(true);
+  useEffect(() => {
+    loadInstitutions();
   }, []);
 
-  const handleApiSecretConfirm = useCallback(async (secret: string) => {
-    setIsConnecting(true);
+  const loadInstitutions = useCallback(async () => {
+    setIsLoadingInstitutions(true);
     try {
-      if (apiKey && secret) {
-        const authenticated = await schwabService.authenticate(apiKey, secret);
-        if (authenticated) {
-          const accounts = await schwabService.getAccounts();
+      const insts = await accountAggregationService.getSupportedInstitutions();
+      setInstitutions(insts);
+    } catch (error) {
+      console.error('Failed to load institutions:', error);
+    } finally {
+      setIsLoadingInstitutions(false);
+    }
+  }, []);
+
+  const filteredInstitutions = useMemo(() => {
+    if (!debouncedSearch) return institutions;
+    const query = debouncedSearch.toLowerCase();
+    return institutions.filter(
+      (inst) =>
+        inst.name.toLowerCase().includes(query) ||
+        inst.supportedProviders.some(p => p.toLowerCase().includes(query))
+    );
+  }, [institutions, debouncedSearch]);
+
+  const handleStartConnection = useCallback(() => {
+    setWizardState({
+      step: 'select-provider',
+      provider: null,
+      institution: null,
+      connectionId: null,
+      authUrl: null,
+    });
+  }, []);
+
+  const handleSelectProvider = useCallback((provider: AggregationProvider) => {
+    setWizardState((prev) => ({
+      ...prev,
+      step: 'select-institution',
+      provider,
+    }));
+  }, []);
+
+  const handleSelectInstitution = useCallback(async (institution: Institution) => {
+    setWizardState((prev) => ({
+      ...prev,
+      step: 'authenticate',
+      institution,
+    }));
+
+    try {
+      const { authUrl, connectionId } = await accountAggregationService.initiateConnection(
+        wizardState.provider!,
+        institution.id,
+        {
+          provider: wizardState.provider!,
+          institutionId: institution.id,
+        }
+      );
+
+      setWizardState((prev) => ({
+        ...prev,
+        connectionId,
+        authUrl,
+      }));
+
+      // Handle different provider authentication flows
+      if (wizardState.provider === 'schwab') {
+        setShowApiKeyModal(true);
+      } else if (wizardState.provider === 'plaid' || wizardState.provider === 'yodlee') {
+        // For Plaid/Yodlee, open auth URL in new window
+        if (authUrl) {
+          window.open(authUrl, '_blank', 'width=600,height=700');
+        }
+      } else if (wizardState.provider === 'manual') {
+        // Manual accounts don't need authentication
+        setWizardState((prev) => ({
+          ...prev,
+          step: 'complete',
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to initiate connection:', error);
+      alert(`Failed to start connection: ${(error as Error).message}`);
+      setWizardState((prev) => ({
+        ...prev,
+        step: 'select-institution',
+      }));
+    }
+  }, []);
+
+  const handleApiKeyConfirm = useCallback(async (key: string) => {
+    setShowApiKeyModal(false);
+    // For Schwab, we need both key and secret
+    // In a real implementation, this would be handled via OAuth callback
+    // For now, we'll simulate completion
+    if (wizardState.connectionId && wizardState.institution) {
+      try {
+        await accountAggregationService.completeConnection(wizardState.connectionId, key);
+        const connection = accountAggregationService.getConnection(wizardState.connectionId);
+        if (connection) {
           addAccountConnection({
-            institution: 'Charles Schwab',
-            provider: 'schwab',
+            institution: wizardState.institution.name,
+            provider: wizardState.provider!,
             status: 'connected',
             lastSynced: new Date(),
-            accountIds: accounts.map((acc) => acc.accountNumber),
+            accountIds: [],
           });
           refresh();
+          setWizardState({
+            step: null,
+            provider: null,
+            institution: null,
+            connectionId: null,
+            authUrl: null,
+          });
         }
+      } catch (error) {
+        console.error('Failed to complete connection:', error);
+        alert(`Failed to complete connection: ${(error as Error).message}`);
       }
-      setApiKey('');
-      setShowApiSecretModal(false);
+    }
+  }, [wizardState, addAccountConnection, refresh]);
+
+  const handleSyncConnection = useCallback(async (connectionId: string) => {
+    setSyncingConnectionId(connectionId);
+    try {
+      const result = await accountAggregationService.syncAccounts(connectionId);
+      const connection = accountAggregationService.getConnection(connectionId);
+      if (connection) {
+        updateAccountConnection(connectionId, {
+          status: connection.status,
+          lastSynced: connection.lastSynced,
+          accountIds: connection.accountIds,
+        });
+        refresh();
+        alert(`Sync complete: ${result.accountsAdded} added, ${result.accountsUpdated} updated, ${result.transactionsImported} transactions imported`);
+      }
     } catch (error) {
-      console.error('Failed to authenticate Schwab:', error);
-      if (accountConnections.length > 0) {
-        updateAccountConnection(accountConnections[0].id, {
+      console.error('Failed to sync connection:', error);
+      const connection = accountAggregationService.getConnection(connectionId);
+      if (connection) {
+        updateAccountConnection(connectionId, {
           status: 'error',
           errorMessage: (error as Error).message,
         });
       }
+      alert(`Sync failed: ${(error as Error).message}`);
     } finally {
-      setIsConnecting(false);
+      setSyncingConnectionId(null);
     }
-  }, [apiKey, addAccountConnection, refresh, accountConnections, updateAccountConnection]);
+  }, [updateAccountConnection, refresh]);
 
-  const handleConnectPlaid = useCallback(async () => {
-    // Note: Plaid integration should use Plaid Link SDK in production
-    // For now, this is a placeholder that would need secure input modals similar to Schwab
-    alert('Plaid integration requires Plaid Link SDK. This feature is not yet implemented.');
-  }, []);
-
-  const handleManualAccount = useCallback(() => {
-    setConnectionType('manual');
+  const handleCloseWizard = useCallback(() => {
+    setWizardState({
+      step: 'select-provider',
+      provider: null,
+      institution: null,
+      connectionId: null,
+      authUrl: null,
+    });
+    setSearchQuery('');
   }, []);
 
   const getStatusIcon = (status: string) => {
@@ -103,15 +212,178 @@ function AccountConnections() {
     }
   };
 
+
   return (
     <div className="account-connections">
       <div className="account-connections-header">
         <h3>Account Connections</h3>
-        <button className="account-refresh-btn" onClick={refresh} title="Refresh">
-          <RefreshCw size={16} />
-        </button>
+        <div className="header-actions">
+          <button className="account-refresh-btn" onClick={refresh} title="Refresh All">
+            <RefreshCw size={16} />
+          </button>
+          <button className="connection-wizard-btn" onClick={handleStartConnection}>
+            <Link2 size={16} />
+            <span>Connect Account</span>
+          </button>
+        </div>
       </div>
 
+      {/* Connection Wizard */}
+      {wizardState.step !== null && (
+        <div className="connection-wizard">
+          <div className="wizard-header">
+            <h4>Connect Account</h4>
+            <button className="wizard-close-btn" onClick={handleCloseWizard}>
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Step Indicator */}
+          <div className="wizard-steps">
+            <div className={`wizard-step ${wizardState.step === 'select-provider' ? 'active' : wizardState.provider ? 'completed' : ''}`}>
+              <span className="step-number">1</span>
+              <span className="step-label">Provider</span>
+            </div>
+            <ChevronRight size={16} className="step-arrow" />
+            <div className={`wizard-step ${wizardState.step === 'select-institution' ? 'active' : wizardState.institution ? 'completed' : ''}`}>
+              <span className="step-number">2</span>
+              <span className="step-label">Institution</span>
+            </div>
+            <ChevronRight size={16} className="step-arrow" />
+            <div className={`wizard-step ${wizardState.step === 'authenticate' || wizardState.step === 'connecting' ? 'active' : wizardState.step === 'complete' ? 'completed' : ''}`}>
+              <span className="step-number">3</span>
+              <span className="step-label">Connect</span>
+            </div>
+          </div>
+
+          {/* Step Content */}
+          <div className="wizard-content">
+            {wizardState.step === 'select-provider' && (
+              <div className="wizard-provider-selection">
+                <h5>Select Connection Method</h5>
+                <div className="provider-grid">
+                  <button
+                    className="provider-card"
+                    onClick={() => handleSelectProvider('plaid')}
+                  >
+                    <span className="provider-icon">🔗</span>
+                    <span className="provider-name">Plaid</span>
+                    <span className="provider-description">Connect via Plaid Link</span>
+                  </button>
+                  <button
+                    className="provider-card"
+                    onClick={() => handleSelectProvider('yodlee')}
+                  >
+                    <span className="provider-icon">🔐</span>
+                    <span className="provider-name">Yodlee</span>
+                    <span className="provider-description">Connect via Yodlee FastLink</span>
+                  </button>
+                  <button
+                    className="provider-card"
+                    onClick={() => handleSelectProvider('schwab')}
+                  >
+                    <span className="provider-icon">📊</span>
+                    <span className="provider-name">Schwab</span>
+                    <span className="provider-description">Direct API connection</span>
+                  </button>
+                  <button
+                    className="provider-card"
+                    onClick={() => handleSelectProvider('manual')}
+                  >
+                    <span className="provider-icon">✏️</span>
+                    <span className="provider-name">Manual</span>
+                    <span className="provider-description">Add account manually</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {wizardState.step === 'select-institution' && (
+              <div className="wizard-institution-selection">
+                <h5>Select Institution</h5>
+                <div className="institution-search">
+                  <Search size={16} />
+                  <input
+                    type="text"
+                    placeholder="Search institutions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="institution-search-input"
+                  />
+                </div>
+                {isLoadingInstitutions ? (
+                  <div className="loading-institutions">
+                    <Loader2 size={24} className="spinning" />
+                    <span>Loading institutions...</span>
+                  </div>
+                ) : (
+                  <div className="institution-list">
+                    {filteredInstitutions
+                      .filter((inst) => inst.supportedProviders.includes(wizardState.provider!))
+                      .map((inst) => (
+                        <button
+                          key={inst.id}
+                          className="institution-card"
+                          onClick={() => handleSelectInstitution(inst)}
+                        >
+                          {inst.logo ? (
+                            <img src={inst.logo} alt={inst.name} className="institution-logo" />
+                          ) : (
+                            <Building2 size={24} className="institution-icon" />
+                          )}
+                          <div className="institution-info">
+                            <span className="institution-name">{inst.name}</span>
+                            <span className="institution-provider">{inst.supportedProviders.join(', ')}</span>
+                          </div>
+                          <ChevronRight size={16} className="institution-arrow" />
+                        </button>
+                      ))}
+                    {filteredInstitutions.filter((inst) => inst.supportedProviders.includes(wizardState.provider!)).length === 0 && (
+                      <div className="no-institutions">
+                        <p>No institutions found</p>
+                        <p className="empty-hint">Try adjusting your search</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {wizardState.step === 'authenticate' && wizardState.institution && (
+              <div className="wizard-authenticate">
+                <h5>Connecting to {wizardState.institution.name}</h5>
+                <p>Please complete the authentication process...</p>
+                {wizardState.authUrl && wizardState.provider !== 'schwab' && (
+                  <div className="auth-instructions">
+                    <p>A new window should open for authentication.</p>
+                    <p>If it doesn't, <a href={wizardState.authUrl} target="_blank" rel="noopener noreferrer">click here</a>.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {wizardState.step === 'connecting' && (
+              <div className="wizard-connecting">
+                <Loader2 size={32} className="spinning" />
+                <p>Connecting your account...</p>
+              </div>
+            )}
+
+            {wizardState.step === 'complete' && (
+              <div className="wizard-complete">
+                <CheckCircle2 size={48} className="status-icon connected" />
+                <h5>Connection Successful!</h5>
+                <p>Your account has been connected successfully.</p>
+                <button className="wizard-finish-btn" onClick={handleCloseWizard}>
+                  Done
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Connections List */}
       <div className="account-connections-list">
         {accountConnections.map((conn) => (
           <div key={conn.id} className="account-connection-item">
@@ -121,181 +393,81 @@ function AccountConnections() {
                 <div className="connection-details">
                   <div className="connection-institution">{conn.institution}</div>
                   <div className="connection-provider">{conn.provider}</div>
+                  {conn.accountIds && conn.accountIds.length > 0 && (
+                    <div className="connection-account-count">
+                      {conn.accountIds.length} account{conn.accountIds.length !== 1 ? 's' : ''}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="connection-status">
                 <span className={`status-badge ${conn.status}`}>{conn.status}</span>
                 {conn.lastSynced && (
                   <span className="connection-synced">
-                    Synced {conn.lastSynced.toLocaleDateString()}
+                    Synced {conn.lastSynced.toLocaleDateString()} {conn.lastSynced.toLocaleTimeString()}
                   </span>
                 )}
+                <div className="connection-actions">
+                  <button
+                    className="sync-btn"
+                    onClick={() => handleSyncConnection(conn.id)}
+                    disabled={syncingConnectionId === conn.id || conn.status === 'syncing'}
+                    title="Sync Now"
+                  >
+                    {syncingConnectionId === conn.id ? (
+                      <Loader2 size={14} className="spinning" />
+                    ) : (
+                      <RefreshCw size={14} />
+                    )}
+                    <span>Sync</span>
+                  </button>
+                </div>
               </div>
             </div>
             {conn.errorMessage && (
-              <div className="connection-error">{conn.errorMessage}</div>
+              <div className="connection-error">
+                <AlertCircle size={14} />
+                <span>{conn.errorMessage}</span>
+              </div>
+            )}
+            {conn.status === 'syncing' && (
+              <div className="sync-progress">
+                <div className="sync-progress-bar">
+                  <div className="sync-progress-fill" />
+                </div>
+                <span className="sync-progress-text">Syncing accounts...</span>
+              </div>
             )}
           </div>
         ))}
 
-        {accountConnections.length === 0 && (
+        {accountConnections.length === 0 && (wizardState.step === 'select-provider' || wizardState.step === null) && (
           <div className="account-connections-empty">
+            <Building2 size={48} className="empty-icon" />
             <p>No accounts connected</p>
             <p className="empty-hint">Connect your accounts to automatically sync data</p>
+            <button className="empty-connect-btn" onClick={handleStartConnection}>
+              <Link2 size={16} />
+              <span>Connect Your First Account</span>
+            </button>
           </div>
         )}
       </div>
 
-      <div className="account-connections-actions">
-        <button
-          className="connection-btn"
-          onClick={handleConnectSchwab}
-          disabled={isConnecting}
-        >
-          <Link2 size={16} />
-          <span>Connect Schwab</span>
-        </button>
-        <button
-          className="connection-btn"
-          onClick={handleConnectPlaid}
-          disabled={isConnecting}
-        >
-          <Link2 size={16} />
-          <span>Connect via Plaid</span>
-        </button>
-        <button
-          className="connection-btn"
-          onClick={handleManualAccount}
-          disabled={isConnecting}
-        >
-          <Link2 size={16} />
-          <span>Add Manual Account</span>
-        </button>
-      </div>
-
-      {connectionType === 'manual' && (
-        <ManualAccountForm
-          onSave={(account) => {
-            // Add account via store
-            useWealthStore.getState().addAccount({
-              ...account,
-              institution: 'Manual',
-              isConnected: false,
-            });
-            setConnectionType(null);
-          }}
-          onCancel={() => setConnectionType(null)}
-        />
-      )}
-
-      {/* Secure input modals for API credentials */}
+      {/* Secure input modal for API credentials */}
       <SecureInputModal
         isOpen={showApiKeyModal}
         onClose={() => {
           setShowApiKeyModal(false);
-          setIsConnecting(false);
+          handleCloseWizard();
         }}
         onConfirm={handleApiKeyConfirm}
-        title="Schwab API Configuration"
-        label="Enter Schwab API Key"
+        title={`${wizardState.institution?.name || 'Account'} API Configuration`}
+        label="Enter API Key"
         placeholder="API Key"
-      />
-      <SecureInputModal
-        isOpen={showApiSecretModal}
-        onClose={() => {
-          setShowApiSecretModal(false);
-          setApiKey('');
-          setIsConnecting(false);
-        }}
-        onConfirm={handleApiSecretConfirm}
-        title="Schwab API Configuration"
-        label="Enter Schwab API Secret"
-        placeholder="API Secret"
       />
     </div>
   );
-}
-
-interface ManualAccountFormProps {
-  onSave: (account: Omit<import('@/types/wealth').Account, 'id' | 'createdAt'>) => void;
-  onCancel: () => void;
-}
-
-function ManualAccountForm({ onSave, onCancel }: ManualAccountFormProps) {
-  const [name, setName] = useState('');
-  const [type, setType] = useState<import('@/types/wealth').AccountType>('checking');
-  const [balance, setBalance] = useState('0');
-  const [accountNumber, setAccountNumber] = useState('');
-
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      onSave({
-        name,
-        type,
-        balance: parseFloat(balance) || 0,
-        currency: 'USD',
-        isConnected: false,
-        accountNumber: accountNumber || undefined,
-        institution: 'Manual',
-      });
-    },
-    [name, type, balance, accountNumber, onSave]
-  );
-
-  return (
-    <form className="manual-account-form" onSubmit={handleSubmit}>
-      <h4>Add Manual Account</h4>
-      <label>
-        Account Name
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-      </label>
-      <label>
-        Account Type
-        <select value={type} onChange={(e) => setType(e.target.value as any)} required>
-          <option value="checking">Checking</option>
-          <option value="savings">Savings</option>
-          <option value="investment">Investment</option>
-          <option value="retirement">Retirement</option>
-          <option value="credit_card">Credit Card</option>
-          <option value="loan">Loan</option>
-          <option value="mortgage">Mortgage</option>
-          <option value="other">Other</option>
-        </select>
-      </label>
-      <label>
-        Balance ($)
-        <input
-          type="number"
-          value={balance}
-          onChange={(e) => setBalance(e.target.value)}
-          required
-          step="0.01"
-        />
-      </label>
-      <label>
-        Account Number (Last 4 digits, optional)
-        <input
-          type="text"
-          value={accountNumber}
-          onChange={(e) => setAccountNumber(e.target.value)}
-          maxLength={4}
-        />
-      </label>
-      <div className="manual-account-form-actions">
-        <button type="submit">Add Account</button>
-        <button type="button" onClick={onCancel}>
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
+});
 
 export default AccountConnections;
-

@@ -27,6 +27,7 @@ import type {
   AssetType,
 } from '@/types/wealth';
 import { WEALTH_CONSTANTS } from '@/utils/constants';
+import { transactionImportService, type ImportedTransaction } from './transactionImportService';
 
 const ACCOUNTS_KEY = 'dlx_wealth_accounts';
 const ASSETS_KEY = 'dlx_wealth_assets';
@@ -349,6 +350,10 @@ export class WealthService {
       cash: 0,
       domain: 0,
       collectible: 0,
+      nft: 0,
+      private_investment: 0,
+      commodity: 0,
+      derivative: 0,
       other: 0,
     };
 
@@ -402,27 +407,50 @@ export class WealthService {
   }
 
   // Budget Management
-  getBudget(month: number, year: number): Budget | null {
-    return this.budgets.get(`${year}-${month}`) || null;
+  getBudget(month: number, year: number, name?: string): Budget | null {
+    const budgets = this.getBudgetsForMonth(month, year);
+    if (name) {
+      return budgets.find(b => b.name === name) || null;
+    }
+    return budgets[0] || null;
   }
 
-  setBudget(month: number, year: number, categories: Record<BudgetCategory, number>): Budget {
-    const key = `${year}-${month}`;
-    const existing = this.budgets.get(key);
+  getBudgetsForMonth(month: number, year: number): Budget[] {
+    return Array.from(this.budgets.values()).filter(
+      b => b.month === month && b.year === year
+    );
+  }
+
+  setBudget(
+    month: number,
+    year: number,
+    categories: Record<BudgetCategory, number>,
+    name?: string,
+    rolloverEnabled: boolean = false,
+    rolloverCategories?: BudgetCategory[]
+  ): Budget {
+    const existing = this.getBudget(month, year, name);
     const budget: Budget = existing
       ? {
           ...existing,
           categories,
+          rolloverEnabled,
+          rolloverCategories,
           updatedAt: new Date(),
         }
       : {
           id: crypto.randomUUID(),
           month,
           year,
+          name,
           categories,
+          rolloverEnabled,
+          rolloverCategories,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
+    
+    const key = `${year}-${month}${name ? `-${name}` : ''}`;
     this.budgets.set(key, budget);
     this.saveBudgets();
     return budget;
@@ -430,6 +458,176 @@ export class WealthService {
 
   getBudgets(): Budget[] {
     return Array.from(this.budgets.values());
+  }
+
+  /**
+   * Create budget from template (copy from previous month)
+   */
+  createBudgetFromTemplate(month: number, year: number, templateMonth?: number, templateYear?: number): Budget {
+    // Default to previous month
+    const prevMonth = templateMonth || (month === 1 ? 12 : month - 1);
+    const prevYear = templateYear || (month === 1 ? year - 1 : year);
+
+    const template = this.getBudget(prevMonth, prevYear);
+    if (!template) {
+      // Create empty budget if no template
+      return this.setBudget(month, year, {} as Record<BudgetCategory, number>);
+    }
+
+    // Copy categories from template
+    return this.setBudget(
+      month,
+      year,
+      { ...template.categories },
+      template.name,
+      template.rolloverEnabled,
+      template.rolloverCategories
+    );
+  }
+
+  /**
+   * Apply budget rollover (carry forward unspent amounts)
+   */
+  applyBudgetRollover(month: number, year: number, budgetName?: string): Budget {
+    const budget = this.getBudget(month, year, budgetName);
+    if (!budget || !budget.rolloverEnabled) {
+      return budget || this.setBudget(month, year, {} as Record<BudgetCategory, number>);
+    }
+
+    // Get previous month
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevYear = month === 1 ? year - 1 : year;
+    const prevBudget = this.getBudget(prevMonth, prevYear, budgetName);
+    
+    if (!prevBudget) {
+      return budget;
+    }
+
+    // Calculate actual spending for previous month
+    const startDate = new Date(prevYear, prevMonth - 1, 1);
+    const endDate = new Date(prevYear, prevMonth, 0, 23, 59, 59);
+    const transactions = this.getTransactions(startDate, endDate);
+
+    const actualSpending: Record<BudgetCategory, number> = {} as Record<BudgetCategory, number>;
+    transactions.forEach(tx => {
+      if (tx.type === 'expense') {
+        actualSpending[tx.category] = (actualSpending[tx.category] || 0) + tx.amount;
+      }
+    });
+
+    // Calculate rollover amounts
+    const rolloverCategories = budget.rolloverCategories || Object.keys(prevBudget.categories) as BudgetCategory[];
+    const updatedCategories = { ...budget.categories };
+
+    rolloverCategories.forEach(category => {
+      const budgeted = prevBudget.categories[category] || 0;
+      const spent = actualSpending[category] || 0;
+      const unspent = Math.max(0, budgeted - spent);
+      
+      // Add unspent to current month's budget
+      updatedCategories[category] = (updatedCategories[category] || 0) + unspent;
+    });
+
+    return this.setBudget(
+      month,
+      year,
+      updatedCategories,
+      budget.name,
+      budget.rolloverEnabled,
+      budget.rolloverCategories
+    );
+  }
+
+  /**
+   * Auto-categorize transaction using rules engine
+   */
+  autoCategorizeTransaction(transaction: Omit<Transaction, 'id'>): Transaction {
+    // Use transaction import service's categorization
+    const importedTx: ImportedTransaction = {
+      date: transaction.date,
+      amount: transaction.type === 'expense' ? -transaction.amount : transaction.amount,
+      description: transaction.description,
+      merchant: transaction.merchant,
+      accountId: transaction.accountId,
+    };
+    
+    // Access private method via type casting (in real implementation, would be public)
+    const categorized = (transactionImportService as any).categorizeTransaction(importedTx);
+
+    return {
+      id: crypto.randomUUID(),
+      ...transaction,
+      category: categorized.category || transaction.category,
+      tags: categorized.tags || transaction.tags,
+      notes: categorized.notes || transaction.notes,
+    };
+  }
+
+  /**
+   * Detect recurring transactions
+   */
+  detectRecurringTransactions(accountId?: string): Array<{
+    pattern: {
+      amount: number;
+      merchant?: string;
+      description?: string;
+      frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    };
+    occurrences: number;
+    lastOccurrence: Date;
+    nextExpected?: Date;
+  }> {
+    return transactionImportService.detectRecurringTransactions(accountId || '');
+  }
+
+  /**
+   * Get budget vs actual spending for a month
+   */
+  getBudgetVsActual(month: number, year: number, budgetName?: string): Record<string, {
+    budgeted: number;
+    actual: number;
+    remaining: number;
+    percentUsed: number;
+  }> {
+    const budget = this.getBudget(month, year, budgetName);
+    if (!budget) {
+      return {};
+    }
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+    const transactions = this.getTransactions(startDate, endDate);
+
+    const actualSpending: Record<BudgetCategory, number> = {} as Record<BudgetCategory, number>;
+    transactions.forEach(tx => {
+      if (tx.type === 'expense') {
+        actualSpending[tx.category] = (actualSpending[tx.category] || 0) + tx.amount;
+      }
+    });
+
+    const result: Record<string, {
+      budgeted: number;
+      actual: number;
+      remaining: number;
+      percentUsed: number;
+    }> = {};
+
+    Object.keys(budget.categories).forEach(category => {
+      const cat = category as BudgetCategory;
+      const budgeted = budget.categories[cat] || 0;
+      const actual = actualSpending[cat] || 0;
+      const remaining = budgeted - actual;
+      const percentUsed = budgeted > 0 ? (actual / budgeted) * 100 : 0;
+
+      result[cat] = {
+        budgeted,
+        actual,
+        remaining,
+        percentUsed,
+      };
+    });
+
+    return result;
   }
 
   // Transaction Management
@@ -456,6 +654,96 @@ export class WealthService {
     const deleted = this.transactions.delete(id);
     if (deleted) this.saveTransactions();
     return deleted;
+  }
+
+  /**
+   * Split a transaction into multiple parts
+   */
+  splitTransaction(transactionId: string, splits: Array<{ amount: number; category: BudgetCategory; description?: string }>): Transaction[] {
+    const originalTx = this.transactions.get(transactionId);
+    if (!originalTx) {
+      throw new Error(`Transaction ${transactionId} not found`);
+    }
+
+    const totalSplitAmount = splits.reduce((sum, split) => sum + split.amount, 0);
+    if (Math.abs(totalSplitAmount - originalTx.amount) > 0.01) {
+      throw new Error(`Split amounts (${totalSplitAmount}) must equal original amount (${originalTx.amount})`);
+    }
+
+    // Delete original transaction
+    this.deleteTransaction(transactionId);
+
+    // Create new transactions for each split
+    const newTransactions: Transaction[] = [];
+    splits.forEach((split) => {
+      const newTx = this.addTransaction({
+        accountId: originalTx.accountId,
+        amount: split.amount,
+        date: originalTx.date,
+        description: split.description || originalTx.description,
+        merchant: originalTx.merchant,
+        type: originalTx.type,
+        category: split.category,
+        tags: originalTx.tags,
+        notes: originalTx.notes,
+      });
+      newTransactions.push(newTx);
+    });
+
+    return newTransactions;
+  }
+
+  /**
+   * Bulk update multiple transactions
+   */
+  bulkUpdateTransactions(transactionIds: string[], updates: Partial<Transaction>): number {
+    let updatedCount = 0;
+    transactionIds.forEach((id) => {
+      const tx = this.transactions.get(id);
+      if (tx) {
+        const updated = { ...tx, ...updates };
+        this.transactions.set(id, updated);
+        updatedCount++;
+      }
+    });
+    if (updatedCount > 0) {
+      this.saveTransactions();
+    }
+    return updatedCount;
+  }
+
+  /**
+   * Bulk delete multiple transactions
+   */
+  bulkDeleteTransactions(transactionIds: string[]): number {
+    let deletedCount = 0;
+    transactionIds.forEach((id) => {
+      if (this.transactions.delete(id)) {
+        deletedCount++;
+      }
+    });
+    if (deletedCount > 0) {
+      this.saveTransactions();
+    }
+    return deletedCount;
+  }
+
+  /**
+   * Get transactions grouped by merchant
+   */
+  getTransactionsByMerchant(startDate?: Date, endDate?: Date): Map<string, Transaction[]> {
+    const transactions = this.getTransactions(startDate, endDate);
+    const grouped = new Map<string, Transaction[]>();
+    
+    transactions.forEach((tx) => {
+      const merchant = tx.merchant || 'Unknown';
+      if (!grouped.has(merchant)) {
+        grouped.set(merchant, []);
+      }
+      grouped.get(merchant)!.push(tx);
+    });
+
+    return grouped;
   }
 
   getTransactions(startDate?: Date, endDate?: Date, accountId?: string): Transaction[] {

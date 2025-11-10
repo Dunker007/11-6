@@ -4,7 +4,7 @@
   "copyright": "Copyright © 2025 DLXStudios.a1",
   "extraMetadata": {
     "description": "AI-Native Development Platform with VibeEditor",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "directories": {
     "output": "release",

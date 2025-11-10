@@ -410,6 +410,74 @@
 }
 
 /* ===============================================
+   FILE EXPLORER SECTION
+   =============================================== */
+
+.file-explorer-section {
+  margin-top: var(--spacing-md);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: var(--spacing-md);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.file-explorer-header {
+  margin-bottom: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.file-explorer-header h4 {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0 var(--spacing-xs);
+}
+
+.file-explorer-section .file-explorer {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-explorer-section .file-tree {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.file-explorer-section .explorer-toolbar {
+  padding: var(--spacing-xs);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.file-explorer-section .file-item {
+  font-size: var(--font-size-xs);
+  padding: 2px var(--spacing-xs);
+}
+
+.file-explorer-section .file-name {
+  font-size: var(--font-size-xs);
+}
+
+/* Compact file explorer for sidebar */
+.file-explorer-section .file-explorer {
+  background: transparent;
+  border: none;
+}
+
+.file-explorer-section .file-tree {
+  background: transparent;
+}
+
+/* ===============================================
    RESPONSIVE DESIGN
    =============================================== */
 

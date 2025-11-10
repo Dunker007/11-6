@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useProjectStore } from '../core/project/projectStore';
 import { useFileSystemStore } from '../core/filesystem/fileSystemStore';
+import { projectService } from '../core/project/projectService';
+import FileExplorer from '../components/VibeEditor/FileExplorer';
 import LayoutMockupSelector, { type MockupType } from '../components/LayoutPlayground/LayoutMockupSelector';
 import MockupPreviewModal from '../components/LayoutPlayground/Mockups/MockupPreviewModal';
 import StudioHubMockup from '../components/LayoutPlayground/Mockups/StudioHubMockup';
@@ -15,11 +17,13 @@ interface ProjectPanelProps {
 }
 
 function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
-  const { projects, createProject } = useProjectStore();
+  const { projects, createProject, activeProject: currentProject, activeFile, setActiveFile, loadProjects } = useProjectStore();
   const { openDirectoryDialog } = useFileSystemStore();
   const [newProjectName, setNewProjectName] = useState('');
   const [activeTab, setActiveTab] = useState<'projects' | 'layouts'>('projects');
   const [previewMockup, setPreviewMockup] = useState<MockupType | null>(null);
+  const [isLoadingDriveProject, setIsLoadingDriveProject] = useState(false);
+  const [driveProjectError, setDriveProjectError] = useState<string | null>(null);
 
   const handleCreateProject = () => {
     if (newProjectName.trim()) {
@@ -36,12 +40,16 @@ function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
   };
 
   const openProjectFromDrive = async () => {
+    setIsLoadingDriveProject(true);
+    setDriveProjectError(null);
+
     try {
       console.log('Opening directory dialog...');
 
       if (!openDirectoryDialog) {
         console.error('openDirectoryDialog function not available');
-        alert('Drive access not available - make sure you\'re running the Electron app');
+        setDriveProjectError('Drive access not available - make sure you\'re running the Electron app');
+        setIsLoadingDriveProject(false);
         return;
       }
 
@@ -50,21 +58,30 @@ function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
 
       if (directories && directories.length > 0) {
         const projectPath = directories[0];
-        const projectName = projectPath.split(/[/\\]/).pop() || 'Imported Project';
+        console.log('Loading project from disk:', projectPath);
 
-        console.log('Creating project for path:', projectPath);
+        // Use projectService to open project from disk
+        const project = await projectService.openProjectFromDisk(projectPath);
 
-        // Create studio project from real directory
-        const project = createProject(`${projectName} (Drive)`);
-        onProjectSelect(project.id);
-
-        console.log('Opened project from drive:', projectPath, 'Project ID:', project.id);
+        if (project) {
+          // Refresh project list to include the new project
+          loadProjects();
+          
+          // Select the newly loaded project
+          onProjectSelect(project.id);
+          
+          console.log('Successfully loaded project from drive:', projectPath, 'Project ID:', project.id);
+        } else {
+          setDriveProjectError('Failed to load project from disk. The directory may be empty or inaccessible.');
+        }
       } else {
         console.log('No directory selected');
       }
     } catch (error) {
       console.error('Failed to open project from drive:', error);
-      alert('Failed to open directory: ' + (error as Error).message);
+      setDriveProjectError(`Failed to open directory: ${(error as Error).message}`);
+    } finally {
+      setIsLoadingDriveProject(false);
     }
   };
 
@@ -93,10 +110,37 @@ function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
               onClick={openProjectFromDrive}
               className="drive-open-button"
               title="Open project from drive"
+              disabled={isLoadingDriveProject}
             >
-              📂 Open
+              {isLoadingDriveProject ? '⏳' : '📂'} Open
             </button>
           </div>
+
+          {driveProjectError && (
+            <div className="error-message" style={{ 
+              padding: 'var(--spacing-sm)', 
+              background: 'rgba(239, 68, 68, 0.1)', 
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: 'var(--border-radius-sm)',
+              color: 'var(--accent-red)',
+              fontSize: 'var(--font-size-xs)',
+              marginBottom: 'var(--spacing-sm)'
+            }}>
+              {driveProjectError}
+              <button 
+                onClick={() => setDriveProjectError(null)}
+                style={{ 
+                  float: 'right', 
+                  background: 'none', 
+                  border: 'none', 
+                  color: 'inherit',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           <div className="create-project">
             <input
@@ -131,6 +175,19 @@ function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
               </div>
             ))}
           </div>
+
+          {currentProject && currentProject.files && currentProject.files.length > 0 && (
+            <div className="file-explorer-section">
+              <div className="file-explorer-header">
+                <h4>Files</h4>
+              </div>
+              <FileExplorer
+                files={currentProject.files}
+                activeFile={activeFile}
+                onFileSelect={(path) => setActiveFile(path)}
+              />
+            </div>
+          )}
         </>
       ) : (
         <div className="layouts-tab-content">

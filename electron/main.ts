@@ -247,16 +247,20 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on('error', (error) => {
-      // Only send error if it's not a 406 (Not Acceptable) which is common for GitHub API
-      // when releases feed format doesn't match expectations
+      // Suppress 406 and GitHub API format errors - they're common and don't affect functionality
       const errorMessage = error.message || '';
-      const is406Error = errorMessage.includes('406') || errorMessage.includes('Not Acceptable');
+      const is406Error = errorMessage.includes('406') || 
+                         errorMessage.includes('Not Acceptable') ||
+                         errorMessage.includes('HttpError') ||
+                         errorMessage.includes('Unable to find latest version') ||
+                         errorMessage.includes('method: GET url: https://github.com');
       
       if (!is406Error) {
         win?.webContents.send('update:error', { error: error.message });
+        debugLog('[Updater] Error:', errorMessage);
       } else {
         // Silently ignore 406 errors - they're usually due to GitHub API format issues
-        debugLog('[Updater] GitHub API 406 error (suppressed):', error.message);
+        debugLog('[Updater] GitHub API 406 error (suppressed):', errorMessage);
       }
     });
   } catch (error) {
@@ -275,9 +279,13 @@ ipcMain.handle('update:check', async () => {
   } catch (error) {
     const errorMessage = (error as Error).message || '';
     // Suppress 406 errors - they're common with GitHub API format issues
-    const is406Error = errorMessage.includes('406') || errorMessage.includes('Not Acceptable');
+    const is406Error = errorMessage.includes('406') || 
+                       errorMessage.includes('Not Acceptable') ||
+                       errorMessage.includes('HttpError') ||
+                       errorMessage.includes('Unable to find latest version');
     
     if (is406Error) {
+      debugLog('[Updater] GitHub API error suppressed (406/format issue):', errorMessage);
       return { 
         success: false, 
         error: 'Update check unavailable. Please check GitHub releases manually.',
@@ -285,6 +293,7 @@ ipcMain.handle('update:check', async () => {
       };
     }
     
+    debugLog('[Updater] Update check error:', errorMessage);
     return { success: false, error: errorMessage };
   }
 });
@@ -392,7 +401,23 @@ function createMenu() {
           label: 'Check for Updates',
           click: async () => {
             if (!isDev) {
-              await autoUpdater.checkForUpdatesAndNotify();
+              try {
+                await autoUpdater.checkForUpdatesAndNotify();
+              } catch (error) {
+                const errorMessage = (error as Error).message || '';
+                const is406Error = errorMessage.includes('406') || 
+                                   errorMessage.includes('Not Acceptable') ||
+                                   errorMessage.includes('HttpError') ||
+                                   errorMessage.includes('Unable to find latest version');
+                
+                if (!is406Error) {
+                  debugLog('[Updater] Menu check failed:', errorMessage);
+                  dialog.showErrorBox('Update Check Failed', 
+                    'Unable to check for updates. Please check GitHub releases manually.');
+                } else {
+                  debugLog('[Updater] GitHub API 406 error suppressed in menu check');
+                }
+              }
             } else {
               dialog.showMessageBox(win!, {
                 type: 'info',

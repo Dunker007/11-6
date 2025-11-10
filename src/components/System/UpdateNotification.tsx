@@ -70,7 +70,10 @@ function UpdateNotification() {
     try {
       const result = await (window as any).updater.check();
       if (!result.success) {
-        setUpdateError(result.error || 'Failed to check for updates');
+        // Don't set error if it's suppressed (406 errors)
+        if (!result.suppressed) {
+          setUpdateError(result.error || 'Failed to check for updates');
+        }
       }
     } catch (error) {
       setUpdateError((error as Error).message);

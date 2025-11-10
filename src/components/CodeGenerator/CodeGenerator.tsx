@@ -113,9 +113,14 @@ function CodeGenerator() {
         );
         if (context) {
           const stats = multiFileContextService.getStats(activeProject.id);
-          fullPrompt += `\nProject context:\n`;
-          fullPrompt += `- Total files: ${stats?.totalFiles}\n`;
-          fullPrompt += `- Languages: ${Object.keys(stats?.languageDistribution || {}).join(', ')}\n`;
+          if (stats) {
+            fullPrompt += `\nProject context:\n`;
+            fullPrompt += `- Total files: ${stats.totalFiles}\n`;
+            const languages = Object.keys(stats.languageDistribution || {});
+            if (languages.length > 0) {
+              fullPrompt += `- Languages: ${languages.join(', ')}\n`;
+            }
+          }
         }
       }
 

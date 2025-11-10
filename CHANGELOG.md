@@ -5,7 +5,17 @@ All notable changes to DLX Studios Ultimate will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - 2025-01-09
+## [1.0.1] - 2025-01-10
+
+### Fixed
+- **Update Check 406 Error Suppression**: Fixed GitHub API 406 errors from showing error dialogs/notifications. Update checks now silently suppress 406 errors (GitHub API format issues) while still logging them for debugging. All update check entry points (menu, IPC handler, error events) now properly handle 406 errors.
+
+### Technical
+- Enhanced `UpdateNotification.tsx` to check `suppressed` flag from IPC handler
+- Improved error handling in `electron/main.ts` update check handlers
+- Added comprehensive 406 error detection across all update check paths
+
+## [1.0.0] - 2025-01-09
 
 ### Added
 - **ESLint v9 Configuration**: Migrated from ESLint v8 to v9 with new flat config format

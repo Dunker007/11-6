@@ -38,11 +38,13 @@ function ItorToolbar() {
   }, []);
 
   // Save position to localStorage (debounced to avoid excessive writes)
-  const debouncedSavePosition = useDebouncedCallback((pos: { x: number; y: number }) => {
+  const savePositionCallback = useCallback((pos: { x: number; y: number }) => {
     if (pos.x !== 0 || pos.y !== 0) {
       localStorage.setItem('itor-toolbar-position', JSON.stringify(pos));
     }
-  }, 500);
+  }, []);
+
+  const debouncedSavePosition = useDebouncedCallback(savePositionCallback, 500);
 
   useEffect(() => {
     debouncedSavePosition(position);

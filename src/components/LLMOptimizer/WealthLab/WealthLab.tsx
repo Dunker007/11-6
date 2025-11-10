@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, lazy, Suspense } from 'react';
 import { useWealthStore } from '@/services/wealth/wealthStore';
 import NetWorthDashboard from './components/NetWorthDashboard';
 import BudgetDashboard from './components/BudgetDashboard';
@@ -6,9 +6,17 @@ import AssetList from './components/AssetList';
 import AccountConnections from './components/AccountConnections';
 import RetirementCalculator from './components/RetirementCalculator';
 import GoalsTracker from './components/GoalsTracker';
+import { Loading } from '@/components/ui';
 import '@/styles/WealthLab.css';
 
-type WealthTab = 'overview' | 'budgeting' | 'investments' | 'retirement' | 'estate';
+const PortfolioDashboard = lazy(() => import('./components/PortfolioDashboard'));
+const PortfolioManager = lazy(() => import('./components/PortfolioManager'));
+const CryptoETFCenter = lazy(() => import('./components/CryptoETFCenter'));
+const NewsInsightsPanel = lazy(() => import('./components/NewsInsightsPanel'));
+const Watchlist = lazy(() => import('./components/Watchlist'));
+const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard'));
+
+type WealthTab = 'overview' | 'portfolios' | 'crypto-etfs' | 'watchlists' | 'news' | 'analytics' | 'budgeting' | 'retirement' | 'estate';
 
 function WealthLab() {
   const {
@@ -40,16 +48,40 @@ function WealthLab() {
           Overview
         </button>
         <button
+          className={`wealth-tab ${activeTab === 'portfolios' ? 'active' : ''}`}
+          onClick={() => handleTabChange('portfolios')}
+        >
+          Portfolios
+        </button>
+        <button
+          className={`wealth-tab ${activeTab === 'crypto-etfs' ? 'active' : ''}`}
+          onClick={() => handleTabChange('crypto-etfs')}
+        >
+          Crypto ETFs
+        </button>
+        <button
+          className={`wealth-tab ${activeTab === 'watchlists' ? 'active' : ''}`}
+          onClick={() => handleTabChange('watchlists')}
+        >
+          Watchlists
+        </button>
+        <button
+          className={`wealth-tab ${activeTab === 'news' ? 'active' : ''}`}
+          onClick={() => handleTabChange('news')}
+        >
+          News & Insights
+        </button>
+        <button
+          className={`wealth-tab ${activeTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => handleTabChange('analytics')}
+        >
+          Analytics
+        </button>
+        <button
           className={`wealth-tab ${activeTab === 'budgeting' ? 'active' : ''}`}
           onClick={() => handleTabChange('budgeting')}
         >
           Budgeting
-        </button>
-        <button
-          className={`wealth-tab ${activeTab === 'investments' ? 'active' : ''}`}
-          onClick={() => handleTabChange('investments')}
-        >
-          Investments
         </button>
         <button
           className={`wealth-tab ${activeTab === 'retirement' ? 'active' : ''}`}
@@ -76,6 +108,36 @@ function WealthLab() {
               <AccountConnections />
             </div>
           </div>
+        )}
+
+        {activeTab === 'portfolios' && (
+          <Suspense fallback={<Loading />}>
+            <PortfolioDashboard />
+          </Suspense>
+        )}
+
+        {activeTab === 'crypto-etfs' && (
+          <Suspense fallback={<Loading />}>
+            <CryptoETFCenter />
+          </Suspense>
+        )}
+
+        {activeTab === 'watchlists' && (
+          <Suspense fallback={<Loading />}>
+            <Watchlist />
+          </Suspense>
+        )}
+
+        {activeTab === 'news' && (
+          <Suspense fallback={<Loading />}>
+            <NewsInsightsPanel />
+          </Suspense>
+        )}
+
+        {activeTab === 'analytics' && (
+          <Suspense fallback={<Loading />}>
+            <AnalyticsDashboard />
+          </Suspense>
         )}
 
         {activeTab === 'budgeting' && (
@@ -109,17 +171,6 @@ function WealthLab() {
                   </select>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'investments' && (
-          <div className="wealth-investments-layout">
-            <div className="wealth-main-panel">
-              <AssetList />
-            </div>
-            <div className="wealth-sidebar">
-              <AccountConnections />
             </div>
           </div>
         )}

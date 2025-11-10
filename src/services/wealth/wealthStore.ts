@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import { wealthService } from './wealthService';
+import { portfolioService } from './portfolioService';
+import { watchlistService } from './watchlistService';
+import { newsService } from './newsService';
+import { wealthMarketDataService } from './marketDataService';
 import type {
   Account,
   Asset,
@@ -12,6 +16,12 @@ import type {
   RetirementProjection,
   Goal,
   AccountConnection,
+  Portfolio,
+  Watchlist,
+  Alert,
+  NewsArticle,
+  MarketInsight,
+  CryptoETF,
 } from '@/types/wealth';
 
 interface WealthStore {
@@ -34,7 +44,24 @@ interface WealthStore {
   // UI State
   isLoading: boolean;
   error: string | null;
-  activeTab: 'overview' | 'budgeting' | 'investments' | 'retirement' | 'estate';
+  activeTab: 'overview' | 'portfolios' | 'crypto-etfs' | 'watchlists' | 'news' | 'analytics' | 'budgeting' | 'retirement' | 'estate';
+  
+  // Portfolio Management State
+  portfolios: Portfolio[];
+  selectedPortfolioId: string | null;
+  
+  // Watchlist State
+  watchlists: Watchlist[];
+  selectedWatchlistId: string | null;
+  alerts: Alert[];
+  
+  // News & Insights State
+  news: NewsArticle[];
+  insights: MarketInsight[];
+  
+  // Crypto ETFs State
+  cryptoETFs: CryptoETF[];
+  upcomingETFs: CryptoETF[];
 
   // Actions - Accounts
   loadAccounts: () => void;
@@ -90,8 +117,40 @@ interface WealthStore {
   // UI Actions
   setSelectedMonth: (month: number) => void;
   setSelectedYear: (year: number) => void;
-  setActiveTab: (tab: 'overview' | 'budgeting' | 'investments' | 'retirement' | 'estate') => void;
+  setActiveTab: (tab: 'overview' | 'portfolios' | 'crypto-etfs' | 'watchlists' | 'news' | 'analytics' | 'budgeting' | 'retirement' | 'estate') => void;
   refresh: () => void;
+  
+  // Portfolio Actions
+  loadPortfolios: () => void;
+  createPortfolio: (name: string, description?: string) => Promise<Portfolio>;
+  addPosition: (portfolioId: string, symbol: string, quantity: number, costBasis: number, purchaseDate?: Date) => Promise<void>;
+  removePosition: (portfolioId: string, positionId: string) => void;
+  updatePortfolio: (id: string, updates: Partial<Portfolio>) => void;
+  deletePortfolio: (id: string) => void;
+  setSelectedPortfolio: (id: string | null) => void;
+  updatePortfolioPerformance: (portfolioId: string) => Promise<void>;
+  
+  // Watchlist Actions
+  loadWatchlists: () => void;
+  createWatchlist: (name: string) => Watchlist;
+  addToWatchlist: (watchlistId: string, symbol: string) => void;
+  removeFromWatchlist: (watchlistId: string, symbol: string) => void;
+  deleteWatchlist: (id: string) => void;
+  setSelectedWatchlist: (id: string | null) => void;
+  setPriceAlert: (symbol: string, targetPrice: number, direction: 'above' | 'below') => Alert;
+  setNewsAlert: (symbol: string, keywords: string[]) => Alert;
+  deleteAlert: (id: string) => void;
+  
+  // News & Insights Actions
+  loadNews: (symbols?: string[]) => Promise<void>;
+  loadCryptoETFNews: () => Promise<void>;
+  loadMarketNews: () => Promise<void>;
+  loadInsights: () => void;
+  generateInsights: (portfolioId: string) => Promise<void>;
+  
+  // Crypto ETF Actions
+  loadCryptoETFs: () => Promise<void>;
+  loadUpcomingETFs: () => Promise<void>;
 }
 
 export const useWealthStore = create<WealthStore>((set, get) => ({
@@ -113,6 +172,16 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
   isLoading: false,
   error: null,
   activeTab: 'overview',
+  
+  portfolios: [],
+  selectedPortfolioId: null,
+  watchlists: [],
+  selectedWatchlistId: null,
+  alerts: [],
+  news: [],
+  insights: [],
+  cryptoETFs: [],
+  upcomingETFs: [],
 
   // Account Actions
   loadAccounts: () => {
@@ -380,6 +449,9 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
     get().loadGoals();
     get().loadNetWorthHistory();
     get().calculateNetWorth();
+    get().loadPortfolios();
+    get().loadWatchlists();
+    get().loadInsights();
     
     // Load account connections from localStorage
     try {
@@ -394,6 +466,169 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
       }
     } catch (error) {
       console.error('Failed to load account connections:', error);
+    }
+  },
+  
+  // Portfolio Actions
+  loadPortfolios: () => {
+    const portfolios = portfolioService.getPortfolios();
+    set({ portfolios });
+  },
+  
+  createPortfolio: async (name, description) => {
+    const portfolio = await portfolioService.createPortfolio(name, description);
+    get().loadPortfolios();
+    return portfolio;
+  },
+  
+  addPosition: async (portfolioId, symbol, quantity, costBasis, purchaseDate) => {
+    await portfolioService.addPosition(portfolioId, symbol, quantity, costBasis, purchaseDate);
+    get().loadPortfolios();
+  },
+  
+  removePosition: (portfolioId, positionId) => {
+    portfolioService.removePosition(portfolioId, positionId);
+    get().loadPortfolios();
+  },
+  
+  updatePortfolio: (id, updates) => {
+    portfolioService.updatePortfolio(id, updates);
+    get().loadPortfolios();
+  },
+  
+  deletePortfolio: (id) => {
+    portfolioService.deletePortfolio(id);
+    get().loadPortfolios();
+    if (get().selectedPortfolioId === id) {
+      set({ selectedPortfolioId: null });
+    }
+  },
+  
+  setSelectedPortfolio: (id) => {
+    set({ selectedPortfolioId: id });
+  },
+  
+  updatePortfolioPerformance: async (portfolioId) => {
+    await portfolioService.updatePortfolioPerformance(portfolioId);
+    get().loadPortfolios();
+  },
+  
+  // Watchlist Actions
+  loadWatchlists: () => {
+    const watchlists = watchlistService.getWatchlists();
+    const alerts = watchlistService.getAlerts();
+    set({ watchlists, alerts });
+  },
+  
+  createWatchlist: (name) => {
+    const watchlist = watchlistService.createWatchlist(name);
+    get().loadWatchlists();
+    return watchlist;
+  },
+  
+  addToWatchlist: (watchlistId, symbol) => {
+    watchlistService.addToWatchlist(watchlistId, symbol);
+    get().loadWatchlists();
+  },
+  
+  removeFromWatchlist: (watchlistId, symbol) => {
+    watchlistService.removeFromWatchlist(watchlistId, symbol);
+    get().loadWatchlists();
+  },
+  
+  deleteWatchlist: (id) => {
+    watchlistService.deleteWatchlist(id);
+    get().loadWatchlists();
+    if (get().selectedWatchlistId === id) {
+      set({ selectedWatchlistId: null });
+    }
+  },
+  
+  setSelectedWatchlist: (id) => {
+    set({ selectedWatchlistId: id });
+  },
+  
+  setPriceAlert: (symbol, targetPrice, direction) => {
+    const alert = watchlistService.setPriceAlert(symbol, targetPrice, direction);
+    get().loadWatchlists();
+    return alert;
+  },
+  
+  setNewsAlert: (symbol, keywords) => {
+    const alert = watchlistService.setNewsAlert(symbol, keywords);
+    get().loadWatchlists();
+    return alert;
+  },
+  
+  deleteAlert: (id) => {
+    watchlistService.deleteAlert(id);
+    get().loadWatchlists();
+  },
+  
+  // News & Insights Actions
+  loadNews: async (symbols) => {
+    set({ isLoading: true });
+    try {
+      const news = await newsService.fetchNews(symbols || []);
+      set({ news, isLoading: false });
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+  
+  loadCryptoETFNews: async () => {
+    set({ isLoading: true });
+    try {
+      const news = await newsService.fetchCryptoETFNews();
+      set({ news, isLoading: false });
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+  
+  loadMarketNews: async () => {
+    set({ isLoading: true });
+    try {
+      const news = await newsService.fetchMarketNews();
+      set({ news, isLoading: false });
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+  
+  loadInsights: () => {
+    const insights = newsService.getInsights();
+    set({ insights });
+  },
+  
+  generateInsights: async (portfolioId) => {
+    const portfolio = portfolioService.getPortfolio(portfolioId);
+    if (!portfolio) return;
+    
+    const symbols = portfolio.holdings.map(h => h.symbol);
+    const news = await newsService.fetchNews(symbols);
+    const insights = await newsService.generateInsights(portfolio, news);
+    set({ insights });
+  },
+  
+  // Crypto ETF Actions
+  loadCryptoETFs: async () => {
+    set({ isLoading: true });
+    try {
+      const etfs = await wealthMarketDataService.getCryptoETFs();
+      set({ cryptoETFs: etfs, isLoading: false });
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+  
+  loadUpcomingETFs: async () => {
+    set({ isLoading: true });
+    try {
+      const etfs = await wealthMarketDataService.getUpcomingETFs();
+      set({ upcomingETFs: etfs, isLoading: false });
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
     }
   },
 }));
