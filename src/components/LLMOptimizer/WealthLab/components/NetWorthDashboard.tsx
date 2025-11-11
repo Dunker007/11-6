@@ -1,6 +1,7 @@
 import { useState, useMemo, memo } from 'react';
 import { useWealthStore } from '@/services/wealth/wealthStore';
 import { exportService } from '@/services/wealth/exportService';
+import { useToast } from '@/components/ui';
 import { TrendingUp, TrendingDown, Download, Calendar } from 'lucide-react';
 
 export type TimePeriod = '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | '5Y' | 'ALL';
@@ -8,6 +9,7 @@ export type TimePeriod = '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | '5Y' | 'ALL';
 const NetWorthDashboard = memo(function NetWorthDashboard() {
   const netWorth = useWealthStore((state) => state.netWorth);
   const netWorthHistory = useWealthStore((state) => state.netWorthHistory);
+  const { showToast } = useToast();
   const [period, setPeriod] = useState<TimePeriod>('1Y');
   const [comparePeriod, setComparePeriod] = useState<boolean>(false);
 
@@ -155,7 +157,11 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export data. Please try again.');
+      showToast({
+        variant: 'error',
+        title: 'Export failed',
+        message: 'Failed to export data. Please try again.',
+      });
     }
   };
 

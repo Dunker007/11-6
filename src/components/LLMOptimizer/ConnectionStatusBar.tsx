@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Activity, CheckCircle, XCircle, RefreshCw, Server, Cloud, Zap } from 'lucide-react';
+import { Activity, CheckCircle, XCircle, RefreshCw, Server, Cloud, Zap, Wifi } from 'lucide-react';
 import { useLLMStore } from '@/services/ai/llmStore';
+import { llmRouter } from '@/services/ai/router';
 import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
+import { useToast } from '@/components/ui';
 import '../../styles/LLMOptimizer.css';
 
 interface ProviderStatus {
@@ -10,64 +12,132 @@ interface ProviderStatus {
   isOnline: boolean;
   modelCount: number;
   type: 'local' | 'cloud';
+  latency?: number;
+  isTesting?: boolean;
 }
 
 const ConnectionStatusBar = () => {
   const { models, availableProviders, isLoading, discoverProviders } = useLLMStore();
+  const { showToast } = useToast();
   const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
+  const [testingProvider, setTestingProvider] = useState<string | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   useEffect(() => {
-    const ollama: ProviderStatus = {
-      name: 'Ollama',
-      provider: 'ollama',
-      isOnline: availableProviders.includes('ollama'),
-      modelCount: models.filter(m => m.provider === 'ollama').length,
-      type: 'local',
+    const updateStatuses = () => {
+      const ollama: ProviderStatus = {
+        name: 'Ollama',
+        provider: 'ollama',
+        isOnline: availableProviders.includes('ollama'),
+        modelCount: models.filter(m => m.provider === 'ollama').length,
+        type: 'local',
+      };
+
+      const lmstudio: ProviderStatus = {
+        name: 'LM Studio',
+        provider: 'lmstudio',
+        isOnline: availableProviders.includes('lmstudio'),
+        modelCount: models.filter(m => m.provider === 'lmstudio').length,
+        type: 'local',
+      };
+
+      const gemini: ProviderStatus = {
+        name: 'Gemini',
+        provider: 'gemini',
+        isOnline: availableProviders.includes('gemini'),
+        modelCount: models.filter(m => m.provider === 'gemini').length,
+        type: 'cloud',
+      };
+
+      const notebooklm: ProviderStatus = {
+        name: 'NotebookLM',
+        provider: 'notebooklm',
+        isOnline: availableProviders.includes('notebooklm'),
+        modelCount: models.filter(m => m.provider === 'notebooklm').length,
+        type: 'cloud',
+      };
+
+      const openrouter: ProviderStatus = {
+        name: 'OpenRouter',
+        provider: 'openrouter',
+        isOnline: availableProviders.includes('openrouter'),
+        modelCount: models.filter(m => m.provider === 'openai' || m.provider === 'anthropic').length,
+        type: 'cloud',
+      };
+
+      setProviderStatuses([ollama, lmstudio, gemini, notebooklm, openrouter]);
     };
 
-    const lmstudio: ProviderStatus = {
-      name: 'LM Studio',
-      provider: 'lmstudio',
-      isOnline: availableProviders.includes('lmstudio'),
-      modelCount: models.filter(m => m.provider === 'lmstudio').length,
-      type: 'local',
-    };
-
-    const gemini: ProviderStatus = {
-      name: 'Gemini',
-      provider: 'gemini',
-      isOnline: availableProviders.includes('gemini'),
-      modelCount: models.filter(m => m.provider === 'gemini').length,
-      type: 'cloud',
-    };
-
-    const notebooklm: ProviderStatus = {
-      name: 'NotebookLM',
-      provider: 'notebooklm',
-      isOnline: availableProviders.includes('notebooklm'),
-      modelCount: models.filter(m => m.provider === 'notebooklm').length,
-      type: 'cloud',
-    };
-
-    const openrouter: ProviderStatus = {
-      name: 'OpenRouter',
-      provider: 'openrouter',
-      isOnline: availableProviders.includes('openrouter'),
-      modelCount: models.filter(m => m.provider === 'openai' || m.provider === 'anthropic').length,
-      type: 'cloud',
-    };
-
-    setProviderStatuses([ollama, lmstudio, gemini, notebooklm, openrouter]);
+    updateStatuses();
   }, [models, availableProviders]);
+
+  // Auto-refresh every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      await discoverProviders();
+      setLastRefresh(new Date());
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [discoverProviders]);
 
   const handleRefreshInternal = useCallback(async () => {
     await discoverProviders();
+    setLastRefresh(new Date());
   }, [discoverProviders]);
 
   const handleRefresh = useDebouncedCallback(handleRefreshInternal, 500);
 
+  const handleTestConnection = useCallback(async (providerName: string) => {
+    setTestingProvider(providerName);
+    try {
+      const provider = llmRouter.getProvider(providerName);
+      if (!provider) {
+        showToast({
+          variant: 'error',
+          title: 'Provider not found',
+          message: `${providerName} provider is not available`,
+        });
+        return;
+      }
+
+      const startTime = performance.now();
+      const isHealthy = await provider.healthCheck();
+      const endTime = performance.now();
+      const latency = endTime - startTime;
+
+      if (isHealthy) {
+        // Update latency for this provider
+        setProviderStatuses(prev => prev.map(p => 
+          p.provider === providerName ? { ...p, latency, isOnline: true } : p
+        ));
+        
+        showToast({
+          variant: 'success',
+          title: 'Connection test successful',
+          message: `${providerName} responded in ${latency.toFixed(0)}ms`,
+          duration: 2000,
+        });
+      } else {
+        showToast({
+          variant: 'error',
+          title: 'Connection test failed',
+          message: `${providerName} is offline or unreachable`,
+        });
+      }
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        title: 'Connection test error',
+        message: `Failed to test ${providerName}: ${(error as Error).message}`,
+      });
+    } finally {
+      setTestingProvider(null);
+    }
+  }, [showToast]);
+
   const getStatusIcon = (status: ProviderStatus) => {
-    if (isLoading) {
+    if (status.isTesting || (isLoading && testingProvider === status.provider)) {
       return <Activity className="connection-bar-icon checking" size={14} />;
     }
     if (status.isOnline) {
@@ -88,6 +158,11 @@ const ConnectionStatusBar = () => {
       <div className="connection-bar-summary">
         <Zap size={14} className="summary-icon" />
         <span className="summary-text">{onlineCount}/{totalCount} Active</span>
+        {lastRefresh && (
+          <span className="summary-timestamp" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
+            {lastRefresh.toLocaleTimeString()}
+          </span>
+        )}
       </div>
       
       <div className="connection-bar-providers">
@@ -95,7 +170,7 @@ const ConnectionStatusBar = () => {
           <div 
             key={status.provider} 
             className={`connection-bar-item ${status.isOnline ? 'online' : 'offline'} ${status.type}`}
-            title={`${status.name}: ${status.isOnline ? `${status.modelCount} models available` : 'Offline'}`}
+            title={`${status.name}: ${status.isOnline ? `${status.modelCount} models available${status.latency ? ` • ${status.latency.toFixed(0)}ms latency` : ''}` : 'Offline'}`}
           >
             <div className="bar-item-icon">
               {getProviderIcon(status.type)}
@@ -105,6 +180,38 @@ const ConnectionStatusBar = () => {
             {status.isOnline && status.modelCount > 0 && (
               <span className="bar-item-count">{status.modelCount}</span>
             )}
+            {status.latency && status.isOnline && (
+              <span className="bar-item-latency" style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>
+                {status.latency.toFixed(0)}ms
+              </span>
+            )}
+            <button
+              className="bar-item-test-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTestConnection(status.provider);
+              }}
+              disabled={status.isTesting || isLoading}
+              title={`Test ${status.name} connection`}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: '0.25rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                color: 'var(--text-muted)',
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-muted)';
+              }}
+            >
+              <Wifi size={12} />
+            </button>
           </div>
         ))}
       </div>

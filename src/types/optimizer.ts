@@ -33,6 +33,7 @@ export interface ModelCatalogEntry {
   family: string;
   sizeGB: number;
   quantization?: string;
+  optimizationMethod?: 'unsloth-dynamic-2.0' | 'standard' | 'qat';
   contextWindow: number;
   description: string;
   bestFor: LLMUseCase[];

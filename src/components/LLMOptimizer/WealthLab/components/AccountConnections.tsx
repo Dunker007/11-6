@@ -5,6 +5,7 @@ import { Search, RefreshCw, AlertCircle, CheckCircle2, Link2, X, ChevronRight, L
 import SecureInputModal from '@/components/shared/SecureInputModal';
 import { useDebounce } from '@/utils/hooks/useDebounce';
 import { DEBOUNCE_DELAYS } from '@/utils/constants';
+import { useToast } from '@/components/ui';
 import '@/styles/WealthLab.css';
 
 type ConnectionWizardStep = 'select-provider' | 'select-institution' | 'authenticate' | 'connecting' | 'complete' | null;
@@ -19,6 +20,7 @@ interface ConnectionWizardState {
 
 const AccountConnections = memo(function AccountConnections() {
   const { accountConnections, addAccountConnection, updateAccountConnection, refresh } = useWealthStore();
+  const { showToast } = useToast();
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoadingInstitutions, setIsLoadingInstitutions] = useState(false);
@@ -30,6 +32,8 @@ const AccountConnections = memo(function AccountConnections() {
     authUrl: null,
   });
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [isCollectingSecret, setIsCollectingSecret] = useState(false);
+  const [apiKey, setApiKey] = useState<string>('');
   const [syncingConnectionId, setSyncingConnectionId] = useState<string | null>(null);
 
   const debouncedSearch = useDebounce(searchQuery, DEBOUNCE_DELAYS.SEARCH_INPUT);
@@ -79,6 +83,49 @@ const AccountConnections = memo(function AccountConnections() {
   }, []);
 
   const handleSelectInstitution = useCallback(async (institution: Institution) => {
+    // Validate provider is set
+    if (!wizardState.provider) {
+      showToast({
+        variant: 'error',
+        title: 'Provider required',
+        message: 'Please select a provider first',
+      });
+      setWizardState((prev) => ({
+        ...prev,
+        step: 'select-provider',
+      }));
+      return;
+    }
+
+    // Validate institution supports the selected provider
+    if (!institution.supportedProviders.includes(wizardState.provider)) {
+      showToast({
+        variant: 'error',
+        title: 'Provider not supported',
+        message: `${institution.name} does not support ${wizardState.provider}. Supported providers: ${institution.supportedProviders.join(', ')}`,
+      });
+      setWizardState((prev) => ({
+        ...prev,
+        step: 'select-institution',
+      }));
+      return;
+    }
+
+    // For Schwab, we need to collect API key and secret before initiating connection
+    if (wizardState.provider === 'schwab') {
+      setWizardState((prev) => ({
+        ...prev,
+        step: 'authenticate',
+        institution,
+      }));
+      // Show API key modal first
+      setIsCollectingSecret(false);
+      setApiKey('');
+      setShowApiKeyModal(true);
+      return;
+    }
+
+    // For other providers, proceed with normal OAuth flow
     setWizardState((prev) => ({
       ...prev,
       step: 'authenticate',
@@ -87,10 +134,10 @@ const AccountConnections = memo(function AccountConnections() {
 
     try {
       const { authUrl, connectionId } = await accountAggregationService.initiateConnection(
-        wizardState.provider!,
+        wizardState.provider,
         institution.id,
         {
-          provider: wizardState.provider!,
+          provider: wizardState.provider,
           institutionId: institution.id,
         }
       );
@@ -102,9 +149,7 @@ const AccountConnections = memo(function AccountConnections() {
       }));
 
       // Handle different provider authentication flows
-      if (wizardState.provider === 'schwab') {
-        setShowApiKeyModal(true);
-      } else if (wizardState.provider === 'plaid' || wizardState.provider === 'yodlee') {
+      if (wizardState.provider === 'plaid' || wizardState.provider === 'yodlee') {
         // For Plaid/Yodlee, open auth URL in new window
         if (authUrl) {
           window.open(authUrl, '_blank', 'width=600,height=700');
@@ -118,46 +163,144 @@ const AccountConnections = memo(function AccountConnections() {
       }
     } catch (error) {
       console.error('Failed to initiate connection:', error);
-      alert(`Failed to start connection: ${(error as Error).message}`);
+      showToast({
+        variant: 'error',
+        title: 'Connection failed',
+        message: `Failed to start connection: ${(error as Error).message}`,
+      });
       setWizardState((prev) => ({
         ...prev,
         step: 'select-institution',
       }));
     }
+  }, [wizardState.provider, showToast]);
+
+  const handleCloseWizard = useCallback(() => {
+    setWizardState({
+      step: null,
+      provider: null,
+      institution: null,
+      connectionId: null,
+      authUrl: null,
+    });
+    setSearchQuery('');
+    setShowApiKeyModal(false);
+    setIsCollectingSecret(false);
+    setApiKey('');
   }, []);
 
-  const handleApiKeyConfirm = useCallback(async (key: string) => {
-    setShowApiKeyModal(false);
-    // For Schwab, we need both key and secret
-    // In a real implementation, this would be handled via OAuth callback
-    // For now, we'll simulate completion
-    if (wizardState.connectionId && wizardState.institution) {
+  const handleApiKeyConfirm = useCallback(async (value: string) => {
+    // If we're collecting the secret (second step), initiate connection with both credentials
+    if (isCollectingSecret) {
+      const secret = value;
+      setShowApiKeyModal(false);
+      setIsCollectingSecret(false);
+
+      if (!wizardState.institution || !wizardState.provider) {
+        showToast({
+          variant: 'error',
+          title: 'Missing information',
+          message: 'Missing connection information',
+        });
+        handleCloseWizard();
+        return;
+      }
+
       try {
-        await accountAggregationService.completeConnection(wizardState.connectionId, key);
-        const connection = accountAggregationService.getConnection(wizardState.connectionId);
-        if (connection) {
-          addAccountConnection({
-            institution: wizardState.institution.name,
-            provider: wizardState.provider!,
-            status: 'connected',
-            lastSynced: new Date(),
-            accountIds: [],
-          });
-          refresh();
-          setWizardState({
-            step: null,
-            provider: null,
-            institution: null,
-            connectionId: null,
-            authUrl: null,
-          });
+        // Now initiate connection with both API key and secret
+        setWizardState((prev) => ({
+          ...prev,
+          step: 'connecting',
+        }));
+
+        const { authUrl, connectionId } = await accountAggregationService.initiateConnection(
+          wizardState.provider,
+          wizardState.institution.id,
+          {
+            provider: wizardState.provider,
+            institutionId: wizardState.institution.id,
+            apiKey: apiKey,
+            apiSecret: secret,
+            redirectUri: window.location.origin,
+          }
+        );
+
+        setWizardState((prev) => ({
+          ...prev,
+          connectionId,
+          authUrl,
+          step: 'authenticate',
+        }));
+
+        // For Schwab, if we got an auth URL, open it for OAuth
+        if (authUrl && wizardState.provider === 'schwab') {
+          window.open(authUrl, '_blank', 'width=600,height=700');
+          // In a real implementation, we'd wait for OAuth callback
+          // For now, simulate successful connection after a delay
+          setTimeout(async () => {
+            try {
+              // Simulate OAuth callback with auth code
+              // In production, this would come from OAuth redirect
+              const mockAuthCode = 'mock_auth_code_' + Date.now();
+              await accountAggregationService.completeConnection(connectionId, mockAuthCode);
+              const connection = accountAggregationService.getConnection(connectionId);
+              if (connection) {
+                addAccountConnection({
+                  institution: wizardState.institution!.name,
+                  provider: wizardState.provider!,
+                  status: 'connected',
+                  lastSynced: new Date(),
+                  accountIds: [],
+                });
+                refresh();
+                setWizardState({
+                  step: 'complete',
+                  provider: null,
+                  institution: null,
+                  connectionId: null,
+                  authUrl: null,
+                });
+              }
+            } catch (error) {
+              console.error('Failed to complete connection:', error);
+              showToast({
+                variant: 'error',
+                title: 'Connection failed',
+                message: `Failed to complete connection: ${(error as Error).message}`,
+              });
+              setWizardState((prev) => ({
+                ...prev,
+                step: 'authenticate',
+              }));
+            }
+          }, 2000);
         }
       } catch (error) {
-        console.error('Failed to complete connection:', error);
-        alert(`Failed to complete connection: ${(error as Error).message}`);
+        console.error('Failed to initiate Schwab connection:', error);
+        showToast({
+          variant: 'error',
+          title: 'Connection failed',
+          message: `Failed to start connection: ${(error as Error).message}`,
+        });
+        setWizardState((prev) => ({
+          ...prev,
+          step: 'authenticate',
+        }));
+      } finally {
+        setApiKey('');
       }
+    } else {
+      // First step: collect API key, then transition to secret collection
+      setApiKey(value);
+      // Close and immediately reopen modal for secret collection
+      setShowApiKeyModal(false);
+      setIsCollectingSecret(true);
+      // Use setTimeout to ensure modal closes before reopening
+      setTimeout(() => {
+        setShowApiKeyModal(true);
+      }, 100);
     }
-  }, [wizardState, addAccountConnection, refresh]);
+  }, [isCollectingSecret, wizardState, apiKey, addAccountConnection, refresh, handleCloseWizard]);
 
   const handleSyncConnection = useCallback(async (connectionId: string) => {
     setSyncingConnectionId(connectionId);
@@ -171,7 +314,12 @@ const AccountConnections = memo(function AccountConnections() {
           accountIds: connection.accountIds,
         });
         refresh();
-        alert(`Sync complete: ${result.accountsAdded} added, ${result.accountsUpdated} updated, ${result.transactionsImported} transactions imported`);
+        showToast({
+          variant: 'success',
+          title: 'Sync complete',
+          message: `${result.accountsAdded} added, ${result.accountsUpdated} updated, ${result.transactionsImported} transactions imported`,
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error('Failed to sync connection:', error);
@@ -182,22 +330,15 @@ const AccountConnections = memo(function AccountConnections() {
           errorMessage: (error as Error).message,
         });
       }
-      alert(`Sync failed: ${(error as Error).message}`);
+      showToast({
+        variant: 'error',
+        title: 'Sync failed',
+        message: `Sync failed: ${(error as Error).message}`,
+      });
     } finally {
       setSyncingConnectionId(null);
     }
-  }, [updateAccountConnection, refresh]);
-
-  const handleCloseWizard = useCallback(() => {
-    setWizardState({
-      step: 'select-provider',
-      provider: null,
-      institution: null,
-      connectionId: null,
-      authUrl: null,
-    });
-    setSearchQuery('');
-  }, []);
+  }, [updateAccountConnection, refresh, showToast]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -459,12 +600,20 @@ const AccountConnections = memo(function AccountConnections() {
         isOpen={showApiKeyModal}
         onClose={() => {
           setShowApiKeyModal(false);
-          handleCloseWizard();
+          setIsCollectingSecret(false);
+          setApiKey('');
+          if (!isCollectingSecret) {
+            handleCloseWizard();
+          } else {
+            // If closing secret modal, go back to key collection
+            setIsCollectingSecret(false);
+            setShowApiKeyModal(true);
+          }
         }}
         onConfirm={handleApiKeyConfirm}
         title={`${wizardState.institution?.name || 'Account'} API Configuration`}
-        label="Enter API Key"
-        placeholder="API Key"
+        label={isCollectingSecret ? 'Enter API Secret' : 'Enter API Key'}
+        placeholder={isCollectingSecret ? 'API Secret' : 'API Key'}
       />
     </div>
   );

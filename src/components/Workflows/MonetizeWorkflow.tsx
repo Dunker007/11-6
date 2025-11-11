@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useWorkflowStore } from '@/services/workflow/workflowStore';
 import { useFinancialStore } from '@/services/backoffice/financialStore';
+import { useToast } from '@/components/ui';
 import WorkflowRunner from './WorkflowRunner';
 import TechIcon from '../Icons/TechIcon';
 import { Play, DollarSign, TrendingUp, CreditCard, Target } from 'lucide-react';
@@ -16,6 +17,7 @@ import '@/styles/Workflows.css';
 function MonetizeWorkflow() {
   const { createWorkflow } = useWorkflowStore();
   const { summary } = useFinancialStore();
+  const { showToast } = useToast();
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [pricingStrategy, setPricingStrategy] = useState<
     'free' | 'freemium' | 'subscription' | 'one-time' | 'usage-based'
@@ -39,7 +41,11 @@ function MonetizeWorkflow() {
 
   const handleCreateMonetize = () => {
     if (selectedStreams.size === 0) {
-      alert('Please select at least one revenue stream');
+      showToast({
+        variant: 'warning',
+        title: 'Revenue streams required',
+        message: 'Please select at least one revenue stream',
+      });
       return;
     }
 

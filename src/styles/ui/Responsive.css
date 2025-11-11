@@ -45,8 +45,9 @@
 .mockup-container[data-screen-size="large-desktop"] {
   --left-panel-width: 320px;
   --right-panel-width: 500px;
-  max-width: 1600px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  width: 100%;
 }
 
 /* Mobile First Approach */
@@ -152,8 +153,9 @@
 @media (min-width: 1440px) {
   /* Large Desktop - Extra Large Screens */
   .mockup-container {
-    max-width: 1600px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
+    width: 100%;
   }
 }
 

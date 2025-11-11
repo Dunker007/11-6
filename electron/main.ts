@@ -1,5 +1,5 @@
 import electron from 'electron';
-const { app, BrowserWindow, ipcMain, dialog, screen, Menu } = electron;
+const { app, BrowserWindow, ipcMain, dialog, screen, Menu, shell } = electron;
 import updaterPkg from 'electron-updater';
 const { autoUpdater } = updaterPkg;
 import path from 'path';
@@ -96,8 +96,42 @@ const url = isDev ? 'http://localhost:5174' : undefined;
 
 function createWindow() {
   const savedState = getWindowState();
-  const defaultWidth = 1400;
-  const defaultHeight = 900;
+  
+  // Get primary display info
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const scaleFactor = primaryDisplay.scaleFactor;
+  const { width: screenWidth, height: screenHeight } = primaryDisplay.size;
+  const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+  
+  // Calculate actual pixel dimensions accounting for scale factor
+  // Electron's size returns physical pixels, divide by scaleFactor to get logical pixels
+  const actualWidth = screenWidth / scaleFactor;
+  const actualHeight = screenHeight / scaleFactor;
+  const actualWorkWidth = workWidth; // workAreaSize is already in logical pixels
+  const actualWorkHeight = workHeight;
+  
+  // Determine default window size based on screen size
+  // Use 90% of screen for large displays, or default for smaller
+  let defaultWidth: number;
+  let defaultHeight: number;
+  
+  if (actualWidth > 1920 && actualHeight > 1080) {
+    // Large displays: use 90% of work area
+    defaultWidth = Math.floor(actualWorkWidth * 0.9);
+    defaultHeight = Math.floor(actualWorkHeight * 0.9);
+  } else {
+    // Smaller displays: use default or saved size
+    defaultWidth = 1400;
+    defaultHeight = 900;
+  }
+  
+  // Ensure minimum size
+  defaultWidth = Math.max(defaultWidth, 1200);
+  defaultHeight = Math.max(defaultHeight, 800);
+  
+  // Ensure window doesn't exceed work area
+  defaultWidth = Math.min(defaultWidth, actualWorkWidth);
+  defaultHeight = Math.min(defaultHeight, actualWorkHeight);
 
   // Calculate centered position if no saved state
   let windowX: number | undefined;
@@ -108,17 +142,21 @@ function createWindow() {
     windowY = savedState.y;
   } else {
     // Center on primary display
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
-    windowX = Math.floor((screenWidth - defaultWidth) / 2);
-    windowY = Math.floor((screenHeight - defaultHeight) / 2);
+    windowX = Math.floor((actualWorkWidth - defaultWidth) / 2);
+    windowY = Math.floor((actualWorkHeight - defaultHeight) / 2);
   }
+  
+  // Use saved size if available, otherwise use calculated default
+  const windowWidth = savedState?.width || defaultWidth;
+  const windowHeight = savedState?.height || defaultHeight;
 
   win = new BrowserWindow({
-    width: savedState?.width || defaultWidth,
-    height: savedState?.height || defaultHeight,
+    width: windowWidth,
+    height: windowHeight,
     x: windowX,
     y: windowY,
+    minWidth: 1200,
+    minHeight: 800,
     titleBarStyle: 'hidden',
     titleBarOverlay: {
       color: '#0F172A',
@@ -161,6 +199,68 @@ function createWindow() {
   win.on('resize', saveState);
   win.on('maximize', saveState);
   win.on('unmaximize', saveState);
+  
+  // Ensure window stays within screen bounds on resize
+  win.on('will-resize', (event, newBounds) => {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+    
+    // Ensure window doesn't exceed work area
+    if (newBounds.width > workWidth) {
+      event.preventDefault();
+      win?.setSize(workWidth, newBounds.height);
+    }
+    if (newBounds.height > workHeight) {
+      event.preventDefault();
+      win?.setSize(newBounds.width, workHeight);
+    }
+  });
+  
+  // Handle display changes (e.g., monitor disconnect, resolution change)
+  screen.on('display-added', () => {
+    if (win && !win.isDestroyed()) {
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+      const bounds = win.getBounds();
+      
+      // If window exceeds new work area, resize it
+      if (bounds.width > workWidth || bounds.height > workHeight) {
+        const newWidth = Math.min(bounds.width, workWidth);
+        const newHeight = Math.min(bounds.height, workHeight);
+        win.setSize(newWidth, newHeight);
+      }
+    }
+  });
+  
+  screen.on('display-removed', () => {
+    if (win && !win.isDestroyed()) {
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+      const bounds = win.getBounds();
+      
+      // If window exceeds new work area, resize it
+      if (bounds.width > workWidth || bounds.height > workHeight) {
+        const newWidth = Math.min(bounds.width, workWidth);
+        const newHeight = Math.min(bounds.height, workHeight);
+        win.setSize(newWidth, newHeight);
+      }
+    }
+  });
+  
+  screen.on('display-metrics-changed', () => {
+    if (win && !win.isDestroyed()) {
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+      const bounds = win.getBounds();
+      
+      // If window exceeds new work area, resize it
+      if (bounds.width > workWidth || bounds.height > workHeight) {
+        const newWidth = Math.min(bounds.width, workWidth);
+        const newHeight = Math.min(bounds.height, workHeight);
+        win.setSize(newWidth, newHeight);
+      }
+    }
+  });
 
   // Clear cache in dev mode to prevent stale content
   if (isDev && url) {
@@ -866,6 +966,39 @@ ipcMain.handle('monitor:getDisplays', async () => {
   }));
 });
 
+// Screen Info IPC Handler
+ipcMain.handle('screen:getDisplayInfo', async () => {
+  try {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    return {
+      success: true,
+      data: {
+        resolution: {
+          width: primaryDisplay.size.width,
+          height: primaryDisplay.size.height,
+        },
+        scaleFactor: primaryDisplay.scaleFactor,
+        workAreaSize: {
+          width: primaryDisplay.workAreaSize.width,
+          height: primaryDisplay.workAreaSize.height,
+        },
+        bounds: {
+          x: primaryDisplay.bounds.x,
+          y: primaryDisplay.bounds.y,
+          width: primaryDisplay.bounds.width,
+          height: primaryDisplay.bounds.height,
+        },
+        isPrimary: true,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
 ipcMain.handle('monitor:setPrimary', async (_event, _displayId: string) => {
   // Note: Setting primary display programmatically is platform-specific
   // This is a placeholder - actual implementation would require platform-specific code
@@ -953,6 +1086,369 @@ ipcMain.handle('program:kill', async (_event, executionId: string) => {
     }
   }
   return { success: false, error: 'Process not found' };
+});
+
+// --------- LLM Model Operations IPC Handlers ---------
+ipcMain.handle('llm:openExternalUrl', async (_event, url: string) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+ipcMain.handle('llm:pullModel', async (_event, modelId: string, pullCommand: string) => {
+  try {
+    // Execute Ollama pull command
+    const { stdout, stderr } = await execAsync(pullCommand, {
+      timeout: 600000, // 10 minute timeout for large models
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+    });
+    
+    return {
+      success: true,
+      stdout,
+      stderr,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      stdout: error.stdout || '',
+      stderr: error.stderr || '',
+    };
+  }
+});
+
+// Stream model pull progress (for future use)
+ipcMain.handle('llm:pullModelStream', async (_event, modelId: string, pullCommand: string) => {
+  return new Promise((resolve) => {
+    const executionId = `pull-${modelId}-${Date.now()}`;
+    // Parse pull command (e.g., "ollama pull qwen2.5-coder:32b-instruct-q4_K_M")
+    const parts = pullCommand.split(' ');
+    const command = parts[0];
+    const args = parts.slice(1);
+    
+    const process = spawn(command, args, {
+      shell: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    process.stdout?.on('data', (data) => {
+      stdout += data.toString();
+      win?.webContents.send('llm:pull-progress', {
+        executionId,
+        modelId,
+        type: 'stdout',
+        data: data.toString(),
+      });
+    });
+
+    process.stderr?.on('data', (data) => {
+      stderr += data.toString();
+      win?.webContents.send('llm:pull-progress', {
+        executionId,
+        modelId,
+        type: 'stderr',
+        data: data.toString(),
+      });
+    });
+
+    process.on('close', (code) => {
+      runningProcesses.delete(executionId);
+      win?.webContents.send('llm:pull-complete', {
+        executionId,
+        modelId,
+        exitCode: code,
+        success: code === 0,
+      });
+      resolve({
+        success: code === 0,
+        exitCode: code,
+        stdout,
+        stderr,
+      });
+    });
+
+    process.on('error', (error) => {
+      runningProcesses.delete(executionId);
+      win?.webContents.send('llm:pull-error', {
+        executionId,
+        modelId,
+        error: error.message,
+      });
+      resolve({
+        success: false,
+        error: error.message,
+        stdout,
+        stderr,
+      });
+    });
+
+    runningProcesses.set(executionId, process);
+  });
+});
+
+// Windows Service Management IPC Handlers
+ipcMain.handle('windows:listServices', async () => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only', services: [] };
+  }
+
+  try {
+    const { stdout } = await execAsync('powershell -Command "Get-Service | Select-Object Name, DisplayName, Status, StartType | ConvertTo-Json"', {
+      timeout: 30000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    
+    const services = JSON.parse(stdout);
+    return {
+      success: true,
+      services: Array.isArray(services) ? services : [services],
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      services: [],
+    };
+  }
+});
+
+ipcMain.handle('windows:getServiceStatus', async (_event, serviceName: string) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    const { stdout } = await execAsync(`powershell -Command "Get-Service -Name '${serviceName}' | Select-Object Name, Status, StartType | ConvertTo-Json"`, {
+      timeout: 10000,
+    });
+    
+    const service = JSON.parse(stdout);
+    return {
+      success: true,
+      service: Array.isArray(service) ? service[0] : service,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+ipcMain.handle('windows:disableService', async (_event, serviceName: string) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    await execAsync(`powershell -Command "Set-Service -Name '${serviceName}' -StartupType Disabled"`, {
+      timeout: 10000,
+    });
+    
+    // Stop the service if it's running
+    try {
+      await execAsync(`powershell -Command "Stop-Service -Name '${serviceName}' -Force"`, {
+        timeout: 10000,
+      });
+    } catch {
+      // Service might already be stopped
+    }
+    
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+ipcMain.handle('windows:enableService', async (_event, serviceName: string) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    await execAsync(`powershell -Command "Set-Service -Name '${serviceName}' -StartupType Automatic"`, {
+      timeout: 10000,
+    });
+    
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+// Windows Registry IPC Handlers
+ipcMain.handle('windows:readRegistry', async (_event, path: string, value: string) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    // Convert HKEY paths to reg query format
+    const regPath = path.replace(/HKEY_LOCAL_MACHINE\\/i, 'HKLM\\').replace(/HKEY_CURRENT_USER\\/i, 'HKCU\\');
+    const { stdout } = await execAsync(`reg query "${regPath}" /v "${value}"`, {
+      timeout: 10000,
+    });
+    
+    // Parse reg query output
+    const match = stdout.match(new RegExp(`${value}\\s+REG_\\w+\\s+(.+)`));
+    if (match) {
+      return {
+        success: true,
+        value: match[1].trim(),
+      };
+    }
+    
+    return { success: false, error: 'Value not found' };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+ipcMain.handle('windows:writeRegistry', async (_event, path: string, value: string, data: string, type: 'DWORD' | 'STRING' | 'BINARY' = 'STRING') => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    const regPath = path.replace(/HKEY_LOCAL_MACHINE\\/i, 'HKLM\\').replace(/HKEY_CURRENT_USER\\/i, 'HKCU\\');
+    
+    // Backup original value first
+    try {
+      const backup = await execAsync(`reg query "${regPath}" /v "${value}"`, {
+        timeout: 10000,
+      });
+      // Store backup (in production, save to file)
+    } catch {
+      // Value might not exist, that's OK
+    }
+    
+    // Write new value
+    let regCommand = `reg add "${regPath}" /v "${value}" /t ${type}`;
+    if (type === 'DWORD') {
+      regCommand += ` /d ${data} /f`;
+    } else {
+      regCommand += ` /d "${data}" /f`;
+    }
+    
+    await execAsync(regCommand, {
+      timeout: 10000,
+    });
+    
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+ipcMain.handle('windows:checkAdmin', async () => {
+  if (process.platform !== 'win32') {
+    return { isAdmin: false, isWindows: false };
+  }
+
+  try {
+    // Check if running as admin by trying to access HKLM
+    await execAsync('reg query "HKLM\\SOFTWARE"', {
+      timeout: 5000,
+    });
+    return { isAdmin: true, isWindows: true };
+  } catch {
+    return { isAdmin: false, isWindows: true };
+  }
+});
+
+ipcMain.handle('windows:runCommand', async (_event, command: string, admin: boolean = false) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    let execCommand = command;
+    if (admin) {
+      // In production, use elevation helper or request admin privileges
+      execCommand = `powershell -Command "Start-Process -FilePath '${command.split(' ')[0]}' -ArgumentList '${command.split(' ').slice(1).join(' ')}' -Verb RunAs -Wait"`;
+    }
+    
+    const { stdout, stderr } = await execAsync(execCommand, {
+      timeout: 60000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    
+    return {
+      success: true,
+      stdout,
+      stderr,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      stdout: error.stdout || '',
+      stderr: error.stderr || '',
+    };
+  }
+});
+
+// Disk Benchmark IPC Handler
+ipcMain.handle('benchmark:disk', async () => {
+  try {
+    const tmpDir = os.tmpdir();
+    const testFile = path.join(tmpDir, `benchmark-test-${Date.now()}.tmp`);
+    const testSize = 100 * 1024 * 1024; // 100MB test file
+    const testData = Buffer.alloc(testSize, 'A');
+
+    // Write benchmark
+    const writeStart = Date.now();
+    await fs.writeFile(testFile, testData);
+    const writeTime = Date.now() - writeStart;
+    const writeSpeed = (testSize / (1024 * 1024)) / (writeTime / 1000); // MB/s
+
+    // Read benchmark
+    const readStart = Date.now();
+    await fs.readFile(testFile);
+    const readTime = Date.now() - readStart;
+    const readSpeed = (testSize / (1024 * 1024)) / (readTime / 1000); // MB/s
+
+    // Cleanup
+    try {
+      await fs.unlink(testFile);
+    } catch {
+      // Ignore cleanup errors
+    }
+
+    return {
+      success: true,
+      readSpeed: Math.round(readSpeed),
+      writeSpeed: Math.round(writeSpeed),
+      readTime,
+      writeTime,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      readSpeed: 0,
+      writeSpeed: 0,
+    };
+  }
 });
 
 

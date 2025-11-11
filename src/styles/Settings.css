@@ -455,3 +455,135 @@
   background: #dc2626;
 }
 
+/* About Settings */
+.about-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.about-header {
+  margin-bottom: 1rem;
+}
+
+.about-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.about-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.about-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.about-card:hover {
+  border-color: var(--violet-500);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+}
+
+.about-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.about-card-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.about-card-header svg {
+  color: var(--violet-500);
+}
+
+.about-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.about-info-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.info-label {
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.info-value {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.version-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--violet-500);
+  color: white;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.info-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--violet-500);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.info-link:hover {
+  color: var(--violet-400);
+  text-decoration: underline;
+}
+
+.about-footer {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.about-footer p {
+  margin: 0.5rem 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.about-footer-note {
+  font-size: 0.75rem !important;
+  color: var(--text-muted) !important;
+  opacity: 0.7;
+}
+

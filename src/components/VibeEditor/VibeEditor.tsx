@@ -4,6 +4,7 @@ import type { editor } from 'monaco-editor';
 import { useProjectStore } from '../../services/project/projectStore';
 import { useActivityStore } from '../../services/activity/activityStore';
 import { errorContext } from '../../services/errors/errorContext';
+import { useToast } from '@/components/ui';
 import FileExplorer from './FileExplorer';
 import TurboEdit from './TurboEdit';
 import AIAssistant from '../AIAssistant/AIAssistant';
@@ -18,6 +19,7 @@ import '../../styles/VibeEditor.css';
 function VibeEditor() {
   const { activeProject, projects, loadProjects, createProject, setActiveProject, updateFile, getFileContent, setActiveFile } = useProjectStore();
   const { addActivity } = useActivityStore();
+  const { showToast } = useToast();
   const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
   const [fileContent, setFileContent] = useState<string>('');
   const [language, setLanguage] = useState<string>('typescript');
@@ -220,15 +222,27 @@ function VibeEditor() {
             // Reload projects to update the list
             loadProjects();
           } else {
-            alert('Failed to open project from ' + path);
+            showToast({
+              variant: 'error',
+              title: 'Failed to open project',
+              message: `Failed to open project from ${path}`,
+            });
           }
         }
       } catch (error) {
         console.error('Failed to open project:', error);
-        alert('Failed to open project: ' + (error as Error).message);
+        showToast({
+          variant: 'error',
+          title: 'Failed to open project',
+          message: (error as Error).message,
+        });
       }
     } else {
-      alert('File dialogs are only available in the Electron app');
+      showToast({
+        variant: 'info',
+        title: 'File dialogs unavailable',
+        message: 'File dialogs are only available in the Electron app',
+      });
     }
   };
 

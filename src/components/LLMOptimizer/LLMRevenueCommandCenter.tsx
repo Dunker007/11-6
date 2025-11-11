@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { Zap, TrendingUp, BarChart3, Settings as SettingsIcon, DollarSign, TrendingDown, Code, Bitcoin, Lightbulb, FolderPlus, Rocket, Activity, Play } from 'lucide-react';
+import { Zap, TrendingUp, Settings as SettingsIcon, DollarSign, Code, Bitcoin, Lightbulb, FolderPlus, Rocket, Activity, Play, Minus, Square, X } from 'lucide-react';
 import { useLLMOptimizerStore } from '@/services/ai/llmOptimizerStore';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { useFinancialStore } from '@/services/backoffice/financialStore';
@@ -7,9 +7,16 @@ import { CommandPalette, useCommandPalette } from '@/components/ui';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { useScreenSize } from '@/utils/hooks/useScreenSize';
 import ConnectionStatusBar from './ConnectionStatusBar';
-import HardwareProfiler from './HardwareProfiler';
+import LiveHardwareProfiler from './LiveHardwareProfiler';
 import ModelCatalog from './ModelCatalog';
-import SystemHealth from './SystemHealth';
+import SystemAlertsCompact from './SystemAlertsCompact';
+import TopRecommendationsCompact from './TopRecommendationsCompact';
+import ActiveConnectionsCompact from './ActiveConnectionsCompact';
+import QuickModelSwitcher from './QuickModelSwitcher';
+import GPUMonitorDetailed from './GPUMonitorDetailed';
+import ModelPerformanceMetrics from './ModelPerformanceMetrics';
+import TokenUsageTracker from './TokenUsageTracker';
+import BenchmarkRunner from './BenchmarkRunner';
 import '../../styles/LLMOptimizer.css';
 import '../../styles/LayoutMockups.css';
 import '../../styles/ui/Navigation.css';
@@ -21,6 +28,8 @@ const IdeaLab = lazy(() => import('./IdeaLab'));
 const CryptoLab = lazy(() => import('./CryptoLab/CryptoLab'));
 const WealthLab = lazy(() => import('./WealthLab/WealthLab'));
 const VibedEd = lazy(() => import('./VibedEd/VibedEd'));
+const FinancialDashboard = lazy(() => import('../BackOffice/FinancialDashboard'));
+const BackOffice = lazy(() => import('../BackOffice/BackOffice'));
 
 // Lazy load workflow components
 const ProjectWorkflow = lazy(() => import('../Workflows/ProjectWorkflow'));
@@ -51,9 +60,13 @@ function LLMRevenueCommandCenter() {
   const detectHardware = useLLMOptimizerStore((state) => state.detectHardware);
   const loadCatalog = useLLMOptimizerStore((state) => state.loadCatalog);
   const modelCatalog = useLLMOptimizerStore((state) => state.modelCatalog);
+  const runBenchmarks = useLLMOptimizerStore((state) => state.runBenchmarks);
+  const benchmarks = useLLMOptimizerStore((state) => state.benchmarks);
+  const isBenchmarking = useLLMOptimizerStore((state) => state.isBenchmarking);
+  const benchmarkError = useLLMOptimizerStore((state) => state.benchmarkError);
   
   // Financial Store
-  const { expenses, summary, refresh: refreshFinancials } = useFinancialStore();
+  const { refresh: refreshFinancials } = useFinancialStore();
   
   useEffect(() => {
     detectHardware();
@@ -61,48 +74,6 @@ function LLMRevenueCommandCenter() {
     discoverProviders();
     refreshFinancials();
   }, [detectHardware, loadCatalog, discoverProviders, refreshFinancials]);
-
-  // Calculate LLM costs from expenses
-  const llmCosts = useMemo(() => {
-    if (!expenses || !summary) return { monthly: 0, total: 0 };
-    const apiCosts = expenses
-      .filter(exp => exp.category === 'api_costs')
-      .reduce((sum, exp) => sum + exp.amount, 0);
-    return {
-      monthly: apiCosts,
-      total: summary.byCategory?.expenses?.api_costs || 0,
-    };
-  }, [expenses, summary]);
-
-  // Calculate revenue metrics
-  const revenueMetrics = useMemo(() => {
-    if (!summary) {
-      return {
-        total: 0,
-        netProfit: 0,
-        roi: 0,
-        llmCostPercentage: 0,
-      };
-    }
-    
-    const netProfit = summary.profit;
-    const llmCostPercentage = summary.totalIncome > 0 
-      ? (llmCosts.total / summary.totalIncome) * 100 
-      : 0;
-    const roi = llmCosts.total > 0 
-      ? ((summary.totalIncome / llmCosts.total) * 100) 
-      : 0;
-    
-    return {
-      total: summary.totalIncome,
-      netProfit,
-      roi,
-      llmCostPercentage,
-    };
-  }, [summary, llmCosts]);
-
-  const totalRevenue = revenueMetrics.total;
-  const netProfit = revenueMetrics.netProfit;
 
   // Helper function to get tab display name
   const getTabName = useCallback((tab: TabType): string => {
@@ -180,14 +151,6 @@ function LLMRevenueCommandCenter() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeTab, handleTabChange]);
 
-  // Refresh handler
-  const handleRefresh = useCallback(() => {
-    detectHardware();
-    loadCatalog();
-    discoverProviders();
-    refreshFinancials();
-  }, [detectHardware, loadCatalog, discoverProviders, refreshFinancials]);
-
   // Workflow selection handler
   const handleWorkflowChange = useCallback((workflow: WorkflowType) => {
     setActiveWorkflow(workflow);
@@ -203,6 +166,38 @@ function LLMRevenueCommandCenter() {
       <a href="#navigation" className="skip-link">
         Skip to navigation
       </a>
+      
+      {/* Electron Title Bar Spacer */}
+      <div className="electron-titlebar-spacer">
+        <div className="titlebar-content">
+          <div className="titlebar-title">
+            <span>DLX Studios Ultimate</span>
+          </div>
+          <div className="titlebar-controls">
+            <button 
+              className="titlebar-button" 
+              onClick={() => (window as any).windowControls?.minimize?.()}
+              aria-label="Minimize"
+            >
+              <Minus size={14} />
+            </button>
+            <button 
+              className="titlebar-button" 
+              onClick={() => (window as any).windowControls?.maximize?.()}
+              aria-label="Maximize"
+            >
+              <Square size={12} />
+            </button>
+            <button 
+              className="titlebar-button titlebar-close" 
+              onClick={() => (window as any).windowControls?.close?.()}
+              aria-label="Close"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
       
       {/* Top Status Bar */}
       <div className="mockup-top-bar llm-revenue-bar">
@@ -226,7 +221,7 @@ function LLMRevenueCommandCenter() {
         </div>
       </div>
 
-      <div className={`mockup-main-layout llm-revenue-layout ${activeTab === 'idea-lab' || activeTab === 'crypto-lab' || activeTab === 'wealth-lab' || activeTab === 'vibed-ed' || activeTab === 'workflows' || activeTab === 'quick-labs' || activeTab === 'settings' ? 'full-width-tab' : ''}`} style={{ position: 'relative', zIndex: 1 }}>
+      <div className={`mockup-main-layout llm-revenue-layout ${activeTab === 'idea-lab' || activeTab === 'crypto-lab' || activeTab === 'wealth-lab' || activeTab === 'vibed-ed' || activeTab === 'workflows' || activeTab === 'quick-labs' || activeTab === 'settings' ? 'full-width-tab' : ''} ${activeTab === 'revenue' ? 'revenue-tab-layout' : ''}`} style={{ position: 'relative', zIndex: 1 }}>
         {/* Left Panel */}
         {activeTab === 'llm' && (
           <div className="mockup-sidebar left">
@@ -283,78 +278,37 @@ function LLMRevenueCommandCenter() {
             </ErrorBoundary>
           ) : activeTab === 'llm' ? (
             <>
-              <HardwareProfiler />
-              <SystemHealth />
+              <LiveHardwareProfiler />
+              <GPUMonitorDetailed />
+              <BenchmarkRunner
+                catalog={modelCatalog || []}
+                results={benchmarks}
+                isRunning={isBenchmarking}
+                onRun={runBenchmarks}
+                error={benchmarkError ?? undefined}
+              />
+              <ModelPerformanceMetrics />
+              <TokenUsageTracker />
             </>
           ) : activeTab === 'revenue' ? (
-            <>
-              <div className="dashboard-header">
-                <h2>Revenue Dashboard</h2>
-                <div className="dashboard-actions">
-                  <button className="action-btn" onClick={handleRefresh}>
-                    <SettingsIcon size={16} />
-                    <span>Refresh Data</span>
-                  </button>
+            <ErrorBoundary sectionName="Revenue Dashboard">
+              <Suspense fallback={<div className="loading-state slide-up-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', gap: '0.75rem' }}>
+                <div className="loading-spinner" style={{ width: '20px', height: '20px', border: '2px solid rgba(139, 92, 246, 0.3)', borderTopColor: 'var(--violet-500)', borderRadius: '50%' }}></div>
+                <span>Loading Revenue Dashboard...</span>
+              </div>}>
+                <div className="revenue-tab-content">
+                  <FinancialDashboard />
+                  <ErrorBoundary sectionName="Back Office">
+                    <Suspense fallback={<div className="loading-state" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', gap: '0.75rem' }}>
+                      <div className="loading-spinner" style={{ width: '20px', height: '20px', border: '2px solid rgba(139, 92, 246, 0.3)', borderTopColor: 'var(--violet-500)', borderRadius: '50%' }}></div>
+                      <span>Loading Back Office...</span>
+                    </div>}>
+                      <BackOffice />
+                    </Suspense>
+                  </ErrorBoundary>
                 </div>
-              </div>
-
-              <div className="metrics-grid">
-                <div className="metric-card">
-                  <div className="metric-icon">
-                    <DollarSign size={24} />
-                  </div>
-                  <div className="metric-content">
-                    <div className="metric-label">Total Revenue</div>
-                    <div className="metric-value">${totalRevenue.toLocaleString()}</div>
-                    <div className="metric-change positive">
-                      <TrendingUp size={14} />
-                      <span>This period</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="metric-card">
-                  <div className="metric-icon">
-                    <Zap size={24} />
-                  </div>
-                  <div className="metric-content">
-                    <div className="metric-label">LLM Costs</div>
-                    <div className="metric-value">${llmCosts.total.toFixed(0)}</div>
-                    <div className="metric-change">
-                      <span>{revenueMetrics.llmCostPercentage.toFixed(1)}% of revenue</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="metric-card">
-                  <div className="metric-icon">
-                    <TrendingUp size={24} />
-                  </div>
-                  <div className="metric-content">
-                    <div className="metric-label">Net Profit</div>
-                    <div className="metric-value">${netProfit.toLocaleString()}</div>
-                    <div className={`metric-change ${netProfit > 0 ? 'positive' : ''}`}>
-                      {netProfit > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                      <span>{summary?.profitMargin?.toFixed(1) || 0}% margin</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="metric-card">
-                  <div className="metric-icon">
-                    <BarChart3 size={24} />
-                  </div>
-                  <div className="metric-content">
-                    <div className="metric-label">ROI</div>
-                    <div className="metric-value">{revenueMetrics.roi.toFixed(0)}%</div>
-                    <div className="metric-change positive">
-                      <TrendingUp size={14} />
-                      <span>LLM efficiency</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
+              </Suspense>
+            </ErrorBoundary>
           ) : activeTab === 'workflows' ? (
             <ErrorBoundary sectionName="Workflows">
               <Suspense fallback={<div className="loading-state slide-up-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', gap: '0.75rem' }}>
@@ -460,57 +414,13 @@ function LLMRevenueCommandCenter() {
         {/* Right Panel */}
         {activeTab === 'llm' && (
           <div className="mockup-sidebar right">
-            <div className="sidebar-section">
-              <h3>Quick Actions</h3>
-              <div className="quick-actions">
-                <button
-                  className="quick-action-btn"
-                  onClick={() => {
-                    handleTabChange('workflows');
-                    handleWorkflowChange('project');
-                  }}
-                >
-                  <FolderPlus size={16} />
-                  <span>New Project</span>
-                </button>
-                <button
-                  className="quick-action-btn"
-                  onClick={() => {
-                    handleTabChange('workflows');
-                    handleWorkflowChange('build');
-                  }}
-                >
-                  <Zap size={16} />
-                  <span>Build Project</span>
-                </button>
-                <button
-                  className="quick-action-btn"
-                  onClick={() => {
-                    handleTabChange('workflows');
-                    handleWorkflowChange('deploy');
-                  }}
-                >
-                  <Rocket size={16} />
-                  <span>Deploy</span>
-                </button>
-                <button
-                  className="quick-action-btn"
-                  onClick={() => {
-                    handleTabChange('workflows');
-                    handleWorkflowChange('monitor');
-                  }}
-                >
-                  <Activity size={16} />
-                  <span>Monitor System</span>
-                </button>
-              </div>
-            </div>
-            <div className="sidebar-section">
-              <h3>System Health</h3>
-              <SystemHealth />
-            </div>
+            <SystemAlertsCompact />
+            <TopRecommendationsCompact />
+            <ActiveConnectionsCompact />
+            <QuickModelSwitcher />
           </div>
         )}
+
       </div>
       
       {/* Command Palette */}

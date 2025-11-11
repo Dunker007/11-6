@@ -42,6 +42,19 @@ declare global {
       setPrimary(displayId: string): Promise<{ success: boolean; error?: string }>;
       setDisplayBounds(displayId: string, bounds: { x: number; y: number; width: number; height: number }): Promise<{ success: boolean; error?: string }>;
     };
+    screen: {
+      getDisplayInfo(): Promise<{
+        success: boolean;
+        data?: {
+          resolution: { width: number; height: number };
+          scaleFactor: number;
+          workAreaSize: { width: number; height: number };
+          bounds: { x: number; y: number; width: number; height: number };
+          isPrimary: boolean;
+        };
+        error?: string;
+      }>;
+    };
     program: {
       execute(command: string, workingDirectory?: string): Promise<{ success: boolean; executionId?: string; error?: string }>;
       kill(executionId: string): Promise<{ success: boolean; error?: string }>;
@@ -60,6 +73,33 @@ declare global {
     menu: {
       onAbout(callback: () => void): () => void;
       onShortcuts(callback: () => void): () => void;
+    };
+    windowControls: {
+      minimize: () => Promise<void>;
+      maximize: () => Promise<void>;
+      close: () => Promise<void>;
+      isMaximized: () => Promise<boolean>;
+    };
+    llm: {
+      openExternalUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
+      pullModel: (modelId: string, pullCommand: string) => Promise<{ success: boolean; stdout?: string; stderr?: string; error?: string }>;
+      pullModelStream: (modelId: string, pullCommand: string) => Promise<{ success: boolean; exitCode?: number; stdout?: string; stderr?: string; error?: string }>;
+      onPullProgress: (callback: (data: { executionId: string; modelId: string; type: 'stdout' | 'stderr'; data: string }) => void) => () => void;
+      onPullComplete: (callback: (data: { executionId: string; modelId: string; exitCode: number; success: boolean }) => void) => () => void;
+      onPullError: (callback: (data: { executionId: string; modelId: string; error: string }) => void) => () => void;
+    };
+    windows: {
+      listServices: () => Promise<{ success: boolean; services?: Array<{ Name: string; DisplayName: string; Status: string; StartType: string }>; error?: string }>;
+      getServiceStatus: (serviceName: string) => Promise<{ success: boolean; service?: { Name: string; Status: string; StartType: string }; error?: string }>;
+      disableService: (serviceName: string) => Promise<{ success: boolean; error?: string }>;
+      enableService: (serviceName: string) => Promise<{ success: boolean; error?: string }>;
+      readRegistry: (path: string, value: string) => Promise<{ success: boolean; value?: string; error?: string }>;
+      writeRegistry: (path: string, value: string, data: string, type?: 'DWORD' | 'STRING' | 'BINARY') => Promise<{ success: boolean; error?: string }>;
+      checkAdmin: () => Promise<{ isAdmin: boolean; isWindows: boolean }>;
+      runCommand: (command: string, admin?: boolean) => Promise<{ success: boolean; stdout?: string; stderr?: string; error?: string }>;
+    };
+    benchmark: {
+      disk: () => Promise<{ success: boolean; readSpeed?: number; writeSpeed?: number; readTime?: number; writeTime?: number; error?: string }>;
     };
   }
 }

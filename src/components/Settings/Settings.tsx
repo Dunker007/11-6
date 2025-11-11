@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { Settings as SettingsIcon, Key, Palette, Sliders, BookOpen } from 'lucide-react';
+import { Settings as SettingsIcon, Key, Palette, Sliders, BookOpen, Info } from 'lucide-react';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import '../../styles/Settings.css';
 
@@ -9,8 +9,9 @@ const GeneralSettings = lazy(() => import('./GeneralSettings'));
 const AppearanceSettings = lazy(() => import('./AppearanceSettings'));
 const AdvancedSettings = lazy(() => import('./AdvancedSettings'));
 const TestingSettings = lazy(() => import('./TestingSettings'));
+const AboutSettings = lazy(() => import('./AboutSettings'));
 
-type SettingsSection = 'api' | 'general' | 'appearance' | 'advanced' | 'testing';
+type SettingsSection = 'api' | 'general' | 'appearance' | 'advanced' | 'testing' | 'about';
 
 function Settings() {
   const [activeSection, setActiveSection] = useState<SettingsSection>('api');
@@ -21,6 +22,7 @@ function Settings() {
     { id: 'appearance', label: 'Appearance', icon: Palette },
     { id: 'advanced', label: 'Advanced', icon: Sliders },
     { id: 'testing', label: 'Testing Tutorial', icon: BookOpen },
+    { id: 'about', label: 'About', icon: Info },
   ];
 
   return (
@@ -67,6 +69,7 @@ function Settings() {
               {activeSection === 'appearance' && <AppearanceSettings />}
               {activeSection === 'advanced' && <AdvancedSettings />}
               {activeSection === 'testing' && <TestingSettings />}
+              {activeSection === 'about' && <AboutSettings />}
             </Suspense>
           </ErrorBoundary>
         </div>

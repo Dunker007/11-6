@@ -3,6 +3,7 @@ import type { ProjectFile } from '@/types/project';
 import { useProjectStore } from '@/core/project/projectStore';
 import { useActivityStore } from '@/services/activity/activityStore';
 import { fileSystemService } from '@/services/filesystem/fileSystemService';
+import { useToast } from '@/components/ui';
 import TechIcon from '@/components/Icons/TechIcon';
 import { FileText, FolderOpen, Folder, ChevronRight, ChevronDown, FilePlus, FolderPlus, Edit2, Copy, Scissors, Clipboard, Trash2, Dot, HardDrive, Search, FolderTree } from 'lucide-react';
 import '@/styles/FileExplorer.css';
@@ -31,6 +32,7 @@ const formatBytes = (bytes: number): string => {
 function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
   const { addFile, deleteFile, activeProject, getFileContent } = useProjectStore();
   const { addActivity } = useActivityStore();
+  const { showToast } = useToast();
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set([files[0]?.path || '']));
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; path: string; isDirectory: boolean } | null>(null);
   const [clipboard, setClipboard] = useState<{ path: string; operation: 'copy' | 'cut' } | null>(null);
@@ -130,7 +132,11 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
     const file = findFile(files, clipboard.path);
     if (!file || file.isDirectory) {
       // Note: Directory copy/paste requires recursive file operations
-      alert('Copying folders is not yet supported');
+      showToast({
+        variant: 'warning',
+        title: 'Feature not available',
+        message: 'Copying folders is not yet supported',
+      });
       setContextMenu(null);
       return;
     }
@@ -158,7 +164,11 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
       const result = await fileSystemService.getDirectorySize(dirPath);
       if (result.success && result.data !== undefined) {
         setDirectorySizes(prev => new Map(prev).set(dirPath, result.data!));
-        alert(`Directory size: ${formatBytes(result.data)}`);
+        showToast({
+          variant: 'info',
+          title: 'Directory size',
+          message: formatBytes(result.data),
+        });
       }
     } catch (error) {
       console.error('Failed to get directory size:', error);
@@ -177,7 +187,11 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
       // Read directory contents
       const result = await fileSystemService.readdir(dirPath);
       if (!result.success || !result.data) {
-        alert(`Failed to read directory: ${result.error || 'Unknown error'}`);
+        showToast({
+          variant: 'error',
+          title: 'Failed to read directory',
+          message: result.error || 'Unknown error',
+        });
         setContextMenu(null);
         return;
       }
@@ -191,7 +205,11 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
       );
 
       if (tempFiles.length === 0) {
-        alert('No temporary files found in this directory.');
+        showToast({
+          variant: 'info',
+          title: 'No temporary files',
+          message: 'No temporary files found in this directory',
+        });
         setContextMenu(null);
         return;
       }
@@ -219,8 +237,15 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
         }
       }
 
-      const message = `Cleaned ${deletedCount} file(s), freed ${formatBytes(totalSize)}${errors.length > 0 ? `\n\nErrors:\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? `\n...and ${errors.length - 5} more` : ''}` : ''}`;
-      alert(message);
+      const errorMessage = errors.length > 0 
+        ? `Errors: ${errors.slice(0, 3).join(', ')}${errors.length > 3 ? ` and ${errors.length - 3} more` : ''}`
+        : '';
+      showToast({
+        variant: errors.length > 0 ? 'warning' : 'success',
+        title: `Cleaned ${deletedCount} file(s)`,
+        message: `Freed ${formatBytes(totalSize)}${errorMessage ? `. ${errorMessage}` : ''}`,
+        duration: 5000,
+      });
       addActivity('file', 'deleted', `Cleaned ${deletedCount} temp file(s) from ${dirPath}`);
       
       // Refresh directory view if it's currently expanded
@@ -229,7 +254,11 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
       }
     } catch (error) {
       console.error('Failed to clean temp files:', error);
-      alert(`Failed to clean temp files: ${(error as Error).message}`);
+      showToast({
+        variant: 'error',
+        title: 'Failed to clean temp files',
+        message: (error as Error).message,
+      });
     } finally {
       setContextMenu(null);
     }
@@ -237,7 +266,11 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
 
   const handleFindLargeFiles = async (_dirPath: string) => {
     // This would scan for files > 100MB
-    alert('Find Large Files feature coming soon');
+    showToast({
+      variant: 'info',
+      title: 'Coming soon',
+      message: 'Find Large Files feature coming soon',
+    });
     setContextMenu(null);
   };
 
@@ -311,11 +344,19 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
           onFileSelect(systemFilePath);
           addActivity('file', 'opened', `Opened system file: ${entry.name}`);
         } else {
-          alert(`Failed to read file: ${result.error || 'Unknown error'}`);
+          showToast({
+            variant: 'error',
+            title: 'Failed to read file',
+            message: result.error || 'Unknown error',
+          });
         }
       } catch (error) {
         console.error('Failed to open system file:', error);
-        alert(`Failed to open file: ${(error as Error).message}`);
+        showToast({
+          variant: 'error',
+          title: 'Failed to open file',
+          message: (error as Error).message,
+        });
       }
     };
 
@@ -339,15 +380,15 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
   };
 
   useEffect(() => {
-    if (viewMode === 'system') {
-      const loadDrives = async () => {
+    const loadDrives = async () => {
+      if (viewMode === 'system') {
         const result = await fileSystemService.listDrives();
         if (result.success && result.data) {
           setSystemDrives(result.data);
         }
-      };
-      loadDrives();
-    }
+      }
+    };
+    loadDrives();
   }, [viewMode]);
 
   const loadSystemDirectory = async (path: string) => {

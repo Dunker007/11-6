@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useWorkflowStore } from '@/services/workflow/workflowStore';
 import { useProjectStore } from '@/services/project/projectStore';
+import { useToast } from '@/components/ui';
 import WorkflowRunner from './WorkflowRunner';
 import TechIcon from '../Icons/TechIcon';
 import { Play, Rocket, Server, Globe, Settings } from 'lucide-react';
@@ -16,6 +17,7 @@ import '@/styles/Workflows.css';
 function DeployWorkflow() {
   const { createWorkflow } = useWorkflowStore();
   const { activeProject } = useProjectStore();
+  const { showToast } = useToast();
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [deployTarget, setDeployTarget] = useState<'local' | 'staging' | 'production' | 'custom'>('staging');
   const [customUrl, setCustomUrl] = useState('');
@@ -23,7 +25,11 @@ function DeployWorkflow() {
 
   const handleCreateDeploy = () => {
     if (!activeProject) {
-      alert('Please select a project first');
+      showToast({
+        variant: 'warning',
+        title: 'Project required',
+        message: 'Please select a project first',
+      });
       return;
     }
 

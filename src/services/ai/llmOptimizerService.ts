@@ -22,6 +22,7 @@ const DEFAULT_BENCHMARK_PROMPT =
   'Respond with a short confirmation message that says "Benchmark OK". This is a latency measurement request.';
 
 const MODEL_CATALOG: ModelCatalogEntry[] = [
+  // Standard quantized models (not Unsloth Dynamic 2.0)
   {
     id: 'qwen2.5-coder:32b-instruct-q4_K_M',
     displayName: 'Qwen2.5 Coder 32B (Q4_K_M)',
@@ -29,6 +30,7 @@ const MODEL_CATALOG: ModelCatalogEntry[] = [
     family: 'Qwen2.5',
     sizeGB: 19,
     quantization: 'Q4_K_M',
+    optimizationMethod: 'standard',
     contextWindow: 32768,
     description: 'Large code-focused model with excellent reasoning and refactor performance.',
     bestFor: ['code-generation', 'analysis', 'fine-tuning'],
@@ -47,6 +49,7 @@ const MODEL_CATALOG: ModelCatalogEntry[] = [
     family: 'DeepSeek V2',
     sizeGB: 9.6,
     quantization: 'Q4_K_M',
+    optimizationMethod: 'standard',
     contextWindow: 16384,
     description: 'Balanced code model optimized for fast iterations with strong completion quality.',
     bestFor: ['code-generation', 'analysis'],
@@ -65,6 +68,7 @@ const MODEL_CATALOG: ModelCatalogEntry[] = [
     family: 'Llama 3.1',
     sizeGB: 4.8,
     quantization: 'Q4_K_M',
+    optimizationMethod: 'standard',
     contextWindow: 8192,
     description: 'Fast general-purpose assistant with good coding baseline and strong chat ability.',
     bestFor: ['chat-assistant', 'code-generation', 'summarization'],
@@ -83,6 +87,7 @@ const MODEL_CATALOG: ModelCatalogEntry[] = [
     family: 'Phi-3',
     sizeGB: 8.2,
     quantization: 'Q4_K_M',
+    optimizationMethod: 'standard',
     contextWindow: 128000,
     description: 'High-context generalist suited for summarization and large spec analysis.',
     bestFor: ['analysis', 'summarization', 'chat-assistant'],
@@ -101,6 +106,7 @@ const MODEL_CATALOG: ModelCatalogEntry[] = [
     family: 'Mistral Nemo',
     sizeGB: 7.5,
     quantization: 'Q4_K_M',
+    optimizationMethod: 'standard',
     contextWindow: 8192,
     description: 'Balanced multilingual assistant with solid reasoning and speed.',
     bestFor: ['chat-assistant', 'analysis', 'creative-writing'],
@@ -112,6 +118,7 @@ const MODEL_CATALOG: ModelCatalogEntry[] = [
     limitations: ['Requires manual import into LM Studio'],
     license: 'Apache 2.0',
   },
+  // Cloud models (optimizationMethod not applicable)
   {
     id: 'openrouter/anthropic/claude-3.5-sonnet',
     displayName: 'Claude 3.5 Sonnet (OpenRouter)',
@@ -141,6 +148,147 @@ const MODEL_CATALOG: ModelCatalogEntry[] = [
     strengths: ['Unmatched context length', 'Great tooling integration', 'Strong summarization'],
     limitations: ['Requires API key', 'Higher latency than local models'],
     license: 'Commercial (via Google terms)',
+  },
+  // Unsloth Dynamic 2.0 Models - Optimized quantization with better accuracy
+  {
+    id: 'unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF:IQ2_XXS',
+    displayName: 'Llama 4 Scout 17B (Unsloth Dynamic 2.0 IQ2_XXS)',
+    provider: 'ollama',
+    family: 'Llama 4',
+    sizeGB: 7.31,
+    quantization: 'IQ2_XXS',
+    optimizationMethod: 'unsloth-dynamic-2.0',
+    contextWindow: 16384,
+    description: 'Unsloth Dynamic 2.0 quantized - 68.70% MMLU, better accuracy than standard quants at same size.',
+    bestFor: ['code-generation', 'analysis', 'chat-assistant'],
+    tags: ['code', 'unsloth', 'dynamic-2.0', 'optimized', 'reasoning'],
+    pullCommand: 'ollama pull unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF:IQ2_XXS',
+    downloadUrl: 'https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF',
+    minSystemMemoryGB: 24,
+    minGpuMemoryGB: 12,
+    strengths: ['Unsloth Dynamic 2.0 optimization', 'Better accuracy than standard IQ2_XXS', 'Smaller file size', 'Fixed Llama 4 bugs'],
+    limitations: ['Requires Ollama', 'May need HuggingFace integration for direct pull'],
+    license: 'Meta Llama 4 Community License',
+  },
+  {
+    id: 'unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF:Q2_K_XL',
+    displayName: 'Llama 4 Scout 17B (Unsloth Dynamic 2.0 Q2_K_XL)',
+    provider: 'ollama',
+    family: 'Llama 4',
+    sizeGB: 9.95,
+    quantization: 'Q2_K_XL',
+    optimizationMethod: 'unsloth-dynamic-2.0',
+    contextWindow: 16384,
+    description: 'Unsloth Dynamic 2.0 quantized - 68.70% MMLU, excellent balance of size and accuracy.',
+    bestFor: ['code-generation', 'analysis', 'chat-assistant'],
+    tags: ['code', 'unsloth', 'dynamic-2.0', 'optimized', 'balanced'],
+    pullCommand: 'ollama pull unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF:Q2_K_XL',
+    downloadUrl: 'https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF',
+    minSystemMemoryGB: 24,
+    minGpuMemoryGB: 12,
+    strengths: ['Unsloth Dynamic 2.0 optimization', 'Better accuracy than standard Q2_K_XL', 'Lower KL Divergence'],
+    limitations: ['Requires Ollama', 'May need HuggingFace integration for direct pull'],
+    license: 'Meta Llama 4 Community License',
+  },
+  {
+    id: 'unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF:Q4_K_XL',
+    displayName: 'Llama 4 Scout 17B (Unsloth Dynamic 2.0 Q4_K_XL)',
+    provider: 'ollama',
+    family: 'Llama 4',
+    sizeGB: 15.64,
+    quantization: 'Q4_K_XL',
+    optimizationMethod: 'unsloth-dynamic-2.0',
+    contextWindow: 16384,
+    description: 'Unsloth Dynamic 2.0 quantized - 71.47% MMLU, 2GB smaller than Google QAT with +1% accuracy.',
+    bestFor: ['code-generation', 'analysis', 'chat-assistant'],
+    tags: ['code', 'unsloth', 'dynamic-2.0', 'optimized', 'high-quality'],
+    pullCommand: 'ollama pull unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF:Q4_K_XL',
+    downloadUrl: 'https://huggingface.co/unsloth/Llama-4-Scout-17B-16E-Instruct-GGUF',
+    minSystemMemoryGB: 32,
+    minGpuMemoryGB: 16,
+    strengths: ['Unsloth Dynamic 2.0 optimization', 'Better than Google QAT', 'Smaller file size', 'Higher accuracy'],
+    limitations: ['Requires more VRAM', 'May need HuggingFace integration for direct pull'],
+    license: 'Meta Llama 4 Community License',
+  },
+  {
+    id: 'unsloth/Gemma-3-27B-IT-GGUF:IQ2_XXS',
+    displayName: 'Gemma 3 27B (Unsloth Dynamic 2.0 IQ2_XXS)',
+    provider: 'ollama',
+    family: 'Gemma 3',
+    sizeGB: 7.31,
+    quantization: 'IQ2_XXS',
+    optimizationMethod: 'unsloth-dynamic-2.0',
+    contextWindow: 8192,
+    description: 'Unsloth Dynamic 2.0 quantized - 59.20% MMLU, excellent efficiency for 27B model.',
+    bestFor: ['code-generation', 'analysis', 'chat-assistant'],
+    tags: ['code', 'unsloth', 'dynamic-2.0', 'optimized', 'efficient'],
+    pullCommand: 'ollama pull unsloth/Gemma-3-27B-IT-GGUF:IQ2_XXS',
+    downloadUrl: 'https://huggingface.co/unsloth/Gemma-3-27B-IT-GGUF',
+    minSystemMemoryGB: 24,
+    minGpuMemoryGB: 12,
+    strengths: ['Unsloth Dynamic 2.0 optimization', 'Small size for 27B model', 'Good efficiency score'],
+    limitations: ['Requires Ollama', 'May need HuggingFace integration for direct pull'],
+    license: 'Gemma Terms of Use',
+  },
+  {
+    id: 'unsloth/Gemma-3-27B-IT-GGUF:Q4_K_XL',
+    displayName: 'Gemma 3 27B (Unsloth Dynamic 2.0 Q4_K_XL)',
+    provider: 'ollama',
+    family: 'Gemma 3',
+    sizeGB: 15.64,
+    quantization: 'Q4_K_XL',
+    optimizationMethod: 'unsloth-dynamic-2.0',
+    contextWindow: 8192,
+    description: 'Unsloth Dynamic 2.0 quantized - 71.47% MMLU, 2GB smaller than Google QAT with better accuracy.',
+    bestFor: ['code-generation', 'analysis', 'chat-assistant'],
+    tags: ['code', 'unsloth', 'dynamic-2.0', 'optimized', 'high-quality'],
+    pullCommand: 'ollama pull unsloth/Gemma-3-27B-IT-GGUF:Q4_K_XL',
+    downloadUrl: 'https://huggingface.co/unsloth/Gemma-3-27B-IT-GGUF',
+    minSystemMemoryGB: 32,
+    minGpuMemoryGB: 16,
+    strengths: ['Unsloth Dynamic 2.0 optimization', 'Better than Google QAT', 'Smaller file size', 'Higher accuracy'],
+    limitations: ['Requires more VRAM', 'May need HuggingFace integration for direct pull'],
+    license: 'Gemma Terms of Use',
+  },
+  {
+    id: 'unsloth/DeepSeek-V3.1-231B-GGUF:IQ1_M',
+    displayName: 'DeepSeek V3.1 231B (Unsloth Dynamic 2.0 IQ1_M)',
+    provider: 'ollama',
+    family: 'DeepSeek V3.1',
+    sizeGB: 6.51,
+    quantization: 'IQ1_M',
+    optimizationMethod: 'unsloth-dynamic-2.0',
+    contextWindow: 64000,
+    description: 'Unsloth Dynamic 2.0 quantized - Massive 231B model compressed to 6.5GB with excellent performance.',
+    bestFor: ['code-generation', 'analysis', 'reasoning'],
+    tags: ['code', 'unsloth', 'dynamic-2.0', 'optimized', 'massive', 'reasoning'],
+    pullCommand: 'ollama pull unsloth/DeepSeek-V3.1-231B-GGUF:IQ1_M',
+    downloadUrl: 'https://huggingface.co/unsloth/DeepSeek-V3.1-231B-GGUF',
+    minSystemMemoryGB: 32,
+    minGpuMemoryGB: 16,
+    strengths: ['Unsloth Dynamic 2.0 optimization', 'Massive model in small size', 'Excellent reasoning'],
+    limitations: ['Requires Ollama', 'High VRAM for inference', 'May need HuggingFace integration for direct pull'],
+    license: 'DeepSeek License',
+  },
+  {
+    id: 'unsloth/DeepSeek-V3.1-231B-GGUF:Q3_K_XL',
+    displayName: 'DeepSeek V3.1 231B (Unsloth Dynamic 2.0 Q3_K_XL)',
+    provider: 'ollama',
+    family: 'DeepSeek V3.1',
+    sizeGB: 12.76,
+    quantization: 'Q3_K_XL',
+    optimizationMethod: 'unsloth-dynamic-2.0',
+    contextWindow: 64000,
+    description: 'Unsloth Dynamic 2.0 quantized - 70.87% MMLU, best balance for 231B model.',
+    bestFor: ['code-generation', 'analysis', 'reasoning'],
+    tags: ['code', 'unsloth', 'dynamic-2.0', 'optimized', 'massive', 'reasoning'],
+    pullCommand: 'ollama pull unsloth/DeepSeek-V3.1-231B-GGUF:Q3_K_XL',
+    downloadUrl: 'https://huggingface.co/unsloth/DeepSeek-V3.1-231B-GGUF',
+    minSystemMemoryGB: 32,
+    minGpuMemoryGB: 16,
+    strengths: ['Unsloth Dynamic 2.0 optimization', 'Excellent accuracy', 'Good efficiency'],
+    limitations: ['Requires Ollama', 'High VRAM', 'May need HuggingFace integration for direct pull'],
+    license: 'DeepSeek License',
   },
 ];
 
@@ -199,10 +347,15 @@ async function detectGPUInfo(): Promise<{
           // Determine if discrete: check vendor/model or if it's not Intel integrated
           const vendor = (gpu.vendor || '').toLowerCase();
           const model = (gpu.model || '').toLowerCase();
-          const isDiscrete = vendor.includes('nvidia') || 
-                            vendor.includes('amd') || 
-                            vendor.includes('ati') ||
-                            (!vendor.includes('intel') && !model.includes('integrated') && !model.includes('uhd') && !model.includes('iris'));
+          // Explicitly check for integrated GPUs (Intel integrated, UHD, Iris)
+          const isIntegrated = vendor.includes('intel') && (
+            model.includes('integrated') || 
+            model.includes('uhd') || 
+            model.includes('iris') ||
+            model.includes('hd graphics')
+          );
+          // Default to discrete GPU (true) unless explicitly detected as integrated
+          const isDiscrete = !isIntegrated;
           
           return {
             name: gpuName,
@@ -219,7 +372,7 @@ async function detectGPUInfo(): Promise<{
 
   // Fallback to browser APIs
   if (typeof navigator === 'undefined') {
-    return { name: null, memoryGB: null, isDiscrete: null };
+    return { name: null, memoryGB: null, isDiscrete: true }; // Default to discrete GPU
   }
 
   try {
@@ -230,12 +383,12 @@ async function detectGPUInfo(): Promise<{
         const info = await adapter.requestAdapterInfo?.();
         const vendor = info?.vendor || '';
         const architecture = info?.architecture || '';
-        const isDiscrete = adapter?.features?.has('timestamp-query') ?? null;
+        const isDiscrete = adapter?.features?.has('timestamp-query') ?? true; // Default to true
         const description = [vendor, architecture].filter(Boolean).join(' ');
         return {
           name: name || description || null,
           memoryGB: null,
-          isDiscrete,
+          isDiscrete: isDiscrete !== false ? true : false, // Default to true unless explicitly false
         };
       }
     }
@@ -253,10 +406,11 @@ async function detectGPUInfo(): Promise<{
         const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
         const rendererLower = (renderer || '').toLowerCase();
         const vendorLower = (vendor || '').toLowerCase();
-        const isDiscrete = rendererLower.includes('discrete') || 
-                          vendorLower.includes('nvidia') || 
-                          vendorLower.includes('amd') ||
-                          (!vendorLower.includes('intel') && !rendererLower.includes('integrated'));
+        // Explicitly check for integrated GPUs
+        const isIntegrated = vendorLower.includes('intel') && rendererLower.includes('integrated');
+        // Default to discrete GPU (true) unless explicitly detected as integrated
+        const isDiscrete = !isIntegrated;
+        
         return {
           name: `${vendor} ${renderer}`.trim(),
           memoryGB: null,
@@ -268,7 +422,8 @@ async function detectGPUInfo(): Promise<{
     // Ignore WebGL failures
   }
 
-  return { name: null, memoryGB: null, isDiscrete: null };
+  // Default to discrete GPU if detection fails (most modern PCs have discrete GPUs)
+  return { name: null, memoryGB: null, isDiscrete: true };
 }
 
 export async function detectHardwareProfile(): Promise<HardwareProfile> {
@@ -412,6 +567,12 @@ function scoreRecommendation(
 ): { score: number; reasons: string[]; hardwareFit: number; priorityFit: number } {
   let score = 0;
   const reasons: string[] = [];
+
+  // Boost for Unsloth Dynamic 2.0 models
+  if (entry.optimizationMethod === 'unsloth-dynamic-2.0') {
+    score += 20;
+    reasons.push('Unsloth Dynamic 2.0 optimization - Better accuracy at same size');
+  }
 
   // Base score from use case matches
   const desiredTags = USE_CASE_PRIORITIES[useCase] ?? [];
@@ -566,15 +727,77 @@ export async function runBenchmark(request: BenchmarkRequest): Promise<Benchmark
     const startedAt = new Date().toISOString();
     const measurements: BenchmarkMeasurement[] = [];
 
+    // Get the provider for this model
+    const provider = llmRouter.getProvider(entry.provider);
+    if (!provider) {
+      results.push({
+        modelId,
+        modelName: entry.displayName,
+        provider: entry.provider,
+        measurements: [],
+        averageLatencyMs: null,
+        averageThroughput: null,
+        status: 'error',
+        error: `Provider ${entry.provider} not available`,
+        startedAt,
+        completedAt: new Date().toISOString(),
+      });
+      continue;
+    }
+
+    // Check if provider is healthy
+    const isHealthy = await provider.healthCheck();
+    if (!isHealthy) {
+      results.push({
+        modelId,
+        modelName: entry.displayName,
+        provider: entry.provider,
+        measurements: [],
+        averageLatencyMs: null,
+        averageThroughput: null,
+        status: 'error',
+        error: `Provider ${entry.provider} is offline`,
+        startedAt,
+        completedAt: new Date().toISOString(),
+      });
+      continue;
+    }
+
+    // Get actual model name from provider (catalog ID might differ from provider model ID)
+    let actualModelId = entry.id;
+    try {
+      const providerModels = await provider.getModels();
+      // Try to find matching model by name or use catalog ID
+      const matchingModel = providerModels.find(
+        (m) => m.id === entry.id || m.name.toLowerCase().includes(entry.displayName.toLowerCase())
+      );
+      if (matchingModel) {
+        actualModelId = matchingModel.id;
+      }
+    } catch (err) {
+      // If we can't get models, use catalog ID as fallback
+      console.warn(`Could not get models from ${entry.provider}, using catalog ID:`, err);
+    }
+
     let error: string | undefined;
     for (let run = 0; run < runs; run += 1) {
       const startTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
       try {
-        const response = await llmRouter.generate(prompt, {
-          model: entry.id,
+        // Set preferred provider temporarily for this benchmark
+        const originalPreferred = llmRouter.getPreferredProvider();
+        llmRouter.setPreferredProvider(entry.provider as any);
+        
+        const response = await provider.generate(prompt, {
+          model: actualModelId,
           temperature: 0.91,
           maxTokens: 64,
         });
+        
+        // Restore original preferred provider
+        if (originalPreferred) {
+          llmRouter.setPreferredProvider(originalPreferred);
+        }
+        
         const endTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
         const latency = endTime - startTime;
         const tokens = response.tokensUsed ?? null;
@@ -587,6 +810,12 @@ export async function runBenchmark(request: BenchmarkRequest): Promise<Benchmark
           tokensPerSecond: throughput,
         });
       } catch (err) {
+        // Restore original preferred provider on error
+        const originalPreferred = llmRouter.getPreferredProvider();
+        if (originalPreferred && originalPreferred !== entry.provider) {
+          llmRouter.setPreferredProvider(originalPreferred);
+        }
+        
         const endTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
         const latency = endTime - startTime;
         const reason = (err as Error).message || 'Unknown error';

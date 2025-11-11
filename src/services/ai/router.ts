@@ -1,6 +1,7 @@
 import { LMStudioProvider, OllamaProvider, type LLMProvider } from './providers/localLLM';
 import { GeminiProvider, NotebookLMProvider } from './providers/cloudLLM';
 import { OpenRouterProvider } from './providers/openRouter';
+import { tokenTrackingService } from './tokenTrackingService';
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
 
 export type { LLMProvider };
@@ -26,6 +27,17 @@ export class LLMRouter {
     // OpenRouter (unified cloud fallback)
     this.openRouterProvider = new OpenRouterProvider();
     this.providers.set('openrouter', this.openRouterProvider);
+    
+    // Load saved strategy from localStorage
+    try {
+      const savedStrategy = localStorage.getItem('llm-strategy');
+      if (savedStrategy && ['local-only', 'local-first', 'cloud-fallback', 'hybrid'].includes(savedStrategy)) {
+        this.strategy = savedStrategy as ProviderStrategy;
+      }
+    } catch (error) {
+      console.warn('Failed to load strategy from localStorage:', error);
+      // Continue with default strategy
+    }
   }
 
   setOpenRouterKey(key: string) {
@@ -106,15 +118,9 @@ export class LLMRouter {
       }
     }
 
-    // Cloud-fallback strategy (try cloud first, then local)
+    // Cloud-fallback strategy (try local first, then cloud)
     if (this.strategy === 'cloud-fallback') {
-      const gemini = this.providers.get('gemini');
-      if (gemini && (await gemini.healthCheck())) {
-        this.preferredProvider = 'gemini';
-        return gemini;
-      }
-
-      // Fallback to local
+      // Try local providers first
       const lmStudio = this.providers.get('lmstudio');
       if (lmStudio && (await lmStudio.healthCheck())) {
         this.preferredProvider = 'lmstudio';
@@ -125,6 +131,13 @@ export class LLMRouter {
       if (ollama && (await ollama.healthCheck())) {
         this.preferredProvider = 'ollama';
         return ollama;
+      }
+
+      // Fallback to cloud
+      const gemini = this.providers.get('gemini');
+      if (gemini && (await gemini.healthCheck())) {
+        this.preferredProvider = 'gemini';
+        return gemini;
       }
     }
 
@@ -156,7 +169,20 @@ export class LLMRouter {
     }
 
     try {
-      return await provider.generate(prompt, options);
+      const response = await provider.generate(prompt, options);
+      
+      // Track token usage
+      if (response.tokensUsed) {
+        const providerName = provider.name.toLowerCase().replace(/\s+/g, '-');
+        tokenTrackingService.recordUsage(
+          providerName,
+          response.tokensUsed,
+          undefined, // Cost calculation would need provider-specific pricing
+          options?.model
+        );
+      }
+      
+      return response;
     } catch (error) {
       console.error(`Provider ${provider.name} failed:`, error);
       
@@ -165,7 +191,20 @@ export class LLMRouter {
         const fallback = await this.getFallbackProvider(provider);
         if (fallback) {
           console.log(`Falling back to ${fallback.name}`);
-          return await fallback.generate(prompt, options);
+          const response = await fallback.generate(prompt, options);
+          
+          // Track token usage for fallback
+          if (response.tokensUsed) {
+            const providerName = fallback.name.toLowerCase().replace(/\s+/g, '-');
+            tokenTrackingService.recordUsage(
+              providerName,
+              response.tokensUsed,
+              undefined,
+              options?.model
+            );
+          }
+          
+          return response;
         }
       }
       
@@ -265,8 +304,12 @@ export class LLMRouter {
     }
   }
 
-  setPreferredProvider(provider: 'lmstudio' | 'ollama' | 'gemini' | 'notebooklm'): void {
+  setPreferredProvider(provider: 'lmstudio' | 'ollama' | 'gemini' | 'notebooklm' | 'openrouter'): void {
     this.preferredProvider = provider;
+  }
+
+  getPreferredProvider(): 'lmstudio' | 'ollama' | 'gemini' | 'notebooklm' | 'openrouter' | null {
+    return this.preferredProvider;
   }
 
   setStudioContext(enabled: boolean): void {

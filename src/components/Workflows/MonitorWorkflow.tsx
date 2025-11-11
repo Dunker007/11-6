@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useWorkflowStore } from '@/services/workflow/workflowStore';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { errorLogger } from '@/services/errors/errorLogger';
+import { useToast } from '@/components/ui';
 import WorkflowRunner from './WorkflowRunner';
 import TechIcon from '../Icons/TechIcon';
 import { Play, Activity, Zap, AlertTriangle, Brain } from 'lucide-react';
@@ -17,6 +18,7 @@ import '@/styles/Workflows.css';
 function MonitorWorkflow() {
   const { createWorkflow } = useWorkflowStore();
   const { availableProviders, models } = useLLMStore();
+  const { showToast } = useToast();
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [selectedMetrics, setSelectedMetrics] = useState<Set<string>>(
     new Set(['health', 'performance', 'errors', 'llm-status'])
@@ -42,7 +44,11 @@ function MonitorWorkflow() {
 
   const handleCreateMonitor = () => {
     if (selectedMetrics.size === 0) {
-      alert('Please select at least one metric to monitor');
+      showToast({
+        variant: 'warning',
+        title: 'Metrics required',
+        message: 'Please select at least one metric to monitor',
+      });
       return;
     }
 

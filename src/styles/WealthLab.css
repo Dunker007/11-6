@@ -493,10 +493,29 @@
   color: var(--text-primary);
   font-size: 1rem;
   outline: none;
+  cursor: text;
+  pointer-events: auto;
+  z-index: 1;
+  width: 100%;
+  padding: 0.25rem 0;
 }
 
 .budget-editor-input:focus {
   color: var(--text-primary);
+  outline: 2px solid var(--violet-500);
+  outline-offset: 2px;
+}
+
+.budget-editor-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  position: relative;
+  pointer-events: auto;
 }
 
 /* Transaction List */

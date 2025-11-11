@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback, memo } from 'react';
 import { useWealthStore } from '@/services/wealth/wealthStore';
 import { wealthService } from '@/services/wealth/wealthService';
+import { useToast } from '@/components/ui';
 import { Search, Filter, Edit2, Trash2, Scissors, CheckSquare, Square, X, Plus, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDebounce } from '@/utils/hooks/useDebounce';
 import { usePagination } from '@/utils/hooks/usePerformance';
@@ -20,6 +21,7 @@ interface SplitForm {
 const TransactionList = memo(function TransactionList({ month, year }: TransactionListProps) {
   const transactions = useWealthStore((state) => state.transactions);
   const loadTransactions = useWealthStore((state) => state.loadTransactions);
+  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
@@ -179,7 +181,11 @@ const TransactionList = memo(function TransactionList({ month, year }: Transacti
       setSelectedIds(new Set());
       setBulkEditMode(false);
     } catch (error) {
-      alert(`Failed to update transactions: ${(error as Error).message}`);
+      showToast({
+        variant: 'error',
+        title: 'Failed to update transactions',
+        message: (error as Error).message,
+      });
       // Reload on error to ensure consistency
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0, 23, 59, 59);
@@ -195,8 +201,13 @@ const TransactionList = memo(function TransactionList({ month, year }: Transacti
     const endDate = new Date(year, month, 0, 23, 59, 59);
     loadTransactions(startDate, endDate);
     setSelectedIds(new Set());
-    alert(`Deleted ${count} transaction(s)`);
-  }, [selectedIds, loadTransactions, month, year]);
+    showToast({
+      variant: 'success',
+      title: 'Transactions deleted',
+      message: `Deleted ${count} transaction(s)`,
+      duration: 3000,
+    });
+  }, [selectedIds, loadTransactions, month, year, showToast]);
 
   const handleSplit = useCallback((tx: Transaction) => {
     setSplittingId(tx.id);
@@ -212,7 +223,11 @@ const TransactionList = memo(function TransactionList({ month, year }: Transacti
 
     const totalAmount = splitForm.splits.reduce((sum, split) => sum + split.amount, 0);
     if (Math.abs(totalAmount - tx.amount) > 0.01) {
-      alert(`Split amounts must equal original amount (${tx.amount.toFixed(2)})`);
+      showToast({
+        variant: 'error',
+        title: 'Invalid split amounts',
+        message: `Split amounts must equal original amount (${tx.amount.toFixed(2)})`,
+      });
       return;
     }
 
@@ -224,9 +239,13 @@ const TransactionList = memo(function TransactionList({ month, year }: Transacti
       setSplittingId(null);
       setSplitForm({ splits: [{ amount: 0, category: 'other', description: '' }] });
     } catch (error) {
-      alert((error as Error).message);
+      showToast({
+        variant: 'error',
+        title: 'Failed to split transaction',
+        message: (error as Error).message,
+      });
     }
-  }, [splittingId, splitForm, transactions, loadTransactions, month, year]);
+  }, [splittingId, splitForm, transactions, loadTransactions, month, year, showToast]);
 
   const addSplitRow = useCallback(() => {
     setSplitForm((prev) => ({
@@ -263,13 +282,17 @@ const TransactionList = memo(function TransactionList({ month, year }: Transacti
       loadTransactions(startDate, endDate);
       setEditingId(null);
     } catch (error) {
-      alert(`Failed to update transaction: ${(error as Error).message}`);
+      showToast({
+        variant: 'error',
+        title: 'Failed to update transaction',
+        message: (error as Error).message,
+      });
       // Reload on error
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0, 23, 59, 59);
       loadTransactions(startDate, endDate);
     }
-  }, [year, month, loadTransactions]);
+  }, [year, month, loadTransactions, showToast]);
 
   const handleDelete = useCallback((id: string) => {
     if (!confirm('Delete this transaction?')) return;

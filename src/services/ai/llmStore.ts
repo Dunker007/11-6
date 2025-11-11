@@ -7,16 +7,23 @@ interface LLMStore {
   availableProviders: string[];
   isLoading: boolean;
   error: string | null;
+  activeModel: LLMModel | null; // Track currently active model
+  pullingModels: Set<string>; // Track models being pulled
   discoverProviders: () => Promise<void>;
+  setActiveModel: (model: LLMModel | null) => void;
+  switchToModel: (modelId: string) => Promise<boolean>;
+  pullModel: (modelId: string, pullCommand: string) => Promise<boolean>;
   generate: (prompt: string, options?: any) => Promise<string>;
   streamGenerate: (prompt: string, options?: any) => AsyncGenerator<string>;
 }
 
-export const useLLMStore = create<LLMStore>((set) => ({
+export const useLLMStore = create<LLMStore>((set, get) => ({
   models: [],
   availableProviders: [],
   isLoading: false,
   error: null,
+  activeModel: null,
+  pullingModels: new Set(),
 
   discoverProviders: async () => {
     set({ isLoading: true, error: null });
@@ -32,6 +39,86 @@ export const useLLMStore = create<LLMStore>((set) => ({
       });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+
+  setActiveModel: (model: LLMModel | null) => {
+    set({ activeModel: model });
+    // Update router's preferred provider based on active model
+    if (model) {
+      llmRouter.setPreferredProvider(model.provider as any);
+    }
+  },
+
+  switchToModel: async (modelId: string) => {
+    const { models } = get();
+    const model = models.find((m) => m.id === modelId);
+    
+    if (!model) {
+      set({ error: `Model ${modelId} not found` });
+      return false;
+    }
+
+    // Check if provider is available
+    const { availableProviders } = get();
+    if (!availableProviders.includes(model.provider)) {
+      set({ error: `Provider ${model.provider} is not available` });
+      return false;
+    }
+
+    set({ activeModel: model, error: null });
+    llmRouter.setPreferredProvider(model.provider as any);
+    return true;
+  },
+
+  pullModel: async (modelId: string, pullCommand: string) => {
+    const { pullingModels } = get();
+    if (pullingModels.has(modelId)) {
+      return false; // Already pulling
+    }
+
+    set((state) => ({
+      pullingModels: new Set(state.pullingModels).add(modelId),
+      error: null,
+    }));
+
+    try {
+      if (!window.llm?.pullModel) {
+        throw new Error('Model pulling not available');
+      }
+
+      const result = await window.llm.pullModel(modelId, pullCommand);
+      
+      if (result.success) {
+        // Refresh providers to get updated model list
+        await get().discoverProviders();
+        set((state) => {
+          const newPulling = new Set(state.pullingModels);
+          newPulling.delete(modelId);
+          return { pullingModels: newPulling };
+        });
+        return true;
+      } else {
+        set((state) => {
+          const newPulling = new Set(state.pullingModels);
+          newPulling.delete(modelId);
+          return { 
+            pullingModels: newPulling,
+            error: result.error || 'Failed to pull model',
+          };
+        });
+        return false;
+      }
+    } catch (error) {
+      set((state) => {
+        const newPulling = new Set(state.pullingModels);
+        newPulling.delete(modelId);
+        return { 
+          pullingModels: newPulling,
+          error: (error as Error).message,
+        };
+      });
+      return false;
     }
   },
 

@@ -1,11 +1,15 @@
 import { create } from 'zustand';
 import { toolManager, type ToolCheckResult } from './toolManager';
+import { toolUpdateService } from './toolUpdateService';
 import type { DevTool } from './toolRegistry';
+import type { ToolUpdateCheckResult } from '@/types/devtools';
 
 interface DevToolsStore {
   // State
   tools: ToolCheckResult[];
+  updateInfo: Map<string, ToolUpdateCheckResult>;
   isLoading: boolean;
+  isCheckingUpdates: boolean;
   error: string | null;
   lastChecked: Date | null;
 
@@ -13,6 +17,7 @@ interface DevToolsStore {
   checkAllTools: () => Promise<void>;
   checkTool: (tool: DevTool) => Promise<void>;
   installTool: (tool: DevTool) => Promise<boolean>;
+  checkToolUpdates: () => Promise<void>;
   getToolsByCategory: (category: DevTool['category']) => DevTool[];
   getInstalledTools: () => DevTool[];
   clearCache: () => void;
@@ -20,7 +25,9 @@ interface DevToolsStore {
 
 export const useDevToolsStore = create<DevToolsStore>((set, get) => ({
   tools: [],
+  updateInfo: new Map(),
   isLoading: false,
+  isCheckingUpdates: false,
   error: null,
   lastChecked: null,
 
@@ -33,6 +40,8 @@ export const useDevToolsStore = create<DevToolsStore>((set, get) => ({
         isLoading: false,
         lastChecked: new Date(),
       });
+      // Automatically check for updates after checking tools
+      await get().checkToolUpdates();
     } catch (error) {
       set({
         isLoading: false,
@@ -55,6 +64,15 @@ export const useDevToolsStore = create<DevToolsStore>((set, get) => ({
         }
         return { tools, isLoading: false };
       });
+      // Check for updates if tool is installed
+      if (result.isInstalled && result.version) {
+        const updateResult = await toolUpdateService.checkToolUpdate(tool, result.version);
+        set((state) => {
+          const newUpdateInfo = new Map(state.updateInfo);
+          newUpdateInfo.set(tool.id, updateResult);
+          return { updateInfo: newUpdateInfo };
+        });
+      }
     } catch (error) {
       set({
         isLoading: false,
@@ -81,6 +99,25 @@ export const useDevToolsStore = create<DevToolsStore>((set, get) => ({
     }
   },
 
+  checkToolUpdates: async () => {
+    set({ isCheckingUpdates: true, error: null });
+    try {
+      const { tools } = get();
+      const toolData = tools.map((t) => ({
+        tool: t.tool,
+        version: t.version,
+        isInstalled: t.isInstalled,
+      }));
+      const updates = await toolUpdateService.checkAllToolUpdates(toolData);
+      set({ updateInfo: updates, isCheckingUpdates: false });
+    } catch (error) {
+      set({
+        isCheckingUpdates: false,
+        error: (error as Error).message,
+      });
+    }
+  },
+
   getToolsByCategory: (category: DevTool['category']) => {
     return toolManager.getToolsByCategory(category);
   },
@@ -91,7 +128,8 @@ export const useDevToolsStore = create<DevToolsStore>((set, get) => ({
 
   clearCache: () => {
     toolManager.clearCache();
-    set({ tools: [], lastChecked: null });
+    toolUpdateService.clearCache();
+    set({ tools: [], updateInfo: new Map(), lastChecked: null });
   },
 }));
 

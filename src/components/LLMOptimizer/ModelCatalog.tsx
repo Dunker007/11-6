@@ -1,7 +1,10 @@
-import { useMemo, useState, memo } from 'react';
-import { Filter, Info, Package, Search } from 'lucide-react';
+import { useMemo, useState, memo, useCallback } from 'react';
+import { Filter, Info, Package, Search, Sparkles, ExternalLink, Download, Play, Zap } from 'lucide-react';
 import { useDebounce } from '@/utils/hooks/useDebounce';
+import { useToast } from '@/components/ui';
+import { useLLMStore } from '@/services/ai/llmStore';
 import type { ModelCatalogEntry } from '@/types/optimizer';
+import ModelDetailModal from './ModelDetailModal';
 import '../../styles/LLMOptimizer.css';
 
 interface ModelCatalogProps {
@@ -12,7 +15,143 @@ interface ModelCatalogProps {
 const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
   const [providerFilter, setProviderFilter] = useState<'all' | ModelCatalogEntry['provider']>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEntry, setSelectedEntry] = useState<ModelCatalogEntry | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const { showToast } = useToast();
+  const { activeModel, switchToModel, pullModel, pullingModels, generate } = useLLMStore();
+
+  const handleDownload = useCallback(async (entry: ModelCatalogEntry) => {
+    if (!entry.downloadUrl) return;
+    
+    try {
+      if (window.llm?.openExternalUrl) {
+        const result = await window.llm.openExternalUrl(entry.downloadUrl);
+        if (result.success) {
+          showToast({
+            variant: 'success',
+            title: 'Opening download page',
+            message: `Opening ${entry.displayName} download page in your browser`,
+          });
+        } else {
+          showToast({
+            variant: 'error',
+            title: 'Failed to open link',
+            message: result.error || 'Could not open download URL',
+          });
+        }
+      } else {
+        // Fallback to window.open if IPC not available
+        window.open(entry.downloadUrl, '_blank');
+        showToast({
+          variant: 'info',
+          title: 'Opening download page',
+          message: `Opening ${entry.displayName} download page`,
+        });
+      }
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        title: 'Error',
+        message: `Failed to open download link: ${(error as Error).message}`,
+      });
+    }
+  }, [showToast]);
+
+  const handlePullModel = useCallback(async (entry: ModelCatalogEntry) => {
+    if (!entry.pullCommand) return;
+    
+    try {
+      showToast({
+        variant: 'info',
+        title: 'Pulling model',
+        message: `Starting download of ${entry.displayName}...`,
+        duration: 3000,
+      });
+
+      const success = await pullModel(entry.id, entry.pullCommand);
+      
+      if (success) {
+        showToast({
+          variant: 'success',
+          title: 'Model pulled',
+          message: `${entry.displayName} has been downloaded successfully`,
+        });
+        // Refresh providers to update model list
+        // This will be handled by pullModel
+      } else {
+        showToast({
+          variant: 'error',
+          title: 'Pull failed',
+          message: `Failed to pull ${entry.displayName}. Make sure Ollama is running.`,
+        });
+      }
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        title: 'Error',
+        message: `Failed to pull model: ${(error as Error).message}`,
+      });
+    }
+  }, [pullModel, showToast]);
+
+  const handleLoadModel = useCallback(async (entry: ModelCatalogEntry) => {
+    try {
+      const success = await switchToModel(entry.id);
+      if (success) {
+        showToast({
+          variant: 'success',
+          title: 'Model loaded',
+          message: `Switched to ${entry.displayName}`,
+        });
+      } else {
+        showToast({
+          variant: 'error',
+          title: 'Failed to load model',
+          message: 'Model or provider not available',
+        });
+      }
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        title: 'Error',
+        message: `Failed to load model: ${(error as Error).message}`,
+      });
+    }
+  }, [switchToModel, showToast]);
+
+  const handleQuickTest = useCallback(async (entry: ModelCatalogEntry) => {
+    try {
+      showToast({
+        variant: 'info',
+        title: 'Testing model',
+        message: `Sending test prompt to ${entry.displayName}...`,
+        duration: 2000,
+      });
+
+      const startTime = performance.now();
+      const response = await generate('Say "Hello, I am working correctly!" in one sentence.', {
+        model: entry.id,
+        temperature: 0.7,
+        maxTokens: 50,
+      });
+      const endTime = performance.now();
+      const latency = endTime - startTime;
+
+      showToast({
+        variant: 'success',
+        title: 'Test successful',
+        message: `Response: "${response.substring(0, 100)}${response.length > 100 ? '...' : ''}" (${latency.toFixed(0)}ms)`,
+        duration: 5000,
+      });
+    } catch (error) {
+      showToast({
+        variant: 'error',
+        title: 'Test failed',
+        message: `Failed to test ${entry.displayName}: ${(error as Error).message}`,
+      });
+    }
+  }, [generate, showToast]);
 
   const filteredEntries = useMemo(() => {
     if (!entries || !Array.isArray(entries)) {
@@ -65,12 +204,23 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
         {filteredEntries.map((entry) => (
           <button
             key={entry.id}
-            className="catalog-card"
+            className={`catalog-card ${entry.optimizationMethod === 'unsloth-dynamic-2.0' ? 'unsloth-optimized' : ''}`}
             onClick={() => onSelect?.(entry)}
             type="button"
           >
             <div className="catalog-card-header">
-              <span className={`provider-chip ${entry.provider}`}>{entry.provider}</span>
+              <div className="header-badges">
+                <span className={`provider-chip ${entry.provider}`}>{entry.provider}</span>
+                {entry.optimizationMethod === 'unsloth-dynamic-2.0' && (
+                  <span 
+                    className="optimization-badge unsloth-badge" 
+                    title="Unsloth Dynamic 2.0 - Optimized quantization with better accuracy"
+                  >
+                    <Sparkles size={12} />
+                    Dynamic 2.0
+                  </span>
+                )}
+              </div>
               <span className="model-family">{entry.family}</span>
             </div>
             <div className="catalog-card-body">
@@ -92,6 +242,66 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
                   <span className="catalog-tag more">+{entry.tags.length - 3}</span>
                 )}
               </div>
+              <div className="catalog-actions">
+                {entry.downloadUrl && (
+                  <button
+                    className="catalog-action-btn download-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(entry);
+                    }}
+                    title={`Download ${entry.displayName} from HuggingFace`}
+                  >
+                    <Download size={14} />
+                    <ExternalLink size={12} />
+                  </button>
+                )}
+                {entry.pullCommand && (
+                  <button
+                    className={`catalog-action-btn pull-btn ${pullingModels.has(entry.id) ? 'pulling' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePullModel(entry);
+                    }}
+                    disabled={pullingModels.has(entry.id)}
+                    title={`Pull ${entry.displayName} via Ollama`}
+                  >
+                    <Download size={14} className={pullingModels.has(entry.id) ? 'spinning' : ''} />
+                  </button>
+                )}
+                <button
+                  className={`catalog-action-btn load-btn ${activeModel?.id === entry.id ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLoadModel(entry);
+                  }}
+                  title={`Load ${entry.displayName}`}
+                >
+                  <Zap size={14} />
+                </button>
+                <button
+                  className="catalog-action-btn test-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleQuickTest(entry);
+                  }}
+                  title={`Quick test ${entry.displayName}`}
+                >
+                  <Play size={14} />
+                </button>
+                <button
+                  className="catalog-action-btn test-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedEntry(entry);
+                    setIsModalOpen(true);
+                    onSelect?.(entry);
+                  }}
+                  title={`View details for ${entry.displayName}`}
+                >
+                  <Info size={14} />
+                </button>
+              </div>
             </div>
           </button>
         ))}
@@ -103,6 +313,12 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
           <p>No models match the current filters.</p>
         </div>
       )}
+
+      <ModelDetailModal
+        entry={selectedEntry}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

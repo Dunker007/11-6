@@ -43,6 +43,15 @@ export interface SystemStats {
   };
   uptime: number;
   timestamp: Date;
+  hostname?: string; // PC/Computer name
+  gpu?: {
+    name: string | null;
+    memoryGB: number | null;
+    utilization?: number; // GPU utilization percentage (0-100)
+    memoryUsedGB?: number; // VRAM used in GB
+    memoryTotalGB?: number; // Total VRAM in GB
+    temperature?: number; // GPU temperature in Celsius
+  };
 }
 
 export interface HealthMetric {
@@ -85,6 +94,31 @@ export class HealthMonitor {
   async getSystemStats(): Promise<SystemStats> {
     // Return mock data if systeminformation is not available (browser context)
     if (!si) {
+      // Try to detect GPU via WebGL in browser
+      let browserGPU: SystemStats['gpu'] | undefined;
+      try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+          const webglContext = gl as WebGLRenderingContext;
+          const debugInfo = webglContext.getExtension('WEBGL_debug_renderer_info');
+          if (debugInfo) {
+            const vendor = webglContext.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            const renderer = webglContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            browserGPU = {
+              name: renderer || vendor || 'Unknown GPU (Browser)',
+              memoryGB: null,
+              utilization: undefined,
+              memoryUsedGB: undefined,
+              memoryTotalGB: undefined,
+              temperature: undefined,
+            };
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to detect GPU via WebGL:', error);
+      }
+
       return {
         cpu: {
           usage: 0,
@@ -107,6 +141,7 @@ export class HealthMonitor {
         },
         uptime: 0,
         timestamp: new Date(),
+        gpu: browserGPU,
       };
     }
 
@@ -121,6 +156,45 @@ export class HealthMonitor {
     ]);
 
     const cpuTemp = await si.cpuTemperature().catch(() => ({ main: null }));
+    const osInfo = await si.osInfo().catch(() => ({ hostname: null }));
+    
+    // Get GPU stats
+    let gpuStats: SystemStats['gpu'] | undefined;
+    try {
+      const graphics = await si.graphics();
+      if (graphics && graphics.controllers && graphics.controllers.length > 0) {
+        // Find discrete GPU (prefer NVIDIA, AMD, or non-Intel)
+        let discreteGPU = graphics.controllers.find((gpu: any) => {
+          const vendor = (gpu.vendor || '').toLowerCase();
+          const model = (gpu.model || '').toLowerCase();
+          return vendor.includes('nvidia') || 
+                 vendor.includes('amd') || 
+                 vendor.includes('ati') ||
+                 (!vendor.includes('intel') && !model.includes('integrated'));
+        });
+        
+        const gpu = discreteGPU || graphics.controllers[0];
+        if (gpu) {
+          const gpuName = gpu.model || gpu.vendor || 'Unknown GPU';
+          const memoryTotalGB = gpu.memoryTotal ? Math.round(gpu.memoryTotal / 1024) : null;
+          const memoryUsedGB = gpu.memoryUsed ? Math.round(gpu.memoryUsed / 1024) : null;
+          const utilization = gpu.utilizationGPU || gpu.utilizationGpu || null;
+          const temperature = gpu.temperatureGpu || gpu.temperature || null;
+          
+          gpuStats = {
+            name: gpuName,
+            memoryGB: memoryTotalGB,
+            utilization: utilization !== null && utilization !== undefined ? utilization : undefined,
+            memoryUsedGB: memoryUsedGB !== null && memoryUsedGB !== undefined ? memoryUsedGB : undefined,
+            memoryTotalGB: memoryTotalGB !== null && memoryTotalGB !== undefined ? memoryTotalGB : undefined,
+            temperature: temperature !== null && temperature !== undefined ? temperature : undefined,
+          };
+        }
+      }
+    } catch (error) {
+      // GPU stats not available, continue without them
+      console.warn('Failed to get GPU stats:', error);
+    }
 
     return {
       cpu: {
@@ -154,6 +228,8 @@ export class HealthMonitor {
       },
       uptime: time.uptime,
       timestamp: new Date(),
+      hostname: osInfo.hostname || undefined,
+      gpu: gpuStats,
     };
   }
 
@@ -289,5 +365,7 @@ export class HealthMonitor {
   }
 }
 
-export const healthMonitor = HealthMonitor.getInstance();
+// Export singleton instance
+const healthMonitorInstance = HealthMonitor.getInstance();
+export { healthMonitorInstance as healthMonitor };
 

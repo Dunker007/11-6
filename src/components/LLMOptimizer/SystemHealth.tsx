@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Trash2, HardDrive, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { llmOptimizerService } from '@/services/ai/llmOptimizerService';
 import type { CleanupResult, SystemCleanupResults } from '@/types/optimizer';
+import DevelopmentToolsSection from './DevelopmentToolsSection';
 import '../../styles/LLMOptimizer.css';
 
 const formatBytes = (bytes: number): string => {
@@ -133,6 +134,8 @@ const SystemHealth = () => {
           <span>{error}</span>
         </div>
       )}
+
+      <DevelopmentToolsSection />
 
       {cleanupResults && (
         <div className="cleanup-results">

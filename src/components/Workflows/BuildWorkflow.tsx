@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useWorkflowStore } from '@/services/workflow/workflowStore';
 import { useProjectStore } from '@/services/project/projectStore';
+import { useToast } from '@/components/ui';
 import WorkflowRunner from './WorkflowRunner';
 import TechIcon from '../Icons/TechIcon';
 import { Play, History, Zap } from 'lucide-react';
@@ -16,6 +17,7 @@ import '@/styles/Workflows.css';
 function BuildWorkflow() {
   const { createWorkflow, getWorkflowsByType } = useWorkflowStore();
   const { activeProject } = useProjectStore();
+  const { showToast } = useToast();
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [buildType, setBuildType] = useState<'dev' | 'production' | 'test'>('dev');
   const [buildCommand, setBuildCommand] = useState('');
@@ -32,7 +34,11 @@ function BuildWorkflow() {
 
   const handleCreateBuild = () => {
     if (!activeProject) {
-      alert('Please select a project first');
+      showToast({
+        variant: 'warning',
+        title: 'Project required',
+        message: 'Please select a project first',
+      });
       return;
     }
 

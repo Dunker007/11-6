@@ -67,6 +67,11 @@ contextBridge.exposeInMainWorld('monitor', {
     ipcRenderer.invoke('monitor:setDisplayBounds', displayId, bounds),
 });
 
+// --------- Expose Screen API ---------
+contextBridge.exposeInMainWorld('screen', {
+  getDisplayInfo: () => ipcRenderer.invoke('screen:getDisplayInfo'),
+});
+
 // --------- Expose Program Execution API ---------
 contextBridge.exposeInMainWorld('program', {
   execute: (command: string, workingDirectory?: string) => 
@@ -136,11 +141,43 @@ contextBridge.exposeInMainWorld('menu', {
   },
 });
 
-// --------- Expose Window Controls API ---------
-contextBridge.exposeInMainWorld('windowControls', {
-  minimize: () => ipcRenderer.invoke('window:minimize'),
-  maximize: () => ipcRenderer.invoke('window:maximize'),
-  close: () => ipcRenderer.invoke('window:close'),
-  isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+// --------- Expose LLM API ---------
+contextBridge.exposeInMainWorld('llm', {
+  openExternalUrl: (url: string) => ipcRenderer.invoke('llm:openExternalUrl', url),
+  pullModel: (modelId: string, pullCommand: string) => ipcRenderer.invoke('llm:pullModel', modelId, pullCommand),
+  pullModelStream: (modelId: string, pullCommand: string) => ipcRenderer.invoke('llm:pullModelStream', modelId, pullCommand),
+  onPullProgress: (callback: (data: { executionId: string; modelId: string; type: 'stdout' | 'stderr'; data: string }) => void) => {
+    const listener = (_event: any, data: { executionId: string; modelId: string; type: 'stdout' | 'stderr'; data: string }) => callback(data);
+    ipcRenderer.on('llm:pull-progress', listener);
+    return () => ipcRenderer.off('llm:pull-progress', listener);
+  },
+  onPullComplete: (callback: (data: { executionId: string; modelId: string; exitCode: number; success: boolean }) => void) => {
+    const listener = (_event: any, data: { executionId: string; modelId: string; exitCode: number; success: boolean }) => callback(data);
+    ipcRenderer.on('llm:pull-complete', listener);
+    return () => ipcRenderer.off('llm:pull-complete', listener);
+  },
+  onPullError: (callback: (data: { executionId: string; modelId: string; error: string }) => void) => {
+    const listener = (_event: any, data: { executionId: string; modelId: string; error: string }) => callback(data);
+    ipcRenderer.on('llm:pull-error', listener);
+    return () => ipcRenderer.off('llm:pull-error', listener);
+  },
+});
+
+// --------- Expose Windows API ---------
+contextBridge.exposeInMainWorld('windows', {
+  listServices: () => ipcRenderer.invoke('windows:listServices'),
+  getServiceStatus: (serviceName: string) => ipcRenderer.invoke('windows:getServiceStatus', serviceName),
+  disableService: (serviceName: string) => ipcRenderer.invoke('windows:disableService', serviceName),
+  enableService: (serviceName: string) => ipcRenderer.invoke('windows:enableService', serviceName),
+  readRegistry: (path: string, value: string) => ipcRenderer.invoke('windows:readRegistry', path, value),
+  writeRegistry: (path: string, value: string, data: string, type?: 'DWORD' | 'STRING' | 'BINARY') => 
+    ipcRenderer.invoke('windows:writeRegistry', path, value, data, type),
+  checkAdmin: () => ipcRenderer.invoke('windows:checkAdmin'),
+  runCommand: (command: string, admin?: boolean) => ipcRenderer.invoke('windows:runCommand', command, admin),
+});
+
+// --------- Expose Benchmark API ---------
+contextBridge.exposeInMainWorld('benchmark', {
+  disk: () => ipcRenderer.invoke('benchmark:disk'),
 });
 

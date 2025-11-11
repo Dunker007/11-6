@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useGitHubStore } from '../../services/github/githubStore';
 import { useFileSystemStore } from '../../services/filesystem/fileSystemStore';
+import { useToast } from '@/components/ui';
 import { CheckCircle2, Circle, ArrowRight, GitBranch, GitCommit, GitMerge, Upload } from 'lucide-react';
 import '../../styles/GitWizard.css';
 
@@ -54,6 +55,7 @@ function GitWizard() {
   } = useGitHubStore();
 
   const { currentDirectory, openDirectoryDialog } = useFileSystemStore();
+  const { showToast } = useToast();
 
   const handleSelectPath = async () => {
     const paths = await openDirectoryDialog();
@@ -77,12 +79,20 @@ function GitWizard() {
 
   const handleFirstCommit = async () => {
     if (!commitMessage.trim()) {
-      alert('Please enter a commit message');
+      showToast({
+        variant: 'warning',
+        title: 'Commit message required',
+        message: 'Please enter a commit message',
+      });
       return;
     }
     const path = repoPath || currentDirectory;
     if (!path) {
-      alert('Please select a repository path');
+      showToast({
+        variant: 'warning',
+        title: 'Repository path required',
+        message: 'Please select a repository path',
+      });
       return;
     }
     await commit(path, commitMessage);
@@ -92,7 +102,11 @@ function GitWizard() {
   const handlePush = async () => {
     const path = repoPath || currentDirectory;
     if (!path) {
-      alert('Please select a repository path');
+      showToast({
+        variant: 'warning',
+        title: 'Repository path required',
+        message: 'Please select a repository path',
+      });
       return;
     }
     await push(path);
@@ -101,31 +115,51 @@ function GitWizard() {
 
   const handleCreatePR = async () => {
     if (!prTitle.trim()) {
-      alert('Please enter a PR title');
+      showToast({
+        variant: 'warning',
+        title: 'PR title required',
+        message: 'Please enter a PR title',
+      });
       return;
     }
     
     if (!currentRepository) {
-      alert('Please select a repository first');
+      showToast({
+        variant: 'warning',
+        title: 'Repository required',
+        message: 'Please select a repository first',
+      });
       return;
     }
 
     const [owner, repo] = currentRepository.fullName.split('/');
     if (!owner || !repo) {
-      alert('Invalid repository format');
+      showToast({
+        variant: 'error',
+        title: 'Invalid repository format',
+        message: 'Repository format should be owner/repo',
+      });
       return;
     }
 
     const path = repoPath || currentDirectory;
     if (!path) {
-      alert('Please select a repository path');
+      showToast({
+        variant: 'warning',
+        title: 'Repository path required',
+        message: 'Please select a repository path',
+      });
       return;
     }
 
     // Get current branch from status - now returns the status directly
     const currentStatus = await getStatus(path);
     if (!currentStatus) {
-      alert('Could not get repository status');
+      showToast({
+        variant: 'error',
+        title: 'Failed to get repository status',
+        message: 'Could not get repository status',
+      });
       return;
     }
 
@@ -139,9 +173,18 @@ function GitWizard() {
         currentStatus.branch // head branch
       );
       setCurrentStep(2);
-      alert('Pull request created successfully!');
+      showToast({
+        variant: 'success',
+        title: 'Pull request created',
+        message: 'Pull request created successfully!',
+        duration: 4000,
+      });
     } catch (error) {
-      alert(`Failed to create pull request: ${(error as Error).message}`);
+      showToast({
+        variant: 'error',
+        title: 'Failed to create pull request',
+        message: (error as Error).message,
+      });
     }
   };
 

@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
-import { Cpu, HardDrive, MonitorDot, RefreshCw, Save, XCircle, Wrench, CheckCircle, X, Database } from 'lucide-react';
+import { Cpu, HardDrive, MonitorDot, RefreshCw, Save, XCircle, CheckCircle, X, Database } from 'lucide-react';
 import { useLLMOptimizerStore } from '@/services/ai/llmOptimizerStore';
 import { llmOptimizerService } from '@/services/ai/llmOptimizerService';
-import type { HardwareProfile, DevToolsStatus, StorageDriversStatus } from '@/types/optimizer';
+import type { HardwareProfile, StorageDriversStatus } from '@/types/optimizer';
 import '../../styles/LLMOptimizer.css';
 
 const formatNumber = (value: number | null | undefined, unit = ''): string => {
@@ -19,25 +19,10 @@ const HardwareProfiler = () => {
   const clearHardwareOverride = useLLMOptimizerStore((state) => state.clearHardwareOverride);
 
   const [overrideDraft, setOverrideDraft] = useState<Partial<HardwareProfile>>({});
-  const [devToolsStatus, setDevToolsStatus] = useState<DevToolsStatus | null>(null);
-  const [isDetectingDevTools, setIsDetectingDevTools] = useState(false);
   const [storageDriversStatus, setStorageDriversStatus] = useState<StorageDriversStatus | null>(null);
   const [isDetectingStorage, setIsDetectingStorage] = useState(false);
 
   useEffect(() => {
-    const loadDevTools = async () => {
-      setIsDetectingDevTools(true);
-      try {
-        const status = await llmOptimizerService.detectDevTools();
-        setDevToolsStatus(status);
-      } catch {
-        // Ignore errors
-      } finally {
-        setIsDetectingDevTools(false);
-      }
-    };
-    loadDevTools();
-
     const loadStorageDrivers = async () => {
       setIsDetectingStorage(true);
       try {
@@ -247,58 +232,6 @@ const HardwareProfiler = () => {
           </button>
         </div>
       </div>
-
-      {devToolsStatus && (
-        <div className="dev-tools-section">
-          <div className="dev-tools-header">
-            <Wrench size={18} />
-            <h4>Development Tools</h4>
-            <button
-              className="hp-action-button subtle"
-              onClick={async () => {
-                setIsDetectingDevTools(true);
-                try {
-                  const status = await llmOptimizerService.detectDevTools();
-                  setDevToolsStatus(status);
-                } finally {
-                  setIsDetectingDevTools(false);
-                }
-              }}
-              disabled={isDetectingDevTools}
-              title="Refresh dev tools detection"
-            >
-              <RefreshCw size={14} className={isDetectingDevTools ? 'spinning' : ''} />
-            </button>
-          </div>
-          <div className="dev-tools-list">
-            {devToolsStatus.tools.map((tool) => (
-              <div key={tool.name} className={`dev-tool-item ${tool.installed ? 'installed' : 'missing'}`}>
-                <div className="dev-tool-status">
-                  {tool.installed ? (
-                    <CheckCircle size={14} className="success-icon" />
-                  ) : (
-                    <X size={14} className="error-icon" />
-                  )}
-                </div>
-                <div className="dev-tool-info">
-                  <span className="dev-tool-name">{tool.name}</span>
-                  {tool.version && <span className="dev-tool-version">{tool.version}</span>}
-                </div>
-                {!tool.installed && tool.installUrl && (
-                  <a
-                    href={tool.installUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="dev-tool-install-link"
-                  >
-                    Install
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {storageDriversStatus && (storageDriversStatus.controllers.length > 0 || storageDriversStatus.drivers.length > 0) && (
         <div className="dev-tools-section">
