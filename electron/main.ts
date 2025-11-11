@@ -1098,7 +1098,7 @@ ipcMain.handle('llm:openExternalUrl', async (_event, url: string) => {
   }
 });
 
-ipcMain.handle('llm:pullModel', async (_event, modelId: string, pullCommand: string) => {
+ipcMain.handle('llm:pullModel', async (_event, _modelId: string, pullCommand: string) => {
   try {
     // Execute Ollama pull command
     const { stdout, stderr } = await execAsync(pullCommand, {
@@ -1330,7 +1330,7 @@ ipcMain.handle('windows:writeRegistry', async (_event, path: string, value: stri
     
     // Backup original value first
     try {
-      const backup = await execAsync(`reg query "${regPath}" /v "${value}"`, {
+      await execAsync(`reg query "${regPath}" /v "${value}"`, {
         timeout: 10000,
       });
       // Store backup (in production, save to file)
