@@ -324,6 +324,22 @@ Return a JSON object with:
   }
 
   /**
+   * Generate a response using the LLM router
+   */
+  async generateResponse(prompt: string): Promise<{ text: string }> {
+    try {
+      const response = await llmRouter.generate(prompt, {
+        temperature: 0.9,
+        maxTokens: 1000
+      });
+      return { text: response.text };
+    } catch (error) {
+      console.error('AI Service Bridge generateResponse error:', error);
+      return { text: "Sorry, I'm having trouble connecting right now. Please try again." };
+    }
+  }
+
+  /**
    * Turbo Edit: Generate code changes from a natural language instruction.
    * 
    * Uses LLM to modify code based on user instructions, returning the edited code

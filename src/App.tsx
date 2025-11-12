@@ -1,8 +1,10 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import * as React from 'react';
 import LLMRevenueCommandCenter from './components/LLMOptimizer/LLMRevenueCommandCenter';
 import UpdateNotification from './components/System/UpdateNotification';
 import WindowControls from './components/System/WindowControls';
 import ItorToolbar from './components/Agents/ItorToolbar';
+import InsightsStream from './components/Agents/InsightsStream';
 import { ToastProvider } from './components/ui';
 import { errorLogger } from './services/errors/errorLogger';
 import { useProjectStore } from './services/project/projectStore';
@@ -12,6 +14,7 @@ import './styles/themes.css';
 import './styles/animations.css';
 import './styles/WindowControls.css';
 import './styles/Agents.css';
+import './styles/InsightsStream.css';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -285,6 +288,21 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 function App() {
+  const [showInsights, setShowInsights] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ctrl+Shift+I to toggle insights stream
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        setShowInsights(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   return (
     <ToastProvider>
       <ErrorBoundary>
@@ -295,6 +313,25 @@ function App() {
           <ItorToolbar />
           <LLMRevenueCommandCenter />
           <UpdateNotification />
+          {showInsights && (
+            <div
+              style={{
+                position: 'fixed',
+                bottom: '20px',
+                right: '20px',
+                width: '400px',
+                height: '500px',
+                zIndex: 1000,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              <InsightsStream
+                maxHeight="500px"
+                showHeader={true}
+                onClose={() => setShowInsights(false)}
+              />
+            </div>
+          )}
         </div>
       </ErrorBoundary>
     </ToastProvider>

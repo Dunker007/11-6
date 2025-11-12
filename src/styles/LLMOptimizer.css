@@ -1681,6 +1681,11 @@
   transform: translateY(-2px);
 }
 
+.catalog-card:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 .catalog-card-header {
   display: flex;
   flex-direction: column;

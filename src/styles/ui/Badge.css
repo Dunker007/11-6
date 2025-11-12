@@ -1,4 +1,4 @@
-/* Badge Component Styles */
+/* Badge Component Styles - VibeUI 2.0 Enhanced */
 .ui-badge {
   display: inline-flex;
   align-items: center;
@@ -6,6 +6,10 @@
   font-weight: var(--font-weight-medium);
   border-radius: var(--radius-full);
   white-space: nowrap;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-fast);
 }
 
 .ui-badge--sm {

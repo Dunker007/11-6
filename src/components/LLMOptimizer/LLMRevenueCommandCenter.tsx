@@ -17,17 +17,25 @@ import GPUMonitorDetailed from './GPUMonitorDetailed';
 import ModelPerformanceMetrics from './ModelPerformanceMetrics';
 import TokenUsageTracker from './TokenUsageTracker';
 import BenchmarkRunner from './BenchmarkRunner';
+import LocalProviderStatus from './LocalProviderStatus';
+import ModelStatusDashboard from './ModelStatusDashboard';
+import QuickTestInterface from './QuickTestInterface';
+import VibedEd from './VibedEd/VibedEd';
+import GeminiStudioPanel from './GeminiStudioPanel';
+import { OSOptimizationsPanel } from './OSOptimizationsPanel';
 import '../../styles/LLMOptimizer.css';
 import '../../styles/LayoutMockups.css';
 import '../../styles/ui/Navigation.css';
 import '../../styles/ui/Accessibility.css';
 import '../../styles/ui/Responsive.css';
+import '../../styles/ModelStatusDashboard.css';
+import '../../styles/QuickModelActions.css';
+import '../../styles/QuickTestInterface.css';
 
 // Lazy load heavy components
 const IdeaLab = lazy(() => import('./IdeaLab'));
 const CryptoLab = lazy(() => import('./CryptoLab/CryptoLab'));
 const WealthLab = lazy(() => import('./WealthLab/WealthLab'));
-const VibedEd = lazy(() => import('./VibedEd/VibedEd'));
 const FinancialDashboard = lazy(() => import('../BackOffice/FinancialDashboard'));
 const BackOffice = lazy(() => import('../BackOffice/BackOffice'));
 
@@ -55,6 +63,13 @@ function LLMRevenueCommandCenter() {
   
   // LLM Store
   const discoverProviders = useLLMStore((state) => state.discoverProviders);
+  const discoverLocalProviders = useLLMStore((state) => state.discoverLocalProviders);
+  const models = useLLMStore((state) => state.models);
+  
+  // Check if Gemini is available
+  const hasGemini = useMemo(() => {
+    return models.some(m => m.provider === 'gemini' && m.isAvailable);
+  }, [models]);
   
   // LLM Optimizer Store
   const detectHardware = useLLMOptimizerStore((state) => state.detectHardware);
@@ -72,8 +87,14 @@ function LLMRevenueCommandCenter() {
     detectHardware();
     loadCatalog();
     discoverProviders();
+    discoverLocalProviders(); // Initial discovery
     refreshFinancials();
-  }, [detectHardware, loadCatalog, discoverProviders, refreshFinancials]);
+
+    // Set up polling for local provider discovery
+    const intervalId = setInterval(discoverLocalProviders, 10000); // every 10 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [detectHardware, loadCatalog, discoverProviders, discoverLocalProviders, refreshFinancials]);
 
   // Helper function to get tab display name
   const getTabName = useCallback((tab: TabType): string => {
@@ -279,6 +300,7 @@ function LLMRevenueCommandCenter() {
           ) : activeTab === 'llm' ? (
             <>
               <LiveHardwareProfiler />
+              <ModelCatalog entries={modelCatalog || []} />
               <GPUMonitorDetailed />
               <BenchmarkRunner
                 catalog={modelCatalog || []}
@@ -414,10 +436,15 @@ function LLMRevenueCommandCenter() {
         {/* Right Panel */}
         {activeTab === 'llm' && (
           <div className="mockup-sidebar right">
+            <LocalProviderStatus />
+            {hasGemini && <GeminiStudioPanel />}
+            <ModelStatusDashboard catalog={modelCatalog || []} />
+            <QuickTestInterface />
             <SystemAlertsCompact />
             <TopRecommendationsCompact />
             <ActiveConnectionsCompact />
             <QuickModelSwitcher />
+            <OSOptimizationsPanel />
           </div>
         )}
 

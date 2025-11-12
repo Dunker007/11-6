@@ -1,9 +1,9 @@
-/* Card Component Styles - Enhanced */
+/* Card Component Styles - VibeUI 2.0 Enhanced */
 .ui-card {
   background: var(--color-bg-glass-light);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border-radius: var(--radius-md);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border-radius: var(--radius-lg);
   transition: var(--transition-base);
   position: relative;
   overflow: hidden;
@@ -45,9 +45,10 @@
 }
 
 .ui-card--hover:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg), var(--shadow-glow-primary);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--shadow-xl), var(--shadow-glow-primary-lg);
   border-color: var(--color-primary-500);
+  background: var(--color-bg-elevated);
 }
 
 /* Card content should be above the glow effect */

@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { useProjectStore } from '../core/project/projectStore';
+import { useProjectStore } from '../services/project/projectStore';
 import { useWebContainerStore } from '../core/webcontainer/webContainerStore';
 import '../styles-new/toolbar.css';
 

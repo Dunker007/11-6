@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { Template } from './types';
 import { templateService } from './templateService';
-import { useProjectStore } from '../core/project/projectStore';
+import { useProjectStore } from '../services/project/projectStore';
 import '../styles-new/marketplace.css';
 
 interface TemplateDetailProps {

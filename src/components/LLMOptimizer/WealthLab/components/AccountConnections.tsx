@@ -8,7 +8,7 @@ import { DEBOUNCE_DELAYS } from '@/utils/constants';
 import { useToast } from '@/components/ui';
 import '@/styles/WealthLab.css';
 
-type ConnectionWizardStep = 'select-provider' | 'select-institution' | 'authenticate' | 'connecting' | 'complete' | null;
+type ConnectionWizardStep = 'select-provider' | 'select-institution' | 'authenticate' | 'connecting' | 'complete' | 'manual-form' | null;
 
 interface ConnectionWizardState {
   step: ConnectionWizardStep;
@@ -35,6 +35,9 @@ const AccountConnections = memo(function AccountConnections() {
   const [isCollectingSecret, setIsCollectingSecret] = useState(false);
   const [apiKey, setApiKey] = useState<string>('');
   const [syncingConnectionId, setSyncingConnectionId] = useState<string | null>(null);
+  const [manualAccountName, setManualAccountName] = useState('');
+  const [manualInstitutionName, setManualInstitutionName] = useState('');
+  const [isSavingManual, setIsSavingManual] = useState(false);
 
   const debouncedSearch = useDebounce(searchQuery, DEBOUNCE_DELAYS.SEARCH_INPUT);
 
@@ -75,11 +78,21 @@ const AccountConnections = memo(function AccountConnections() {
   }, []);
 
   const handleSelectProvider = useCallback((provider: AggregationProvider) => {
-    setWizardState((prev) => ({
-      ...prev,
-      step: 'select-institution',
-      provider,
-    }));
+    // For manual provider, skip institution selection and go directly to manual form
+    if (provider === 'manual') {
+      setWizardState((prev) => ({
+        ...prev,
+        step: 'manual-form',
+        provider,
+        institution: null, // Manual accounts don't need an institution
+      }));
+    } else {
+      setWizardState((prev) => ({
+        ...prev,
+        step: 'select-institution',
+        provider,
+      }));
+    }
   }, []);
 
   const handleSelectInstitution = useCallback(async (institution: Institution) => {
@@ -94,6 +107,12 @@ const AccountConnections = memo(function AccountConnections() {
         ...prev,
         step: 'select-provider',
       }));
+      return;
+    }
+
+    // Manual provider should never reach here (skips institution selection)
+    if (wizardState.provider === 'manual') {
+      console.warn('Manual provider should not reach institution selection');
       return;
     }
 
@@ -154,12 +173,6 @@ const AccountConnections = memo(function AccountConnections() {
         if (authUrl) {
           window.open(authUrl, '_blank', 'width=600,height=700');
         }
-      } else if (wizardState.provider === 'manual') {
-        // Manual accounts don't need authentication
-        setWizardState((prev) => ({
-          ...prev,
-          step: 'complete',
-        }));
       }
     } catch (error) {
       console.error('Failed to initiate connection:', error);
@@ -187,6 +200,8 @@ const AccountConnections = memo(function AccountConnections() {
     setShowApiKeyModal(false);
     setIsCollectingSecret(false);
     setApiKey('');
+    setManualAccountName('');
+    setManualInstitutionName('');
   }, []);
 
   const handleApiKeyConfirm = useCallback(async (value: string) => {
@@ -302,8 +317,60 @@ const AccountConnections = memo(function AccountConnections() {
     }
   }, [isCollectingSecret, wizardState, apiKey, addAccountConnection, refresh, handleCloseWizard]);
 
+  const handleSaveManualAccount = useCallback(async () => {
+    if (!manualAccountName.trim() || !manualInstitutionName.trim()) {
+      showToast({
+        variant: 'error',
+        title: 'Missing information',
+        message: 'Please enter both account name and institution name',
+      });
+      return;
+    }
+
+    setIsSavingManual(true);
+    try {
+      // Create manual connection directly without calling initiateConnection
+      // The store will generate the ID automatically
+      addAccountConnection({
+        institution: manualInstitutionName.trim(),
+        provider: 'manual',
+        status: 'connected',
+        lastSynced: new Date(),
+        accountIds: [],
+      });
+
+      refresh();
+      
+      showToast({
+        variant: 'success',
+        title: 'Account added',
+        message: `Manual account "${manualAccountName}" has been added successfully`,
+      });
+
+      setWizardState({
+        step: 'complete',
+        provider: null,
+        institution: null,
+        connectionId: null,
+        authUrl: null,
+      });
+
+      // Reset form
+      setManualAccountName('');
+      setManualInstitutionName('');
+    } catch (error) {
+      console.error('Failed to save manual account:', error);
+      showToast({
+        variant: 'error',
+        title: 'Failed to add account',
+        message: `Failed to add manual account: ${(error as Error).message}`,
+      });
+    } finally {
+      setIsSavingManual(false);
+    }
+  }, [manualAccountName, manualInstitutionName, addAccountConnection, refresh, showToast]);
+
   const handleSyncConnection = useCallback(async (connectionId: string) => {
-    setSyncingConnectionId(connectionId);
     try {
       const result = await accountAggregationService.syncAccounts(connectionId);
       const connection = accountAggregationService.getConnection(connectionId);
@@ -487,6 +554,67 @@ const AccountConnections = memo(function AccountConnections() {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+
+            {wizardState.step === 'manual-form' && (
+              <div className="wizard-manual-form">
+                <h5>Add Manual Account</h5>
+                <p className="manual-form-description">
+                  Enter the details for your account. This account will be tracked manually and won't sync automatically.
+                </p>
+                <div className="manual-form-fields">
+                  <div className="form-field">
+                    <label htmlFor="manual-institution">Institution Name *</label>
+                    <input
+                      id="manual-institution"
+                      type="text"
+                      value={manualInstitutionName}
+                      onChange={(e) => setManualInstitutionName(e.target.value)}
+                      placeholder="e.g., Bank of America, Chase, etc."
+                      className="manual-form-input"
+                      disabled={isSavingManual}
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="manual-account">Account Name *</label>
+                    <input
+                      id="manual-account"
+                      type="text"
+                      value={manualAccountName}
+                      onChange={(e) => setManualAccountName(e.target.value)}
+                      placeholder="e.g., Checking Account, Savings Account, etc."
+                      className="manual-form-input"
+                      disabled={isSavingManual}
+                    />
+                  </div>
+                </div>
+                <div className="manual-form-actions">
+                  <button
+                    className="manual-form-cancel-btn"
+                    onClick={handleCloseWizard}
+                    disabled={isSavingManual}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="manual-form-save-btn"
+                    onClick={handleSaveManualAccount}
+                    disabled={isSavingManual || !manualAccountName.trim() || !manualInstitutionName.trim()}
+                  >
+                    {isSavingManual ? (
+                      <>
+                        <Loader2 size={16} className="spinning" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={16} />
+                        <span>Add Account</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 

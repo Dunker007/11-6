@@ -3,6 +3,7 @@
 
 import { serviceManager } from './serviceManager';
 import { registryManager } from './registryManager';
+import type { SystemStats } from '../health/healthMonitor';
 
 export interface WindowsOptimization {
   id: string;
@@ -19,6 +20,13 @@ export interface WindowsOptimization {
   registryType?: 'DWORD' | 'STRING' | 'BINARY';
   serviceName?: string;
   command?: string;
+  recommendedFor?: {
+    highCPUUsage?: boolean;
+    highMemoryUsage?: boolean;
+    highVRAMUsage?: boolean;
+    highGPUTemp?: boolean;
+    slowStartup?: boolean;
+  };
 }
 
 export interface OptimizationResult {
@@ -68,6 +76,10 @@ export class WindowsOptimizer {
         registryValue: 'VisualFXSetting',
         registryData: '2', // 2 = Adjust for best performance
         registryType: 'DWORD',
+        recommendedFor: {
+          highCPUUsage: true,
+          highMemoryUsage: true,
+        },
       },
       {
         id: 'enable-high-performance',
@@ -79,6 +91,10 @@ export class WindowsOptimizer {
         requiresAdmin: true,
         enabled: false,
         command: 'powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c',
+        recommendedFor: {
+          highCPUUsage: true,
+          highGPUTemp: true,
+        },
       },
       {
         id: 'disable-windows-search',
@@ -101,6 +117,9 @@ export class WindowsOptimizer {
         requiresAdmin: true,
         enabled: false,
         serviceName: 'SysMain',
+        recommendedFor: {
+          highMemoryUsage: true,
+        },
       },
       {
         id: 'optimize-virtual-memory',
@@ -171,6 +190,48 @@ export class WindowsOptimizer {
     return this.optimizations;
   }
 
+  /**
+   * Get recommended optimizations based on current system stats
+   */
+  getRecommendedOptimizations(stats: SystemStats | null): WindowsOptimization[] {
+    if (!stats) return [];
+
+    const recommendations: WindowsOptimization[] = [];
+
+    // Check CPU usage
+    const highCPUUsage = stats.cpu.usage > 80;
+    const highMemoryUsage = stats.memory.usage > 85;
+    const highVRAMUsage = stats.gpu?.memoryUsedGB && stats.gpu?.memoryTotalGB
+      ? (stats.gpu.memoryUsedGB / stats.gpu.memoryTotalGB) * 100 > 90
+      : false;
+    const highGPUTemp = (stats.gpu?.temperature ?? 0) > 85;
+
+    this.optimizations.forEach((opt) => {
+      if (opt.enabled) return; // Skip already enabled optimizations
+
+      const recommended = opt.recommendedFor;
+      if (!recommended) return;
+
+      if (
+        (recommended.highCPUUsage && highCPUUsage) ||
+        (recommended.highMemoryUsage && highMemoryUsage) ||
+        (recommended.highVRAMUsage && highVRAMUsage) ||
+        (recommended.highGPUTemp && highGPUTemp)
+      ) {
+        recommendations.push(opt);
+      }
+    });
+
+    // Sort by impact (high first)
+    return recommendations.sort((a, b) => {
+      const impactOrder = { high: 3, medium: 2, low: 1 };
+      return impactOrder[b.impact] - impactOrder[a.impact];
+    });
+  }
+
+  /**
+   * Get optimizations by category
+   */
   getOptimizationsByCategory(category: WindowsOptimization['category']): WindowsOptimization[] {
     return this.optimizations.filter(opt => opt.category === category);
   }

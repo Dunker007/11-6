@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
-import { useProjectStore } from '../core/project/projectStore';
+import { useProjectStore } from '../services/project/projectStore';
 import '../styles-new/editor.css';
 
 interface EditorProps {

@@ -3,7 +3,6 @@ import { Activity, Zap, TrendingUp, Play, BarChart3 } from 'lucide-react';
 import { useHealthStore } from '@/services/health/healthStore';
 import { useBenchmarkStore } from '@/services/benchmark/benchmarkStore';
 import { windowsOptimizer } from '@/services/windows/windowsOptimizer';
-import type { SystemStats } from '@/services/health/healthMonitor';
 import BenchmarkSuite from './BenchmarkSuite';
 import WindowsOptimizer from './WindowsOptimizer';
 import '../../styles/LLMOptimizer.css';
@@ -30,10 +29,20 @@ const formatPercent = (value: number): string => {
 
 const LiveHardwareProfiler = () => {
   const { stats, isMonitoring, startMonitoring, stopMonitoring, getSystemStats } = useHealthStore();
-  const { suite, isRunning, runBenchmarkSuite } = useBenchmarkStore();
+  const { isRunning, runBenchmarkSuite } = useBenchmarkStore();
   const [showBenchmark, setShowBenchmark] = useState(false);
   const [showOptimizer, setShowOptimizer] = useState(false);
   const [updateInterval, setUpdateInterval] = useState<NodeJS.Timeout | null>(null);
+  const [isWindows, setIsWindows] = useState(false);
+
+  useEffect(() => {
+    // Check if Windows
+    windowsOptimizer.getSystemInfo().then((info) => {
+      setIsWindows(info.isWindows);
+    }).catch(() => {
+      setIsWindows(false);
+    });
+  }, []);
 
   useEffect(() => {
     // Start live monitoring
@@ -58,8 +67,6 @@ const LiveHardwareProfiler = () => {
     setShowBenchmark(true);
     await runBenchmarkSuite();
   }, [runBenchmarkSuite]);
-
-  const systemInfo = windowsOptimizer.getSystemInfo();
 
   return (
     <div className="hardware-profiler-card">
@@ -95,7 +102,7 @@ const LiveHardwareProfiler = () => {
             <BarChart3 size={16} />
             Benchmark
           </button>
-          {systemInfo.isWindows && (
+          {isWindows && (
             <button
               className="hp-action-button"
               onClick={() => setShowOptimizer(!showOptimizer)}
@@ -235,7 +242,7 @@ const LiveHardwareProfiler = () => {
         />
       )}
 
-      {showOptimizer && systemInfo.isWindows && (
+      {showOptimizer && isWindows && (
         <WindowsOptimizer 
           onClose={() => setShowOptimizer(false)}
         />

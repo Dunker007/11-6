@@ -1,11 +1,13 @@
 import { useMemo, useState, memo, useCallback } from 'react';
-import { Filter, Info, Package, Search, Sparkles, ExternalLink, Download, Play, Zap } from 'lucide-react';
+import { Filter, Info, Package, Search, Sparkles, ExternalLink, Download } from 'lucide-react';
 import { useDebounce } from '@/utils/hooks/useDebounce';
 import { useToast } from '@/components/ui';
 import { useLLMStore } from '@/services/ai/llmStore';
 import type { ModelCatalogEntry } from '@/types/optimizer';
 import ModelDetailModal from './ModelDetailModal';
+import QuickModelActions from './QuickModelActions';
 import '../../styles/LLMOptimizer.css';
+import '../../styles/QuickModelActions.css';
 
 interface ModelCatalogProps {
   entries: ModelCatalogEntry[];
@@ -19,7 +21,7 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { showToast } = useToast();
-  const { activeModel, switchToModel, pullModel, pullingModels, generate } = useLLMStore();
+  const { switchToModel, pullModel, pullingModels, generate } = useLLMStore();
 
   const handleDownload = useCallback(async (entry: ModelCatalogEntry) => {
     if (!entry.downloadUrl) return;
@@ -202,11 +204,18 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
 
       <div className="catalog-grid">
         {filteredEntries.map((entry) => (
-          <button
+          <div
             key={entry.id}
             className={`catalog-card ${entry.optimizationMethod === 'unsloth-dynamic-2.0' ? 'unsloth-optimized' : ''}`}
             onClick={() => onSelect?.(entry)}
-            type="button"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect?.(entry);
+              }
+            }}
           >
             <div className="catalog-card-header">
               <div className="header-badges">
@@ -243,6 +252,7 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
                 )}
               </div>
               <div className="catalog-actions">
+                <QuickModelActions model={entry} compact={true} />
                 {entry.downloadUrl && (
                   <button
                     className="catalog-action-btn download-btn"
@@ -270,26 +280,6 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
                   </button>
                 )}
                 <button
-                  className={`catalog-action-btn load-btn ${activeModel?.id === entry.id ? 'active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLoadModel(entry);
-                  }}
-                  title={`Load ${entry.displayName}`}
-                >
-                  <Zap size={14} />
-                </button>
-                <button
-                  className="catalog-action-btn test-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleQuickTest(entry);
-                  }}
-                  title={`Quick test ${entry.displayName}`}
-                >
-                  <Play size={14} />
-                </button>
-                <button
                   className="catalog-action-btn test-btn"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -303,7 +293,7 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
                 </button>
               </div>
             </div>
-          </button>
+          </div>
         ))}
       </div>
 

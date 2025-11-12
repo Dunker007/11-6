@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAPIKeyStore } from '../../services/apiKeys/apiKeyStore';
 import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
 import { PROVIDER_CONFIGS, type LLMProvider } from '../../types/apiKeys';
+import { Crown, Zap } from 'lucide-react';
 import '../../styles/APIKeyManager.css';
 
 interface APIKeyManagerProps {
@@ -163,6 +164,21 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
                                 <span className="key-name">
                                   {key.name || 'Unnamed'}
                                 </span>
+                                {key.provider === 'gemini' && key.metadata?.tier && (
+                                  <span className={`key-tier key-tier-${key.metadata.tier}`}>
+                                    {key.metadata.tier === 'pro' ? (
+                                      <>
+                                        <Crown size={12} />
+                                        Pro
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Zap size={12} />
+                                        Free
+                                      </>
+                                    )}
+                                  </span>
+                                )}
                                 <span
                                   className={`key-status ${key.isValid ? 'valid' : 'invalid'}`}
                                 >

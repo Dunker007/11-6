@@ -302,6 +302,18 @@ export class ProjectService {
     this.insertFileIntoTree(project.files[0], file, dirPath);
     project.updatedAt = new Date();
     this.saveProjects();
+
+    // Create file on disk if project has a real rootPath (drive-based project)
+    if (project.rootPath && this.isDriveBasedProject(project.rootPath)) {
+      const fullPath = this.resolveFilePath(project.rootPath, path);
+      // Ensure parent directory exists
+      const parentDir = fullPath.split(/[/\\]/).slice(0, -1).join('/');
+      fileSystemService.mkdir(parentDir, true).then(() => {
+        return fileSystemService.writeFile(fullPath, content);
+      }).catch((error) => {
+        console.error('Failed to create file on disk:', error);
+      });
+    }
   }
 
   updateFile(projectId: string, path: string, content: string): void {
@@ -314,9 +326,9 @@ export class ProjectService {
       project.updatedAt = new Date();
       this.saveProjects();
 
-      // If using file system, also save to disk
-      if (this.useFileSystem() && project.rootPath) {
-        const fullPath = `${project.rootPath}${path}`;
+      // Save to disk if project has a real rootPath (drive-based project)
+      if (project.rootPath && this.isDriveBasedProject(project.rootPath)) {
+        const fullPath = this.resolveFilePath(project.rootPath, path);
         fileSystemService.writeFile(fullPath, content).catch((error) => {
           console.error('Failed to save file to disk:', error);
         });
@@ -331,6 +343,14 @@ export class ProjectService {
     this.removeFileFromTree(project.files[0], path);
     project.updatedAt = new Date();
     this.saveProjects();
+
+    // Delete from disk if project has a real rootPath (drive-based project)
+    if (project.rootPath && this.isDriveBasedProject(project.rootPath)) {
+      const fullPath = this.resolveFilePath(project.rootPath, path);
+      fileSystemService.rm(fullPath, false).catch((error) => {
+        console.error('Failed to delete file from disk:', error);
+      });
+    }
   }
 
   private insertFileIntoTree(root: ProjectFile, file: ProjectFile, dirPath: string): void {
@@ -398,6 +418,26 @@ export class ProjectService {
 
     const file = this.findFileInTree(project.files[0], path);
     return file && !file.isDirectory ? file.content : null;
+  }
+
+  private isDriveBasedProject(rootPath: string): boolean {
+    // Check if it's a Windows path (contains drive letter) or Unix absolute path
+    // Virtual paths typically start with '/' but don't have drive letters or are relative
+    return /^[A-Za-z]:/.test(rootPath) || // Windows: C:\ or C:/
+           (rootPath.startsWith('/') && rootPath.length > 1 && !rootPath.startsWith('/tmp')); // Unix absolute path
+  }
+
+  private resolveFilePath(rootPath: string, filePath: string): string {
+    // Remove leading slash from filePath if present
+    const normalizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
+    
+    // Handle Windows vs Unix path separators
+    const separator = rootPath.includes('\\') ? '\\' : '/';
+    
+    // Ensure rootPath doesn't end with separator
+    const normalizedRoot = rootPath.endsWith(separator) ? rootPath.slice(0, -1) : rootPath;
+    
+    return `${normalizedRoot}${separator}${normalizedPath}`;
   }
 }
 

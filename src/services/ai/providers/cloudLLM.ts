@@ -1,6 +1,12 @@
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
 import type { LLMProvider } from '../router';
 import { apiKeyService } from '@/services/apiKeys/apiKeyService';
+import type {
+  GeminiSystemInstruction,
+  GeminiContent,
+  GeminiResponseMetadata,
+  GeminiFunctionCall,
+} from '@/types/gemini';
 
 export class GeminiProvider implements LLMProvider {
   name = 'Google Gemini';
@@ -23,31 +29,92 @@ export class GeminiProvider implements LLMProvider {
   }
 
   async getModels(): Promise<LLMModel[]> {
-    // Gemini models
-      return [
-        {
-          id: 'gemini-2.0-flash-exp',
-          name: 'Gemini Flash 2.5',
-          provider: 'gemini' as const,
-          contextWindow: 32768,
-          isAvailable: await this.healthCheck(),
-          description: 'Fast and cost-effective model (recommended)',
-        },
-        {
-          id: 'gemini-pro',
-          name: 'Gemini Pro',
-          provider: 'gemini' as const,
-          contextWindow: 32768,
-          isAvailable: await this.healthCheck(),
-        },
-        {
-          id: 'gemini-pro-vision',
-          name: 'Gemini Pro Vision',
-          provider: 'gemini' as const,
-          contextWindow: 16384,
-          isAvailable: await this.healthCheck(),
-        },
-      ];
+    const isAvailable = await this.healthCheck();
+    // Complete Gemini model list
+    return [
+      {
+        id: 'gemini-2.0-flash-exp',
+        name: 'Gemini Flash 2.0 (Experimental)',
+        provider: 'gemini' as const,
+        contextWindow: 32768,
+        isAvailable,
+        description: 'Fast and cost-effective model (recommended)',
+        capabilities: ['function-calling', 'vision', 'grounding'],
+      },
+      {
+        id: 'gemini-1.5-pro',
+        name: 'Gemini 1.5 Pro',
+        provider: 'gemini' as const,
+        contextWindow: 2097152, // 2M tokens
+        isAvailable,
+        description: 'Most capable model with 2M token context window',
+        capabilities: ['function-calling', 'vision', 'grounding', 'long-context'],
+      },
+      {
+        id: 'gemini-1.5-flash',
+        name: 'Gemini 1.5 Flash',
+        provider: 'gemini' as const,
+        contextWindow: 1048576, // 1M tokens
+        isAvailable,
+        description: 'Fast model with 1M token context window',
+        capabilities: ['function-calling', 'vision', 'grounding', 'long-context'],
+      },
+      {
+        id: 'gemini-1.5-pro-latest',
+        name: 'Gemini 1.5 Pro (Latest)',
+        provider: 'gemini' as const,
+        contextWindow: 2097152,
+        isAvailable,
+        description: 'Latest version of Gemini 1.5 Pro',
+        capabilities: ['function-calling', 'vision', 'grounding', 'long-context'],
+      },
+      {
+        id: 'gemini-pro',
+        name: 'Gemini Pro',
+        provider: 'gemini' as const,
+        contextWindow: 32768,
+        isAvailable,
+        description: 'Standard Gemini Pro model',
+        capabilities: ['function-calling'],
+      },
+      {
+        id: 'gemini-pro-vision',
+        name: 'Gemini Pro Vision',
+        provider: 'gemini' as const,
+        contextWindow: 16384,
+        isAvailable,
+        description: 'Gemini Pro with vision capabilities',
+        capabilities: ['function-calling', 'vision'],
+      },
+    ];
+  }
+
+  private buildSystemInstruction(
+    systemInstruction?: GeminiSystemInstruction | string
+  ): GeminiSystemInstruction | undefined {
+    if (!systemInstruction) return undefined;
+    if (typeof systemInstruction === 'string') {
+      return { parts: [{ text: systemInstruction }] };
+    }
+    return systemInstruction;
+  }
+
+  private buildContents(
+    prompt: string,
+    options?: GenerateOptions
+  ): GeminiContent[] {
+    // If contents are provided, use them (multi-modal support)
+    if (options?.contents && options.contents.length > 0) {
+      return options.contents;
+    }
+
+    // Otherwise, build from prompt
+    return [
+      {
+        role: 'user',
+        parts: [{ text: prompt }],
+      },
+    ];
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse> {
@@ -59,26 +126,59 @@ export class GeminiProvider implements LLMProvider {
     const model = options?.model || 'gemini-2.0-flash-exp';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
 
+    // Build request body with all advanced features
+    const requestBody: any = {
+      contents: this.buildContents(prompt, options),
+      generationConfig: {
+        temperature: options?.temperature ?? 0.91,
+        maxOutputTokens: options?.maxTokens ?? 2048,
+      },
+    };
+
+    // Add advanced generation config
+    if (options?.topP !== undefined) {
+      requestBody.generationConfig.topP = options.topP;
+    }
+    if (options?.topK !== undefined) {
+      requestBody.generationConfig.topK = options.topK;
+    }
+    if (options?.candidateCount !== undefined) {
+      requestBody.generationConfig.candidateCount = options.candidateCount;
+    }
+    if (options?.stopSequences && options.stopSequences.length > 0) {
+      requestBody.generationConfig.stopSequences = options.stopSequences;
+    }
+    if (options?.responseMimeType) {
+      requestBody.generationConfig.responseMimeType = options.responseMimeType;
+    }
+
+    // Add system instruction
+    const systemInstruction = this.buildSystemInstruction(options?.systemInstruction);
+    if (systemInstruction) {
+      requestBody.systemInstruction = systemInstruction;
+    }
+
+    // Add safety settings
+    if (options?.safetySettings && options.safetySettings.length > 0) {
+      requestBody.safetySettings = options.safetySettings;
+    }
+
+    // Add tools (function calling)
+    if (options?.tools && options.tools.length > 0) {
+      requestBody.tools = options.tools;
+    }
+
+    // Add grounding config
+    if (options?.groundingConfig) {
+      requestBody.groundingConfig = options.groundingConfig;
+    }
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: options?.temperature ?? 0.91,
-          maxOutputTokens: options?.maxTokens ?? 2048,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -87,12 +187,54 @@ export class GeminiProvider implements LLMProvider {
     }
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // Extract text from all candidates
+    const candidates = data.candidates || [];
+    const primaryCandidate = candidates[0];
+    const text = primaryCandidate?.content?.parts
+      ?.map((part: any) => part.text || '')
+      .join('') || '';
+
+    // Extract function calls
+    const functionCalls: GeminiFunctionCall[] = [];
+    primaryCandidate?.content?.parts?.forEach((part: any) => {
+      if (part.functionCall) {
+        functionCalls.push({
+          name: part.functionCall.name,
+          args: part.functionCall.args || {},
+        });
+      }
+    });
+
+    // Build response metadata
+    const metadata: GeminiResponseMetadata = {
+      finishReason: primaryCandidate?.finishReason,
+      tokenCount: data.usageMetadata
+        ? {
+            promptTokens: data.usageMetadata.promptTokenCount,
+            candidatesTokens: data.usageMetadata.candidatesTokenCount,
+            totalTokens: data.usageMetadata.totalTokenCount,
+          }
+        : undefined,
+      safetyRatings: primaryCandidate?.safetyRatings?.map((rating: any) => ({
+        category: rating.category,
+        probability: rating.probability,
+      })),
+      groundingMetadata: data.groundingMetadata,
+    };
 
     return {
       text,
       tokensUsed: data.usageMetadata?.totalTokenCount,
-      finishReason: data.candidates?.[0]?.finishReason,
+      finishReason: primaryCandidate?.finishReason,
+      metadata,
+      functionCalls: functionCalls.length > 0 ? functionCalls : undefined,
+      candidates: candidates.map((candidate: any) => ({
+        content: {
+          parts: candidate.content?.parts || [],
+        },
+        finishReason: candidate.finishReason,
+      })),
     };
   }
 
@@ -105,26 +247,56 @@ export class GeminiProvider implements LLMProvider {
     const model = options?.model || 'gemini-2.0-flash-exp';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${this.apiKey}`;
 
+    // Build request body with all advanced features (same as generate)
+    const requestBody: any = {
+      contents: this.buildContents(prompt, options),
+      generationConfig: {
+        temperature: options?.temperature ?? 0.91,
+        maxOutputTokens: options?.maxTokens ?? 2048,
+      },
+    };
+
+    // Add advanced generation config
+    if (options?.topP !== undefined) {
+      requestBody.generationConfig.topP = options.topP;
+    }
+    if (options?.topK !== undefined) {
+      requestBody.generationConfig.topK = options.topK;
+    }
+    if (options?.stopSequences && options.stopSequences.length > 0) {
+      requestBody.generationConfig.stopSequences = options.stopSequences;
+    }
+    if (options?.responseMimeType) {
+      requestBody.generationConfig.responseMimeType = options.responseMimeType;
+    }
+
+    // Add system instruction
+    const systemInstruction = this.buildSystemInstruction(options?.systemInstruction);
+    if (systemInstruction) {
+      requestBody.systemInstruction = systemInstruction;
+    }
+
+    // Add safety settings
+    if (options?.safetySettings && options.safetySettings.length > 0) {
+      requestBody.safetySettings = options.safetySettings;
+    }
+
+    // Add tools (function calling)
+    if (options?.tools && options.tools.length > 0) {
+      requestBody.tools = options.tools;
+    }
+
+    // Add grounding config
+    if (options?.groundingConfig) {
+      requestBody.groundingConfig = options.groundingConfig;
+    }
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: options?.temperature ?? 0.91,
-          maxOutputTokens: options?.maxTokens ?? 2048,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -160,7 +332,12 @@ export class GeminiProvider implements LLMProvider {
 
             try {
               const parsed = JSON.parse(data);
-              const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              // Extract text from all parts
+              const parts = parsed.candidates?.[0]?.content?.parts || [];
+              const text = parts
+                .map((part: any) => part.text || '')
+                .join('');
+              
               if (text) {
                 yield { text, done: false };
               }

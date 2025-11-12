@@ -90,10 +90,14 @@ const GPUMonitorDetailed = () => {
       return { x, y, value: point.utilization };
     });
 
-    const pathData = points
-      .filter((p) => p.value !== null)
+    const validPoints = points.filter((p) => p.value !== null);
+    if (validPoints.length < 2) return null;
+
+    const pathData = validPoints
       .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
       .join(' ');
+
+    if (!pathData.startsWith('M')) return null;
 
     return (
       <svg width="100%" height={chartHeight} style={{ overflow: 'visible' }}>
@@ -104,7 +108,7 @@ const GPUMonitorDetailed = () => {
           </linearGradient>
         </defs>
         <path
-          d={`${pathData} L ${points[points.length - 1].x} ${chartHeight - padding} L ${padding} ${chartHeight - padding} Z`}
+          d={`${pathData} L ${validPoints[validPoints.length - 1].x} ${chartHeight - padding} L ${padding} ${chartHeight - padding} Z`}
           fill="url(#utilGradient)"
           opacity="0.5"
         />
@@ -142,9 +146,14 @@ const GPUMonitorDetailed = () => {
       return { x, y, value: usagePercent };
     });
 
-    const pathData = points
+    const validPoints = points.filter((p) => p.value !== null && p.value !== undefined);
+    if (validPoints.length < 2) return null;
+
+    const pathData = validPoints
       .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
       .join(' ');
+
+    if (!pathData.startsWith('M')) return null;
 
     return (
       <svg width="100%" height={chartHeight} style={{ overflow: 'visible' }}>
@@ -155,7 +164,7 @@ const GPUMonitorDetailed = () => {
           </linearGradient>
         </defs>
         <path
-          d={`${pathData} L ${points[points.length - 1].x} ${chartHeight - padding} L ${padding} ${chartHeight - padding} Z`}
+          d={`${pathData} L ${validPoints[validPoints.length - 1].x} ${chartHeight - padding} L ${padding} ${chartHeight - padding} Z`}
           fill="url(#vramGradient)"
           opacity="0.5"
         />

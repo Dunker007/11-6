@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import VibedEdAvatar from './VibedEdAvatar';
-import { useProjectStore } from '../core/project/projectStore';
+import { useProjectStore } from '../services/project/projectStore';
 import { luxrigAffiliate } from '../affiliate/luxrig';
 import { revenueTracker } from '../revenue/tracker';
 import '../styles-new/vibed-ed.css';

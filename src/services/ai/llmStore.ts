@@ -1,15 +1,18 @@
 import { create } from 'zustand';
 import { llmRouter } from './router';
 import type { LLMModel } from '../../types/llm';
+import { localProviderDiscovery, type LocalProviderState } from './providers/localProviderDiscovery';
 
 interface LLMStore {
   models: LLMModel[];
   availableProviders: string[];
+  localProviders: LocalProviderState[];
   isLoading: boolean;
   error: string | null;
   activeModel: LLMModel | null; // Track currently active model
   pullingModels: Set<string>; // Track models being pulled
   discoverProviders: () => Promise<void>;
+  discoverLocalProviders: () => Promise<void>;
   setActiveModel: (model: LLMModel | null) => void;
   switchToModel: (modelId: string) => Promise<boolean>;
   pullModel: (modelId: string, pullCommand: string) => Promise<boolean>;
@@ -20,6 +23,10 @@ interface LLMStore {
 export const useLLMStore = create<LLMStore>((set, get) => ({
   models: [],
   availableProviders: [],
+  localProviders: [
+    { name: 'Ollama', status: 'offline', endpoint: 'http://localhost:11434' },
+    { name: 'LM Studio', status: 'offline', endpoint: 'http://localhost:1234' },
+  ],
   isLoading: false,
   error: null,
   activeModel: null,
@@ -39,6 +46,16 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+
+  discoverLocalProviders: async () => {
+    try {
+      const providers = await localProviderDiscovery.discover();
+      set({ localProviders: providers });
+    } catch (error) {
+      console.error('Failed to discover local providers:', error);
+      // Don't set error state, just log it
     }
   },
 

@@ -1,14 +1,18 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { useProjectStore } from '../../services/project/projectStore';
 import { projectKnowledgeService } from '../../services/ai/projectKnowledgeService';
 import { multiFileContextService } from '../../services/ai/multiFileContextService';
 import { useAgentStore } from '../../services/agents/agentStore';
 import { agentMemoryService } from '../../services/agents/agentMemoryService';
+import { useAPIKeyStore } from '../../services/apiKeys/apiKeyStore';
 import EdAvatar from '../Agents/EdAvatar';
 import TechIcon from '../Icons/TechIcon';
-import { Send, Sparkles, Copy, Check, Code, Lightbulb } from 'lucide-react';
+import { Send, Sparkles, Copy, Check, Code, Lightbulb, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button, Textarea } from '../ui';
+import GeminiFunctionCalls from '../LLMOptimizer/GeminiFunctionCalls';
+import type { GeminiSafetySetting, GeminiSystemInstruction, GeminiTool, GeminiFunctionCall } from '../../types/gemini';
+import type { GenerateOptions } from '../../types/llm';
 import '../../styles/AIAssistant.css';
 
 interface Message {
@@ -19,9 +23,10 @@ interface Message {
 }
 
 function AIAssistant() {
-  const { streamGenerate, isLoading } = useLLMStore();
+  const { streamGenerate, isLoading, activeModel, models } = useLLMStore();
   const { activeProject, getFileContent, activeFile } = useProjectStore();
   const { setEdStatus } = useAgentStore();
+  const { keys } = useAPIKeyStore();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -36,8 +41,20 @@ function AIAssistant() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [proactiveSuggestions, setProactiveSuggestions] = useState<string[]>([]);
+  const [showGeminiSettings, setShowGeminiSettings] = useState(false);
+  const [geminiSafetySettings, setGeminiSafetySettings] = useState<GeminiSafetySetting[]>([]);
+  const [geminiSystemInstruction, setGeminiSystemInstruction] = useState<string>('');
+  const [geminiTools, setGeminiTools] = useState<GeminiTool[]>([]);
+  const [lastFunctionCalls, setLastFunctionCalls] = useState<GeminiFunctionCall[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Check if Gemini is available and active
+  const isGeminiActive = useMemo(() => {
+    return activeModel?.provider === 'gemini' && 
+           models.some(m => m.provider === 'gemini' && m.isAvailable) &&
+           keys.some(k => k.provider === 'gemini' && k.isValid);
+  }, [activeModel, models, keys]);
 
   // Load conversation from memory on mount
   useEffect(() => {
@@ -227,6 +244,22 @@ function AIAssistant() {
 
       prompt = `${personaPrompt}\n\nUser request: ${basePrompt}`;
 
+      // Build Gemini-specific options if Gemini is active
+      const generateOptions: GenerateOptions = {};
+      if (isGeminiActive) {
+        if (geminiSafetySettings.length > 0) {
+          generateOptions.safetySettings = geminiSafetySettings;
+        }
+        if (geminiSystemInstruction) {
+          generateOptions.systemInstruction = geminiSystemInstruction;
+        }
+        if (geminiTools.length > 0) {
+          generateOptions.tools = geminiTools;
+        }
+        // Use default temperature of 0.91 for Gemini (as per project rules)
+        generateOptions.temperature = 0.91;
+      }
+
       // Stream the response
       setEdStatus('coding');
       const assistantMessage: Message = {
@@ -239,7 +272,9 @@ function AIAssistant() {
       setMessages((prev) => [...prev, assistantMessage]);
 
       let fullContent = '';
-      for await (const chunk of streamGenerate(prompt)) {
+      // Note: Function calls are not available in streaming mode
+      // They would need to be extracted from a non-streaming response
+      for await (const chunk of streamGenerate(prompt, generateOptions)) {
         fullContent += chunk;
         setMessages((prev) => {
           const updated = [...prev];
@@ -333,7 +368,44 @@ function AIAssistant() {
             {isLoading || isStreaming ? 'Thinking...' : 'Ready to help'}
           </span>
         </div>
+        {isGeminiActive && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowGeminiSettings(!showGeminiSettings)}
+            title="Gemini Studio Settings"
+            leftIcon={Settings}
+          >
+            {showGeminiSettings ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </Button>
+        )}
       </div>
+
+      {isGeminiActive && showGeminiSettings && (
+        <div className="gemini-settings-panel">
+          <div className="settings-section">
+            <label htmlFor="gemini-system-instruction">System Instruction</label>
+            <Textarea
+              id="gemini-system-instruction"
+              value={geminiSystemInstruction}
+              onChange={(e) => setGeminiSystemInstruction(e.target.value)}
+              placeholder="Optional: Provide system-level instructions for Gemini..."
+              rows={3}
+              className="settings-input"
+            />
+          </div>
+          <div className="settings-hint">
+            <Lightbulb size={14} />
+            <span>Gemini Studio settings apply to all messages when Gemini is active.</span>
+          </div>
+        </div>
+      )}
+
+      {lastFunctionCalls.length > 0 && (
+        <div className="function-calls-section">
+          <GeminiFunctionCalls functionCalls={lastFunctionCalls} />
+        </div>
+      )}
 
       <div className="quick-actions">
         <Button

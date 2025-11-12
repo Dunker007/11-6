@@ -39,6 +39,7 @@
   transition: width var(--duration-slow) var(--ease-out);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-glow-primary);
 }
 
 .ui-progress__bar::after {

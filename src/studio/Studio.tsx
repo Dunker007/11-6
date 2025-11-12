@@ -7,10 +7,10 @@ import ConsolePanel from './ConsolePanel';
 import HWStatus from './HWStatus';
 import { ErrorBoundary } from '../components/shared/ErrorBoundary';
 // CommandPalette component has been removed
-import { useProjectStore } from '../core/project/projectStore';
+import { useProjectStore } from '../services/project/projectStore';
 import { useWebContainerStore } from '../core/webcontainer/webContainerStore';
-import { projectService } from '../core/project/projectService';
-import { aiServiceBridge } from '../core/ai/aiServiceBridge';
+import { projectService } from '../services/project/projectService';
+import { aiServiceBridge } from '../services/ai/aiServiceBridge';
 import { llmRouter } from '../services/ai/router';
 import { apiKeyService } from '../services/apiKeys/apiKeyService';
 import '../styles-new/studio.css';

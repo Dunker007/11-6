@@ -39,6 +39,9 @@ export default defineConfig({
   server: {
     port: 5174,
     strictPort: true,
+    hmr: {
+      overlay: true,
+    },
   },
       build: {
         outDir: 'dist',
@@ -81,7 +84,12 @@ export default defineConfig({
         reportCompressedSize: false, // Faster builds
       },
       optimizeDeps: {
-        exclude: ['systeminformation', 'simple-git'], // Don't pre-bundle Node.js-only modules
+        exclude: [
+          'systeminformation',
+          'simple-git',
+          '@lancedb/lancedb',
+          '@lancedb/lancedb-win32-x64-msvc',
+        ], // Don't pre-bundle Node.js-only modules and native bindings
         include: ['react', 'react-dom', '@monaco-editor/react'],
       },
   base: './',

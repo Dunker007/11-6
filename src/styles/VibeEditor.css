@@ -1,0 +1,48 @@
+/* Vibe Editor Decorations */
+/* Styles for inline code feedback from Vibed Ed and Itor */
+
+.vibe-decoration-performance {
+  background: linear-gradient(to right, transparent 0%, rgba(52, 211, 153, 0.15) 2%, rgba(52, 211, 153, 0.15) 98%, transparent 100%);
+  border-left: 3px solid rgba(52, 211, 153, 0.6);
+  box-shadow: inset 0 0 8px rgba(52, 211, 153, 0.2);
+}
+
+.vibe-decoration-refactor {
+  background: linear-gradient(to right, transparent 0%, rgba(88, 166, 255, 0.15) 2%, rgba(88, 166, 255, 0.15) 98%, transparent 100%);
+  border-left: 3px solid rgba(88, 166, 255, 0.6);
+  box-shadow: inset 0 0 8px rgba(88, 166, 255, 0.2);
+}
+
+.vibe-decoration-bug {
+  background: linear-gradient(to right, transparent 0%, rgba(251, 191, 36, 0.15) 2%, rgba(251, 191, 36, 0.15) 98%, transparent 100%);
+  border-left: 3px solid rgba(251, 191, 36, 0.6);
+  box-shadow: inset 0 0 8px rgba(251, 191, 36, 0.2);
+}
+
+.vibe-decoration-style {
+  background: linear-gradient(to right, transparent 0%, rgba(163, 113, 247, 0.15) 2%, rgba(163, 113, 247, 0.15) 98%, transparent 100%);
+  border-left: 3px solid rgba(163, 113, 247, 0.6);
+  box-shadow: inset 0 0 8px rgba(163, 113, 247, 0.2);
+}
+
+/* Hover effects */
+.vibe-decoration-performance:hover {
+  background: linear-gradient(to right, transparent 0%, rgba(52, 211, 153, 0.25) 2%, rgba(52, 211, 153, 0.25) 98%, transparent 100%);
+  border-left-color: rgba(52, 211, 153, 0.9);
+}
+
+.vibe-decoration-refactor:hover {
+  background: linear-gradient(to right, transparent 0%, rgba(88, 166, 255, 0.25) 2%, rgba(88, 166, 255, 0.25) 98%, transparent 100%);
+  border-left-color: rgba(88, 166, 255, 0.9);
+}
+
+.vibe-decoration-bug:hover {
+  background: linear-gradient(to right, transparent 0%, rgba(251, 191, 36, 0.25) 2%, rgba(251, 191, 36, 0.25) 98%, transparent 100%);
+  border-left-color: rgba(251, 191, 36, 0.9);
+}
+
+.vibe-decoration-style:hover {
+  background: linear-gradient(to right, transparent 0%, rgba(163, 113, 247, 0.25) 2%, rgba(163, 113, 247, 0.25) 98%, transparent 100%);
+  border-left-color: rgba(163, 113, 247, 0.9);
+}
+

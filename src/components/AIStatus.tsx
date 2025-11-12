@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { llmRouter } from '../core/ai/router';
+import { llmRouter } from '../services/ai/router';
 import VibedEdAvatar from '../vibed-ed/VibedEdAvatar';
 import '../styles-new/ai-status.css';
 

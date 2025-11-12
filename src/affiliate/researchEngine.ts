@@ -3,7 +3,7 @@
  * Uses LM Studio to analyze market trends and identify high-value affiliate opportunities
  */
 
-import { aiServiceBridge } from '../core/ai/aiServiceBridge';
+import { aiServiceBridge } from '../services/ai/aiServiceBridge';
 
 export interface MarketTrend {
   topic: string;

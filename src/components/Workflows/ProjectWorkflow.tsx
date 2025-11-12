@@ -4,25 +4,51 @@
  * Provides UI for Project workflow: create, open, analyze, generate, git-init
  */
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useWorkflowStore } from '@/services/workflow/workflowStore';
 import { useProjectStore } from '@/services/project/projectStore';
+import { aiServiceBridge } from '@/services/ai/aiServiceBridge';
 import WorkflowRunner from './WorkflowRunner';
+import PlanExecutionHost from './PlanExecutionHost';
+import { BoltExport } from './BoltExport';
 import TechIcon from '../Icons/TechIcon';
-import { FolderPlus, GitBranch, Sparkles, FileSearch, Play } from 'lucide-react';
+import { FolderPlus, GitBranch, Sparkles, FileSearch, Play, Wand2 } from 'lucide-react';
 import type { ProjectWorkflowConfig } from '@/types/workflow';
+import type { Plan } from '@/types/plan';
 import '@/styles/Workflows.css';
 
-function ProjectWorkflow() {
+type WorkflowType = 'project' | 'build' | 'deploy' | 'monitor' | 'monetize' | null;
+
+interface ProjectWorkflowProps {
+  activeWorkflow?: WorkflowType;
+  onWorkflowChange?: (workflow: WorkflowType) => void;
+}
+
+function ProjectWorkflow({ activeWorkflow: _activeWorkflow, onWorkflowChange }: ProjectWorkflowProps = {}) {
   const { createWorkflow } = useWorkflowStore();
   const { createProject, setActiveProject } = useProjectStore();
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [selectedActions, setSelectedActions] = useState<Set<string>>(new Set(['create', 'analyze']));
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [planPrompt, setPlanPrompt] = useState('');
+  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
+  const [showPlanSection, setShowPlanSection] = useState(false);
 
-  const handleCreateWorkflow = () => {
-    if (!projectName.trim()) return;
+  // Wrap handleProjectCreated in useCallback with onWorkflowChange as dependency
+  // This prevents stale closure issues when onWorkflowChange is used in useMemo dependencies
+  const handleProjectCreated = useCallback(() => {
+    // Notify parent component about workflow change if callback provided
+    if (onWorkflowChange) {
+      onWorkflowChange('project');
+    }
+    // Additional logic for project creation can go here
+  }, [onWorkflowChange]);
+
+  // Memoize workflow configuration with proper dependencies
+  const workflowConfig = useMemo(() => {
+    if (!projectName.trim()) return null;
 
     const config: ProjectWorkflowConfig = {
       type: 'project',
@@ -58,15 +84,40 @@ function ProjectWorkflow() {
       },
     };
 
-    const workflow = createWorkflow(config);
+    return config;
+  }, [projectName, projectDescription, selectedActions]);
+
+  const handleCreateWorkflow = useCallback(() => {
+    if (!workflowConfig) return;
+
+    const workflow = createWorkflow(workflowConfig);
     setWorkflowId(workflow.id);
 
     // Create project first if needed
     if (selectedActions.has('create')) {
       const project = createProject(projectName, projectDescription);
       setActiveProject(project.id);
+      // Call handleProjectCreated after project is created
+      handleProjectCreated();
     }
-  };
+  }, [workflowConfig, selectedActions, projectName, projectDescription, createWorkflow, createProject, setActiveProject, handleProjectCreated]);
+
+  const handleCreatePlan = useCallback(async () => {
+    if (!planPrompt.trim()) return;
+
+    setIsCreatingPlan(true);
+    try {
+      const response = await aiServiceBridge.createPlan(planPrompt);
+      if (response.success && response.plan) {
+        setPlan(response.plan);
+        setShowPlanSection(true);
+      }
+    } catch (error) {
+      console.error('Failed to create plan:', error);
+    } finally {
+      setIsCreatingPlan(false);
+    }
+  }, [planPrompt]);
 
   const toggleAction = (action: string) => {
     setSelectedActions((prev) => {
@@ -159,7 +210,46 @@ function ProjectWorkflow() {
             <Play size={16} />
             Create Workflow
           </button>
+
+          <div className="workflow-divider">
+            <span>OR</span>
+          </div>
+
+          <div className="config-section">
+            <label>AI Plan Execution</label>
+            <p className="config-hint">Create an AI-generated plan to execute step-by-step</p>
+            <textarea
+              value={planPrompt}
+              onChange={(e) => setPlanPrompt(e.target.value)}
+              placeholder="Describe what you want to accomplish... (e.g., 'Add a login page with email and password')"
+              rows={3}
+            />
+            <button
+              className="workflow-create-btn workflow-create-plan-btn"
+              onClick={handleCreatePlan}
+              disabled={!planPrompt.trim() || isCreatingPlan}
+            >
+              <Wand2 size={16} />
+              {isCreatingPlan ? 'Creating Plan...' : 'Create AI Plan'}
+            </button>
+          </div>
         </div>
+
+        {plan && showPlanSection && (
+          <div className="workflow-runner-section">
+            <PlanExecutionHost
+              plan={plan}
+              onComplete={() => {
+                setPlan(null);
+                setPlanPrompt('');
+                setShowPlanSection(false);
+              }}
+              onError={(_failedPlan, error) => {
+                console.error('Plan execution error:', error);
+              }}
+            />
+          </div>
+        )}
 
         {workflowId && (
           <div className="workflow-runner-section">
@@ -173,6 +263,14 @@ function ProjectWorkflow() {
             />
           </div>
         )}
+
+        <div className="workflow-divider">
+          <span>OR</span>
+        </div>
+
+        <div className="workflow-runner-section">
+          <BoltExport />
+        </div>
       </div>
     </div>
   );

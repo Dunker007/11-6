@@ -39,13 +39,17 @@ export interface EdGenerationResult {
 
 export interface ItorReviewResult {
   approved: boolean;
-  issues: Array<{
-    severity: 'critical' | 'high' | 'medium' | 'low';
-    category: 'bug' | 'security' | 'performance' | 'style' | 'best-practice';
-    message: string;
-    suggestion?: string;
-  }>;
+  issues: ItorReviewIssue[];
   score: number; // 0-100
+}
+
+export interface ItorReviewIssue {
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  category: 'bug' | 'security' | 'performance' | 'style' | 'best-practice';
+  message: string;
+  suggestion?: string;
+  lineStart?: number;
+  lineEnd?: number;
 }
 
 export interface AgentPairWorkflow {
@@ -56,5 +60,19 @@ export interface AgentPairWorkflow {
   iterations: number;
   createdAt: Date;
   completedAt?: Date;
+}
+
+export type VibeType = 'performance' | 'refactor' | 'bug' | 'style';
+
+export interface CodeVibe {
+  id: string;
+  type: VibeType;
+  message: string;
+  suggestion?: string;
+  agent: 'Vibed Ed' | 'Itor';
+  lineStart: number;
+  lineEnd: number;
+  filePath: string;
+  createdAt: Date;
 }
 

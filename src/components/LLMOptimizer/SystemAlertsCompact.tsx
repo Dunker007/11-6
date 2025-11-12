@@ -1,11 +1,14 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { AlertTriangle, X, CheckCircle } from 'lucide-react';
 import { useHealthStore } from '@/services/health/healthStore';
+import { useToast } from '@/components/ui';
 import '../../styles/LLMOptimizer.css';
 
 const SystemAlertsCompact = () => {
   const { alerts, acknowledgeAlert, checkHealth } = useHealthStore();
+  const { showToast } = useToast();
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+  const previousAlertsRef = useRef<Set<string>>(new Set());
 
   // Refresh alerts periodically
   useEffect(() => {
@@ -16,6 +19,35 @@ const SystemAlertsCompact = () => {
 
     return () => clearInterval(interval);
   }, [checkHealth]);
+
+  // Show toast notifications for new critical alerts
+  useEffect(() => {
+    const currentAlertIds = new Set(alerts.map((a) => a.id));
+    const newAlerts = alerts.filter(
+      (alert) => !previousAlertsRef.current.has(alert.id) && !dismissedAlerts.has(alert.id)
+    );
+
+    newAlerts.forEach((alert) => {
+      if (alert.severity === 'critical') {
+        showToast({
+          title: 'Critical System Alert',
+          description: alert.message,
+          variant: 'error',
+          duration: 10000, // Show for 10 seconds for critical alerts
+        });
+      } else if (alert.severity === 'warning' && alert.metric === 'vram-usage') {
+        // Show toast for VRAM warnings (important for LLM workloads)
+        showToast({
+          title: 'VRAM Warning',
+          description: alert.message,
+          variant: 'warning',
+          duration: 8000,
+        });
+      }
+    });
+
+    previousAlertsRef.current = currentAlertIds;
+  }, [alerts, dismissedAlerts, showToast]);
 
   // Auto-dismiss non-critical alerts after 5 seconds
   useEffect(() => {

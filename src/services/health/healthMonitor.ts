@@ -74,6 +74,7 @@ export interface HealthAlert {
   severity: 'warning' | 'critical';
   timestamp: Date;
   acknowledged: boolean;
+  metadata?: Record<string, any>;
 }
 
 export class HealthMonitor {
@@ -285,6 +286,77 @@ export class HealthMonitor {
       });
     }
 
+    // GPU Metrics
+    if (stats.gpu) {
+      // GPU Utilization
+      if (stats.gpu.utilization !== undefined) {
+        metrics.push({
+          id: 'gpu-utilization',
+          name: 'GPU Utilization',
+          value: stats.gpu.utilization,
+          unit: '%',
+          threshold: { warning: 90, critical: 95 },
+          status: this.getStatus(stats.gpu.utilization, 90, 95),
+          timestamp: stats.timestamp,
+        });
+      }
+
+      // GPU Temperature
+      if (stats.gpu.temperature !== undefined) {
+        metrics.push({
+          id: 'gpu-temperature',
+          name: 'GPU Temperature',
+          value: stats.gpu.temperature,
+          unit: '°C',
+          threshold: { warning: 80, critical: 90 },
+          status: this.getStatus(stats.gpu.temperature, 80, 90),
+          timestamp: stats.timestamp,
+        });
+      }
+
+      // VRAM Usage (Critical for LLM workloads)
+      if (stats.gpu.memoryUsedGB !== undefined && stats.gpu.memoryTotalGB !== undefined) {
+        const vramUsagePercent = (stats.gpu.memoryUsedGB / stats.gpu.memoryTotalGB) * 100;
+        metrics.push({
+          id: 'vram-usage',
+          name: 'VRAM Usage',
+          value: vramUsagePercent,
+          unit: '%',
+          threshold: { warning: 85, critical: 95 },
+          status: this.getStatus(vramUsagePercent, 85, 95),
+          timestamp: stats.timestamp,
+        });
+
+        // Proactive VRAM alert: warn when approaching critical threshold
+        if (vramUsagePercent >= 90 && vramUsagePercent < 95) {
+          this.createProactiveAlert(
+            'vram-usage',
+            `VRAM usage is high: ${stats.gpu.memoryUsedGB.toFixed(1)}GB / ${stats.gpu.memoryTotalGB}GB (${vramUsagePercent.toFixed(1)}%)`,
+            'warning',
+            {
+              vramUsed: stats.gpu.memoryUsedGB,
+              vramTotal: stats.gpu.memoryTotalGB,
+              vramUsagePercent,
+            }
+          );
+        }
+
+        // Critical VRAM alert
+        if (vramUsagePercent >= 95) {
+          this.createProactiveAlert(
+            'vram-usage-critical',
+            `CRITICAL: VRAM nearly full! ${stats.gpu.memoryUsedGB.toFixed(1)}GB / ${stats.gpu.memoryTotalGB}GB (${vramUsagePercent.toFixed(1)}%)`,
+            'critical',
+            {
+              vramUsed: stats.gpu.memoryUsedGB,
+              vramTotal: stats.gpu.memoryTotalGB,
+              vramUsagePercent,
+            }
+          );
+        }
+      }
+    }
+
     // Update metrics map
     metrics.forEach((metric) => {
       this.metrics.set(metric.id, metric);
@@ -310,16 +382,62 @@ export class HealthMonitor {
         );
 
         if (!existingAlert) {
-          this.alerts.push({
-            id: crypto.randomUUID(),
-            metric: metric.id,
-            message: `${metric.name} is ${metric.status}: ${metric.value}${metric.unit}`,
-            severity: metric.status === 'critical' ? 'critical' : 'warning',
-            timestamp: new Date(),
-            acknowledged: false,
-          });
+          this.createAlert(
+            metric.id,
+            `${metric.name} is ${metric.status}: ${metric.value}${metric.unit}`,
+            metric.status === 'critical' ? 'critical' : 'warning'
+          );
+        } else {
+          // Update existing alert message with current value
+          existingAlert.message = `${metric.name} is ${metric.status}: ${metric.value}${metric.unit}`;
+          existingAlert.timestamp = new Date();
         }
       }
+    });
+  }
+
+  /**
+   * Create a proactive alert (for VRAM and other critical metrics)
+   */
+  private createProactiveAlert(
+    metric: string,
+    message: string,
+    severity: 'warning' | 'critical',
+    metadata?: Record<string, any>
+  ): void {
+    const existingAlert = this.alerts.find(
+      (a) => a.metric === metric && !a.acknowledged
+    );
+
+    if (!existingAlert) {
+      this.createAlert(metric, message, severity, metadata);
+    } else {
+      // Update existing alert
+      existingAlert.message = message;
+      existingAlert.timestamp = new Date();
+      if (metadata) {
+        existingAlert.metadata = metadata;
+      }
+    }
+  }
+
+  /**
+   * Create a new alert
+   */
+  private createAlert(
+    metric: string,
+    message: string,
+    severity: 'warning' | 'critical',
+    metadata?: Record<string, any>
+  ): void {
+    this.alerts.push({
+      id: crypto.randomUUID(),
+      metric,
+      message,
+      severity,
+      timestamp: new Date(),
+      acknowledged: false,
+      metadata,
     });
   }
 

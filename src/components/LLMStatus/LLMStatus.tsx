@@ -1,11 +1,21 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
+import { useAPIKeyStore } from '../../services/apiKeys/apiKeyStore';
 import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
+import { Crown, Zap } from 'lucide-react';
 import '../../styles/LLMStatus.css';
 
 function LLMStatus() {
   const { models, availableProviders, isLoading, discoverProviders } = useLLMStore();
+  const { keys } = useAPIKeyStore();
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
+
+  // Get Gemini key tier
+  const geminiKey = useMemo(() => {
+    return keys.find(k => k.provider === 'gemini' && k.isValid);
+  }, [keys]);
+
+  const geminiTier = geminiKey?.metadata?.tier as 'free' | 'pro' | 'unknown' | undefined;
 
   useEffect(() => {
     discoverProviders();
@@ -113,21 +123,61 @@ function LLMStatus() {
           <div className="provider-status">
             <div className="provider-header">
               <span className="provider-name">Google Gemini</span>
-              <span className={`status-indicator ${providerStatus.gemini ? 'online' : 'offline'}`}>
-                {providerStatus.gemini ? '● Online' : '○ Offline'}
-              </span>
+              <div className="provider-header-right">
+                {geminiTier && geminiTier !== 'unknown' && (
+                  <span className={`gemini-tier-badge gemini-tier-${geminiTier}`}>
+                    {geminiTier === 'pro' ? (
+                      <>
+                        <Crown size={12} />
+                        Pro
+                      </>
+                    ) : (
+                      <>
+                        <Zap size={12} />
+                        Free
+                      </>
+                    )}
+                  </span>
+                )}
+                <span className={`status-indicator ${providerStatus.gemini ? 'online' : 'offline'}`}>
+                  {providerStatus.gemini ? '● Online' : '○ Offline'}
+                </span>
+              </div>
             </div>
             {providerStatus.gemini ? (
               <div className="models-list">
                 {modelGroups.gemini.length > 0 ? (
-                  modelGroups.gemini.map((model) => (
-                    <div key={model.id} className="model-item">
-                      <span className="model-name">{model.name}</span>
-                      {model.contextWindow && (
-                        <span className="model-size">{model.contextWindow.toLocaleString()} tokens</span>
-                      )}
-                    </div>
-                  ))
+                  <>
+                    {geminiTier === 'free' && (
+                      <div className="tier-notice">
+                        <Zap size={14} />
+                        <span>Free tier - Upgrade to Pro for access to advanced models</span>
+                      </div>
+                    )}
+                    {modelGroups.gemini.map((model) => {
+                      const isProOnly = model.id?.includes('gemini-1.5-pro') || 
+                                       model.id?.includes('gemini-ultra') ||
+                                       model.id?.includes('gemini-2.0');
+                      const isAvailable = geminiTier === 'pro' || !isProOnly;
+                      
+                      return (
+                        <div 
+                          key={model.id} 
+                          className={`model-item ${!isAvailable ? 'model-unavailable' : ''}`}
+                        >
+                          <span className="model-name">
+                            {model.name}
+                            {isProOnly && geminiTier !== 'pro' && (
+                              <span className="pro-badge">Pro Only</span>
+                            )}
+                          </span>
+                          {model.contextWindow && (
+                            <span className="model-size">{model.contextWindow.toLocaleString()} tokens</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
                 ) : (
                   <span className="no-models">Configure API key in settings</span>
                 )}

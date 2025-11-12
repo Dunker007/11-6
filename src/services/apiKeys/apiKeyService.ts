@@ -216,11 +216,21 @@ export class APIKeyService {
         cost: 0,
         lastReset: new Date(),
       },
-      metadata,
+      metadata: metadata || {},
     };
 
     // Validate the key
     apiKey.isValid = await this.validateKey(provider, key);
+
+    // For Gemini, detect tier and store in metadata
+    if (provider === 'gemini' && apiKey.isValid) {
+      const tier = await this.detectGeminiTier(key);
+      apiKey.metadata = {
+        ...apiKey.metadata,
+        tier,
+        tierDetectedAt: new Date().toISOString(),
+      };
+    }
 
     this.keys.set(apiKey.id, apiKey);
     await this.saveKeys();
@@ -255,12 +265,15 @@ export class APIKeyService {
       return key.length > 20;
     }
 
+    // Gemini-specific validation with tier detection
+    if (provider === 'gemini') {
+      return await this.validateGeminiKey(key);
+    }
+
     // In production, make actual API calls to validate
     // For now, just check format
     try {
       switch (provider) {
-        case 'gemini':
-          return key.startsWith('AI') && key.length > 20;
         case 'openai':
           return key.startsWith('sk-') && key.length > 20;
         case 'anthropic':
@@ -272,6 +285,83 @@ export class APIKeyService {
       }
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Validate Gemini API key and detect subscription tier
+   */
+  private async validateGeminiKey(key: string): Promise<boolean> {
+    // Basic format check
+    if (!key.startsWith('AI') || key.length < 20) {
+      return false;
+    }
+
+    try {
+      // Make a test API call to validate the key
+      const testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`;
+      const response = await fetch(testUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      // Validation successful
+      // Note: Tier detection is handled separately in detectGeminiTier()
+      return true;
+    } catch (error) {
+      console.error('Gemini key validation error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Detect Gemini subscription tier
+   */
+  async detectGeminiTier(key: string): Promise<'free' | 'pro' | 'unknown'> {
+    try {
+      const testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`;
+      const response = await fetch(testUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        return 'unknown';
+      }
+
+      const data = await response.json();
+      const models = data.models || [];
+      
+      // Check for Pro-tier models
+      const hasProModels = models.some((m: any) => 
+        m.name?.includes('gemini-1.5-pro') || 
+        m.name?.includes('gemini-ultra') ||
+        m.name?.includes('gemini-2.0')
+      );
+
+      // Check for advanced features (function calling, grounding)
+      // Pro tier typically has access to more advanced features
+      const hasAdvancedFeatures = models.some((m: any) => 
+        m.supportedGenerationMethods?.includes('generateContent') &&
+        m.supportedGenerationMethods?.length > 1
+      );
+
+      if (hasProModels || hasAdvancedFeatures) {
+        return 'pro';
+      }
+
+      return 'free';
+    } catch (error) {
+      console.error('Gemini tier detection error:', error);
+      return 'unknown';
     }
   }
 
@@ -441,8 +531,23 @@ export class APIKeyService {
       }
     }
 
-    // For cloud providers, we'd make a test API call
-    // For now, just check if key exists and is valid
+    // For Gemini, make actual API call to check health
+    if (provider === 'gemini' && key) {
+      try {
+        const testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`;
+        const response = await fetch(testUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        return response.ok;
+      } catch {
+        return false;
+      }
+    }
+
+    // For other cloud providers, just check if key exists and is valid
     return key !== null;
   }
 

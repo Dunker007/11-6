@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { Wrench, RefreshCw, CheckCircle, X, AlertCircle, Download } from 'lucide-react';
 import { useDevToolsStore } from '@/services/devtools/toolStore';
 import { DEV_TOOLS } from '@/services/devtools/toolRegistry';
-import type { DevTool } from '@/services/devtools/toolRegistry';
 import '../../styles/DevToolsManager.css';
 import '../../styles/LLMOptimizer.css';
 

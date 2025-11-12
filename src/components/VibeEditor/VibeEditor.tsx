@@ -5,6 +5,10 @@ import { useProjectStore } from '../../services/project/projectStore';
 import { useActivityStore } from '../../services/activity/activityStore';
 import { errorContext } from '../../services/errors/errorContext';
 import { useToast } from '@/components/ui';
+import { proactiveAgentService } from '@/services/agents/proactiveAgentService';
+import { useVibesStore } from '@/services/agents/vibesStore';
+import { semanticIndexService } from '@/services/ai/semanticIndexService';
+import { VibeDSTheme } from '@/services/theme/VibeDSEditorTheme';
 import FileExplorer from './FileExplorer';
 import TurboEdit from './TurboEdit';
 import AIAssistant from '../AIAssistant/AIAssistant';
@@ -34,6 +38,8 @@ function VibeEditor() {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const decorationsRef = useRef<string[]>([]);
+  const vibes = useVibesStore((state) => state.vibes);
 
   useEffect(() => {
     loadProjects();
@@ -122,6 +128,11 @@ function VibeEditor() {
       setUnsavedChanges(false);
       setSaveStatus('saved');
       
+      // Start semantic indexing for the project
+      semanticIndexService.startIndexingForCurrentProject().catch(err => {
+        console.warn('Semantic indexing failed:', err);
+      });
+      
       // Detect language from file extension
       const ext = activeFilePath.split('.').pop()?.toLowerCase();
       const langMap: Record<string, string> = {
@@ -145,6 +156,9 @@ function VibeEditor() {
       setFileContent(value);
       setUnsavedChanges(true);
       setSaveStatus('saving');
+      
+      // Trigger proactive code analysis
+      proactiveAgentService.triggerCodeAnalysis(value, activeFilePath);
       
       // Clear any existing timeout before setting a new one
       if (saveTimeoutRef.current) {
@@ -171,6 +185,61 @@ function VibeEditor() {
       }, 500);
     }
   };
+
+  // Apply vibe decorations to Monaco editor
+  useEffect(() => {
+    if (editorRef.current && activeFilePath) {
+      const fileVibes = vibes.filter(vibe => vibe.filePath === activeFilePath);
+      
+      const newDecorations = fileVibes.map(vibe => {
+        let className = '';
+        switch (vibe.type) {
+          case 'performance':
+            className = 'vibe-decoration-performance';
+            break;
+          case 'refactor':
+            className = 'vibe-decoration-refactor';
+            break;
+          case 'bug':
+            className = 'vibe-decoration-bug';
+            break;
+          case 'style':
+            className = 'vibe-decoration-style';
+            break;
+        }
+        
+        return {
+          range: new (window as any).monaco.Range(
+            vibe.lineStart,
+            1,
+            vibe.lineEnd,
+            1
+          ),
+          options: {
+            isWholeLine: true,
+            className,
+            hoverMessage: {
+              value: `**${vibe.agent}:** ${vibe.message}${vibe.suggestion ? `\n\n💡 ${vibe.suggestion}` : ''}`,
+            },
+          },
+        };
+      });
+
+      decorationsRef.current = editorRef.current.deltaDecorations(
+        decorationsRef.current,
+        newDecorations
+      );
+    }
+    
+    return () => {
+      if (editorRef.current) {
+        decorationsRef.current = editorRef.current.deltaDecorations(
+          decorationsRef.current,
+          []
+        );
+      }
+    };
+  }, [vibes, activeFilePath]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -530,12 +599,19 @@ function VibeEditor() {
                 language={language}
                 value={fileContent}
                 onChange={handleEditorChange}
-                onMount={(editor) => {
+                onMount={(editor: editor.IStandaloneCodeEditor, monaco: typeof import('monaco-editor')) => {
                   editorRef.current = editor;
+                  // Store monaco globally for decorations
+                  (window as any).monaco = monaco;
+                  
+                  // Define and apply custom theme
+                  monaco.editor.defineTheme('VibeDSTheme', VibeDSTheme);
+                  monaco.editor.setTheme('VibeDSTheme');
                 }}
-                theme="vs-dark"
+                theme="VibeDSTheme"
                 options={{
                   minimap: { enabled: true },
+                  breadcrumb: { enabled: true },
                   fontSize: 14,
                   lineNumbers: 'on',
                   roundedSelection: false,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ProjectFile } from '@/types/project';
-import { useProjectStore } from '@/core/project/projectStore';
+import { useProjectStore } from '@/services/project/projectStore';
 import { useActivityStore } from '@/services/activity/activityStore';
 import { fileSystemService } from '@/services/filesystem/fileSystemService';
 import { useToast } from '@/components/ui';

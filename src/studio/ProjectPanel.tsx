@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useProjectStore } from '../core/project/projectStore';
-import { useFileSystemStore } from '../core/filesystem/fileSystemStore';
-import { projectService } from '../core/project/projectService';
+import { useProjectStore } from '../services/project/projectStore';
+import { useFileSystemStore } from '../services/filesystem/fileSystemStore';
+import { projectService } from '../services/project/projectService';
 import FileExplorer from '../components/VibeEditor/FileExplorer';
 import LayoutMockupSelector, { type MockupType } from '../components/LayoutPlayground/LayoutMockupSelector';
 import MockupPreviewModal from '../components/LayoutPlayground/Mockups/MockupPreviewModal';

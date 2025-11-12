@@ -3,7 +3,7 @@
  * Scheduled content generation with affiliate links, SEO optimization, and publishing
  */
 
-import { aiServiceBridge } from '../core/ai/aiServiceBridge';
+import { aiServiceBridge } from '../services/ai/aiServiceBridge';
 import {
   affiliateResearchEngine,
   ContentOpportunity,
