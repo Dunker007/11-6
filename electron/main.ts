@@ -91,7 +91,7 @@ let win: InstanceType<typeof BrowserWindow> | null = null;
 // In production, this will be compiled to preload.js
 const preload = isDev 
   ? path.join(__dirname, 'preload.ts')
-  : path.join(__dirname, 'preload.js');
+  : path.resolve(path.join(__dirname, 'preload.js'));
 const url = isDev ? 'http://localhost:5174' : undefined;
 
 function createWindow() {
@@ -149,6 +149,21 @@ function createWindow() {
   // Use saved size if available, otherwise use calculated default
   const windowWidth = savedState?.width || defaultWidth;
   const windowHeight = savedState?.height || defaultHeight;
+
+  // Verify preload script exists in production
+  if (!isDev && !existsSync(preload)) {
+    debugLog('[Electron] WARNING: Preload script not found at:', preload);
+    debugLog('[Electron] __dirname:', __dirname);
+    debugLog('[Electron] Attempting to find preload.js...');
+    // Try alternative paths
+    const altPreload = path.join(__dirname, 'preload.js');
+    if (existsSync(altPreload)) {
+      debugLog('[Electron] Found preload at alternative path:', altPreload);
+    }
+  } else {
+    debugLog('[Electron] Preload script path:', preload);
+    debugLog('[Electron] Preload script exists:', existsSync(preload));
+  }
 
   win = new BrowserWindow({
     width: windowWidth,
@@ -277,10 +292,21 @@ function createWindow() {
       win.webContents.openDevTools();
     }
   } else {
-    // In production, resolve path relative to the app root
+    // In production, use file:// protocol with absolute path for .asar compatibility
     // __dirname in production points to resources/app.asar/dist-electron
     // We need to go up one level to reach dist
-    const indexPath = path.join(__dirname, '../dist/index.html');
+    let indexPath: string;
+    
+    if (app.isPackaged) {
+      // In packaged app, resolve from app.asar
+      indexPath = path.join(__dirname, '../dist/index.html');
+      // Convert to absolute path and use file:// protocol
+      indexPath = path.resolve(indexPath);
+    } else {
+      // In unpackaged production build (for testing)
+      indexPath = path.join(__dirname, '../dist/index.html');
+      indexPath = path.resolve(indexPath);
+    }
     
     debugLog('[Electron] Production mode');
     debugLog('[Electron] isDev:', isDev);
@@ -291,17 +317,71 @@ function createWindow() {
     debugLog('[Electron] Resolved index path:', indexPath);
     debugLog('[Electron] Index file exists:', existsSync(indexPath));
     
-    win.loadFile(indexPath).then(() => {
+    // Use file:// protocol for .asar compatibility
+    // Windows paths need three slashes: file:///C:/path/to/file
+    // Unix paths need three slashes: file:///path/to/file
+    let fileUrl: string;
+    if (process.platform === 'win32') {
+      // Windows: file:///C:/path/to/file
+      fileUrl = `file:///${indexPath.replace(/\\/g, '/')}`;
+    } else {
+      // Unix: file:///path/to/file
+      fileUrl = `file://${indexPath}`;
+    }
+    debugLog('[Electron] Loading file URL:', fileUrl);
+    
+    win.loadURL(fileUrl).then(() => {
       debugLog('[Electron] Successfully loaded index.html');
     }).catch(err => {
       debugLog('[Electron] ERROR loading index.html:', err.message);
       debugLog('[Electron] Error stack:', err.stack);
+      // Fallback: try loadFile as backup
+      debugLog('[Electron] Attempting fallback with loadFile...');
+      if (win) {
+        win.loadFile(indexPath).catch(fallbackErr => {
+          debugLog('[Electron] Fallback also failed:', fallbackErr.message);
+          debugLog('[Electron] Fallback error stack:', fallbackErr.stack);
+        });
+      }
     });
   }
 
+  // Error handling for webContents
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    debugLog('[Electron] Failed to load:', validatedURL);
+    debugLog('[Electron] Error code:', errorCode);
+    debugLog('[Electron] Error description:', errorDescription);
+  });
+
+  win.webContents.on('render-process-gone', (_event, details) => {
+    debugLog('[Electron] Renderer process gone. Reason:', details.reason);
+    debugLog('[Electron] Exit code:', details.exitCode);
+  });
+
+  win.webContents.on('unresponsive', () => {
+    debugLog('[Electron] Renderer process became unresponsive');
+  });
+
+  win.webContents.on('responsive', () => {
+    debugLog('[Electron] Renderer process became responsive again');
+  });
+
+  // Capture console errors from renderer
+  win.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    if (level >= 2) { // Error or warning
+      debugLog(`[Renderer Console ${level === 2 ? 'WARN' : 'ERROR'}]:`, message, `at ${sourceId}:${line}`);
+    }
+  });
+
   // Test active push message to Renderer-process
   win.webContents.on('did-finish-load', () => {
+    debugLog('[Electron] Page finished loading');
     win?.webContents.send('main-process-message', new Date().toLocaleString());
+  });
+
+  // Log when DOM is ready
+  win.webContents.on('dom-ready', () => {
+    debugLog('[Electron] DOM is ready');
   });
 }
 
