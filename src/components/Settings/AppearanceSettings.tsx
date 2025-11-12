@@ -1,12 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardBody } from '../ui';
 
+/**
+ * Settings panel for theme, typography, and motion preferences with persistence.
+ *
+ * @returns Appearance settings controls for theme, font size, and animation toggles.
+ */
 function AppearanceSettings() {
   const [theme, setTheme] = useState<'dark' | 'light' | 'auto'>('dark');
   const [fontSize, setFontSize] = useState('medium');
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
-  // Load saved preferences from localStorage
+  /**
+   * Load saved appearance preferences from localStorage on mount.
+   */
   useEffect(() => {
     const savedTheme = localStorage.getItem('app-theme') as 'dark' | 'light' | 'auto' | null;
     const savedFontSize = localStorage.getItem('app-font-size');
@@ -17,18 +24,33 @@ function AppearanceSettings() {
     if (savedAnimations !== null) setAnimationsEnabled(savedAnimations === 'true');
   }, []);
 
+  /**
+   * Persist theme selection and update DOM attributes for theming.
+   *
+   * @param newTheme - Theme preference chosen by the user.
+   */
   const handleThemeChange = (newTheme: 'dark' | 'light' | 'auto') => {
     setTheme(newTheme);
     localStorage.setItem('app-theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme === 'auto' ? 'dark' : newTheme);
   };
 
+  /**
+   * Persist font size preference and apply root font-size.
+   *
+   * @param newSize - Font size label selected by the user.
+   */
   const handleFontSizeChange = (newSize: string) => {
     setFontSize(newSize);
     localStorage.setItem('app-font-size', newSize);
     document.documentElement.style.fontSize = newSize === 'small' ? '14px' : newSize === 'large' ? '18px' : '16px';
   };
 
+  /**
+   * Persist animation preference and toggle root attribute for CSS hooks.
+   *
+   * @param enabled - Whether motion should be enabled.
+   */
   const handleAnimationsChange = (enabled: boolean) => {
     setAnimationsEnabled(enabled);
     localStorage.setItem('app-animations', enabled.toString());

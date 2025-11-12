@@ -1,9 +1,86 @@
+/**
+ * ModelCatalog.tsx
+ * 
+ * PURPOSE:
+ * Model catalog browser component for LLM Optimizer. Displays curated list of recommended
+ * LLM models with filtering, search, and quick actions. Allows users to browse, select,
+ * and pull models from the catalog.
+ * 
+ * ARCHITECTURE:
+ * Catalog display component with:
+ * - Model list with metadata (size, quantization, context window)
+ * - Provider filtering (all, ollama, lmstudio)
+ * - Search functionality (debounced)
+ * - Model detail modal
+ * - Quick actions (switch, pull, test)
+ * - Download link handling
+ * 
+ * Features:
+ * - Filter by provider
+ * - Search by name/description
+ * - Model details on click
+ * - Quick model switching
+ * - Model pulling (Ollama/LM Studio)
+ * - External download links
+ * 
+ * CURRENT STATUS:
+ * ✅ Model catalog display
+ * ✅ Provider filtering
+ * ✅ Search functionality
+ * ✅ Model detail modal
+ * ✅ Quick actions integration
+ * ✅ Model switching
+ * ✅ Model pulling
+ * ✅ Download link handling
+ * ✅ Memoized component
+ * 
+ * DEPENDENCIES:
+ * - useLLMStore: Model operations (switch, pull, generate)
+ * - useDebounce: Search debouncing
+ * - ModelDetailModal: Model details display
+ * - QuickModelActions: Quick action buttons
+ * - @/types/optimizer: ModelCatalogEntry type
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: providerFilter, searchTerm, selectedEntry, isModalOpen
+ * - Uses Zustand store for model operations
+ * - Debounced search term
+ * 
+ * PERFORMANCE:
+ * - Memoized component
+ * - Debounced search (300ms)
+ * - Efficient filtering
+ * - Lazy modal rendering
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import ModelCatalog from '@/components/LLMOptimizer/ModelCatalog';
+ * 
+ * function LLMOptimizerPanel() {
+ *   const { modelCatalog } = useLLMOptimizerStore();
+ *   return <ModelCatalog entries={modelCatalog} />;
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/llmOptimizerStore.ts: Catalog data source
+ * - src/components/LLMOptimizer/ModelDetailModal.tsx: Details display
+ * - src/components/LLMOptimizer/QuickModelActions.tsx: Quick actions
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Model comparison view
+ * - Favorite models
+ * - Recently used models
+ * - Model performance history
+ * - Custom model recommendations
+ */
 import { useMemo, useState, memo, useCallback } from 'react';
 import { Filter, Info, Package, Search, Sparkles, ExternalLink, Download } from 'lucide-react';
 import { useDebounce } from '@/utils/hooks/useDebounce';
 import { useToast } from '@/components/ui';
 import { useLLMStore } from '@/services/ai/llmStore';
 import type { ModelCatalogEntry } from '@/types/optimizer';
+import { measureRender, measureAsync } from '@/utils/performance';
 import ModelDetailModal from './ModelDetailModal';
 import QuickModelActions from './QuickModelActions';
 import '../../styles/LLMOptimizer.css';
@@ -14,6 +91,13 @@ interface ModelCatalogProps {
   onSelect?: (entry: ModelCatalogEntry) => void;
 }
 
+/**
+ * Catalog grid for exploring recommended LLM models with filtering and quick actions.
+ *
+ * @param entries - Complete list of catalog entries to display.
+ * @param onSelect - Optional handler invoked when a catalog entry is opened.
+ * @returns Model catalog card UI.
+ */
 const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
   const [providerFilter, setProviderFilter] = useState<'all' | ModelCatalogEntry['provider']>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,8 +105,13 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { showToast } = useToast();
-  const { switchToModel, pullModel, pullingModels, generate } = useLLMStore();
+  const { pullModel, pullingModels } = useLLMStore();
 
+  /**
+   * Launch the external download URL for a catalog entry and surface toast feedback.
+   *
+   * @param entry - Catalog entry whose download link should be opened.
+   */
   const handleDownload = useCallback(async (entry: ModelCatalogEntry) => {
     if (!entry.downloadUrl) return;
     
@@ -60,6 +149,11 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
     }
   }, [showToast]);
 
+  /**
+   * Invoke the pull command for an entry via the LLM store and display status toasts.
+   *
+   * @param entry - Catalog entry to pull into the local runtime.
+   */
   const handlePullModel = useCallback(async (entry: ModelCatalogEntry) => {
     if (!entry.pullCommand) return;
     
@@ -71,7 +165,12 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
         duration: 3000,
       });
 
-      const success = await pullModel(entry.id, entry.pullCommand);
+      const success = await measureAsync(
+        `ModelCatalog.pullModel:${entry.id}`,
+        () => pullModel(entry.id, entry.pullCommand),
+        5000,
+        { provider: entry.provider, sizeGB: entry.sizeGB }
+      );
       
       if (success) {
         showToast({
@@ -97,79 +196,31 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
     }
   }, [pullModel, showToast]);
 
-  const handleLoadModel = useCallback(async (entry: ModelCatalogEntry) => {
-    try {
-      const success = await switchToModel(entry.id);
-      if (success) {
-        showToast({
-          variant: 'success',
-          title: 'Model loaded',
-          message: `Switched to ${entry.displayName}`,
-        });
-      } else {
-        showToast({
-          variant: 'error',
-          title: 'Failed to load model',
-          message: 'Model or provider not available',
-        });
-      }
-    } catch (error) {
-      showToast({
-        variant: 'error',
-        title: 'Error',
-        message: `Failed to load model: ${(error as Error).message}`,
-      });
-    }
-  }, [switchToModel, showToast]);
-
-  const handleQuickTest = useCallback(async (entry: ModelCatalogEntry) => {
-    try {
-      showToast({
-        variant: 'info',
-        title: 'Testing model',
-        message: `Sending test prompt to ${entry.displayName}...`,
-        duration: 2000,
-      });
-
-      const startTime = performance.now();
-      const response = await generate('Say "Hello, I am working correctly!" in one sentence.', {
-        model: entry.id,
-        temperature: 0.7,
-        maxTokens: 50,
-      });
-      const endTime = performance.now();
-      const latency = endTime - startTime;
-
-      showToast({
-        variant: 'success',
-        title: 'Test successful',
-        message: `Response: "${response.substring(0, 100)}${response.length > 100 ? '...' : ''}" (${latency.toFixed(0)}ms)`,
-        duration: 5000,
-      });
-    } catch (error) {
-      showToast({
-        variant: 'error',
-        title: 'Test failed',
-        message: `Failed to test ${entry.displayName}: ${(error as Error).message}`,
-      });
-    }
-  }, [generate, showToast]);
+  // TODO: Implement handleLoadModel and handleQuickTest when needed
+  // These functions are defined but not currently used in the UI
 
   const filteredEntries = useMemo(() => {
-    if (!entries || !Array.isArray(entries)) {
-      return [];
-    }
-    return entries
-      .filter((entry) => providerFilter === 'all' || entry.provider === providerFilter)
-      .filter((entry) => {
-        if (!debouncedSearchTerm) return true;
-        const needle = debouncedSearchTerm.toLowerCase();
-        return (
-          entry.displayName.toLowerCase().includes(needle) ||
-          entry.family.toLowerCase().includes(needle) ||
-          entry.tags.some((tag) => tag.toLowerCase().includes(needle))
-        );
-      });
+    return measureRender(
+      'ModelCatalog.filterEntries',
+      () => {
+        if (!entries || !Array.isArray(entries)) {
+          return [];
+        }
+        return entries
+          .filter((entry) => providerFilter === 'all' || entry.provider === providerFilter)
+          .filter((entry) => {
+            if (!debouncedSearchTerm) return true;
+            const needle = debouncedSearchTerm.toLowerCase();
+            return (
+              entry.displayName.toLowerCase().includes(needle) ||
+              entry.family.toLowerCase().includes(needle) ||
+              entry.tags.some((tag) => tag.toLowerCase().includes(needle))
+            );
+          });
+      },
+      8,
+      { totalEntries: entries?.length ?? 0, providerFilter, hasSearch: Boolean(debouncedSearchTerm) }
+    );
   }, [entries, providerFilter, debouncedSearchTerm]);
 
   return (

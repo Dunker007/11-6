@@ -1,6 +1,79 @@
+/**
+ * AnalyticsDashboard.tsx
+ * 
+ * PURPOSE:
+ * Comprehensive portfolio analytics dashboard for WealthLab. Displays performance metrics,
+ * asset allocation, performance attribution, and benchmark comparisons. Provides detailed
+ * financial analytics with visual indicators and formatted data.
+ * 
+ * ARCHITECTURE:
+ * Analytics visualization component that:
+ * - Calculates performance metrics (returns, volatility, Sharpe ratio)
+ * - Analyzes asset allocation (by type, by account)
+ * - Performs performance attribution (top contributors)
+ * - Compares against benchmarks (SPY, etc.)
+ * - Displays data with formatted currency and percentages
+ * 
+ * Features:
+ * - Time period selection (1M, 3M, 6M, 1Y, 5Y, ALL)
+ * - Benchmark selection
+ * - Performance metrics cards
+ * - Asset allocation visualization
+ * - Top contributors list
+ * - Benchmark comparison
+ * - Memoized for performance
+ * 
+ * CURRENT STATUS:
+ * ✅ Performance metrics calculation
+ * ✅ Asset allocation analysis
+ * ✅ Performance attribution
+ * ✅ Benchmark comparison
+ * ✅ Time period filtering
+ * ✅ Formatted currency (0 decimals) and percentages (+ signs)
+ * ✅ Memoized component
+ * ✅ Loading states
+ * 
+ * DEPENDENCIES:
+ * - useWealthStore: Portfolio data
+ * - portfolioAnalyticsService: Analytics calculations
+ * - formatCurrency, formatPercent: Centralized formatters
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: period, benchmark, metrics, allocation, attribution, comparison
+ * - Uses Zustand store for data
+ * - Memoized calculations for performance
+ * 
+ * PERFORMANCE:
+ * - React.memo wrapper prevents unnecessary re-renders
+ * - useMemo for expensive calculations
+ * - Parallel data fetching with Promise.all
+ * - Efficient filtering and sorting
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import AnalyticsDashboard from '@/components/LLMOptimizer/WealthLab/components/AnalyticsDashboard';
+ * 
+ * function WealthLab() {
+ *   return <AnalyticsDashboard />;
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/wealth/portfolioAnalyticsService.ts: Calculation logic
+ * - src/services/wealth/wealthStore.ts: Data source
+ * - src/utils/formatters.ts: Formatting utilities
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Chart visualizations
+ * - Export functionality (CSV, PDF)
+ * - Custom date range picker
+ * - Comparison mode (multiple periods)
+ * - More benchmark options
+ */
 import { useState, useEffect, useMemo, memo } from 'react';
 import { useWealthStore } from '@/services/wealth/wealthStore';
 import { portfolioAnalyticsService, type TimePeriod } from '@/services/wealth/portfolioAnalyticsService';
+import { formatCurrency, formatPercent } from '@/utils/formatters';
 import type { PerformanceMetrics, AssetAllocation, PerformanceAttribution, BenchmarkComparison } from '@/services/wealth/portfolioAnalyticsService';
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import '@/styles/WealthLab.css';
@@ -40,18 +113,6 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatPercent = (value: number) => {
-    return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
-  };
 
   const topContributors = useMemo(() => {
     if (!performanceAttribution) return [];
@@ -125,18 +186,18 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
             <div className="metric-card">
               <div className="metric-label">Total Return</div>
               <div className={`metric-value ${performanceMetrics.totalReturn >= 0 ? 'positive' : 'negative'}`}>
-                {formatCurrency(performanceMetrics.totalReturn)}
+                {formatCurrency(performanceMetrics.totalReturn, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </div>
               <div className={`metric-change ${performanceMetrics.totalReturnPercent >= 0 ? 'positive' : 'negative'}`}>
                 {performanceMetrics.totalReturnPercent >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                {formatPercent(performanceMetrics.totalReturnPercent)}
+                {formatPercent(performanceMetrics.totalReturnPercent, 2, false, true)}
               </div>
             </div>
 
             <div className="metric-card">
               <div className="metric-label">Annualized Return</div>
               <div className={`metric-value ${performanceMetrics.annualizedReturn >= 0 ? 'positive' : 'negative'}`}>
-                {formatPercent(performanceMetrics.annualizedReturn)}
+                {formatPercent(performanceMetrics.annualizedReturn, 2, false, true)}
               </div>
             </div>
 
@@ -165,7 +226,7 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
               <div className="metric-card">
                 <div className="metric-label">Alpha (vs {benchmark})</div>
                 <div className={`metric-value ${performanceMetrics.alpha >= 0 ? 'positive' : 'negative'}`}>
-                  {formatPercent(performanceMetrics.alpha)}
+                  {formatPercent(performanceMetrics.alpha, 2, false, true)}
                 </div>
               </div>
             )}
@@ -186,7 +247,7 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
               <div className="metric-card">
                 <div className="metric-label">Volatility</div>
                 <div className="metric-value">
-                  {formatPercent(performanceMetrics.volatility)}
+                  {formatPercent(performanceMetrics.volatility, 2, false, true)}
                 </div>
               </div>
             )}
@@ -195,7 +256,7 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
               <div className="metric-card">
                 <div className="metric-label">Max Drawdown</div>
                 <div className="metric-value negative">
-                  {formatPercent(-Math.abs(performanceMetrics.maxDrawdownPercent))}
+                  {formatPercent(-Math.abs(performanceMetrics.maxDrawdownPercent), 2, false, true)}
                 </div>
               </div>
             )}
@@ -204,7 +265,7 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
               <div className="metric-card">
                 <div className="metric-label">VaR (95%)</div>
                 <div className="metric-value">
-                  {formatCurrency(performanceMetrics.var95)}
+                  {formatCurrency(performanceMetrics.var95, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
               </div>
             )}
@@ -232,7 +293,7 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
                         style={{ width: `${item.percent}%` }}
                       />
                     </div>
-                    <div className="allocation-value">{formatCurrency(item.value)}</div>
+                    <div className="allocation-value">{formatCurrency(item.value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                   </div>
                 ))}
               </div>
@@ -260,7 +321,7 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
                               style={{ width: `${percent}%` }}
                             />
                           </div>
-                          <div className="allocation-value">{formatCurrency(value)}</div>
+                          <div className="allocation-value">{formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                         </div>
                       );
                     })}
@@ -290,7 +351,7 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
                               style={{ width: `${percent}%` }}
                             />
                           </div>
-                          <div className="allocation-value">{formatCurrency(value)}</div>
+                          <div className="allocation-value">{formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                         </div>
                       );
                     })}
@@ -320,10 +381,10 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
                 </div>
                 <div>{contrib.weight.toFixed(1)}%</div>
                 <div className={contrib.returnPercent >= 0 ? 'positive' : 'negative'}>
-                  {formatPercent(contrib.returnPercent)}
+                  {formatPercent(contrib.returnPercent, 2, false, true)}
                 </div>
                 <div className={contrib.contributionPercent >= 0 ? 'positive' : 'negative'}>
-                  {formatPercent(contrib.contributionPercent)}
+                  {formatPercent(contrib.contributionPercent, 2, false, true)}
                 </div>
               </div>
             ))}
@@ -339,26 +400,26 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
             <div className="benchmark-metric">
               <div className="benchmark-label">Portfolio Return</div>
               <div className={`benchmark-value ${benchmarkComparison.portfolioReturn >= 0 ? 'positive' : 'negative'}`}>
-                {formatPercent(benchmarkComparison.portfolioReturn)}
+                {formatPercent(benchmarkComparison.portfolioReturn, 2, false, true)}
               </div>
             </div>
             <div className="benchmark-metric">
               <div className="benchmark-label">{benchmark} Return</div>
               <div className={`benchmark-value ${benchmarkComparison.benchmarkReturn >= 0 ? 'positive' : 'negative'}`}>
-                {formatPercent(benchmarkComparison.benchmarkReturn)}
+                {formatPercent(benchmarkComparison.benchmarkReturn, 2, false, true)}
               </div>
             </div>
             <div className="benchmark-metric">
               <div className="benchmark-label">Excess Return</div>
               <div className={`benchmark-value ${benchmarkComparison.excessReturn >= 0 ? 'positive' : 'negative'}`}>
-                {formatPercent(benchmarkComparison.excessReturn)}
+                {formatPercent(benchmarkComparison.excessReturn, 2, false, true)}
               </div>
             </div>
             {benchmarkComparison.trackingError !== undefined && (
               <div className="benchmark-metric">
                 <div className="benchmark-label">Tracking Error</div>
                 <div className="benchmark-value">
-                  {formatPercent(benchmarkComparison.trackingError)}
+                  {formatPercent(benchmarkComparison.trackingError, 2, false, true)}
                 </div>
               </div>
             )}

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { codeReviewService } from './codeReviewService';
 import type { CodeReview, ReviewSettings } from '@/types/codereview';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface CodeReviewStore {
   // State
@@ -28,16 +29,24 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
   },
 
   analyzeCode: async (projectPath, settings) => {
-    set({ isLoading: true, error: null });
-    try {
-      const review = await codeReviewService.analyzeCode(projectPath, settings);
-      get().loadReviews();
-      set({ currentReview: review, isLoading: false });
-      return review;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      throw error;
+    const result = await withAsyncOperation(
+      async () => {
+        const review = await codeReviewService.analyzeCode(projectPath, settings);
+        get().loadReviews();
+        set({ currentReview: review });
+        return review;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'codeReviewStore'
+    );
+    if (!result) {
+      throw new Error('Failed to analyze code');
     }
+    return result;
   },
 
   selectReview: (id) => {

@@ -5,6 +5,7 @@ export type LLMProvider =
   | 'anthropic'
   | 'lmstudio'
   | 'ollama'
+  | 'ollama-cloud'
   | 'openrouter'
   | 'github';
 
@@ -82,6 +83,14 @@ export const PROVIDER_CONFIGS: ProviderConfig[] = [
     requiresKey: false,
     endpoint: 'http://localhost:11434',
     description: 'Local LLM runtime',
+  },
+  {
+    provider: 'ollama-cloud',
+    name: 'Ollama Cloud',
+    type: 'cloud',
+    requiresKey: false, // May be optional, check Ollama Cloud docs
+    endpoint: 'https://ollama.com/api',
+    description: 'Cloud-hosted Ollama API',
   },
   {
     provider: 'openrouter',

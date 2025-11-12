@@ -6,6 +6,11 @@ import { Search, Plus, Trash2, CheckCircle2, XCircle, RefreshCw } from 'lucide-r
 import { Button, Input, Card, CardHeader, CardBody } from '../ui';
 import { useToast } from '../ui';
 
+/**
+ * Settings panel for managing API credentials and provider connections.
+ *
+ * @returns API settings section with provider grid and key management controls.
+ */
 function APISettings() {
   const { keys, loadKeys, addKey, deleteKey, healthCheck } = useAPIKeyStore();
   const { showToast } = useToast();
@@ -16,6 +21,9 @@ function APISettings() {
   const [isValidating, setIsValidating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  /**
+   * Fetch the connection health for every configured provider and cache results in state.
+   */
   const checkAllHealth = useCallback(async () => {
     const status: Record<string, boolean> = {};
     for (const provider of PROVIDER_CONFIGS) {
@@ -31,6 +39,9 @@ function APISettings() {
     checkAllHealth();
   }, [loadKeys, checkAllHealth]);
 
+  /**
+   * Persist a new API key for the selected provider and refresh provider health indicators.
+   */
   const handleAddKey = async () => {
     if (!selectedProvider || !keyValue.trim()) return;
 
@@ -54,6 +65,11 @@ function APISettings() {
     }
   };
 
+  /**
+   * Remove an API key from secure storage after user confirmation and recompute health states.
+   *
+   * @param id - Identifier of the API key to delete.
+   */
   const handleDeleteKey = async (id: string) => {
     if (confirm('Are you sure you want to delete this API key?')) {
       await deleteKey(id);
@@ -62,6 +78,12 @@ function APISettings() {
     }
   };
 
+  /**
+   * Filter stored keys to those belonging to a specific provider.
+   *
+   * @param provider - Provider identifier used to match keys.
+   * @returns Array of matching keys for the provider.
+   */
   const providerKeys = (provider: LLMProvider) =>
     keys.filter((k) => k.provider === provider);
 

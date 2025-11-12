@@ -21,6 +21,13 @@ export interface CommandPaletteProps {
   onNavigate?: (tab: string) => void;
 }
 
+/**
+ * Omni-search palette that surfaces navigation and action commands across the app.
+ * Provides fuzzy search, keyboard navigation, and grouped results inside a modal.
+ *
+ * @param props - Visibility controls and navigation callback wiring.
+ * @returns Modal-based command interface.
+ */
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
   isOpen,
   onClose,
@@ -201,7 +208,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
   }, [selectedIndex, flatCommands.length]);
 
-  // Keyboard navigation
+  /**
+   * Handle keyboard shortcuts for navigating/activating commands within the palette.
+   *
+   * @param e - Keyboard event triggered while the palette has focus.
+   */
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -220,6 +231,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
   }, [flatCommands, selectedIndex, onClose]);
 
+  /**
+   * Execute a command when it is clicked with the mouse.
+   *
+   * @param command - Selected command item to execute.
+   */
   const handleCommandClick = useCallback((command: CommandItem) => {
     command.action();
   }, []);
@@ -324,6 +340,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 };
 
 // Hook to use command palette
+/**
+ * Small helper hook for toggling the global command palette from components.
+ *
+ * @returns Command palette state and control helpers.
+ */
 export const useCommandPalette = () => {
   const [isOpen, setIsOpen] = useState(false);
 

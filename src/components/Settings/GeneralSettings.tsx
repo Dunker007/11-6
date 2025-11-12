@@ -1,5 +1,10 @@
 import { Card, CardBody } from '../ui';
 
+/**
+ * Placeholder panel for configuring general application preferences.
+ *
+ * @returns General settings form scaffolding with theme, language, and option toggles.
+ */
 function GeneralSettings() {
   return (
     <div className="general-settings">

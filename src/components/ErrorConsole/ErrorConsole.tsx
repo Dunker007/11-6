@@ -234,89 +234,108 @@ ${JSON.stringify(error.context, null, 2)}
               </span>
             </div>
           ) : (
-            filteredErrors.map((error) => (
-              <div key={error.id} className={`error-item ${error.severity}`}>
-                <div
-                  className="error-item-header"
-                  onClick={() =>
-                    setExpandedError(
-                      expandedError === error.id ? null : error.id
-                    )
-                  }
-                >
-                  <div className="error-item-left">
-                    <TechIcon
-                      icon={
-                        expandedError === error.id ? ChevronDown : ChevronRight
-                      }
-                      size="sm"
-                    />
-                    <div className={`severity-badge ${error.severity}`}>
-                      {error.severity}
-                    </div>
-                    <div className={`category-badge ${error.type}`}>
-                      {error.type}
-                    </div>
-                    {error.count && error.count > 1 && (
-                      <span className="error-count-badge">{error.count}x</span>
-                    )}
-                  </div>
-                  <div className="error-item-right">
-                    <span className="error-time">
-                      {formatTimeAgo(error.timestamp)}
-                    </span>
-                    <button
-                      className="icon-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCopyError(error);
-                      }}
-                      title="Copy Error"
-                    >
+            filteredErrors.map((error) => {
+              const friendlyMessage = errorLogger.getUserFriendlyMessage(error);
+              const recoverySteps = errorLogger.getRecoverySteps(error);
+
+              return (
+                <div key={error.id} className={`error-item ${error.severity}`}>
+                  <div
+                    className="error-item-header"
+                    onClick={() =>
+                      setExpandedError(
+                        expandedError === error.id ? null : error.id
+                      )
+                    }
+                  >
+                    <div className="error-item-left">
                       <TechIcon
-                        icon={copiedId === error.id ? Check : Copy}
+                        icon={
+                          expandedError === error.id ? ChevronDown : ChevronRight
+                        }
                         size="sm"
-                        glow={copiedId === error.id ? 'green' : undefined}
                       />
-                    </button>
-                  </div>
-                </div>
-                <div className="error-message">{error.message}</div>
-                {expandedError === error.id && (
-                  <div className="error-details">
-                    {error.stack && (
-                      <div className="error-section">
-                        <h4>Stack Trace</h4>
-                        <pre className="error-stack">{error.stack}</pre>
+                      <div className={`severity-badge ${error.severity}`}>
+                        {error.severity}
                       </div>
-                    )}
-                    {error.context && Object.keys(error.context).length > 0 && (
-                      <div className="error-section">
-                        <h4>Context</h4>
-                        <div className="error-context">
-                          {Object.entries(error.context).map(([key, value]) => (
-                            <div key={key} className="context-item">
-                              <span className="context-key">{key}:</span>
-                              <span className="context-value">
-                                {typeof value === 'object'
-                                  ? JSON.stringify(value)
-                                  : String(value)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                      <div className={`category-badge ${error.type}`}>
+                        {error.type}
                       </div>
-                    )}
-                    <div className="error-meta">
-                      <span>ID: {error.id}</span>
-                      <span>
-                        Timestamp: {new Date(error.timestamp).toLocaleString()}
+                      {error.count && error.count > 1 && (
+                        <span className="error-count-badge">{error.count}x</span>
+                      )}
+                    </div>
+                    <div className="error-item-right">
+                      <span className="error-time">
+                        {formatTimeAgo(error.timestamp)}
                       </span>
+                      <button
+                        className="icon-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyError(error);
+                        }}
+                        title="Copy Error"
+                      >
+                        <TechIcon
+                          icon={copiedId === error.id ? Check : Copy}
+                          size="sm"
+                          glow={copiedId === error.id ? 'green' : undefined}
+                        />
+                      </button>
                     </div>
                   </div>
-                )}
-              </div>
-            ))
+                  <div className="error-message">{friendlyMessage}</div>
+                  {expandedError === error.id && (
+                    <div className="error-details">
+                      {recoverySteps.length > 0 && (
+                        <div className="error-section">
+                          <h4>Recommended Actions</h4>
+                          <ul className="error-recovery-list">
+                            {recoverySteps.map((step) => (
+                              <li key={step}>{step}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div className="error-section">
+                        <h4>Technical Message</h4>
+                        <p className="error-technical">{error.message}</p>
+                      </div>
+                      {error.stack && (
+                        <div className="error-section">
+                          <h4>Stack Trace</h4>
+                          <pre className="error-stack">{error.stack}</pre>
+                        </div>
+                      )}
+                      {error.context && Object.keys(error.context).length > 0 && (
+                        <div className="error-section">
+                          <h4>Context</h4>
+                          <div className="error-context">
+                            {Object.entries(error.context).map(([key, value]) => (
+                              <div key={key} className="context-item">
+                                <span className="context-key">{key}:</span>
+                                <span className="context-value">
+                                  {typeof value === 'object'
+                                    ? JSON.stringify(value)
+                                    : String(value)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="error-meta">
+                        <span>ID: {error.id}</span>
+                        <span>
+                          Timestamp: {new Date(error.timestamp).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       </div>

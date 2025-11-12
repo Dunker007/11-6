@@ -10,7 +10,7 @@ import { Button } from '@/components/ui';
 import { Card, CardHeader, CardBody } from '@/components/ui';
 import { Badge } from '@/components/ui';
 import { useToast } from '@/components/ui';
-import { Settings, Zap, AlertTriangle, CheckCircle, XCircle, Shield } from 'lucide-react';
+import { Settings, Zap, CheckCircle, Shield } from 'lucide-react';
 import '@/styles/OSOptimizations.css';
 
 export function OSOptimizationsPanel() {

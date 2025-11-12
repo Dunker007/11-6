@@ -1,3 +1,83 @@
+/**
+ * VibeEditor.tsx
+ * 
+ * PURPOSE:
+ * Main code editor component with Monaco Editor integration. Provides full IDE experience
+ * with file management, syntax highlighting, AI assistance, project search, and Turbo Edit.
+ * Central component for the Build workflow (code editing and development).
+ * 
+ * ARCHITECTURE:
+ * Complex component orchestrating multiple features:
+ * - Monaco Editor: Code editing with syntax highlighting
+ * - FileExplorer: File tree navigation
+ * - AIAssistant: AI-powered code assistance
+ * - TurboEdit: AI-powered code editing
+ * - ProjectSearch: Project-wide search
+ * - Proactive agents: Context-aware suggestions
+ * - Semantic indexing: Code understanding
+ * 
+ * Features:
+ * - Auto-save with debouncing
+ * - Unsaved changes tracking
+ * - Error context integration
+ * - Proactive AI suggestions
+ * - Custom VibeDS theme
+ * - Project creation and management
+ * 
+ * CURRENT STATUS:
+ * ✅ Full Monaco Editor integration
+ * ✅ File management (create, edit, delete)
+ * ✅ Auto-save functionality
+ * ✅ AI Assistant integration
+ * ✅ Turbo Edit integration
+ * ✅ Project search
+ * ✅ Proactive agent suggestions
+ * ✅ Semantic indexing
+ * ✅ Error context tracking
+ * 
+ * DEPENDENCIES:
+ * - useProjectStore: Project and file management
+ * - useActivityStore: Activity logging
+ * - errorContext: Error tracking
+ * - proactiveAgentService: Proactive suggestions
+ * - semanticIndexService: Code indexing
+ * - Monaco Editor: Code editing
+ * - Sub-components: FileExplorer, AIAssistant, TurboEdit, ProjectSearch
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: file content, language, UI visibility, unsaved changes
+ * - Uses multiple Zustand stores
+ * - Editor ref for Monaco instance
+ * - Timeout refs for debouncing
+ * 
+ * PERFORMANCE:
+ * - Debounced auto-save
+ * - Lazy component loading
+ * - Efficient re-renders
+ * - Semantic indexing runs async
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import VibeEditor from '@/components/VibeEditor/VibeEditor';
+ * 
+ * function BuildWorkflow() {
+ *   return <VibeEditor />;
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/components/VibeEditor/FileExplorer.tsx: File tree
+ * - src/components/VibeEditor/TurboEdit.tsx: AI editing
+ * - src/components/AIAssistant/AIAssistant.tsx: AI chat
+ * - src/services/project/projectStore.ts: Project state
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Multi-file editing
+ * - Split view
+ * - Code folding
+ * - Minimap customization
+ * - Custom keybindings
+ */
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Editor from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
@@ -20,6 +100,11 @@ import WorkflowHero from '../shared/WorkflowHero';
 import CommandCard from '../shared/CommandCard';
 import '../../styles/VibeEditor.css';
 
+/**
+ * Core editor workspace combining Monaco, project management, and AI copilots.
+ *
+ * @returns Full Vibe Editor experience for active projects.
+ */
 function VibeEditor() {
   const { activeProject, projects, loadProjects, createProject, setActiveProject, updateFile, getFileContent, setActiveFile } = useProjectStore();
   const { addActivity } = useActivityStore();
@@ -56,6 +141,11 @@ function VibeEditor() {
 
   // Keyboard shortcuts
   useEffect(() => {
+    /**
+     * Global keyboard shortcuts for saving, toggling panels, and invoking tools.
+     *
+     * @param e - Keyboard event captured from window.
+     */
     const handleKeyboard = (e: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
@@ -151,6 +241,11 @@ function VibeEditor() {
     }
   }, [activeFilePath, activeProject, getFileContent, setActiveFile]);
 
+  /**
+   * Sync editor state into the store and debounce persistence to disk.
+   *
+   * @param value - Latest content emitted by Monaco.
+   */
   const handleEditorChange = (value: string | undefined) => {
     if (activeFilePath && value !== undefined) {
       setFileContent(value);
@@ -253,6 +348,12 @@ function VibeEditor() {
     };
   }, []);
 
+  /**
+   * Open a file and optionally focus a specific line for quick navigation.
+   *
+   * @param path - File path to load.
+   * @param line - Optional line number for cursor placement.
+   */
   const handleFileSelect = (path: string, line?: number) => {
     setActiveFilePath(path);
     // Scroll to line if provided
@@ -264,6 +365,9 @@ function VibeEditor() {
     }
   };
 
+  /**
+   * Prompt the user for a project name and create a new project entry.
+   */
   const handleNewProject = () => {
     const name = prompt('Project name:');
     if (name) {
@@ -272,12 +376,20 @@ function VibeEditor() {
     }
   };
 
+  /**
+   * Switch the active project context and reset project menu state.
+   *
+   * @param projectId - Identifier of project to activate.
+   */
   const handleProjectSwitch = (projectId: string) => {
     setActiveProject(projectId);
     setActiveFilePath(null);
     setShowProjectMenu(false);
   };
 
+  /**
+   * Launch native dialog to select a project directory and import it.
+   */
   const handleOpenProject = async () => {
     if (window.dialogs) {
       try {
@@ -315,6 +427,11 @@ function VibeEditor() {
     }
   };
 
+  /**
+   * Apply Turbo Edit output to the current selection or entire file and persist state.
+   *
+   * @param editedCode - Replacement source code produced by Turbo Edit.
+   */
   const handleTurboEditApply = (editedCode: string) => {
     if (activeFilePath && editorRef.current) {
       const selection = editorRef.current.getSelection();

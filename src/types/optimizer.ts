@@ -1,3 +1,71 @@
+/**
+ * optimizer.ts
+ * 
+ * PURPOSE:
+ * TypeScript type definitions for LLM optimization system. Defines types for hardware profiling,
+ * model catalog entries, recommendations, benchmarks, and optimization state. Used by LLM
+ * Optimizer panel and related services.
+ * 
+ * ARCHITECTURE:
+ * Comprehensive type system for optimization:
+ * - LLMUseCase: Use case types (code-generation, chat-assistant, etc.)
+ * - OptimizationPriority: Priority levels (quality, speed, balanced)
+ * - HardwareProfile: Hardware capabilities detection
+ * - ModelCatalogEntry: Model catalog entries with metadata
+ * - ModelRecommendation: Hardware-based recommendations
+ * - BenchmarkResult: Performance benchmark results
+ * - OptimizerStateSnapshot: Complete optimizer state
+ * 
+ * CURRENT STATUS:
+ * ✅ LLM use case types
+ * ✅ Optimization priority types
+ * ✅ Hardware profile interface
+ * ✅ Model catalog entry interface
+ * ✅ Model recommendation interface
+ * ✅ Benchmark result interface
+ * ✅ State snapshot interface
+ * ✅ Cleanup result interface
+ * 
+ * DEPENDENCIES:
+ * - None (standalone type definitions)
+ * 
+ * STATE MANAGEMENT:
+ * - Type definitions only (no state)
+ * 
+ * PERFORMANCE:
+ * - Type-only file (no runtime code)
+ * - Efficient type checking
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import type { 
+ *   HardwareProfile, 
+ *   ModelCatalogEntry, 
+ *   OptimizationPriority 
+ * } from '@/types/optimizer';
+ * 
+ * const profile: HardwareProfile = {
+ *   cpuModel: 'Intel i7',
+ *   cpuCores: 8,
+ *   gpuMemoryGB: 16,
+ *   systemMemoryGB: 32,
+ *   // ...
+ * };
+ * 
+ * const priority: OptimizationPriority = 'balanced';
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/llmOptimizerService.ts: Uses these types
+ * - src/services/ai/llmOptimizerStore.ts: Uses these types
+ * - src/components/LLMOptimizer/LLMOptimizerPanel.tsx: Uses these types
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - More use case types
+ * - Model performance metrics types
+ * - A/B testing types
+ * - Custom benchmark suite types
+ */
 export type LLMUseCase =
   | 'code-generation'
   | 'chat-assistant'

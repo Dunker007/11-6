@@ -30,6 +30,15 @@ const ConnectionStatus = () => {
       type: 'local',
     };
 
+    const ollamaCloud: ProviderStatus = {
+      name: 'Ollama Cloud',
+      provider: 'ollama-cloud',
+      isOnline: availableProviders.includes('ollama-cloud'),
+      modelCount: models.filter(m => m.provider === 'ollama-cloud').length,
+      checking: false,
+      type: 'cloud',
+    };
+
     const lmstudio: ProviderStatus = {
       name: 'LM Studio',
       provider: 'lmstudio',
@@ -66,7 +75,7 @@ const ConnectionStatus = () => {
       type: 'cloud',
     };
 
-    return [ollama, lmstudio, gemini, notebooklm, openrouter];
+    return [ollama, ollamaCloud, lmstudio, gemini, notebooklm, openrouter];
   }, [models, availableProviders]);
 
   // Calculate if all providers are offline

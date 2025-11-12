@@ -6,7 +6,7 @@ import '../../styles/LLMOptimizer.css';
 
 const TopRecommendationsCompact = () => {
   const { recommendations, refreshRecommendations } = useLLMOptimizerStore();
-  const { switchToModel, models } = useLLMStore();
+  const { switchToModel } = useLLMStore();
 
   // Get top 2-3 recommendations
   const topRecommendations = useMemo(() => {

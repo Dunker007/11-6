@@ -3,10 +3,16 @@ import { useActivityStore } from '../../services/activity/activityStore';
 import { useProjectStore } from '../../services/project/projectStore';
 import ActivityItem from './ActivityItem';
 import { errorLogger } from '../../services/errors/errorLogger';
+import { measureRender } from '../../utils/performance';
 import TechIcon from '../Icons/TechIcon';
 import { Filter } from 'lucide-react';
 import '../../styles/ActivityFeed.css';
 
+/**
+ * Activity timeline displaying recent system, project, and error events with filtering.
+ *
+ * @returns Activity feed card with filter controls.
+ */
 const ActivityFeed = memo(() => {
   const activities = useActivityStore((state) => state.activities);
   const { activeProject } = useProjectStore();
@@ -29,22 +35,34 @@ const ActivityFeed = memo(() => {
   }, []);
 
   const filteredActivities = useMemo(() => {
-    let filtered = [...activities].sort((a, b) => b.timestamp - a.timestamp);
-    if (filterMode === 'errors') {
-      return filtered.filter((activity) => activity.type === 'error');
-    }
-    if (filterMode === 'project' && activeProject) {
-      // This is a simple filter. We can make it more robust by adding project IDs to metadata.
-      return filtered.filter(
-        (activity) =>
-          activity.description.includes(activeProject.name) ||
-          (activity.type === 'file' &&
-            activity.metadata?.path?.startsWith(activeProject.rootPath))
-      );
-    }
-    return filtered;
+    return measureRender(
+      'ActivityFeed.filterActivities',
+      () => {
+        let filtered = [...activities].sort((a, b) => b.timestamp - a.timestamp);
+        if (filterMode === 'errors') {
+          return filtered.filter((activity) => activity.type === 'error');
+        }
+        if (filterMode === 'project' && activeProject) {
+          // This is a simple filter. We can make it more robust by adding project IDs to metadata.
+          return filtered.filter(
+            (activity) =>
+              activity.description.includes(activeProject.name) ||
+              (activity.type === 'file' &&
+                activity.metadata?.path?.startsWith(activeProject.rootPath))
+          );
+        }
+        return filtered;
+      },
+      8,
+      { totalActivities: activities.length, filterMode, hasProject: Boolean(activeProject) }
+    );
   }, [activities, filterMode, activeProject]);
 
+  /**
+   * Update the active filter mode for the feed.
+   *
+   * @param mode - Desired filter selection.
+   */
   const handleFilterChange = useCallback((mode: 'all' | 'errors' | 'project') => {
     setFilterMode(mode);
   }, []);

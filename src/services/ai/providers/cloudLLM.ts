@@ -1,3 +1,85 @@
+/**
+ * cloudLLM.ts
+ * 
+ * PURPOSE:
+ * Cloud LLM provider implementations for Google Gemini and NotebookLM. Provides reliable,
+ * feature-rich LLM access via cloud APIs. Implements the LLMProvider interface with advanced
+ * features like function calling, vision, and streaming.
+ * 
+ * ARCHITECTURE:
+ * Three cloud provider implementations:
+ * - GeminiProvider: Google Gemini API (function calling, vision, long context)
+ * - NotebookLMProvider: Google NotebookLM API (document-aware)
+ * - OllamaCloudProvider: Ollama Cloud API (same format as local Ollama, cloud-hosted)
+ * 
+ * Key features:
+ * - API key management via apiKeyService
+ * - Function calling support (Gemini)
+ * - Vision capabilities (Gemini)
+ * - Streaming responses
+ * - Safety settings (Gemini)
+ * - System instructions
+ * - Tool/function definitions
+ * 
+ * CURRENT STATUS:
+ * ✅ Gemini provider fully implemented
+ * ✅ NotebookLM provider fully implemented
+ * ✅ Ollama Cloud provider fully implemented
+ * ✅ Function calling support
+ * ✅ Streaming with function call extraction
+ * ✅ Vision support (Gemini)
+ * ✅ Safety settings (Gemini)
+ * ✅ System instructions
+ * ✅ Tool definitions
+ * ✅ Long context support (Gemini 1.5 Pro - 2M tokens)
+ * 
+ * DEPENDENCIES:
+ * - apiKeyService: API key management
+ * - @/types/llm: LLM type definitions
+ * - @/types/gemini: Gemini-specific types
+ * 
+ * STATE MANAGEMENT:
+ * - Stateless providers (API key loaded async)
+ * - Does not use Zustand
+ * - API keys managed by apiKeyService
+ * 
+ * PERFORMANCE:
+ * - Async API key loading (prevents race conditions)
+ * - Streaming for real-time responses
+ * - Efficient function call parsing
+ * - Error handling with fallbacks
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { GeminiProvider } from '@/services/ai/providers/cloudLLM';
+ * 
+ * const gemini = new GeminiProvider();
+ * const isHealthy = await gemini.healthCheck();
+ * 
+ * if (isHealthy) {
+ *   // Stream with function calls
+ *   for await (const chunk of gemini.streamGenerate('Hello!', {
+ *     tools: [{ functionDeclarations: [...] }]
+ *   })) {
+ *     if (chunk.text) console.log(chunk.text);
+ *     if (chunk.functionCalls) console.log('Functions:', chunk.functionCalls);
+ *   }
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/router.ts: Uses these providers
+ * - src/services/apiKeys/apiKeyService.ts: API key management
+ * - src/services/ai/providers/localLLM.ts: Local provider implementations
+ * - src/components/AIAssistant/AIAssistant.tsx: Uses Gemini for chat
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Support for more cloud providers
+ * - Request retry logic
+ * - Rate limiting
+ * - Cost tracking per request
+ * - Response caching
+ */
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
 import type { LLMProvider } from '../router';
 import { apiKeyService } from '@/services/apiKeys/apiKeyService';
@@ -332,14 +414,30 @@ export class GeminiProvider implements LLMProvider {
 
             try {
               const parsed = JSON.parse(data);
-              // Extract text from all parts
+              // Extract text and function calls from all parts
               const parts = parsed.candidates?.[0]?.content?.parts || [];
               const text = parts
                 .map((part: any) => part.text || '')
                 .join('');
               
-              if (text) {
-                yield { text, done: false };
+              // Extract function calls from parts
+              const functionCalls: GeminiFunctionCall[] = [];
+              parts.forEach((part: any) => {
+                if (part.functionCall) {
+                  functionCalls.push({
+                    name: part.functionCall.name,
+                    args: part.functionCall.args || {},
+                  });
+                }
+              });
+              
+              // Yield text if present, or function calls if present
+              if (text || functionCalls.length > 0) {
+                yield { 
+                  text, 
+                  done: false,
+                  functionCalls: functionCalls.length > 0 ? functionCalls : undefined,
+                };
               }
             } catch {
               // Skip invalid JSON
@@ -516,6 +614,331 @@ export class NotebookLMProvider implements LLMProvider {
     }
 
     yield { text: '', done: true };
+  }
+}
+
+export class OllamaCloudProvider implements LLMProvider {
+  name = 'Ollama Cloud';
+  type: 'cloud' = 'cloud';
+  private baseUrl = 'https://ollama.com/api';
+  private maxRetries = 3;
+  private retryDelay = 1000; // ms
+  private healthCheckTimeout = 5000; // ms
+  private requestTimeout = 30000; // 30 seconds
+  private apiKey: string | null = null;
+
+  constructor() {
+    // Don't load synchronously - will be loaded on first async call
+    // This prevents race condition with API key initialization
+  }
+
+  private async loadAPIKey(): Promise<void> {
+    await apiKeyService.ensureInitialized();
+    // Try to get Ollama Cloud API key, but don't require it (may be optional)
+    this.apiKey = await apiKeyService.getKeyForProviderAsync('ollama-cloud');
+  }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      await this.loadAPIKey();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add Authorization header if API key is available
+      if (this.apiKey) {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+      }
+      
+      const response = await fetch(`${this.baseUrl}/tags`, {
+        method: 'GET',
+        headers,
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      return response.ok;
+    } catch (error) {
+      console.warn('Ollama Cloud health check failed:', error);
+      return false;
+    }
+  }
+
+  async getModels(): Promise<LLMModel[]> {
+    try {
+      await this.loadAPIKey();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add Authorization header if API key is available
+      if (this.apiKey) {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+      }
+      
+      const response = await fetch(`${this.baseUrl}/tags`, {
+        method: 'GET',
+        headers,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Ollama Cloud returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      const models = Array.isArray(data.models) ? data.models : [];
+
+      return models.map((model: any) => ({
+        id: model.name || 'unknown',
+        name: model.name || 'Unknown Model',
+        provider: 'ollama-cloud' as const,
+        size: this.formatSize(model.size),
+        contextWindow: this.detectContextWindow(model),
+        description: model.digest || undefined,
+        isAvailable: true,
+        metadata: {
+          quantization: this.detectQuantization(model.name),
+          modifiedAt: model.modified_at,
+        },
+      }));
+    } catch (error) {
+      console.error('Failed to fetch Ollama Cloud models:', error);
+      return [];
+    }
+  }
+
+  async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse> {
+    await this.loadAPIKey();
+    const model = options?.model || await this.getDefaultModel();
+    
+    if (!model) {
+      throw new Error('No Ollama Cloud models available');
+    }
+
+    // Retry logic for transient failures
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt < this.maxRetries; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
+
+      try {
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+        
+        // Add Authorization header if API key is available
+        if (this.apiKey) {
+          headers['Authorization'] = `Bearer ${this.apiKey}`;
+        }
+        
+        const response = await fetch(`${this.baseUrl}/generate`, {
+          method: 'POST',
+          headers,
+          signal: controller.signal,
+          body: JSON.stringify({
+            model,
+            prompt,
+            stream: false,
+            options: {
+              temperature: options?.temperature ?? 0.91,
+              num_predict: options?.maxTokens ?? 2048,
+            },
+          }),
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => response.statusText);
+          throw new Error(`Ollama Cloud API error: ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        
+        return {
+          text: data.response || '',
+          tokensUsed: data.eval_count || 0,
+          finishReason: data.done ? 'stop' : 'length',
+        };
+      } catch (error) {
+        clearTimeout(timeoutId);
+        lastError = error as Error;
+        
+        // Don't retry on abort/timeout errors
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Ollama Cloud request timed out');
+        }
+        
+        if (attempt < this.maxRetries - 1) {
+          // Exponential backoff
+          await this.sleep(this.retryDelay * Math.pow(2, attempt));
+          continue;
+        }
+      }
+    }
+
+    throw new Error(`Ollama Cloud generation failed after ${this.maxRetries} attempts: ${lastError?.message}`);
+  }
+
+  private async getDefaultModel(): Promise<string | null> {
+    const models = await this.getModels();
+    if (models.length === 0) return null;
+    
+    // Prefer code models, then chat models
+    const codeModel = models.find(m => 
+      m.name.includes('coder') || 
+      m.name.includes('code') ||
+      m.name.includes('deepseek')
+    );
+    if (codeModel) return codeModel.id;
+    
+    return models[0].id;
+  }
+
+  private detectContextWindow(model: any): number {
+    // Try to get from model details first
+    if (model.details?.context_length) return model.details.context_length;
+    
+    // Fallback to name-based detection
+    const name = (model.name || '').toLowerCase();
+    if (name.includes('32b')) return 32768;
+    if (name.includes('16b') || name.includes('14b')) return 16384;
+    if (name.includes('7b') || name.includes('8b')) return 8192;
+    if (name.includes('3b') || name.includes('1b')) return 4096;
+    
+    return 4096; // Default
+  }
+
+  private detectQuantization(name: string): string | undefined {
+    const lower = name.toLowerCase();
+    if (lower.includes('q8')) return 'Q8';
+    if (lower.includes('q6')) return 'Q6';
+    if (lower.includes('q5')) return 'Q5';
+    if (lower.includes('q4')) return 'Q4';
+    if (lower.includes('q3')) return 'Q3';
+    if (lower.includes('q2')) return 'Q2';
+    return undefined;
+  }
+
+  private formatSize(bytes: number): string | undefined {
+    if (!bytes) return undefined;
+    const gb = bytes / (1024 ** 3);
+    if (gb < 1) {
+      const mb = bytes / (1024 ** 2);
+      return `${mb.toFixed(0)}MB`;
+    }
+    return `${gb.toFixed(1)}GB`;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async *streamGenerate(prompt: string, options?: GenerateOptions): AsyncGenerator<StreamChunk> {
+    await this.loadAPIKey();
+    const model = options?.model || (await this.getModels())[0]?.id;
+    if (!model) {
+      throw new Error('No model available');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
+
+    try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add Authorization header if API key is available
+      if (this.apiKey) {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+      }
+      
+      const response = await fetch(`${this.baseUrl}/generate`, {
+        method: 'POST',
+        headers,
+        signal: controller.signal,
+        body: JSON.stringify({
+          model,
+          prompt,
+          stream: true,
+          options: {
+            temperature: options?.temperature ?? 0.91,
+            num_predict: options?.maxTokens ?? 2048,
+          },
+        }),
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => response.statusText);
+        throw new Error(`Ollama Cloud API error: ${response.status} - ${errorText}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      let hasError = false;
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n').filter((line) => line.trim());
+
+          for (const line of lines) {
+            try {
+              const parsed = JSON.parse(line);
+              const content = parsed.response || '';
+              if (content) {
+                yield { text: content, done: false };
+              }
+              // Check for errors
+              if (parsed.error) {
+                hasError = true;
+                throw new Error(parsed.error);
+              }
+              if (parsed.done) {
+                yield { text: '', done: true };
+                return;
+              }
+            } catch (parseError) {
+              if (hasError) {
+                throw parseError;
+              }
+              // Skip invalid JSON if not an error
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
+
+      yield { text: '', done: true };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Ollama Cloud stream timed out');
+      }
+      throw error;
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { agentForgeService } from './agentForgeService';
 import type { Agent, AgentConfig, AgentTemplate } from '@/types/agentforge';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface AgentForgeStore {
   // State
@@ -82,17 +83,22 @@ export const useAgentForgeStore = create<AgentForgeStore>((set, get) => ({
   },
 
   runAgent: async (id) => {
-    set({ isLoading: true, error: null });
-    try {
-      await agentForgeService.runAgent(id);
-      get().loadAgents();
-      const updated = agentForgeService.getAgent(id);
-      if (updated) {
-        set({ currentAgent: updated, isLoading: false });
-      }
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-    }
+    await withAsyncOperation(
+      async () => {
+        await agentForgeService.runAgent(id);
+        get().loadAgents();
+        const updated = agentForgeService.getAgent(id);
+        if (updated) {
+          set({ currentAgent: updated });
+        }
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'agentForgeStore'
+    );
   },
 }));
 

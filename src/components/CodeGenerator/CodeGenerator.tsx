@@ -134,8 +134,10 @@ function CodeGenerator() {
       // Stream generation
       let code = '';
       for await (const chunk of streamGenerate(fullPrompt)) {
-        code += chunk;
-        setGeneratedCode(code);
+        if (chunk.text) {
+          code += chunk.text;
+          setGeneratedCode(code);
+        }
       }
 
       // Track activity

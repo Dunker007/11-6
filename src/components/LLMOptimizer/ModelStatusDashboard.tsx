@@ -4,7 +4,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { Zap, Activity, CheckCircle2, XCircle, Clock, TrendingUp } from 'lucide-react';
+import { Zap, Activity, CheckCircle2, XCircle } from 'lucide-react';
 import { useLLMStore } from '@/services/ai/llmStore';
 import TechIcon from '../Icons/TechIcon';
 import QuickModelActions from './QuickModelActions';

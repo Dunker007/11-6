@@ -3,6 +3,7 @@ import { Activity, Zap, TrendingUp, Play, BarChart3 } from 'lucide-react';
 import { useHealthStore } from '@/services/health/healthStore';
 import { useBenchmarkStore } from '@/services/benchmark/benchmarkStore';
 import { windowsOptimizer } from '@/services/windows/windowsOptimizer';
+import { formatBytes, formatPercent } from '@/utils/formatters';
 import BenchmarkSuite from './BenchmarkSuite';
 import WindowsOptimizer from './WindowsOptimizer';
 import '../../styles/LLMOptimizer.css';
@@ -15,24 +16,12 @@ interface DiskInfo {
   usage: number;
 }
 
-const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-};
-
-const formatPercent = (value: number): string => {
-  return `${Math.round(value)}%`;
-};
-
 const LiveHardwareProfiler = () => {
   const { stats, isMonitoring, startMonitoring, stopMonitoring, getSystemStats } = useHealthStore();
   const { isRunning, runBenchmarkSuite } = useBenchmarkStore();
   const [showBenchmark, setShowBenchmark] = useState(false);
   const [showOptimizer, setShowOptimizer] = useState(false);
-  const [updateInterval, setUpdateInterval] = useState<NodeJS.Timeout | null>(null);
+  const [updateInterval] = useState<NodeJS.Timeout | null>(null);
   const [isWindows, setIsWindows] = useState(false);
 
   useEffect(() => {
@@ -144,7 +133,7 @@ const LiveHardwareProfiler = () => {
               <span className="tile-primary">{stats.cpu.model}</span>
               <div className="tile-meta">
                 <span>{stats.cpu.cores} cores</span>
-                <span>{formatPercent(stats.cpu.usage)} usage</span>
+                <span>{formatPercent(stats.cpu.usage, 0, true)} usage</span>
                 {stats.cpu.temperature && (
                   <span>{Math.round(stats.cpu.temperature)}°C</span>
                 )}
@@ -172,7 +161,7 @@ const LiveHardwareProfiler = () => {
             <div className="tile-content">
               <span className="tile-primary">{formatBytes(stats.memory.used)} / {formatBytes(stats.memory.total)}</span>
               <div className="tile-meta">
-                <span>{formatPercent(stats.memory.usage)} used</span>
+                <span>{formatPercent(stats.memory.usage, 0, true)} used</span>
                 <span>{formatBytes(stats.memory.free)} free</span>
               </div>
               <div className="tile-progress">
@@ -200,7 +189,7 @@ const LiveHardwareProfiler = () => {
                 <span className="tile-primary">{(stats.disk[0] as DiskInfo).mount || 'C:'}</span>
                 <div className="tile-meta">
                   <span>{formatBytes((stats.disk[0] as DiskInfo).used)} / {formatBytes((stats.disk[0] as DiskInfo).total)}</span>
-                  <span>{formatPercent((stats.disk[0] as DiskInfo).usage)} used</span>
+                  <span>{formatPercent((stats.disk[0] as DiskInfo).usage, 0, true)} used</span>
                 </div>
                 <div className="tile-progress">
                   <div 

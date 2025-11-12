@@ -13,6 +13,11 @@ const AboutSettings = lazy(() => import('./AboutSettings'));
 
 type SettingsSection = 'api' | 'general' | 'appearance' | 'advanced' | 'testing' | 'about';
 
+/**
+ * Hub component for user-configurable application settings rendered via lazy-loaded sections.
+ *
+ * @returns Settings dashboard with sidebar navigation and section content area.
+ */
 function Settings() {
   const [activeSection, setActiveSection] = useState<SettingsSection>('api');
 

@@ -11,6 +11,12 @@ export interface ProgressProps {
   className?: string;
 }
 
+/**
+ * Linear progress indicator with size, variant, and optional labeling.
+ *
+ * @param props - Progress value, styling, and labeling options.
+ * @returns Accessible progress bar element.
+ */
 export const Progress: React.FC<ProgressProps> = ({
   value,
   max = 100,

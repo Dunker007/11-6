@@ -1,7 +1,85 @@
+/**
+ * llmStore.ts
+ * 
+ * PURPOSE:
+ * Zustand store for LLM state management. Provides reactive state for models, providers,
+ * active model selection, and generation operations. Wraps llmRouter with Zustand for
+ * React component integration.
+ * 
+ * ARCHITECTURE:
+ * Zustand store pattern that:
+ * - Manages LLM models list and availability
+ * - Tracks active model selection
+ * - Provides generation methods (sync and streaming)
+ * - Handles model pulling (Ollama/LM Studio)
+ * - Integrates with local provider discovery
+ * 
+ * CURRENT STATUS:
+ * ✅ Full Zustand integration
+ * ✅ Model discovery and selection
+ * ✅ Streaming generation support
+ * ✅ Model pulling integration
+ * ✅ Local provider discovery
+ * ✅ StreamChunk support (includes function calls)
+ * 
+ * DEPENDENCIES:
+ * - llmRouter: Core LLM routing logic
+ * - localProviderDiscovery: Local provider detection
+ * - @/types/llm: LLM type definitions
+ * - window.llm: Electron IPC for model pulling (optional)
+ * 
+ * STATE MANAGEMENT:
+ * - models: Available LLM models from all providers
+ * - availableProviders: List of online providers
+ * - localProviders: Local provider status (Ollama, LM Studio)
+ * - activeModel: Currently selected model
+ * - pullingModels: Set of models being pulled
+ * - isLoading: Generation in progress flag
+ * - error: Error message if any
+ * 
+ * PERFORMANCE:
+ * - Reactive updates via Zustand
+ * - Streaming doesn't block UI
+ * - Efficient model list updates
+ * - Provider discovery runs in background
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { useLLMStore } from '@/services/ai/llmStore';
+ * 
+ * function MyComponent() {
+ *   const { models, activeModel, streamGenerate, isLoading } = useLLMStore();
+ *   
+ *   const handleGenerate = async () => {
+ *     for await (const chunk of streamGenerate('Hello!')) {
+ *       if (chunk.text) {
+ *         console.log(chunk.text);
+ *       }
+ *       if (chunk.functionCalls) {
+ *         console.log('Function calls:', chunk.functionCalls);
+ *       }
+ *     }
+ *   };
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/router.ts: Core routing logic
+ * - src/services/ai/providers/localProviderDiscovery.ts: Provider detection
+ * - src/components/AIAssistant/AIAssistant.tsx: Uses this store
+ * - src/components/LLMOptimizer/ModelCatalog.tsx: Displays models from store
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Add model performance metrics
+ * - Cache model responses
+ * - Support model switching mid-conversation
+ * - Add model comparison features
+ */
 import { create } from 'zustand';
 import { llmRouter } from './router';
-import type { LLMModel } from '../../types/llm';
+import type { LLMModel, StreamChunk } from '../../types/llm';
 import { localProviderDiscovery, type LocalProviderState } from './providers/localProviderDiscovery';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface LLMStore {
   models: LLMModel[];
@@ -17,7 +95,7 @@ interface LLMStore {
   switchToModel: (modelId: string) => Promise<boolean>;
   pullModel: (modelId: string, pullCommand: string) => Promise<boolean>;
   generate: (prompt: string, options?: any) => Promise<string>;
-  streamGenerate: (prompt: string, options?: any) => AsyncGenerator<string>;
+  streamGenerate: (prompt: string, options?: any) => AsyncGenerator<StreamChunk>;
 }
 
 export const useLLMStore = create<LLMStore>((set, get) => ({
@@ -33,20 +111,24 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
   pullingModels: new Set(),
 
   discoverProviders: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const results = await llmRouter.discoverProviders();
-      const available = results.filter((r) => r.available).map((r) => r.provider);
-      const allModels = results.flatMap((r) => r.models);
+    await withAsyncOperation(
+      async () => {
+        const results = await llmRouter.discoverProviders();
+        const available = results.filter((r) => r.available).map((r) => r.provider);
+        const allModels = results.flatMap((r) => r.models);
 
-      set({
-        availableProviders: available,
-        models: allModels,
-        isLoading: false,
-      });
-    } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
-    }
+        set({
+          availableProviders: available,
+          models: allModels,
+        });
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'llmStore'
+    );
   },
 
   discoverLocalProviders: async () => {
@@ -140,15 +222,22 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
   },
 
   generate: async (prompt, options) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await llmRouter.generate(prompt, options);
-      set({ isLoading: false });
-      return response.text;
-    } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
-      throw error;
+    const result = await withAsyncOperation(
+      async () => {
+        const response = await llmRouter.generate(prompt, options);
+        return response.text;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'llmStore'
+    );
+    if (!result) {
+      throw new Error('Failed to generate response');
     }
+    return result;
   },
 
   streamGenerate: async function* (prompt, options) {
@@ -160,7 +249,8 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
           set({ isLoading: false });
           break;
         }
-        yield chunk.text;
+        // Yield the full chunk object to preserve function calls
+        yield chunk;
       }
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });

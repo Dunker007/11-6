@@ -1,3 +1,78 @@
+/**
+ * llmOptimizerStore.ts
+ * 
+ * PURPOSE:
+ * Zustand store for LLM optimization state. Manages hardware profiling, model catalog,
+ * recommendations, benchmarks, and optimization settings. Provides reactive state for
+ * the LLM Optimizer panel and related components.
+ * 
+ * ARCHITECTURE:
+ * Zustand store that wraps llmOptimizerService with reactive state:
+ * - Hardware detection and profiling
+ * - Model catalog management
+ * - Model recommendations based on hardware/use case
+ * - Benchmark execution and results
+ * - Optimization priority settings (quality/speed/balanced)
+ * - Use case selection (code-generation, chat, etc.)
+ * 
+ * CURRENT STATUS:
+ * ✅ Hardware profiling
+ * ✅ Model catalog loading
+ * ✅ Recommendations generation
+ * ✅ Benchmark execution
+ * ✅ Priority and use case management
+ * ✅ Hardware override support
+ * 
+ * DEPENDENCIES:
+ * - llmOptimizerService: Core optimization logic
+ * - @/types/optimizer: Optimizer type definitions
+ * 
+ * STATE MANAGEMENT:
+ * - hardwareProfile: Detected hardware capabilities
+ * - hardwareOverride: Manual hardware overrides
+ * - modelCatalog: Available models catalog
+ * - recommendations: Model recommendations
+ * - benchmarks: Benchmark results
+ * - selectedUseCase: Current use case
+ * - priority: Optimization priority (quality/speed/balanced)
+ * - Loading/error states for each operation
+ * 
+ * PERFORMANCE:
+ * - Reactive updates via Zustand
+ * - Cached hardware profile (unless forced refresh)
+ * - Async operations don't block UI
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { useLLMOptimizerStore } from '@/services/ai/llmOptimizerStore';
+ * 
+ * function OptimizerPanel() {
+ *   const { 
+ *     hardwareProfile, 
+ *     recommendations, 
+ *     priority, 
+ *     setPriority,
+ *     refreshRecommendations 
+ *   } = useLLMOptimizerStore();
+ *   
+ *   useEffect(() => {
+ *     refreshRecommendations();
+ *   }, [priority]);
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/llmOptimizerService.ts: Core optimization logic
+ * - src/components/LLMOptimizer/LLMOptimizerPanel.tsx: Main UI component
+ * - src/components/LLMOptimizer/RecommendationPanel.tsx: Displays recommendations
+ * - src/utils/llmConfig.ts: Uses priority for temperature mapping
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Real-time hardware monitoring
+ * - Model performance history
+ * - Custom benchmark suites
+ * - A/B testing between models
+ */
 import { create } from 'zustand';
 import { llmOptimizerService } from './llmOptimizerService';
 import type {

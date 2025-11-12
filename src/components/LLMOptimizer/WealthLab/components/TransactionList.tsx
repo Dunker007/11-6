@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback, memo } from 'react';
 import { useWealthStore } from '@/services/wealth/wealthStore';
 import { wealthService } from '@/services/wealth/wealthService';
 import { useToast } from '@/components/ui';
+import { formatCurrency } from '@/utils/formatters';
 import { Search, Filter, Edit2, Trash2, Scissors, CheckSquare, Square, X, Plus, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDebounce } from '@/utils/hooks/useDebounce';
 import { usePagination } from '@/utils/hooks/usePerformance';
@@ -302,9 +303,6 @@ const TransactionList = memo(function TransactionList({ month, year }: Transacti
     loadTransactions(startDate, endDate);
   }, [loadTransactions, month, year]);
 
-  const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
 
   const renderTransaction = (tx: Transaction, showCheckbox: boolean = false) => {
     if (editingId === tx.id) {

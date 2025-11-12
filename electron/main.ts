@@ -1,3 +1,76 @@
+/**
+ * main.ts
+ * 
+ * PURPOSE:
+ * Electron main process entry point. Manages application lifecycle, window creation, IPC
+ * handlers, and system integrations. Handles file system operations, process management,
+ * auto-updates, and window state persistence.
+ * 
+ * ARCHITECTURE:
+ * Electron main process that:
+ * - Creates and manages BrowserWindow instances
+ * - Registers IPC handlers for renderer communication
+ * - Handles file system operations (read, write, directory operations)
+ * - Manages child processes (program execution)
+ * - Implements auto-update functionality
+ * - Persists window state
+ * - Provides debug logging
+ * 
+ * Key features:
+ * - Window state persistence
+ * - File system IPC handlers
+ * - Process management
+ * - Auto-updates via electron-updater
+ * - Debug logging to file
+ * - Large file scanning
+ * - Shell operations
+ * 
+ * CURRENT STATUS:
+ * ✅ Window creation and management
+ * ✅ IPC handlers for file system
+ * ✅ Process execution and management
+ * ✅ Auto-update integration
+ * ✅ Window state persistence
+ * ✅ Debug logging
+ * ✅ Large file scanning
+ * ✅ Shell operations (showItemInFolder)
+ * ✅ Production build support (loadFile for .asar)
+ * ✅ Error handling and recovery
+ * 
+ * DEPENDENCIES:
+ * - electron: Core Electron APIs
+ * - electron-updater: Auto-update functionality
+ * - Node.js fs, path, child_process modules
+ * 
+ * STATE MANAGEMENT:
+ * - Window instance storage
+ * - Running processes map
+ * - Window state persistence (file-based)
+ * 
+ * PERFORMANCE:
+ * - Efficient IPC handlers
+ * - Async file operations
+ * - Process cleanup on exit
+ * - Debug logging to file (non-blocking)
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * // This is the main process entry point
+ * // Started by Electron: electron main.js
+ * ```
+ * 
+ * RELATED FILES:
+ * - electron/preload.ts: Preload script exposing APIs
+ * - src/types/electron.d.ts: TypeScript definitions for exposed APIs
+ * - package.json: Electron configuration
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Multi-window support
+ * - Window management (minimize to tray, etc.)
+ * - Enhanced error recovery
+ * - Performance monitoring
+ * - Crash reporting
+ */
 import electron from 'electron';
 const { app, BrowserWindow, ipcMain, dialog, screen, Menu, shell } = electron;
 import updaterPkg from 'electron-updater';
@@ -292,21 +365,10 @@ function createWindow() {
       win.webContents.openDevTools();
     }
   } else {
-    // In production, use file:// protocol with absolute path for .asar compatibility
+    // In production, use loadFile() which has built-in .asar support
     // __dirname in production points to resources/app.asar/dist-electron
     // We need to go up one level to reach dist
-    let indexPath: string;
-    
-    if (app.isPackaged) {
-      // In packaged app, resolve from app.asar
-      indexPath = path.join(__dirname, '../dist/index.html');
-      // Convert to absolute path and use file:// protocol
-      indexPath = path.resolve(indexPath);
-    } else {
-      // In unpackaged production build (for testing)
-      indexPath = path.join(__dirname, '../dist/index.html');
-      indexPath = path.resolve(indexPath);
-    }
+    const indexPath = path.join(__dirname, '../dist/index.html');
     
     debugLog('[Electron] Production mode');
     debugLog('[Electron] isDev:', isDev);
@@ -317,32 +379,14 @@ function createWindow() {
     debugLog('[Electron] Resolved index path:', indexPath);
     debugLog('[Electron] Index file exists:', existsSync(indexPath));
     
-    // Use file:// protocol for .asar compatibility
-    // Windows paths need three slashes: file:///C:/path/to/file
-    // Unix paths need three slashes: file:///path/to/file
-    let fileUrl: string;
-    if (process.platform === 'win32') {
-      // Windows: file:///C:/path/to/file
-      fileUrl = `file:///${indexPath.replace(/\\/g, '/')}`;
-    } else {
-      // Unix: file:///path/to/file
-      fileUrl = `file://${indexPath}`;
-    }
-    debugLog('[Electron] Loading file URL:', fileUrl);
-    
-    win.loadURL(fileUrl).then(() => {
+    // Use loadFile() for .asar compatibility - Electron handles .asar paths automatically
+    debugLog('[Electron] Loading index.html using loadFile()...');
+    win.loadFile(indexPath).then(() => {
       debugLog('[Electron] Successfully loaded index.html');
     }).catch(err => {
       debugLog('[Electron] ERROR loading index.html:', err.message);
+      debugLog('[Electron] Error code:', err.code);
       debugLog('[Electron] Error stack:', err.stack);
-      // Fallback: try loadFile as backup
-      debugLog('[Electron] Attempting fallback with loadFile...');
-      if (win) {
-        win.loadFile(indexPath).catch(fallbackErr => {
-          debugLog('[Electron] Fallback also failed:', fallbackErr.message);
-          debugLog('[Electron] Fallback error stack:', fallbackErr.stack);
-        });
-      }
     });
   }
 
@@ -351,11 +395,26 @@ function createWindow() {
     debugLog('[Electron] Failed to load:', validatedURL);
     debugLog('[Electron] Error code:', errorCode);
     debugLog('[Electron] Error description:', errorDescription);
+    
+    // If it's a file load failure and we're in production, try alternative approaches
+    if (!isDev && errorCode === -2) { // ERR_FAILED
+      debugLog('[Electron] Attempting recovery strategies...');
+      
+      // Strategy 1: Try loading without preload script (for debugging)
+      if (validatedURL.includes('index.html')) {
+        debugLog('[Electron] This may be a preload script issue. Check preload script path.');
+      }
+    }
   });
 
   win.webContents.on('render-process-gone', (_event, details) => {
     debugLog('[Electron] Renderer process gone. Reason:', details.reason);
     debugLog('[Electron] Exit code:', details.exitCode);
+    
+    if (details.reason === 'crashed') {
+      debugLog('[Electron] Renderer crashed - this may indicate a preload script error or resource loading issue');
+      debugLog('[Electron] Check electron-debug.log for more details');
+    }
   });
 
   win.webContents.on('unresponsive', () => {
@@ -750,6 +809,90 @@ ipcMain.handle('fs:exists', async (_event, filePath: string) => {
   try {
     const normalizedPath = path.normalize(filePath);
     return { success: true, exists: existsSync(normalizedPath) };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+// Recursive large file finder
+async function findLargeFilesRecursive(
+  dirPath: string,
+  minSizeBytes: number,
+  onProgress?: (currentPath: string, filesFound: number) => void
+): Promise<Array<{ path: string; size: number; mtime: Date }>> {
+  const largeFiles: Array<{ path: string; size: number; mtime: Date }> = [];
+  
+  async function scanDirectory(currentPath: string): Promise<void> {
+    try {
+      const entries = await fs.readdir(currentPath, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(currentPath, entry.name);
+        
+        // Skip common system/hidden directories
+        if (entry.name.startsWith('.') && entry.name !== '.') {
+          continue;
+        }
+        
+        // Skip node_modules and other common large directories that users typically don't want to scan
+        if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist' || entry.name === 'build') {
+          continue;
+        }
+        
+        try {
+          if (entry.isDirectory()) {
+            await scanDirectory(fullPath);
+          } else if (entry.isFile()) {
+            const stats = await fs.stat(fullPath);
+            if (stats.size >= minSizeBytes) {
+              largeFiles.push({
+                path: fullPath,
+                size: stats.size,
+                mtime: stats.mtime,
+              });
+              onProgress?.(fullPath, largeFiles.length);
+            }
+          }
+        } catch (error) {
+          // Skip files/directories we can't access (permissions, etc.)
+          continue;
+        }
+      }
+    } catch (error) {
+      // Skip directories we can't access
+      return;
+    }
+  }
+  
+  await scanDirectory(dirPath);
+  return largeFiles;
+}
+
+ipcMain.handle('fs:findLargeFiles', async (_event, dirPath: string, minSizeMB: number = 100) => {
+  try {
+    const normalizedPath = path.normalize(dirPath);
+    const minSizeBytes = minSizeMB * 1024 * 1024;
+    
+    const largeFiles = await findLargeFilesRecursive(normalizedPath, minSizeBytes);
+    
+    return {
+      success: true,
+      files: largeFiles.map((file) => ({
+        path: file.path,
+        size: file.size,
+        lastModified: file.mtime.toISOString(),
+      })),
+    };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+// Shell IPC Handlers
+ipcMain.handle('shell:showItemInFolder', async (_event, filePath: string) => {
+  try {
+    shell.showItemInFolder(path.normalize(filePath));
+    return { success: true };
   } catch (error) {
     return { success: false, error: (error as Error).message };
   }

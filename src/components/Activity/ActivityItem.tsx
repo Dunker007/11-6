@@ -8,10 +8,22 @@ interface ActivityItemProps {
   onClick?: () => void;
 }
 
+/**
+ * Render a single activity timeline entry with icon, description, and relative timestamp.
+ *
+ * @param props - Activity metadata and optional click handler.
+ * @returns React memoized timeline row.
+ */
 const ActivityItem = memo(function ActivityItem({
   activity,
   onClick,
 }: ActivityItemProps) {
+  /**
+   * Convert a timestamp into a human-readable relative string.
+   *
+   * @param timestamp - Epoch milliseconds of the activity event.
+   * @returns Relative time string such as "5m ago".
+   */
   const getTimeAgo = (timestamp: number): string => {
     const now = Date.now();
     const diff = now - timestamp;

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { APIKey, LLMProvider } from '../../types/apiKeys';
 import { apiKeyService } from './apiKeyService';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface APIKeyStore {
   keys: APIKey[];
@@ -20,50 +21,70 @@ export const useAPIKeyStore = create<APIKeyStore>((set) => ({
   error: null,
 
   loadKeys: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      // Use async version to ensure initialization is complete
-      const keys = await apiKeyService.getAllKeysAsync();
-      set({ keys, isLoading: false });
-    } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
-    }
+    await withAsyncOperation(
+      async () => {
+        const keys = await apiKeyService.getAllKeysAsync();
+        set({ keys });
+        return keys;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'apiKeyStore'
+    );
   },
 
   addKey: async (provider, key, name) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiKeyService.addKey(provider, key, name);
-      // Use async version to ensure we get the latest keys
-      const keys = await apiKeyService.getAllKeysAsync();
-      set({ keys, isLoading: false });
-    } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
-    }
+    await withAsyncOperation(
+      async () => {
+        await apiKeyService.addKey(provider, key, name);
+        const keys = await apiKeyService.getAllKeysAsync();
+        set({ keys });
+        return keys;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'apiKeyStore'
+    );
   },
 
   updateKey: async (id, updates) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiKeyService.updateKey(id, updates);
-      // Use async version to ensure we get the latest keys
-      const keys = await apiKeyService.getAllKeysAsync();
-      set({ keys, isLoading: false });
-    } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
-    }
+    await withAsyncOperation(
+      async () => {
+        await apiKeyService.updateKey(id, updates);
+        const keys = await apiKeyService.getAllKeysAsync();
+        set({ keys });
+        return keys;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'apiKeyStore'
+    );
   },
 
   deleteKey: async (id) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiKeyService.deleteKey(id);
-      // Use async version to ensure we get the latest keys
-      const keys = await apiKeyService.getAllKeysAsync();
-      set({ keys, isLoading: false });
-    } catch (error) {
-      set({ error: (error as Error).message, isLoading: false });
-    }
+    await withAsyncOperation(
+      async () => {
+        await apiKeyService.deleteKey(id);
+        const keys = await apiKeyService.getAllKeysAsync();
+        set({ keys });
+        return keys;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'apiKeyStore'
+    );
   },
 
   validateKey: async (provider, key) => {

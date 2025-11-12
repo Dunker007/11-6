@@ -1,14 +1,73 @@
+/**
+ * ItorToolbar.tsx
+ * 
+ * PURPOSE:
+ * Floating, draggable toolbar widget for the Itor agent (code review guardian). Displays
+ * review status, issue count, and provides quick access to code review features. Position
+ * persists across sessions via localStorage.
+ * 
+ * ARCHITECTURE:
+ * Floating widget component that:
+ * - Displays Itor avatar with status
+ * - Shows review count and issues found
+ * - Draggable positioning
+ * - Position persistence (localStorage)
+ * - Popover for details
+ * - Debounced position saving
+ * 
+ * CURRENT STATUS:
+ * ✅ Floating draggable widget
+ * ✅ Position persistence
+ * ✅ Review status display
+ * ✅ Issue count display
+ * ✅ Popover details
+ * ✅ Debounced position saving
+ * 
+ * DEPENDENCIES:
+ * - useAgentStore: Itor status and review data
+ * - useDebouncedCallback: Position saving debounce
+ * - ItorAvatar: Avatar component
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: position, dragging, popover visibility
+ * - Gets review data from Zustand store
+ * - Persists position to localStorage
+ * 
+ * PERFORMANCE:
+ * - Debounced position saving
+ * - Efficient drag handling
+ * - Minimal re-renders
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import ItorToolbar from '@/components/Agents/ItorToolbar';
+ * 
+ * function App() {
+ *   return (
+ *     <>
+ *       <MainContent />
+ *       <ItorToolbar />
+ *     </>
+ *   );
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/agents/agentStore.ts: Review data source
+ * - src/components/Agents/ItorAvatar.tsx: Avatar component
+ * - src/App.tsx: Renders this component
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Keyboard shortcuts
+ * - Customizable position constraints
+ * - Multiple widget instances
+ * - Widget themes
+ */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAgentStore } from '@/services/agents/agentStore';
 import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
 import ItorAvatar from './ItorAvatar';
 import '../../styles/Agents.css';
-
-/**
- * Itor Toolbar Widget
- * Floating, draggable hawk icon widget
- * Shows review status and issue count
- */
 function ItorToolbar() {
   const [showPopover, setShowPopover] = useState(false);
   const [isDragging, setIsDragging] = useState(false);

@@ -1,3 +1,83 @@
+/**
+ * AIAssistant.tsx
+ * 
+ * PURPOSE:
+ * Main AI chat assistant component (Vibed Ed). Provides conversational interface for AI-powered
+ * coding assistance with context awareness, streaming responses, function calling support, and
+ * conversation memory. Integrates with multiple AI services for intelligent code help.
+ * 
+ * ARCHITECTURE:
+ * React component that orchestrates multiple services:
+ * - useLLMStore: LLM generation and model management
+ * - useProjectStore: Active project and file context
+ * - projectKnowledgeService: Project context for AI prompts
+ * - multiFileContextService: Multi-file context analysis
+ * - agentMemoryService: Conversation persistence
+ * - useLLMOptimizerStore: Optimization priority for temperature
+ * 
+ * Features:
+ * - Streaming text responses
+ * - Function call handling (Gemini)
+ * - Project context awareness
+ * - Conversation memory
+ * - Quick action buttons
+ * - Proactive suggestions
+ * - Gemini-specific settings (safety, system instructions, tools)
+ * 
+ * CURRENT STATUS:
+ * ✅ Full chat interface with streaming
+ * ✅ Function call support (Gemini)
+ * ✅ Dynamic temperature based on priority
+ * ✅ Project context integration
+ * ✅ Conversation memory
+ * ✅ Quick actions (Explain, Refactor, Fix, Generate Tests)
+ * ✅ Proactive suggestions
+ * ✅ Gemini settings panel
+ * 
+ * DEPENDENCIES:
+ * - useLLMStore: LLM generation
+ * - useProjectStore: Project context
+ * - projectKnowledgeService: Project knowledge
+ * - multiFileContextService: File context
+ * - agentMemoryService: Conversation memory
+ * - useLLMOptimizerStore: Optimization settings
+ * - getTemperatureForPriority: Temperature mapping
+ * - EdAvatar: Agent avatar component
+ * - GeminiFunctionCalls: Function call display
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: messages, input, streaming status, Gemini settings
+ * - Uses multiple Zustand stores for global state
+ * - Conversation ID for memory persistence
+ * 
+ * PERFORMANCE:
+ * - Streaming doesn't block UI
+ * - Memoized Gemini active check
+ * - Efficient message updates
+ * - Auto-scroll to latest message
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import AIAssistant from '@/components/AIAssistant/AIAssistant';
+ * 
+ * function App() {
+ *   return <AIAssistant />;
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/llmStore.ts: LLM generation
+ * - src/services/ai/projectKnowledgeService.ts: Project context
+ * - src/components/Agents/EdAvatar.tsx: Avatar component
+ * - src/components/LLMOptimizer/GeminiFunctionCalls.tsx: Function call UI
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Code block syntax highlighting
+ * - Message editing
+ * - Conversation export
+ * - Multi-model conversations
+ * - Voice input/output
+ */
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { useProjectStore } from '../../services/project/projectStore';
@@ -6,13 +86,19 @@ import { multiFileContextService } from '../../services/ai/multiFileContextServi
 import { useAgentStore } from '../../services/agents/agentStore';
 import { agentMemoryService } from '../../services/agents/agentMemoryService';
 import { useAPIKeyStore } from '../../services/apiKeys/apiKeyStore';
+import { useLLMOptimizerStore } from '../../services/ai/llmOptimizerStore';
+import { getTemperatureForPriority } from '../../utils/llmConfig';
+import { detectTaskType } from '@/utils/taskDetector';
+import { errorLogger } from '@/services/errors/errorLogger';
+import { suggestFix } from '@/utils/errorHelpers';
+import { logSlowOperation } from '@/utils/performance';
 import EdAvatar from '../Agents/EdAvatar';
 import TechIcon from '../Icons/TechIcon';
 import { Send, Sparkles, Copy, Check, Code, Lightbulb, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button, Textarea } from '../ui';
 import GeminiFunctionCalls from '../LLMOptimizer/GeminiFunctionCalls';
-import type { GeminiSafetySetting, GeminiSystemInstruction, GeminiTool, GeminiFunctionCall } from '../../types/gemini';
-import type { GenerateOptions } from '../../types/llm';
+import type { GeminiSafetySetting, GeminiTool, GeminiFunctionCall } from '../../types/gemini';
+import type { GenerateOptions, TaskType } from '../../types/llm';
 import '../../styles/AIAssistant.css';
 
 interface Message {
@@ -27,6 +113,7 @@ function AIAssistant() {
   const { activeProject, getFileContent, activeFile } = useProjectStore();
   const { setEdStatus } = useAgentStore();
   const { keys } = useAPIKeyStore();
+  const priority = useLLMOptimizerStore((state) => state.priority);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -42,9 +129,9 @@ function AIAssistant() {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [proactiveSuggestions, setProactiveSuggestions] = useState<string[]>([]);
   const [showGeminiSettings, setShowGeminiSettings] = useState(false);
-  const [geminiSafetySettings, setGeminiSafetySettings] = useState<GeminiSafetySetting[]>([]);
+  const [geminiSafetySettings, _setGeminiSafetySettings] = useState<GeminiSafetySetting[]>([]);
   const [geminiSystemInstruction, setGeminiSystemInstruction] = useState<string>('');
-  const [geminiTools, setGeminiTools] = useState<GeminiTool[]>([]);
+  const [geminiTools, _setGeminiTools] = useState<GeminiTool[]>([]);
   const [lastFunctionCalls, setLastFunctionCalls] = useState<GeminiFunctionCall[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -158,6 +245,9 @@ function AIAssistant() {
     setIsStreaming(true);
     setEdStatus('thinking');
 
+    let streamStart = 0;
+    let currentTaskType: TaskType | undefined;
+
     try {
       // Build context-aware prompt with Vibed Ed persona
       let prompt = input.trim();
@@ -244,8 +334,17 @@ function AIAssistant() {
 
       prompt = `${personaPrompt}\n\nUser request: ${basePrompt}`;
 
-      // Build Gemini-specific options if Gemini is active
-      const generateOptions: GenerateOptions = {};
+      // Build generation options with dynamic temperature based on optimization priority
+      const generateOptions: GenerateOptions = {
+        // Use temperature from optimization priority (applies to all providers)
+        temperature: getTemperatureForPriority(priority),
+      };
+
+      // Hint routing logic with the inferred task type.
+      generateOptions.taskType = detectTaskType(input.trim());
+      currentTaskType = generateOptions.taskType;
+      
+      // Add Gemini-specific options if Gemini is active
       if (isGeminiActive) {
         if (geminiSafetySettings.length > 0) {
           generateOptions.safetySettings = geminiSafetySettings;
@@ -256,8 +355,6 @@ function AIAssistant() {
         if (geminiTools.length > 0) {
           generateOptions.tools = geminiTools;
         }
-        // Use default temperature of 0.91 for Gemini (as per project rules)
-        generateOptions.temperature = 0.91;
       }
 
       // Stream the response
@@ -272,10 +369,27 @@ function AIAssistant() {
       setMessages((prev) => [...prev, assistantMessage]);
 
       let fullContent = '';
-      // Note: Function calls are not available in streaming mode
-      // They would need to be extracted from a non-streaming response
+      const accumulatedFunctionCalls: GeminiFunctionCall[] = [];
+      
+      // Stream the response and handle both text and function calls
+      streamStart = performance.now();
       for await (const chunk of streamGenerate(prompt, generateOptions)) {
-        fullContent += chunk;
+        // Handle text chunks
+        if (chunk.text) {
+          fullContent += chunk.text;
+        }
+        
+        // Handle function calls from stream
+        if (chunk.functionCalls && chunk.functionCalls.length > 0) {
+          // Accumulate function calls (avoid duplicates)
+          chunk.functionCalls.forEach((fc) => {
+            if (!accumulatedFunctionCalls.some((existing) => existing.name === fc.name)) {
+              accumulatedFunctionCalls.push(fc);
+            }
+          });
+        }
+        
+        // Update message content
         setMessages((prev) => {
           const updated = [...prev];
           const lastMessage = updated[updated.length - 1];
@@ -286,6 +400,18 @@ function AIAssistant() {
         });
       }
       
+      // Update function calls state if any were found
+      if (accumulatedFunctionCalls.length > 0) {
+        setLastFunctionCalls(accumulatedFunctionCalls);
+      }
+      
+      logSlowOperation(
+        'AIAssistant.streamGenerate',
+        performance.now() - streamStart,
+        750,
+        { taskType: currentTaskType, activeModel: activeModel?.id }
+      );
+
       setEdStatus('success');
       
       // Save messages to memory
@@ -309,11 +435,37 @@ function AIAssistant() {
         });
       }
     } catch (error) {
+      if (streamStart > 0) {
+        logSlowOperation(
+          'AIAssistant.streamGenerateError',
+          performance.now() - streamStart,
+          750,
+          { taskType: currentTaskType, activeModel: activeModel?.id }
+        );
+      }
       setEdStatus('error');
+      const capturedError = errorLogger.logFromError('runtime', error as Error, 'error', {
+        source: 'AIAssistant',
+        activeModel: activeModel?.id,
+      });
+      const friendlyMessage = errorLogger.getUserFriendlyMessage(capturedError);
+      const recoverySteps = errorLogger.getRecoverySteps(capturedError);
+      const suggestion = suggestFix(error as Error);
+      const nextStepsText = recoverySteps.length > 0
+        ? recoverySteps.map((step) => `- ${step}`).join('\n')
+        : '- Retry the request shortly.';
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `Ah, ran into an issue there: ${(error as Error).message}. Make sure you've got a local LLM running (LM Studio or Ollama) or an API key configured. No worries though, we'll get it sorted.`,
+        content: [
+          'Ah, ran into an issue while talking to the model.',
+          friendlyMessage,
+          '',
+          'Try these next steps:',
+          nextStepsText,
+          '',
+          `Quick tip: ${suggestion}`,
+        ].join('\n'),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);

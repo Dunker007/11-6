@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { financialService } from './financialService';
 import type { Expense, Income, FinancialSummary, PnLReport } from '@/types/backoffice';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface FinancialStore {
   // State
@@ -56,81 +57,109 @@ export const useFinancialStore = create<FinancialStore>((set, get) => ({
   },
 
   addExpense: async (expense) => {
-    set({ isLoading: true, error: null });
-    try {
-      const newExpense = financialService.addExpense(expense);
-      await get().refresh();
-      set({ isLoading: false });
-      return newExpense;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      throw error;
+    const result = await withAsyncOperation(
+      async () => {
+        const newExpense = financialService.addExpense(expense);
+        await get().refresh();
+        return newExpense;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'financialStore'
+    );
+    if (!result) {
+      throw new Error('Failed to add expense');
     }
+    return result;
   },
 
   updateExpense: async (id, updates) => {
-    set({ isLoading: true, error: null });
-    try {
-      const updated = financialService.updateExpense(id, updates);
-      await get().refresh();
-      set({ isLoading: false });
-      return updated;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return null;
-    }
+    return await withAsyncOperation(
+      async () => {
+        const updated = financialService.updateExpense(id, updates);
+        await get().refresh();
+        return updated;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'financialStore'
+    );
   },
 
   deleteExpense: async (id) => {
-    set({ isLoading: true, error: null });
-    try {
-      const deleted = financialService.deleteExpense(id);
-      await get().refresh();
-      set({ isLoading: false });
-      return deleted;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const deleted = financialService.deleteExpense(id);
+        await get().refresh();
+        return deleted;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'financialStore'
+    );
+    return result ?? false;
   },
 
   addIncome: async (income) => {
-    set({ isLoading: true, error: null });
-    try {
-      const newIncome = financialService.addIncome(income);
-      await get().refresh();
-      set({ isLoading: false });
-      return newIncome;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      throw error;
+    const result = await withAsyncOperation(
+      async () => {
+        const newIncome = financialService.addIncome(income);
+        await get().refresh();
+        return newIncome;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'financialStore'
+    );
+    if (!result) {
+      throw new Error('Failed to add income');
     }
+    return result;
   },
 
   updateIncome: async (id, updates) => {
-    set({ isLoading: true, error: null });
-    try {
-      const updated = financialService.updateIncome(id, updates);
-      await get().refresh();
-      set({ isLoading: false });
-      return updated;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return null;
-    }
+    return await withAsyncOperation(
+      async () => {
+        const updated = financialService.updateIncome(id, updates);
+        await get().refresh();
+        return updated;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'financialStore'
+    );
   },
 
   deleteIncome: async (id) => {
-    set({ isLoading: true, error: null });
-    try {
-      const deleted = financialService.deleteIncome(id);
-      await get().refresh();
-      set({ isLoading: false });
-      return deleted;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const deleted = financialService.deleteIncome(id);
+        await get().refresh();
+        return deleted;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'financialStore'
+    );
+    return result ?? false;
   },
 
   getSummary: (startDate, endDate) => {
@@ -148,15 +177,20 @@ export const useFinancialStore = create<FinancialStore>((set, get) => ({
 
   refresh: async () => {
     const { selectedPeriod } = get();
-    set({ isLoading: true });
-    try {
-      get().loadExpenses(selectedPeriod.start, selectedPeriod.end);
-      get().loadIncome(selectedPeriod.start, selectedPeriod.end);
-      const summary = get().getSummary(selectedPeriod.start, selectedPeriod.end);
-      set({ summary, isLoading: false });
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-    }
+    await withAsyncOperation(
+      async () => {
+        get().loadExpenses(selectedPeriod.start, selectedPeriod.end);
+        get().loadIncome(selectedPeriod.start, selectedPeriod.end);
+        const summary = get().getSummary(selectedPeriod.start, selectedPeriod.end);
+        set({ summary });
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'financialStore'
+    );
   },
 }));
 

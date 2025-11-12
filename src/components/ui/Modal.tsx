@@ -14,6 +14,13 @@ export interface ModalProps {
   closeOnEscape?: boolean;
 }
 
+/**
+ * Accessible modal dialog component with focus trapping and optional behaviors
+ * for closing via overlay or escape key.
+ *
+ * @param props - Configuration for visibility, callbacks, and presentation.
+ * @returns Modal overlay element when open, otherwise null.
+ */
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
@@ -63,6 +70,11 @@ export const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
+  /**
+   * Handle overlay clicks, closing the modal when the backdrop is clicked.
+   *
+   * @param e - Mouse event from the overlay div.
+   */
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (closeOnOverlayClick && e.target === e.currentTarget) {
       onClose();

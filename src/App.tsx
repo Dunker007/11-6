@@ -1,3 +1,65 @@
+/**
+ * App.tsx
+ * 
+ * PURPOSE:
+ * Root application component with error boundary and global UI elements. Provides error
+ * handling, update notifications, window controls, and floating agent widgets. Initializes
+ * theme service and sets up global error handling.
+ * 
+ * ARCHITECTURE:
+ * Root component that:
+ * - Wraps app in error boundary
+ * - Displays main content (LLMRevenueCommandCenter)
+ * - Shows update notifications
+ * - Provides window controls
+ * - Renders floating agent widgets (ItorToolbar, InsightsStream)
+ * - Initializes theme service
+ * - Sets up global error logging
+ * 
+ * CURRENT STATUS:
+ * ✅ Error boundary implementation
+ * ✅ Error logging integration
+ * ✅ Update notification system
+ * ✅ Window controls
+ * ✅ Floating agent widgets
+ * ✅ Theme initialization
+ * ✅ Toast provider
+ * 
+ * DEPENDENCIES:
+ * - errorLogger: Error capture system
+ * - useProjectStore: Project state for error context
+ * - themeService: Theme initialization
+ * - Sub-components: LLMRevenueCommandCenter, UpdateNotification, WindowControls, etc.
+ * 
+ * STATE MANAGEMENT:
+ * - Error boundary state: error, errorCount
+ * - Uses Zustand stores via hooks
+ * 
+ * PERFORMANCE:
+ * - Error boundary prevents crashes
+ * - Efficient error logging
+ * - Lazy component loading
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * // This is the root component, imported in main.tsx
+ * import App from './App';
+ * 
+ * ReactDOM.render(<App />, document.getElementById('root'));
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/main.tsx: Application entry point
+ * - src/services/errors/errorLogger.ts: Error logging
+ * - src/services/theme/themeService.ts: Theme management
+ * - src/components/LLMOptimizer/LLMRevenueCommandCenter.tsx: Main content
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Error recovery strategies
+ * - Error reporting to external services
+ * - Performance monitoring
+ * - Analytics integration
+ */
 import { Component, ErrorInfo, ReactNode } from 'react';
 import * as React from 'react';
 import LLMRevenueCommandCenter from './components/LLMOptimizer/LLMRevenueCommandCenter';

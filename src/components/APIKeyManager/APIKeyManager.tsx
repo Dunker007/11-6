@@ -9,6 +9,13 @@ interface APIKeyManagerProps {
   onClose: () => void;
 }
 
+/**
+ * Modal wrapper for managing API credentials across supported LLM providers.
+ * Handles CRUD operations for keys, health checks, and provider-specific UI.
+ *
+ * @param props - Component props including close handler.
+ * @returns Overlay UI for viewing, adding, and removing API keys.
+ */
 function APIKeyManager({ onClose }: APIKeyManagerProps) {
   const { keys, loadKeys, addKey, deleteKey, healthCheck } = useAPIKeyStore();
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(
@@ -19,6 +26,10 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
   const [healthStatus, setHealthStatus] = useState<Record<string, boolean>>({});
   const [isValidating, setIsValidating] = useState(false);
 
+  /**
+   * Fetch the health status for every configured provider in sequence.
+   * Results are aggregated into a lookup keyed by provider id.
+   */
   const checkAllHealth = useCallback(async () => {
     const status: Record<string, boolean> = {};
     for (const provider of PROVIDER_CONFIGS) {
@@ -35,6 +46,9 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
     checkAllHealth(); // Initial check without debounce
   }, [loadKeys, checkAllHealth]);
 
+  /**
+   * Persist a new API key for the selected provider and refresh health status.
+   */
   const handleAddKey = async () => {
     if (!selectedProvider || !keyValue.trim()) return;
 
@@ -58,11 +72,22 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
     }
   };
 
+  /**
+   * Remove an API key by id and refresh provider health indicators.
+   *
+   * @param id - Identifier of the key to delete.
+   */
   const handleDeleteKey = async (id: string) => {
     await deleteKey(id);
     await checkAllHealth();
   };
 
+  /**
+   * Return the collection of keys for a specific provider.
+   *
+   * @param provider - Provider identifier to match.
+   * @returns Keys scoped to the given provider.
+   */
   const providerKeys = (provider: LLMProvider) =>
     keys.filter((k) => k.provider === provider);
 

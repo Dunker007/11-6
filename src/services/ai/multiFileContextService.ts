@@ -1,3 +1,72 @@
+/**
+ * multiFileContextService.ts
+ * 
+ * PURPOSE:
+ * Deep project analysis service that builds comprehensive context about project structure,
+ * dependencies, imports, exports, and relationships. Analyzes all files in a project to
+ * create a dependency graph and provide insights for AI operations.
+ * 
+ * ARCHITECTURE:
+ * Analyzes projects by:
+ * - Parsing file content for imports, exports, functions, classes
+ * - Building dependency graphs (what depends on what)
+ * - Building dependents graphs (what depends on this)
+ * - Detecting cycles, orphans, and hotspots
+ * - Resolving import paths (relative, absolute, aliases)
+ * - Grouping files by language
+ * 
+ * CURRENT STATUS:
+ * ✅ Full project analysis implemented
+ * ✅ Dependency graph construction
+ * ✅ Import path resolution
+ * ✅ Graph insights (cycles, orphans, hotspots)
+ * ✅ Multi-language support (TypeScript, JavaScript, Python, etc.)
+ * ✅ Context prompt generation for AI
+ * 
+ * DEPENDENCIES:
+ * - @/types/project: Project and ProjectFile type definitions
+ * 
+ * STATE MANAGEMENT:
+ * - Maintains context cache (Map<projectId, ProjectContext>)
+ * - Does not use Zustand (service pattern)
+ * - Context persists until explicitly cleared
+ * 
+ * PERFORMANCE:
+ * - Efficient regex-based parsing
+ * - Cached contexts prevent re-analysis
+ * - Incremental analysis possible (not yet implemented)
+ * - Graph traversal optimized with Set lookups
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { multiFileContextService } from '@/services/ai/multiFileContextService';
+ * 
+ * // Analyze a project
+ * const context = await multiFileContextService.analyzeProject(project);
+ * 
+ * // Get related files
+ * const related = multiFileContextService.getRelatedFiles(projectId, 'src/utils.ts', 2);
+ * 
+ * // Generate AI context prompt
+ * const prompt = multiFileContextService.generateContextPrompt(projectId, ['src/app.tsx']);
+ * 
+ * // Get graph insights
+ * const insights = multiFileContextService.getGraphInsights(projectId);
+ * console.log(`Cycles: ${insights?.cycles.length}, Orphans: ${insights?.orphans.length}`);
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/aiServiceBridge.ts: Uses this for project indexing
+ * - src/services/ai/projectKnowledgeService.ts: Uses this for deep context
+ * - src/components/AIAssistant/AIAssistant.tsx: Uses context for better AI responses
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Incremental analysis (only analyze changed files)
+ * - AST-based parsing for more accuracy
+ * - Support for more languages
+ * - Real-time dependency graph updates
+ * - Visual dependency graph rendering
+ */
 import type { Project, ProjectFile } from '@/types/project';
 
 export interface FileContext {

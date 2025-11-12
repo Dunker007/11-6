@@ -1,3 +1,70 @@
+/**
+ * localLLM.ts
+ * 
+ * PURPOSE:
+ * Local LLM provider implementations for LM Studio and Ollama. Provides privacy-focused,
+ * offline-capable LLM access running on the user's machine. Implements the LLMProvider
+ * interface for seamless integration with the router.
+ * 
+ * ARCHITECTURE:
+ * Two provider implementations:
+ * - LMStudioProvider: Connects to LM Studio server (default port 1234)
+ * - OllamaProvider: Connects to Ollama server (default port 11434)
+ * 
+ * Both providers:
+ * - Use HTTP fetch API for communication
+ * - Support health checks, model discovery, generation, and streaming
+ * - Handle timeouts and errors gracefully
+ * - Detect model metadata (context window, quantization)
+ * 
+ * CURRENT STATUS:
+ * ✅ LM Studio provider fully implemented
+ * ✅ Ollama provider fully implemented
+ * ✅ Health checks with timeouts
+ * ✅ Model discovery and metadata extraction
+ * ✅ Streaming generation support
+ * ✅ Error handling and fallbacks
+ * ✅ Context window detection
+ * ✅ Quantization detection
+ * 
+ * DEPENDENCIES:
+ * - @/types/llm: LLM type definitions
+ * 
+ * STATE MANAGEMENT:
+ * - Stateless providers (no internal state)
+ * - Configuration via constructor/baseUrl
+ * - Does not use Zustand
+ * 
+ * PERFORMANCE:
+ * - Request timeouts prevent hanging
+ * - Efficient model metadata parsing
+ * - Streaming for real-time responses
+ * - Health check caching (via router)
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { LMStudioProvider, OllamaProvider } from '@/services/ai/providers/localLLM';
+ * 
+ * const lmStudio = new LMStudioProvider();
+ * const isHealthy = await lmStudio.healthCheck();
+ * 
+ * if (isHealthy) {
+ *   const models = await lmStudio.getModels();
+ *   const response = await lmStudio.generate('Hello!');
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/router.ts: Uses these providers
+ * - src/services/ai/providers/cloudLLM.ts: Cloud provider implementations
+ * - src/services/ai/llmStore.ts: Integrates providers via router
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Support for more local LLM servers
+ * - Model performance metrics
+ * - Automatic port detection
+ * - Connection pooling
+ */
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
 
 export interface LLMProvider {

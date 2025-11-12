@@ -11,6 +11,13 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   fullWidth?: boolean;
 }
 
+/**
+ * Styled text input with optional label, helper text, icons, and validation state.
+ *
+ * @param props - Input configuration including label, adornments, and aria hints.
+ * @param ref - Forwarded ref to the underlying input element.
+ * @returns Controlled input element wrapped with UI affordances.
+ */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
@@ -100,6 +107,13 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   resize?: 'none' | 'vertical' | 'horizontal' | 'both';
 }
 
+/**
+ * Styled textarea with label, helper text, validation messaging, and resize controls.
+ *
+ * @param props - Textarea configuration including label, helper text, and resize behaviour.
+ * @param ref - Forwarded ref to the textarea element.
+ * @returns Controlled textarea element with consistent styling.
+ */
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
     {

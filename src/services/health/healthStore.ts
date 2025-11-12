@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { healthMonitor, type SystemStats, type HealthMetric, type HealthAlert } from './healthMonitor';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface HealthStore {
   // State
@@ -29,25 +30,37 @@ export const useHealthStore = create<HealthStore>((set) => ({
   error: null,
 
   getSystemStats: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const stats = await healthMonitor.getSystemStats();
-      set({ stats, isLoading: false });
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-    }
+    await withAsyncOperation(
+      async () => {
+        const stats = await healthMonitor.getSystemStats();
+        set({ stats });
+        return stats;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'healthStore'
+    );
   },
 
   checkHealth: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const stats = await healthMonitor.getSystemStats();
-      const metrics = await healthMonitor.checkHealth(stats);
-      const alerts = healthMonitor.getAlerts();
-      set({ stats, metrics, alerts, isLoading: false });
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-    }
+    await withAsyncOperation(
+      async () => {
+        const stats = await healthMonitor.getSystemStats();
+        const metrics = await healthMonitor.checkHealth(stats);
+        const alerts = healthMonitor.getAlerts();
+        set({ stats, metrics, alerts });
+        return { stats, metrics, alerts };
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'healthStore'
+    );
   },
 
   getAlerts: () => {

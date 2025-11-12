@@ -11,6 +11,8 @@ if (typeof process !== 'undefined' && process.versions?.electron) {
   }
 }
 
+import { logSlowOperation } from '@/utils/performance';
+
 export interface SystemStats {
   cpu: {
     usage: number;
@@ -93,6 +95,8 @@ export class HealthMonitor {
   }
 
   async getSystemStats(): Promise<SystemStats> {
+    const start = performance.now();
+
     // Return mock data if systeminformation is not available (browser context)
     if (!si) {
       // Try to detect GPU via WebGL in browser
@@ -120,7 +124,7 @@ export class HealthMonitor {
         console.warn('Failed to detect GPU via WebGL:', error);
       }
 
-      return {
+      const fallbackStats: SystemStats = {
         cpu: {
           usage: 0,
           cores: 4,
@@ -144,8 +148,18 @@ export class HealthMonitor {
         timestamp: new Date(),
         gpu: browserGPU,
       };
+
+      logSlowOperation(
+        'healthMonitor.getSystemStats',
+        performance.now() - start,
+        300,
+        { systemInformationAvailable: false }
+      );
+
+      return fallbackStats;
     }
 
+    // Gather hardware metrics concurrently to minimize collection latency.
     const [cpu, cpuInfo, mem, fsSize, networkStats, processes, time] = await Promise.all([
       si.currentLoad(),
       si.cpu(),
@@ -165,6 +179,7 @@ export class HealthMonitor {
       const graphics = await si.graphics();
       if (graphics && graphics.controllers && graphics.controllers.length > 0) {
         // Find discrete GPU (prefer NVIDIA, AMD, or non-Intel)
+        // Prefer discrete GPUs so we surface the most meaningful VRAM stats.
         let discreteGPU = graphics.controllers.find((gpu: any) => {
           const vendor = (gpu.vendor || '').toLowerCase();
           const model = (gpu.model || '').toLowerCase();
@@ -174,7 +189,7 @@ export class HealthMonitor {
                  (!vendor.includes('intel') && !model.includes('integrated'));
         });
         
-        const gpu = discreteGPU || graphics.controllers[0];
+          const gpu = discreteGPU || graphics.controllers[0];
         if (gpu) {
           const gpuName = gpu.model || gpu.vendor || 'Unknown GPU';
           const memoryTotalGB = gpu.memoryTotal ? Math.round(gpu.memoryTotal / 1024) : null;
@@ -197,7 +212,7 @@ export class HealthMonitor {
       console.warn('Failed to get GPU stats:', error);
     }
 
-    return {
+    const stats: SystemStats = {
       cpu: {
         usage: cpu.currentLoad,
         cores: cpu.cpus.length,
@@ -232,9 +247,19 @@ export class HealthMonitor {
       hostname: osInfo.hostname || undefined,
       gpu: gpuStats,
     };
+
+    logSlowOperation(
+      'healthMonitor.getSystemStats',
+      performance.now() - start,
+      300,
+      { systemInformationAvailable: true, hasGpu: Boolean(gpuStats) }
+    );
+
+    return stats;
   }
 
   async checkHealth(stats: SystemStats): Promise<HealthMetric[]> {
+    const start = performance.now();
     const metrics: HealthMetric[] = [];
 
     // CPU Usage
@@ -365,6 +390,13 @@ export class HealthMonitor {
     // Check for alerts
     this.checkAlerts(metrics);
 
+    logSlowOperation(
+      'healthMonitor.checkHealth',
+      performance.now() - start,
+      75,
+      { metricCount: metrics.length, hasGpu: Boolean(stats.gpu) }
+    );
+
     return metrics;
   }
 
@@ -377,6 +409,7 @@ export class HealthMonitor {
   private checkAlerts(metrics: HealthMetric[]): void {
     metrics.forEach((metric) => {
       if (metric.status === 'critical' || metric.status === 'warning') {
+        // Persist at most one active alert per metric so we don't spam the UI each sample.
         const existingAlert = this.alerts.find(
           (a) => a.metric === metric.id && !a.acknowledged
         );
@@ -389,6 +422,7 @@ export class HealthMonitor {
           );
         } else {
           // Update existing alert message with current value
+          // (prevents stale percentages while keeping acknowledgement state).
           existingAlert.message = `${metric.name} is ${metric.status}: ${metric.value}${metric.unit}`;
           existingAlert.timestamp = new Date();
         }

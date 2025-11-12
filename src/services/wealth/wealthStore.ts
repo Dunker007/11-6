@@ -1,3 +1,89 @@
+/**
+ * wealthStore.ts
+ * 
+ * PURPOSE:
+ * Comprehensive Zustand store for WealthLab financial management. Manages accounts, assets,
+ * liabilities, portfolios, watchlists, news, budgets, transactions, retirement planning, and
+ * crypto ETFs. Provides reactive state for all wealth management features.
+ * 
+ * ARCHITECTURE:
+ * Large Zustand store that aggregates multiple wealth services:
+ * - wealthService: Core wealth operations
+ * - portfolioService: Portfolio management
+ * - watchlistService: Watchlist and alerts
+ * - newsService: Financial news and insights
+ * - wealthMarketDataService: Market data
+ * 
+ * Organizes state by domain:
+ * - Accounts, Assets, Liabilities
+ * - Portfolios and Watchlists
+ * - News and Market Insights
+ * - Budgets and Transactions
+ * - Retirement Planning
+ * - Crypto ETFs
+ * 
+ * CURRENT STATUS:
+ * ✅ Full CRUD for accounts, assets, liabilities
+ * ✅ Portfolio management
+ * ✅ Watchlist and alerts
+ * ✅ News and market insights
+ * ✅ Budget and transaction tracking
+ * ✅ Retirement planning
+ * ✅ Crypto ETF tracking
+ * ✅ Net worth calculation and history
+ * 
+ * DEPENDENCIES:
+ * - wealthService: Core wealth operations
+ * - portfolioService: Portfolio management
+ * - watchlistService: Watchlist operations
+ * - newsService: News and insights
+ * - wealthMarketDataService: Market data
+ * - @/types/wealth: Wealth type definitions
+ * 
+ * STATE MANAGEMENT:
+ * - Financial data: accounts, assets, liabilities, portfolios, watchlists
+ * - UI state: activeTab, selectedMonth/Year, selectedPortfolioId
+ * - News and insights: news articles, market insights
+ * - Crypto ETFs: crypto ETFs list, upcoming ETFs
+ * - Loading/error states for operations
+ * 
+ * PERFORMANCE:
+ * - Reactive updates via Zustand
+ * - Efficient data loading
+ * - Cached market data
+ * - Async operations don't block UI
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { useWealthStore } from '@/services/wealth/wealthStore';
+ * 
+ * function WealthDashboard() {
+ *   const { 
+ *     netWorth, 
+ *     portfolios, 
+ *     selectedPortfolioId,
+ *     loadPortfolios 
+ *   } = useWealthStore();
+ *   
+ *   useEffect(() => {
+ *     loadPortfolios();
+ *   }, []);
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/wealth/wealthService.ts: Core wealth operations
+ * - src/services/wealth/portfolioService.ts: Portfolio management
+ * - src/components/LLMOptimizer/WealthLab/WealthLab.tsx: Main UI component
+ * - src/components/LLMOptimizer/WealthLab/components/*: Feature components
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Real-time market data updates
+ * - Account aggregation from external sources
+ * - Tax reporting and optimization
+ * - Estate planning features
+ * - Advanced analytics and forecasting
+ */
 import { create } from 'zustand';
 import { wealthService } from './wealthService';
 import { portfolioService } from './portfolioService';

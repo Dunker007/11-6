@@ -17,6 +17,14 @@ interface QuickModelActionsProps {
   compact?: boolean;
 }
 
+/**
+ * Action tray for interacting with a catalog model (load, quick test, compare, details).
+ *
+ * @param model - Catalog entry the actions operate on.
+ * @param onClose - Optional callback to close parent popover/sheet.
+ * @param compact - Renders condensed button cluster when true.
+ * @returns Panel or compact control set for model interactions.
+ */
 const QuickModelActions: React.FC<QuickModelActionsProps> = ({ model, onClose, compact = false }) => {
   const { switchToModel, generate, activeModel, isLoading } = useLLMStore();
   const { showToast } = useToast();
@@ -25,6 +33,9 @@ const QuickModelActions: React.FC<QuickModelActionsProps> = ({ model, onClose, c
 
   const isActive = activeModel?.id === model.id;
 
+  /**
+   * Switch the active model in the LLM store and surface toast feedback.
+   */
   const handleLoad = async () => {
     setIsLoadingModel(true);
     try {
@@ -54,6 +65,9 @@ const QuickModelActions: React.FC<QuickModelActionsProps> = ({ model, onClose, c
     }
   };
 
+  /**
+   * Run a lightweight generation request to sanity-check the selected model.
+   */
   const handleQuickTest = async () => {
     setIsTesting(true);
     try {

@@ -1,6 +1,7 @@
 import { useMemo, useState, memo } from 'react';
 import { useWealthStore } from '@/services/wealth/wealthStore';
 import { wealthService } from '@/services/wealth/wealthService';
+import { formatCurrency } from '@/utils/formatters';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import type { BudgetCategory } from '@/types/wealth';
 import '@/styles/WealthLab.css';
@@ -259,9 +260,6 @@ const SpendingAnalysis = memo(function SpendingAnalysis({ month, year }: Spendin
     })).filter((item) => item.budgeted > 0 || item.actual > 0);
   }, [month, year]);
 
-  const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
 
   const currentTotal = currentAnalysis.total;
   const previousTotal = trendData[trendData.length - 2]?.total || 0;

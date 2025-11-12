@@ -184,17 +184,21 @@ npm run test:e2e         # Run Playwright E2E tests
 
 If you're an AI assistant (like Cursor AI) working on this codebase:
 
-1. **Read First:** [`.cursorrules`](./.cursorrules) - Critical architecture rules
-2. **AI Services:** [`AI_SERVICES_CONSOLIDATION.md`](./AI_SERVICES_CONSOLIDATION.md) - Full AI architecture
-3. **Quick Reference:** [`QUICK_REFERENCE.md`](./QUICK_REFERENCE.md) - Usage examples
-4. **Guide:** [`AI_ASSISTANT_GUIDE.md`](./AI_ASSISTANT_GUIDE.md) - Detailed AI assistant guide
+1. **Read First:** [`AI_TEAM_ONBOARDING.md`](./AI_TEAM_ONBOARDING.md) - **NEW!** Comprehensive onboarding guide
+2. **Architecture:** [`.cursorrules`](./.cursorrules) - Critical architecture rules
+3. **Current Work:** [`CURRENT_SPRINT.md`](./CURRENT_SPRINT.md) - **NEW!** Current priorities and tasks
+4. **Decisions:** [`ARCHITECTURE_DECISIONS.md`](./ARCHITECTURE_DECISIONS.md) - **NEW!** Architectural decision records
+5. **AI Services:** [`AI_SERVICES_CONSOLIDATION.md`](./AI_SERVICES_CONSOLIDATION.md) - Full AI architecture
+6. **Quick Reference:** [`QUICK_REFERENCE.md`](./QUICK_REFERENCE.md) - Usage examples
+7. **Documentation Index:** [`docs/README.md`](./docs/README.md) - **NEW!** Complete documentation index
 
 ### Key Rules
 - ✅ Use `aiServiceBridge` for all AI operations
 - ❌ Never recreate `electron/ai/*` services (deleted for performance)
 - ✅ Always provide LLM fallbacks for offline scenarios
-- ✅ Use temperature 0.91 for creative tasks
+- ✅ Use dynamic temperature based on optimization priority (not hardcoded)
 - ✅ Clean up effects with return functions
+- ✅ Use centralized formatters (`@/utils/formatters`)
 
 ---
 
@@ -213,6 +217,18 @@ If you're an AI assistant (like Cursor AI) working on this codebase:
 ### Developer Documentation
 - [`.cursorrules`](./.cursorrules) - Cursor AI rules
 - [`AI_ASSISTANT_GUIDE.md`](./AI_ASSISTANT_GUIDE.md) - AI assistant guide
+- [`AI_TEAM_ONBOARDING.md`](./AI_TEAM_ONBOARDING.md) - **NEW!** AI assistant onboarding
+- [`CURRENT_SPRINT.md`](./CURRENT_SPRINT.md) - **NEW!** Sprint tracking
+- [`ARCHITECTURE_DECISIONS.md`](./ARCHITECTURE_DECISIONS.md) - **NEW!** Architecture decisions
+- [`docs/README.md`](./docs/README.md) - **NEW!** Documentation index
+
+### Domain Guides (NEW!)
+- [`docs/ai/AI_SERVICES_GUIDE.md`](./docs/ai/AI_SERVICES_GUIDE.md) - AI services guide
+- [`docs/wealth/WEALTH_LAB_GUIDE.md`](./docs/wealth/WEALTH_LAB_GUIDE.md) - WealthLab guide
+- [`docs/components/COMPONENT_PATTERNS.md`](./docs/components/COMPONENT_PATTERNS.md) - Component patterns
+- [`docs/services/SERVICE_PATTERNS.md`](./docs/services/SERVICE_PATTERNS.md) - Service patterns
+- [`docs/patterns/COMMON_PATTERNS.md`](./docs/patterns/COMMON_PATTERNS.md) - Common patterns
+- [`docs/examples/CODE_EXAMPLES.md`](./docs/examples/CODE_EXAMPLES.md) - Code examples
 
 ---
 

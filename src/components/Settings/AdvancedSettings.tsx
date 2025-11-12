@@ -1,3 +1,8 @@
+/**
+ * Settings panel exposing advanced configuration toggles and maintenance actions.
+ *
+ * @returns Advanced settings form for debug, logging, caching, and data reset controls.
+ */
 function AdvancedSettings() {
   return (
     <div className="advanced-settings">

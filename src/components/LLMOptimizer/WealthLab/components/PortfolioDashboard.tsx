@@ -5,7 +5,6 @@ import { Card, CardHeader, CardBody } from '@/components/ui';
 
 const PortfolioDashboard = memo(function PortfolioDashboard() {
   const {
-    netWorth,
     netWorthHistory,
     portfolios,
     selectedPortfolioId,
@@ -219,7 +218,7 @@ const PortfolioDashboard = memo(function PortfolioDashboard() {
         </CardHeader>
         <CardBody>
           <div className="allocation-list">
-            {assetBreakdown.map(({ type, value, percentage }) => (
+            {assetBreakdown.map(({ type, percentage }) => (
               <div key={type} className="allocation-item">
                 <div className="allocation-header">
                   <span className="allocation-type">{type.replace('_', ' ').toUpperCase()}</span>

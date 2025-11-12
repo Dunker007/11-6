@@ -27,7 +27,6 @@ import type {
   GeminiSafetySetting,
   GeminiTool,
   GeminiFunctionDeclaration,
-  GeminiGroundingConfig,
 } from '@/types/gemini';
 import {
   GeminiSafetyCategory as SafetyCategory,
@@ -87,13 +86,13 @@ function GeminiStudioPanel({
   );
   const [topP, setTopP] = useState<number | undefined>(initialConfig?.topP);
   const [topK, setTopK] = useState<number | undefined>(initialConfig?.topK);
-  const [candidateCount, setCandidateCount] = useState<number | undefined>(
+  const [candidateCount] = useState<number | undefined>(
     initialConfig?.candidateCount
   );
   const [responseMimeType, setResponseMimeType] = useState<string>(
     initialConfig?.responseMimeType || 'text/plain'
   );
-  const [stopSequences, setStopSequences] = useState<string[]>(
+  const [stopSequences] = useState<string[]>(
     initialConfig?.stopSequences || []
   );
   

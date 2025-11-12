@@ -1,5 +1,69 @@
+/**
+ * ErrorBoundary.tsx
+ * 
+ * PURPOSE:
+ * React Error Boundary component for catching and handling React component errors.
+ * Prevents entire application crashes by catching errors in component trees and
+ * displaying fallback UI. Integrates with error logging service for error tracking.
+ * 
+ * ARCHITECTURE:
+ * Class component implementing React Error Boundary pattern:
+ * - Catches errors in child component tree
+ * - Displays fallback UI on error
+ * - Logs errors to errorLogger service
+ * - Supports custom error handlers
+ * - Section-based error isolation
+ * 
+ * Features:
+ * - Error catching and isolation
+ * - Custom fallback UI
+ * - Error logging integration
+ * - Custom error handlers
+ * - Section name tracking
+ * - Error recovery (reset on prop change)
+ * 
+ * CURRENT STATUS:
+ * ✅ Error catching
+ * ✅ Fallback UI
+ * ✅ Error logging
+ * ✅ Custom handlers
+ * ✅ Section tracking
+ * ✅ Error recovery
+ * 
+ * DEPENDENCIES:
+ * - errorLogger: Error logging service
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: error status and error object
+ * 
+ * PERFORMANCE:
+ * - Minimal overhead
+ * - Only renders fallback on error
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+ * 
+ * function App() {
+ *   return (
+ *     <ErrorBoundary fallback={<div>Something went wrong</div>} sectionName="App">
+ *       <MyComponent />
+ *     </ErrorBoundary>
+ *   );
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/errors/errorLogger.ts: Error logging service
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Add error reporting to external service
+ * - Add error recovery actions
+ * - Add error analytics
+ */
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { errorLogger } from '@/services/errors/errorLogger';
+import type { CapturedError } from '@/types/error';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -11,32 +75,28 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
+  capturedError: CapturedError | null;
 }
-
-/**
- * Reusable Error Boundary Component
- * 
- * Catches React errors in child components and displays a fallback UI.
- * Can be used to wrap specific sections for granular error handling.
- */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, capturedError: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+    return { hasError: true, error, capturedError: null };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error(`Error in ${this.props.sectionName || 'component'}:`, error, errorInfo);
 
     // Log to error capture system
-    errorLogger.logFromError('react', error, 'error', {
+    const capturedError = errorLogger.logFromError('react', error, 'error', {
       componentStack: errorInfo.componentStack ?? undefined,
       section: this.props.sectionName,
     });
+
+    this.setState({ capturedError });
 
     // Call custom error handler if provided
     if (this.props.onError) {
@@ -45,7 +105,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, capturedError: null });
   };
 
   render() {
@@ -73,9 +133,23 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}>
             ⚠️ Error in {this.props.sectionName || 'Component'}
           </h3>
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>
-            {this.state.error?.message || 'An error occurred'}
+          <p style={{ color: 'var(--text-muted)', textAlign: 'center', maxWidth: '32rem' }}>
+            {this.state.capturedError
+              ? errorLogger.getUserFriendlyMessage(this.state.capturedError)
+              : this.state.error?.message || 'An error occurred'}
           </p>
+          {this.state.capturedError && (
+            <div style={{ textAlign: 'left', maxWidth: '32rem', width: '100%' }}>
+              <span style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem' }}>
+                Suggested steps:
+              </span>
+              <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                {errorLogger.getRecoverySteps(this.state.capturedError).map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <button
             onClick={this.handleRetry}
             style={{

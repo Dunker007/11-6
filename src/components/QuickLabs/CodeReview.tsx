@@ -9,6 +9,12 @@ import TechIcon from '../Icons/TechIcon';
 import { ScanEye, AlertCircle, AlertTriangle, Info, CheckCircle, Zap, Lock, Sparkles, Bug, Puzzle, Shield } from 'lucide-react';
 import '../../styles/CodeReview.css';
 
+/**
+ * Quick Labs code review dashboard for running automated analysis across codebases.
+ * Supports general reviews, security scans, and displays actionable findings.
+ *
+ * @returns Interactive panel for initiating and browsing code review results.
+ */
 function CodeReview() {
   const { reviews, currentReview, isLoading, analyzeCode, selectReview, deleteReview, loadReviews } =
     useCodeReviewStore();
@@ -25,6 +31,9 @@ function CodeReview() {
     loadReviews();
   }, [loadReviews]);
 
+  /**
+   * Execute a standard code review for the provided project path.
+   */
   const handleAnalyze = async () => {
     if (!projectPath.trim()) return;
 
@@ -54,6 +63,12 @@ function CodeReview() {
     setShowAnalyzeDialog(false);
   };
 
+  /**
+   * Map an issue severity to a decorated icon.
+   *
+   * @param severity - Issue severity level.
+   * @returns Icon representing the severity.
+   */
   const getSeverityIcon = (severity: CodeIssue['severity']) => {
     switch (severity) {
       case 'error':
@@ -69,6 +84,12 @@ function CodeReview() {
     }
   };
 
+  /**
+   * Map issue category to its icon.
+   *
+   * @param category - Issue category type.
+   * @returns Icon representing the category.
+   */
   const getCategoryIcon = (category: CodeIssue['category']) => {
     switch (category) {
       case 'performance':
@@ -88,6 +109,9 @@ function CodeReview() {
     }
   };
 
+  /**
+   * Run the dedicated security analysis workflow for the active project.
+   */
   const handleSecurityAnalysis = async () => {
     if (!projectPath.trim()) return;
     setIsAnalyzingSecurity(true);

@@ -1,3 +1,69 @@
+/**
+ * DevToolsManager.tsx
+ * 
+ * PURPOSE:
+ * Development tools management panel. Provides UI for checking, installing, and managing
+ * development tools (Node.js, Python, Docker, Git, etc.). Displays tool availability,
+ * versions, and update information. Integrates with system tool detection.
+ * 
+ * ARCHITECTURE:
+ * React component that manages dev tools:
+ * - useDevToolsStore: Dev tools state and operations
+ * - Tool registry: Available tools catalog
+ * - Tool checking and installation
+ * - Update checking
+ * 
+ * Features:
+ * - Tool availability checking
+ * - Tool installation
+ * - Version detection
+ * - Update checking
+ * - Category filtering
+ * - Tool status display
+ * 
+ * CURRENT STATUS:
+ * ✅ Tool checking
+ * ✅ Tool installation
+ * ✅ Version detection
+ * ✅ Update checking
+ * ✅ Category filtering
+ * ✅ Status display
+ * 
+ * DEPENDENCIES:
+ * - useDevToolsStore: Dev tools state management
+ * - toolRegistry: Available tools catalog
+ * - toolManager: Tool detection and installation
+ * - toolUpdateService: Update checking
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: selected category, search term, UI state
+ * - Uses Zustand store for dev tools state
+ * 
+ * PERFORMANCE:
+ * - Efficient tool checking
+ * - Cached tool status
+ * - Debounced search
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import DevToolsManager from '@/components/DevTools/DevToolsManager';
+ * 
+ * function App() {
+ *   return <DevToolsManager />;
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/devtools/toolStore.ts: Dev tools state management
+ * - src/services/devtools/toolRegistry.ts: Tools catalog
+ * - src/services/devtools/toolManager.ts: Tool operations
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Add tool configuration UI
+ * - Add tool path management
+ * - Add custom tool registration
+ * - Add tool usage analytics
+ */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDevToolsStore } from '../../services/devtools/toolStore';
 import { DEV_TOOLS } from '../../services/devtools/toolRegistry';

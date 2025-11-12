@@ -8,6 +8,12 @@ export interface BadgeProps {
   className?: string;
 }
 
+/**
+ * Inline badge element for status labeling with variant and size styling.
+ *
+ * @param props - Badge appearance options and children.
+ * @returns Styled span representing the badge.
+ */
 export const Badge: React.FC<BadgeProps> = ({
   variant = 'primary',
   size = 'md',

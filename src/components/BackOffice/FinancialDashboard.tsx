@@ -1,3 +1,74 @@
+/**
+ * FinancialDashboard.tsx
+ * 
+ * PURPOSE:
+ * Financial management dashboard for tracking business expenses and income.
+ * Provides comprehensive financial overview with expense/income tracking, categorization,
+ * period selection, and financial summaries. Supports P&L reporting and threshold alerts.
+ * 
+ * ARCHITECTURE:
+ * React component that manages financial data:
+ * - useFinancialStore: Financial state and operations
+ * - useThresholdStore: Alert threshold management
+ * - Expense and income CRUD operations
+ * - Financial summary calculations
+ * - Period-based filtering
+ * 
+ * Features:
+ * - Expense tracking with categories
+ * - Income tracking with sources
+ * - Period selection (custom date ranges)
+ * - Financial summaries
+ * - P&L report generation
+ * - Threshold alerts
+ * - Category breakdowns
+ * - Trend visualization
+ * 
+ * CURRENT STATUS:
+ * ✅ Expense/income CRUD
+ * ✅ Category management
+ * ✅ Period selection
+ * ✅ Financial summaries
+ * ✅ P&L reports
+ * ✅ Threshold alerts
+ * ✅ Category breakdowns
+ * 
+ * DEPENDENCIES:
+ * - useFinancialStore: Financial state management
+ * - useThresholdStore: Threshold management
+ * - formatCurrency: Currency formatting utility
+ * - financialService: Core financial operations
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: selected period, filters, UI state
+ * - Uses Zustand stores for financial and threshold state
+ * 
+ * PERFORMANCE:
+ * - Efficient period filtering
+ * - Memoized calculations
+ * - Optimized re-renders
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import FinancialDashboard from '@/components/BackOffice/FinancialDashboard';
+ * 
+ * function App() {
+ *   return <FinancialDashboard />;
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/backoffice/financialStore.ts: Financial state management
+ * - src/services/backoffice/financialService.ts: Financial operations
+ * - src/services/backoffice/thresholdStore.ts: Threshold management
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Add expense/income charts
+ * - Add budget planning
+ * - Add recurring transactions
+ * - Add receipt/image attachments
+ * - Add export to CSV/PDF
+ */
 import { useState, useEffect } from 'react';
 import { useFinancialStore } from '../../services/backoffice/financialStore';
 import { useThresholdStore } from '../../services/backoffice/thresholdStore';

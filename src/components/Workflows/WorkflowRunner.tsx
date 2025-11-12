@@ -17,6 +17,13 @@ interface WorkflowRunnerProps {
   onError?: (workflowId: string, error: string) => void;
 }
 
+/**
+ * Visual runner for orchestrating workflows including execution, cancellation,
+ * status monitoring, and progress tracking. Provides hooks for complete/error callbacks.
+ *
+ * @param props - Workflow identifiers and lifecycle callbacks.
+ * @returns Workflow execution UI and controls.
+ */
 function WorkflowRunner({ workflowId, onComplete, onError }: WorkflowRunnerProps) {
   const {
     workflows,
@@ -53,6 +60,9 @@ function WorkflowRunner({ workflowId, onComplete, onError }: WorkflowRunnerProps
     }
   }, [workflowId, getWorkflow, workflows]);
 
+  /**
+   * Trigger workflow execution and surface completion/error callbacks.
+   */
   const handleExecute = async () => {
     if (!selectedWorkflow) return;
 
@@ -69,17 +79,29 @@ function WorkflowRunner({ workflowId, onComplete, onError }: WorkflowRunnerProps
     }
   };
 
+  /**
+   * Cancel the currently selected workflow if it is running.
+   */
   const handleCancel = () => {
     if (!selectedWorkflow) return;
     cancelWorkflow(selectedWorkflow.id);
   };
 
+  /**
+   * Remove the selected workflow definition from the store.
+   */
   const handleDelete = () => {
     if (!selectedWorkflow) return;
     deleteWorkflow(selectedWorkflow.id);
     setSelectedWorkflow(null);
   };
 
+  /**
+   * Map workflow status to a corresponding status icon.
+   *
+   * @param status - Workflow status string.
+   * @returns Icon element representing the status.
+   */
   const getStatusIcon = (status: Workflow['status']) => {
     switch (status) {
       case 'running':
@@ -95,6 +117,12 @@ function WorkflowRunner({ workflowId, onComplete, onError }: WorkflowRunnerProps
     }
   };
 
+  /**
+   * Map step status to its icon representation.
+   *
+   * @param stepStatus - Individual step status.
+   * @returns Icon element representing the step status.
+   */
   const getStepStatusIcon = (stepStatus: string) => {
     switch (stepStatus) {
       case 'running':

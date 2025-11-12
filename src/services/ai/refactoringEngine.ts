@@ -1,3 +1,77 @@
+/**
+ * refactoringEngine.ts
+ * 
+ * PURPOSE:
+ * Safe code refactoring engine that performs automated code transformations across projects.
+ * Supports rename, extract, inline, move, convert, and optimize operations with safety checks
+ * and preview capabilities. Uses project context to ensure refactorings are safe and complete.
+ * 
+ * ARCHITECTURE:
+ * Refactoring operations that:
+ * - Analyze project context before making changes
+ * - Find all occurrences of symbols across files
+ * - Generate previews before applying changes
+ * - Validate changes for safety
+ * - Support multiple refactoring types
+ * - Track affected files and dependencies
+ * 
+ * CURRENT STATUS:
+ * ✅ Rename symbol across project
+ * ✅ Extract method/function
+ * ✅ Inline method/function
+ * ✅ Move file/component
+ * ✅ Convert between patterns
+ * ✅ Code optimization suggestions
+ * ✅ Safety validation
+ * ✅ Preview generation
+ * 
+ * DEPENDENCIES:
+ * - multiFileContextService: Project analysis and dependency tracking
+ * - @/types/project: Project type definitions
+ * 
+ * STATE MANAGEMENT:
+ * - Stateless service (no internal state)
+ * - Does not use Zustand
+ * - Operates on project data passed as parameters
+ * 
+ * PERFORMANCE:
+ * - Efficient symbol search using project context
+ * - Cached project analysis
+ * - Batch operations for multiple files
+ * - Regex-based pattern matching
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { refactoringEngine } from '@/services/ai/refactoringEngine';
+ * 
+ * // Rename a symbol
+ * const operation = await refactoringEngine.renameSymbol(
+ *   project,
+ *   'src/utils.ts',
+ *   'oldName',
+ *   'newName'
+ * );
+ * 
+ * // Extract a method
+ * const extractOp = await refactoringEngine.extractMethod(
+ *   'src/app.tsx',
+ *   selectedCode,
+ *   'newMethod',
+ *   'typescript'
+ * );
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/multiFileContextService.ts: Project analysis
+ * - src/components/VibeEditor/VibeEditor.tsx: May use refactoring features
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - AST-based refactoring for more accuracy
+ * - Undo/redo support
+ * - Refactoring history
+ * - Batch refactoring operations
+ * - More refactoring types (extract interface, etc.)
+ */
 import type { Project, ProjectFile } from '@/types/project';
 import { multiFileContextService } from './multiFileContextService';
 

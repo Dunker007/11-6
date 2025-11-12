@@ -1,3 +1,67 @@
+/**
+ * VersionDisplay.tsx
+ * 
+ * PURPOSE:
+ * System version information display component. Shows application version, build date,
+ * and component versions. Provides update checking functionality when updater is available.
+ * Used in settings and about panels to display version information.
+ * 
+ * ARCHITECTURE:
+ * React component that displays version information:
+ * - useVersionStore: Version state management
+ * - App version display
+ * - Component versions list
+ * - Update checking (when available)
+ * 
+ * Features:
+ * - Application version display
+ * - Build date display
+ * - Component version listing
+ * - Update check button (when updater available)
+ * - Expandable component list
+ * 
+ * CURRENT STATUS:
+ * ✅ Version display
+ * ✅ Build date display
+ * ✅ Component versions
+ * ✅ Update checking
+ * ✅ Expandable details
+ * 
+ * DEPENDENCIES:
+ * - useVersionStore: Version state management
+ * - window.updater: Electron updater API (optional)
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: update checking status
+ * - Uses Zustand store for version data
+ * 
+ * PERFORMANCE:
+ * - Memoized date formatting
+ * - Efficient version loading
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import VersionDisplay from '@/components/System/VersionDisplay';
+ * 
+ * function Settings() {
+ *   return (
+ *     <div>
+ *       <VersionDisplay />
+ *     </div>
+ *   );
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/system/versionStore.ts: Version state management
+ * - src/services/system/versionService.ts: Version operations
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Add version comparison
+ * - Add changelog display
+ * - Add update progress indicator
+ * - Add auto-update preferences
+ */
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useVersionStore } from '../../services/system/versionStore';
 import { RefreshCw } from 'lucide-react';

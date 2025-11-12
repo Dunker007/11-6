@@ -2,6 +2,11 @@ import { Info, Code, Package, ExternalLink } from 'lucide-react';
 import packageJson from '../../../package.json';
 import '../../styles/Settings.css';
 
+/**
+ * Informational settings panel that surfaces application metadata and environment details.
+ *
+ * @returns About section with app version, authorship, licensing, and runtime versions.
+ */
 function AboutSettings() {
   const version = packageJson.version;
   const author = packageJson.author || 'DLXStudios.a1';

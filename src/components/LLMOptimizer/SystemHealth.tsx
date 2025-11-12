@@ -1,17 +1,10 @@
 import { useState } from 'react';
 import { Trash2, HardDrive, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { llmOptimizerService } from '@/services/ai/llmOptimizerService';
+import { formatBytes } from '@/utils/formatters';
 import type { CleanupResult, SystemCleanupResults } from '@/types/optimizer';
 import DevelopmentToolsSection from './DevelopmentToolsSection';
 import '../../styles/LLMOptimizer.css';
-
-const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-};
 
 const SystemHealth = () => {
   const [isCleaning, setIsCleaning] = useState(false);

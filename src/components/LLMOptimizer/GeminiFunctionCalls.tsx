@@ -4,8 +4,8 @@
  * Shows function parameters and results
  */
 
-import { useState, useMemo } from 'react';
-import { Code, ChevronDown, ChevronUp, Play, CheckCircle2, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Code, ChevronDown, ChevronUp, Play, CheckCircle2 } from 'lucide-react';
 import type { GeminiFunctionCall } from '@/types/gemini';
 import { geminiFunctionRegistry } from '@/services/ai/geminiFunctions';
 import { useToast } from '@/components/ui';

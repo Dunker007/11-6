@@ -10,6 +10,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
   if (keyData) {
     // Import existing key
     const keyBuffer = Uint8Array.from(JSON.parse(keyData));
+    // Stored key material is raw bytes; import into AES-GCM CryptoKey for reuse.
     return await crypto.subtle.importKey(
       'raw',
       keyBuffer,
@@ -27,6 +28,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
     
     // Export and store key
     const exported = await crypto.subtle.exportKey('raw', key);
+    // Persist raw key bits so we can re-import on subsequent loads.
     localStorage.setItem(ENCRYPTION_KEY_NAME, JSON.stringify(Array.from(new Uint8Array(exported))));
     
     return key;
@@ -54,6 +56,7 @@ async function encrypt(text: string): Promise<string> {
     combined.set(iv);
     combined.set(new Uint8Array(encrypted), iv.length);
     
+    // Persist IV alongside ciphertext so decryption can restore the nonce.
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
     console.error('Encryption failed:', error);
@@ -68,6 +71,7 @@ async function decrypt(encrypted: string): Promise<string> {
     
     // Decode base64 and extract IV and encrypted data
     const combined = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
+    // Ciphertext is `[IV | payload]`; split back into nonce and encrypted data.
     const iv = combined.slice(0, 12);
     const data = combined.slice(12);
     

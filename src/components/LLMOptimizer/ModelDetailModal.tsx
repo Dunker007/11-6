@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X, Download, Zap, Play, ExternalLink, CheckCircle2, XCircle, AlertCircle, Package, Sparkles } from 'lucide-react';
+import { X, Download, Zap, Play, ExternalLink, CheckCircle2, XCircle, AlertCircle, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { useHealthStore } from '@/services/health/healthStore';

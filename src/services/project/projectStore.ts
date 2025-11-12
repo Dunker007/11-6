@@ -1,3 +1,73 @@
+/**
+ * projectStore.ts
+ * 
+ * PURPOSE:
+ * Zustand store for project management state. Manages active projects, files, and their content.
+ * Provides reactive state for project operations including creation, selection, file management,
+ * and activity tracking. Central store for all project-related UI state.
+ * 
+ * ARCHITECTURE:
+ * Zustand store that wraps projectService with reactive state:
+ * - Manages projects list and active project
+ * - Tracks active file selection
+ * - Handles file operations (add, update, delete, get content)
+ * - Integrates with activityService for activity logging
+ * - Provides project root path resolution
+ * 
+ * CURRENT STATUS:
+ * ✅ Full project CRUD operations
+ * ✅ File management (add, update, delete)
+ * ✅ Active project/file tracking
+ * ✅ Activity logging integration
+ * ✅ Project root path management
+ * ✅ Project status updates
+ * 
+ * DEPENDENCIES:
+ * - projectService: Core project data operations
+ * - activityService: Activity logging
+ * - @/types/project: Project type definitions
+ * - lucide-react: Icons for activities
+ * 
+ * STATE MANAGEMENT:
+ * - projects: List of all projects
+ * - activeProject: Currently selected project
+ * - activeProjectRoot: Root path of active project
+ * - activeFile: Currently selected file path
+ * - isLoading: Loading state flag
+ * - error: Error message if any
+ * 
+ * PERFORMANCE:
+ * - Reactive updates via Zustand
+ * - Efficient file content access
+ * - Activity logging doesn't block operations
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { useProjectStore } from '@/services/project/projectStore';
+ * 
+ * function MyComponent() {
+ *   const { activeProject, activeFile, setActiveFile, updateFile } = useProjectStore();
+ *   
+ *   const handleSave = () => {
+ *     if (activeFile) {
+ *       updateFile(activeFile, newContent);
+ *     }
+ *   };
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/project/projectService.ts: Core project operations
+ * - src/services/activity/activityService.ts: Activity logging
+ * - src/components/VibeEditor/VibeEditor.tsx: Uses this store
+ * - src/components/VibeEditor/FileExplorer.tsx: Uses this store
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Project templates support
+ * - Project import/export
+ * - Project sharing
+ * - Recent projects list
+ */
 import { create } from 'zustand';
 import { projectService } from './projectService';
 import { activityService } from '../activity/activityService';

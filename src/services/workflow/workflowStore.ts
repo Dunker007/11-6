@@ -12,6 +12,7 @@ import type {
   WorkflowExecutionResult,
   WorkflowType,
 } from '@/types/workflow';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface WorkflowStore {
   workflows: Workflow[];
@@ -53,17 +54,24 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
   },
 
   executeWorkflow: async (workflowId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await workflowEngine.executeWorkflow(workflowId);
-      get().refreshWorkflows();
-      set({ isLoading: false, activeWorkflowId: workflowId });
-      return result;
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      set({ isLoading: false, error: errorMessage });
-      throw error;
+    const result = await withAsyncOperation(
+      async () => {
+        const execResult = await workflowEngine.executeWorkflow(workflowId);
+        get().refreshWorkflows();
+        set({ activeWorkflowId: workflowId });
+        return execResult;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'workflowStore'
+    );
+    if (!result) {
+      throw new Error('Failed to execute workflow');
     }
+    return result;
   },
 
   cancelWorkflow: (workflowId) => {

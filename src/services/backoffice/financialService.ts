@@ -116,12 +116,14 @@ export class FinancialService {
     if (startDate || endDate) {
       expenses = expenses.filter((expense) => {
         const expenseDate = expense.date;
+        // Drop transactions that fall outside the requested time window.
         if (startDate && expenseDate < startDate) return false;
         if (endDate && expenseDate > endDate) return false;
         return true;
       });
     }
 
+    // Sort newest-first so dashboards always show most recent activity first.
     return expenses.sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
@@ -165,12 +167,14 @@ export class FinancialService {
     if (startDate || endDate) {
       income = income.filter((item) => {
         const itemDate = item.date;
+        // Mirror expense filtering: only keep dates within the requested range.
         if (startDate && itemDate < startDate) return false;
         if (endDate && itemDate > endDate) return false;
         return true;
       });
     }
 
+    // Return newest income first to align with expense ordering.
     return income.sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
@@ -179,9 +183,11 @@ export class FinancialService {
     const expenses = this.getExpenses(startDate, endDate);
     const income = this.getIncomeSources(startDate, endDate);
 
+    // Aggregate totals before breaking down into category buckets.
     const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
     const totalIncome = income.reduce((sum, inc) => sum + inc.amount, 0);
     const profit = totalIncome - totalExpenses;
+    // Guard division by zero when no income exists for the period.
     const profitMargin = totalIncome > 0 ? (profit / totalIncome) * 100 : 0;
 
     // Group by category
@@ -199,6 +205,7 @@ export class FinancialService {
     };
 
     expenses.forEach((exp) => {
+      // Buckets are pre-seeded so we can safely add without null checks.
       expensesByCategory[exp.category] = (expensesByCategory[exp.category] || 0) + exp.amount;
     });
 
@@ -215,6 +222,7 @@ export class FinancialService {
     };
 
     income.forEach((inc) => {
+      // Mirror expense aggregation for quick ratio calculations in the UI.
       incomeBySource[inc.source] = (incomeBySource[inc.source] || 0) + inc.amount;
     });
 

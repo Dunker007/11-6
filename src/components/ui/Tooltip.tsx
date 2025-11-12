@@ -9,6 +9,12 @@ export interface TooltipProps {
   disabled?: boolean;
 }
 
+/**
+ * Lightweight tooltip wrapper that reveals content on hover/focus with simple positioning.
+ *
+ * @param props - Tooltip content, trigger children, and placement options.
+ * @returns Tooltip wrapper or plain children when disabled.
+ */
 export const Tooltip: React.FC<TooltipProps> = ({
   content,
   children,

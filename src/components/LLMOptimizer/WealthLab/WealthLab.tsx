@@ -2,7 +2,6 @@ import { useEffect, useCallback, lazy, Suspense } from 'react';
 import { useWealthStore } from '@/services/wealth/wealthStore';
 import NetWorthDashboard from './components/NetWorthDashboard';
 import BudgetDashboard from './components/BudgetDashboard';
-import AssetList from './components/AssetList';
 import AccountConnections from './components/AccountConnections';
 import RetirementCalculator from './components/RetirementCalculator';
 import GoalsTracker from './components/GoalsTracker';
@@ -10,7 +9,6 @@ import { Loading } from '@/components/ui';
 import '@/styles/WealthLab.css';
 
 const PortfolioDashboard = lazy(() => import('./components/PortfolioDashboard'));
-const PortfolioManager = lazy(() => import('./components/PortfolioManager'));
 const CryptoETFCenter = lazy(() => import('./components/CryptoETFCenter'));
 const NewsInsightsPanel = lazy(() => import('./components/NewsInsightsPanel'));
 const Watchlist = lazy(() => import('./components/Watchlist'));

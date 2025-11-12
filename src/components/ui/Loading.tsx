@@ -10,6 +10,12 @@ export interface LoadingProps {
   children?: ReactNode;
 }
 
+/**
+ * Flexible loading indicator supporting spinner, dots, and pulse variants with optional text.
+ *
+ * @param props - Loading configuration including variant, size, and layout options.
+ * @returns Loading indicator element or fullscreen overlay.
+ */
 export const Loading: React.FC<LoadingProps> = ({
   size = 'md',
   variant = 'spinner',
@@ -67,6 +73,12 @@ export const Loading: React.FC<LoadingProps> = ({
   return content;
 };
 
+/**
+ * Skeleton placeholder block for loading states.
+ *
+ * @param props - Width, height, and class overrides for the skeleton.
+ * @returns Skeleton div with animated shimmer.
+ */
 export const LoadingSkeleton: React.FC<{
   width?: string;
   height?: string;

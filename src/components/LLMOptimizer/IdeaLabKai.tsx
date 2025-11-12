@@ -72,15 +72,17 @@ function IdeaLabKai({ onIdeaSuggest }: IdeaLabKaiProps) {
 
       let fullContent = '';
       for await (const chunk of streamGenerate(prompt)) {
-        fullContent += chunk;
-        setMessages((prev) => {
-          const updated = [...prev];
-          const lastMessage = updated[updated.length - 1];
-          if (lastMessage.role === 'assistant') {
-            lastMessage.content = fullContent;
-          }
-          return updated;
-        });
+        if (chunk.text) {
+          fullContent += chunk.text;
+          setMessages((prev) => {
+            const updated = [...prev];
+            const lastMessage = updated[updated.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = fullContent;
+            }
+            return updated;
+          });
+        }
       }
 
       // Try to extract idea suggestions from the response

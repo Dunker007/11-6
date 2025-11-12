@@ -16,6 +16,7 @@ declare global {
       exists(path: string): Promise<{ success: boolean; exists?: boolean; error?: string }>;
       listDrives(): Promise<{ success: boolean; drives?: Array<{ name: string; path: string; type?: string }>; error?: string }>;
       getDirectorySize(path: string): Promise<{ success: boolean; size?: number; error?: string }>;
+      findLargeFiles(dirPath: string, minSizeMB?: number): Promise<{ success: boolean; files?: Array<{ path: string; size: number; lastModified: string }>; error?: string }>;
     };
     system: {
       cleanTempFiles(): Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }>;
@@ -31,6 +32,9 @@ declare global {
       openFile(options?: { filters?: { name: string; extensions: string[] }[] }): Promise<{ success: boolean; filePaths?: string[] }>;
       saveFile(options?: { defaultPath?: string; filters?: { name: string; extensions: string[] }[] }): Promise<{ success: boolean; filePath?: string }>;
       openDirectory(): Promise<{ success: boolean; filePaths?: string[] }>;
+    };
+    shell: {
+      showItemInFolder(filePath: string): Promise<{ success: boolean; error?: string }>;
     };
     devTools: {
       check(command: string): Promise<{ success: boolean; installed?: boolean; output?: string; error?: string }>;

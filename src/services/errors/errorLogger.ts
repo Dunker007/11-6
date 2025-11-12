@@ -1,5 +1,74 @@
+/**
+ * errorLogger.ts
+ * 
+ * PURPOSE:
+ * Centralized error logging and tracking service. Captures, stores, and manages application
+ * errors with context, deduplication, and persistence. Provides error analytics and filtering
+ * capabilities for debugging and monitoring.
+ * 
+ * ARCHITECTURE:
+ * Singleton service that:
+ * - Captures errors with full context (stack, session, component, etc.)
+ * - Deduplicates similar errors within time window
+ * - Persists errors to localStorage
+ * - Provides error filtering and statistics
+ * - Supports error listeners for real-time notifications
+ * - Generates error fingerprints for grouping
+ * 
+ * CURRENT STATUS:
+ * ✅ Error capture with context
+ * ✅ Error deduplication
+ * ✅ LocalStorage persistence
+ * ✅ Error filtering and search
+ * ✅ Error statistics
+ * ✅ Error listeners/subscriptions
+ * ✅ Session tracking
+ * ✅ Error fingerprinting
+ * 
+ * DEPENDENCIES:
+ * - errorContext: Application context capture
+ * - @/types/error: Error type definitions
+ * 
+ * STATE MANAGEMENT:
+ * - Singleton pattern (no Zustand)
+ * - Maintains errors array in memory
+ * - Persists to localStorage
+ * - Manages error listeners
+ * 
+ * PERFORMANCE:
+ * - Efficient deduplication
+ * - Limited error storage (max 500 errors)
+ * - Fast filtering and search
+ * - Minimal memory footprint
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { errorLogger } from '@/services/errors/errorLogger';
+ * 
+ * try {
+ *   // operation
+ * } catch (error) {
+ *   errorLogger.logFromError(error, {
+ *     category: 'ai',
+ *     source: 'ComponentName',
+ *   });
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/errors/errorContext.ts: Context capture
+ * - src/components/ErrorConsole/ErrorConsole.tsx: Error display UI
+ * - src/App.tsx: Error boundary integration
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Error reporting to external services
+ * - Error auto-repair suggestions
+ * - Error trend analysis
+ * - Error grouping by fingerprint
+ */
 import { CapturedError, ErrorCategory, ErrorSeverity, ErrorContext, ErrorFilter, ErrorStats } from '../../types/error';
 import { errorContext } from './errorContext';
+import { getUserFacingMessage, getRecoveryChecklist } from './errorMessages';
 
 type ErrorListener = (error: CapturedError) => void;
 
@@ -215,6 +284,20 @@ class ErrorLogger {
   subscribe(listener: ErrorListener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  }
+
+  /**
+   * Provide a human-friendly summary for the error.
+   */
+  getUserFriendlyMessage(error: CapturedError): string {
+    return getUserFacingMessage(error);
+  }
+
+  /**
+   * Provide suggested recovery actions for the error.
+   */
+  getRecoverySteps(error: CapturedError): string[] {
+    return getRecoveryChecklist(error);
   }
 
   // Private methods

@@ -8,6 +8,12 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
 }
 
+/**
+ * Styled surface component with variant, padding, and hover affordances.
+ *
+ * @param props - Visual configuration and standard div props.
+ * @returns Decorative container for grouping UI content.
+ */
 export const Card: React.FC<CardProps> = ({
   variant = 'elevated',
   padding = 'md',
@@ -42,6 +48,12 @@ export interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
 }
 
+/**
+ * Structural header region within a `Card` for titles or actions.
+ *
+ * @param props - Header content and optional styling classes.
+ * @returns Card header wrapper.
+ */
 export const CardHeader: React.FC<CardHeaderProps> = ({
   children,
   className = '',
@@ -58,6 +70,12 @@ export interface CardBodyProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
 }
 
+/**
+ * Main content container inside a `Card`.
+ *
+ * @param props - Body content and styling overrides.
+ * @returns Card body wrapper.
+ */
 export const CardBody: React.FC<CardBodyProps> = ({
   children,
   className = '',
@@ -74,6 +92,12 @@ export interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
 }
 
+/**
+ * Footer region for supplemental actions or metadata within a `Card`.
+ *
+ * @param props - Footer content and styling overrides.
+ * @returns Card footer wrapper.
+ */
 export const CardFooter: React.FC<CardFooterProps> = ({
   children,
   className = '',

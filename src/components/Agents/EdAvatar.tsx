@@ -1,3 +1,61 @@
+/**
+ * EdAvatar.tsx
+ * 
+ * PURPOSE:
+ * Avatar component for the Ed AI agent (Vibed Ed). Displays animated avatar with status-based
+ * visuals. Shows different states (idle, coding, thinking, success, error) with corresponding
+ * animations and assets. Fallback to CSS-based placeholder if assets unavailable.
+ * 
+ * ARCHITECTURE:
+ * Simple presentational component that:
+ * - Displays Ed avatar based on status
+ * - Loads status-specific assets
+ * - Falls back to CSS placeholder
+ * - Supports multiple sizes
+ * - Optional animations
+ * 
+ * CURRENT STATUS:
+ * ✅ Status-based avatar display
+ * ✅ Asset loading with fallback
+ * ✅ CSS placeholder (Boomhauer-style)
+ * ✅ Multiple size options
+ * ✅ Animation support
+ * ✅ Status from store or props
+ * 
+ * DEPENDENCIES:
+ * - useAgentStore: Ed status from store
+ * - loadEdAsset: Asset loading utility
+ * - @/types/agents: EdStatus type
+ * 
+ * STATE MANAGEMENT:
+ * - Gets status from Zustand store (or props)
+ * - No local state
+ * 
+ * PERFORMANCE:
+ * - Lightweight component
+ * - Efficient asset loading
+ * - CSS-based fallback
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import EdAvatar from '@/components/Agents/EdAvatar';
+ * 
+ * function AIAssistant() {
+ *   return <EdAvatar status="coding" size="lg" animated={true} />;
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/agents/agentStore.ts: Status source
+ * - src/utils/agentAssets.ts: Asset loading
+ * - src/components/AIAssistant/AIAssistant.tsx: Uses this component
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - More status animations
+ * - Custom avatar themes
+ * - Avatar customization
+ * - Status transitions
+ */
 import { useAgentStore } from '@/services/agents/agentStore';
 import { loadEdAsset } from '@/utils/agentAssets';
 import type { EdStatus } from '@/types/agents';

@@ -1,3 +1,68 @@
+/**
+ * Button.tsx
+ * 
+ * PURPOSE:
+ * Reusable button component with multiple variants, sizes, and states.
+ * Provides consistent button styling across the application with support for
+ * loading states, icons, and various visual styles.
+ * 
+ * ARCHITECTURE:
+ * Forward ref component that wraps native button element:
+ * - Multiple variants (primary, secondary, ghost, danger, success)
+ * - Size options (sm, md, lg)
+ * - Loading state with spinner
+ * - Left/right icon support
+ * - Full width option
+ * - All native button props supported
+ * 
+ * Features:
+ * - Variant-based styling
+ * - Size variants
+ * - Loading state
+ * - Icon support (left/right)
+ * - Full width option
+ * - Accessible (forward ref)
+ * 
+ * CURRENT STATUS:
+ * ✅ All variants implemented
+ * ✅ Size variants
+ * ✅ Loading state
+ * ✅ Icon support
+ * ✅ Full width option
+ * ✅ TypeScript types
+ * 
+ * DEPENDENCIES:
+ * - lucide-react: Icon types
+ * - Button.css: Component styles
+ * 
+ * STATE MANAGEMENT:
+ * - Stateless component (controlled via props)
+ * 
+ * PERFORMANCE:
+ * - Forward ref for optimal performance
+ * - Minimal re-renders
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { Button } from '@/components/ui';
+ * 
+ * function MyComponent() {
+ *   return (
+ *     <Button variant="primary" size="md" isLoading={false}>
+ *       Click Me
+ *     </Button>
+ *   );
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/styles/ui/Button.css: Button styles
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Add tooltip support
+ * - Add keyboard shortcuts
+ * - Add animation variants
+ */
 import { ButtonHTMLAttributes, forwardRef } from 'react';
 import { LucideIcon } from 'lucide-react';
 import '../../styles/ui/Button.css';
