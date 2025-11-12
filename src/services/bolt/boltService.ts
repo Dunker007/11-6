@@ -10,7 +10,7 @@ import type {
   BoltBuildStep,
   PackageValidationResult,
 } from '@/types/bolt';
-import { projectService } from './projectService';
+import { projectService } from '@/services/project/projectService';
 
 class BoltService {
   /**

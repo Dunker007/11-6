@@ -47,18 +47,34 @@ export default defineConfig({
         outDir: 'dist',
         emptyOutDir: true,
         rollupOptions: {
-          external: [
-            'systeminformation',
-            'simple-git',
-            'chokidar',
-            'fs/promises',
-            'path',
-            'node:buffer',
-            'node:path',
-            'node:events',
-            'child_process',
-            'fs',
-          ], // Don't bundle Node.js-only modules
+          external: (id) => {
+            // Externalize Node.js-only modules
+            const nodeModules = [
+              'systeminformation',
+              'simple-git',
+              'chokidar',
+              'fs/promises',
+              'path',
+              'node:buffer',
+              'node:path',
+              'node:events',
+              'child_process',
+              'fs',
+            ];
+            if (nodeModules.includes(id)) return true;
+            
+            // Externalize LanceDB and its native bindings
+            if (id.includes('@lancedb/lancedb') || id.includes('lancedb.win32-x64-msvc')) {
+              return true;
+            }
+            
+            // Externalize any .node files
+            if (id.endsWith('.node')) {
+              return true;
+            }
+            
+            return false;
+          },
           output: {
             manualChunks: (id) => {
               // Monaco Editor (large dependency)

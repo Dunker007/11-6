@@ -125,7 +125,7 @@ class WatchlistService {
     return true;
   }
 
-  async getWatchlist(watchlistId: string): Promise<Watchlist | null> {
+  async getWatchlistAsync(watchlistId: string): Promise<Watchlist | null> {
     const watchlist = this.watchlists.get(watchlistId);
     if (!watchlist) return null;
 
