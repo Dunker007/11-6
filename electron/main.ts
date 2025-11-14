@@ -73,8 +73,8 @@
  */
 import electron from 'electron';
 const { app, BrowserWindow, ipcMain, dialog, screen, Menu, shell } = electron;
-// import updaterPkg from 'electron-updater';
-// const { autoUpdater } = updaterPkg; // Commented out - causes issues in dev mode
+import updaterPkg from 'electron-updater';
+const { autoUpdater } = updaterPkg;
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
