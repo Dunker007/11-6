@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { shallow } from 'zustand/shallow';
 import { Activity, CheckCircle, XCircle, RefreshCw, Server, Cloud, Zap, Wifi } from '@/components/Icons/icons';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { llmRouter } from '@/services/ai/router';
@@ -17,15 +16,10 @@ interface ProviderStatus {
 }
 
 const ConnectionStatusBar = () => {
-  const { models, availableProviders, isLoading, discoverProviders } = useLLMStore(
-    state => ({
-      models: state.models,
-      availableProviders: state.availableProviders,
-      isLoading: state.isLoading,
-      discoverProviders: state.discoverProviders,
-    }),
-    shallow
-  );
+  const models = useLLMStore((state) => state.models);
+  const availableProviders = useLLMStore((state) => state.availableProviders);
+  const isLoading = useLLMStore((state) => state.isLoading);
+  const discoverProviders = useLLMStore((state) => state.discoverProviders);
   const { showToast } = useToast();
   const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
   const [testingProvider, setTestingProvider] = useState<string | null>(null);

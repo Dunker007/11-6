@@ -1,4 +1,4 @@
-import { ReactNode, CSSProperties, memo } from 'react';
+import { CSSProperties, memo } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 /**

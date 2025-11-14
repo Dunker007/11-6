@@ -1,5 +1,4 @@
 import { useState, memo } from 'react';
-import { shallow } from 'zustand/shallow';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { multiFileContextService } from '../../services/ai/multiFileContextService';
 import { useProjectStore } from '../../services/project/projectStore';
@@ -78,13 +77,8 @@ const GENERATION_TEMPLATES: GenerationTemplate[] = [
 ];
 
 const CodeGenerator = memo(function CodeGenerator() {
-  const { streamGenerate, isLoading } = useLLMStore(
-    state => ({
-      streamGenerate: state.streamGenerate,
-      isLoading: state.isLoading,
-    }),
-    shallow
-  );
+  const streamGenerate = useLLMStore((state) => state.streamGenerate);
+  const isLoading = useLLMStore((state) => state.isLoading);
   const { activeProject } = useProjectStore();
   const { addActivity } = useActivityStore();
 

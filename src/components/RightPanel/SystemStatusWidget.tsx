@@ -1,6 +1,5 @@
 // src/components/RightPanel/SystemStatusWidget.tsx
 import { useState, useEffect, memo } from 'react';
-import { shallow } from 'zustand/shallow';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { errorLogger } from '../../services/errors/errorLogger';
 import TechIcon from '../Icons/TechIcon';
@@ -9,13 +8,8 @@ import { AlertCircle } from 'lucide-react';
 import '../../styles/RightPanel.css';
 
 const SystemStatusWidget = memo(function SystemStatusWidget() {
-  const { availableProviders, isLoading } = useLLMStore(
-    state => ({
-      availableProviders: state.availableProviders,
-      isLoading: state.isLoading,
-    }),
-    shallow
-  );
+  const availableProviders = useLLMStore((state) => state.availableProviders);
+  const isLoading = useLLMStore((state) => state.isLoading);
   const [errorCount, setErrorCount] = useState(0);
 
   useEffect(() => {

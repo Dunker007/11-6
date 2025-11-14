@@ -202,9 +202,9 @@ Component Stack: ${errorInfo?.componentStack}
               {!isAppLevel && (
                 <Button
                   variant="primary"
-                  leftIcon={<RefreshCw size={18} />}
                   onClick={this.handleReset}
                 >
+                  <RefreshCw size={18} style={{ marginRight: '8px' }} />
                   Try Again
                 </Button>
               )}
@@ -212,9 +212,9 @@ Component Stack: ${errorInfo?.componentStack}
               {isAppLevel && (
                 <Button
                   variant="primary"
-                  leftIcon={<RefreshCw size={18} />}
                   onClick={this.handleReload}
                 >
+                  <RefreshCw size={18} style={{ marginRight: '8px' }} />
                   Reload App
                 </Button>
               )}
@@ -222,19 +222,19 @@ Component Stack: ${errorInfo?.componentStack}
               {!isAppLevel && (
                 <Button
                   variant="secondary"
-                  leftIcon={<Home size={18} />}
                   onClick={this.handleGoHome}
                 >
+                  <Home size={18} style={{ marginRight: '8px' }} />
                   Go Home
                 </Button>
               )}
 
               <Button
                 variant="ghost"
-                leftIcon={copied ? <Check size={18} /> : <Copy size={18} />}
                 onClick={this.handleCopyError}
                 disabled={copied}
               >
+                {copied ? <Check size={18} style={{ marginRight: '8px' }} /> : <Copy size={18} style={{ marginRight: '8px' }} />}
                 {copied ? 'Copied!' : 'Copy Error Details'}
               </Button>
             </div>

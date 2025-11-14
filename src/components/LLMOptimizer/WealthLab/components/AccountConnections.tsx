@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useMemo, memo } from 'react';
-import { shallow } from 'zustand/shallow';
 import { useWealthStore } from '@/services/wealth/wealthStore';
 import { accountAggregationService, type AggregationProvider, type Institution } from '@/services/wealth/accountAggregationService';
 import { Search, RefreshCw, AlertCircle, CheckCircle2, Link2, X, ChevronRight, Loader2, Building2 } from 'lucide-react';
@@ -20,15 +19,10 @@ interface ConnectionWizardState {
 }
 
 const AccountConnections = memo(function AccountConnections() {
-  const { accountConnections, addAccountConnection, updateAccountConnection, refresh } = useWealthStore(
-    state => ({
-      accountConnections: state.accountConnections,
-      addAccountConnection: state.addAccountConnection,
-      updateAccountConnection: state.updateAccountConnection,
-      refresh: state.refresh,
-    }),
-    shallow
-  );
+  const accountConnections = useWealthStore((state) => state.accountConnections);
+  const addAccountConnection = useWealthStore((state) => state.addAccountConnection);
+  const updateAccountConnection = useWealthStore((state) => state.updateAccountConnection);
+  const refresh = useWealthStore((state) => state.refresh);
   const { showToast } = useToast();
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [searchQuery, setSearchQuery] = useState('');

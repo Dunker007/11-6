@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { shallow } from 'zustand/shallow';
 import { X, Download, Zap, Play, ExternalLink, CheckCircle2, XCircle, AlertCircle, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui';
 import { useLLMStore } from '@/services/ai/llmStore';
@@ -15,16 +14,11 @@ interface ModelDetailModalProps {
 
 const ModelDetailModal = ({ entry, isOpen, onClose }: ModelDetailModalProps) => {
   const { showToast } = useToast();
-  const { activeModel, switchToModel, pullModel, pullingModels, models } = useLLMStore(
-    state => ({
-      activeModel: state.activeModel,
-      switchToModel: state.switchToModel,
-      pullModel: state.pullModel,
-      pullingModels: state.pullingModels,
-      models: state.models,
-    }),
-    shallow
-  );
+  const activeModel = useLLMStore((state) => state.activeModel);
+  const switchToModel = useLLMStore((state) => state.switchToModel);
+  const pullModel = useLLMStore((state) => state.pullModel);
+  const pullingModels = useLLMStore((state) => state.pullingModels);
+  const models = useLLMStore((state) => state.models);
   const { stats } = useHealthStore();
   const [isInstalled, setIsInstalled] = useState(false);
 
