@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Keyboard } from 'lucide-react';
+import { X, Keyboard } from '@/components/Icons/icons';
 import '../../styles/KeyboardShortcutsHelp.css';
 
 interface KeyboardShortcutsHelpProps {

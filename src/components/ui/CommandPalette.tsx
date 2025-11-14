@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Search, Command, Settings, Zap, Code, Bitcoin, TrendingUp, Lightbulb, Rocket, Activity } from 'lucide-react';
+import { Search, Command, Settings, Zap, Code, Bitcoin, TrendingUp, Lightbulb, Rocket, Activity, Clock, Star } from 'lucide-react';
 import { Modal } from './Modal';
 import { Input } from './Input';
+import { fuzzySearchMultiField } from '@/utils/fuzzySearch';
+import { commandHistoryService } from '@/services/command/commandHistoryService';
 import '../../styles/ui/CommandPalette.css';
 
 export interface CommandItem {
@@ -150,32 +152,92 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     },
   ], [onNavigate, onClose]);
 
-  // Filter commands based on search query
+  // Get recent and frequent commands
+  const recentCommandIds = useMemo(() => commandHistoryService.getRecentCommands(5), []);
+  const frequentCommandIds = useMemo(() => commandHistoryService.getFrequentCommands(5), []);
+
+  // Filter commands based on search query with fuzzy matching
   const filteredCommands = useMemo(() => {
     if (!searchQuery.trim()) {
-      return commands;
+      // When no search, show commands sorted by usage
+      return [...commands].sort((a, b) => {
+        const aBoost = commandHistoryService.getBoostScore(a.id);
+        const bBoost = commandHistoryService.getBoostScore(b.id);
+        return bBoost - aBoost;
+      });
     }
 
-    const query = searchQuery.toLowerCase();
-    return commands.filter((cmd) => {
-      const matchesLabel = cmd.label.toLowerCase().includes(query);
-      const matchesDescription = cmd.description?.toLowerCase().includes(query);
-      const matchesKeywords = cmd.keywords?.some((kw) => kw.toLowerCase().includes(query));
-      return matchesLabel || matchesDescription || matchesKeywords;
+    // Fuzzy search across multiple fields with weights
+    const results = fuzzySearchMultiField(
+      searchQuery,
+      commands,
+      [
+        { getText: (cmd) => cmd.label, weight: 10 },
+        { getText: (cmd) => cmd.description || '', weight: 5 },
+        { getText: (cmd) => cmd.keywords?.join(' ') || '', weight: 3 },
+      ],
+      0 // No threshold, include all fuzzy matches
+    );
+
+    // Boost scores based on usage history
+    const boostedResults = results.map((result) => {
+      const historyBoost = commandHistoryService.getBoostScore(result.item.id);
+      return {
+        ...result,
+        score: result.score + historyBoost,
+      };
     });
+
+    // Sort by boosted score
+    boostedResults.sort((a, b) => b.score - a.score);
+
+    return boostedResults.map((r) => r.item);
   }, [commands, searchQuery]);
 
-  // Group commands by category
+  // Group commands by category (with special groups for recent/frequent when no search)
   const groupedCommands = useMemo(() => {
     const groups: Record<string, CommandItem[]> = {};
+
+    // Add recent commands group when no search
+    if (!searchQuery.trim() && recentCommandIds.length > 0) {
+      const recentCommands = recentCommandIds
+        .map((id) => filteredCommands.find((cmd) => cmd.id === id))
+        .filter((cmd): cmd is CommandItem => cmd !== undefined);
+
+      if (recentCommands.length > 0) {
+        groups['recent'] = recentCommands;
+      }
+    }
+
+    // Add frequently used group when no search (if different from recent)
+    if (!searchQuery.trim() && frequentCommandIds.length > 0) {
+      const frequentCommands = frequentCommandIds
+        .filter((id) => !recentCommandIds.includes(id)) // Exclude already shown in recent
+        .map((id) => filteredCommands.find((cmd) => cmd.id === id))
+        .filter((cmd): cmd is CommandItem => cmd !== undefined);
+
+      if (frequentCommands.length > 0) {
+        groups['frequent'] = frequentCommands;
+      }
+    }
+
+    // Group remaining commands by category
     filteredCommands.forEach((cmd) => {
+      // Skip if already in recent/frequent
+      if (!searchQuery.trim()) {
+        if (recentCommandIds.includes(cmd.id) || frequentCommandIds.includes(cmd.id)) {
+          return;
+        }
+      }
+
       if (!groups[cmd.category]) {
         groups[cmd.category] = [];
       }
       groups[cmd.category].push(cmd);
     });
+
     return groups;
-  }, [filteredCommands]);
+  }, [filteredCommands, recentCommandIds, frequentCommandIds, searchQuery]);
 
   // Flatten grouped commands for navigation
   const flatCommands = useMemo(() => {
@@ -223,7 +285,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (flatCommands[selectedIndex]) {
-        flatCommands[selectedIndex].action();
+        const command = flatCommands[selectedIndex];
+        commandHistoryService.recordCommand(command.id);
+        command.action();
       }
     } else if (e.key === 'Escape') {
       e.preventDefault();
@@ -237,15 +301,26 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
    * @param command - Selected command item to execute.
    */
   const handleCommandClick = useCallback((command: CommandItem) => {
+    // Record command usage
+    commandHistoryService.recordCommand(command.id);
+    // Execute command
     command.action();
   }, []);
 
   const categoryLabels: Record<string, string> = {
+    recent: 'Recently Used',
+    frequent: 'Frequently Used',
     navigation: 'Navigation',
     actions: 'Actions',
     files: 'Files',
     settings: 'Settings',
     workflows: 'Workflows',
+  };
+
+  // Icons for special categories
+  const categoryIcons: Record<string, React.ReactNode> = {
+    recent: <Clock size={14} />,
+    frequent: <Star size={14} />,
   };
 
   return (
@@ -283,6 +358,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             Object.entries(groupedCommands).map(([category, categoryCommands]) => (
               <div key={category} className="command-palette__group">
                 <div className="command-palette__group-header">
+                  {categoryIcons[category] && (
+                    <span className="command-palette__group-icon">{categoryIcons[category]}</span>
+                  )}
                   {categoryLabels[category] || category}
                 </div>
                 {categoryCommands.map((command) => {

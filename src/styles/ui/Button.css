@@ -1,4 +1,8 @@
-/* Button Component Styles - VibeUI 2.0 Enhanced */
+/**
+ * Button Component Styles - Clean Modern Design
+ * Updated: 2025-11-14
+ */
+
 .ui-button {
   display: inline-flex;
   align-items: center;
@@ -7,75 +11,51 @@
   font-family: var(--font-family-base);
   font-weight: var(--font-weight-medium);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-base);
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: all var(--clean-transition-base, var(--transition-base));
   outline: none;
   position: relative;
-  overflow: hidden;
   user-select: none;
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  white-space: nowrap;
 }
 
-/* Ripple effect on click */
-.ui-button::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.4s ease, height 0.4s ease;
-  pointer-events: none;
-}
-
-.ui-button:active::after {
-  width: 300px;
-  height: 300px;
-}
-
+/* Focus States */
 .ui-button:focus-visible {
-  outline: 2px solid var(--color-border-focus);
+  outline: 2px solid var(--clean-accent-primary, var(--accent-primary));
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+  box-shadow: var(--clean-glow-focus, 0 0 0 3px rgba(139, 124, 232, 0.2));
 }
 
-/* Variants */
+/* Variant: Primary */
 .ui-button--primary {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(6, 182, 212, 0.9));
-  color: var(--color-text-primary);
-  border-color: var(--color-border-primary);
-  box-shadow: var(--shadow-glow-primary), var(--shadow-md);
+  background: var(--clean-accent-primary, var(--accent-primary));
+  color: white;
+  border-color: transparent;
+  box-shadow: var(--clean-shadow-sm, var(--shadow-sm));
 }
 
 .ui-button--primary:hover:not(:disabled) {
-  box-shadow: var(--shadow-glow-primary-lg);
-  transform: translateY(-2px);
-  filter: brightness(1.1);
+  background: var(--clean-accent-primary-hover, var(--accent-primary));
+  box-shadow: var(--clean-shadow-md, var(--shadow-md));
+  transform: translateY(-1px);
 }
 
 .ui-button--primary:active:not(:disabled) {
   transform: translateY(0);
-  filter: brightness(0.95);
+  box-shadow: var(--clean-shadow-sm, var(--shadow-sm));
 }
 
+/* Variant: Secondary */
 .ui-button--secondary {
-  background: rgba(30, 30, 50, 0.6);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  color: var(--color-text-primary);
-  border-color: var(--color-border-secondary);
-  box-shadow: var(--shadow-sm);
+  background: var(--clean-bg-elevated, var(--bg-secondary));
+  color: var(--clean-text-primary, var(--text-primary));
+  border-color: var(--clean-border-default, var(--panel-border));
 }
 
 .ui-button--secondary:hover:not(:disabled) {
-  background: var(--color-bg-elevated);
-  border-color: var(--color-secondary-500);
-  box-shadow: var(--shadow-glow-secondary);
+  background: var(--clean-bg-hover, var(--bg-tertiary));
+  border-color: var(--clean-accent-primary, var(--accent-primary));
   transform: translateY(-1px);
 }
 
@@ -83,77 +63,72 @@
   transform: translateY(0);
 }
 
+/* Variant: Ghost */
 .ui-button--ghost {
   background: transparent;
-  color: var(--color-text-primary);
+  color: var(--clean-text-primary, var(--text-primary));
   border-color: transparent;
 }
 
 .ui-button--ghost:hover:not(:disabled) {
-  background: var(--color-bg-secondary);
-  border-color: var(--color-border-muted);
-  transform: translateY(-1px);
+  background: var(--clean-bg-elevated, var(--bg-secondary));
 }
 
 .ui-button--ghost:active:not(:disabled) {
-  transform: translateY(0);
+  background: var(--clean-bg-hover, var(--bg-tertiary));
 }
 
+/* Variant: Danger */
 .ui-button--danger {
-  background: var(--color-error);
-  color: var(--color-text-primary);
-  border-color: var(--color-error);
-  box-shadow: var(--shadow-glow-error);
+  background: var(--clean-error, var(--color-error));
+  color: white;
+  border-color: transparent;
 }
 
 .ui-button--danger:hover:not(:disabled) {
-  background: var(--color-error-light);
-  box-shadow: var(--shadow-glow-error);
-  transform: translateY(-2px);
   filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .ui-button--danger:active:not(:disabled) {
-  transform: translateY(0);
   filter: brightness(0.95);
+  transform: translateY(0);
 }
 
+/* Variant: Success */
 .ui-button--success {
-  background: var(--color-success);
-  color: var(--color-text-primary);
-  border-color: var(--color-success);
-  box-shadow: var(--shadow-glow-success);
+  background: var(--clean-success, var(--color-success));
+  color: white;
+  border-color: transparent;
 }
 
 .ui-button--success:hover:not(:disabled) {
-  background: var(--color-success-light);
-  box-shadow: var(--shadow-glow-success);
-  transform: translateY(-2px);
   filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .ui-button--success:active:not(:disabled) {
-  transform: translateY(0);
   filter: brightness(0.95);
+  transform: translateY(0);
 }
 
 /* Sizes */
 .ui-button--sm {
   padding: var(--spacing-2) var(--spacing-3);
   font-size: var(--font-size-sm);
-  min-height: 32px;
+  min-height: var(--clean-button-height-sm, 32px);
 }
 
 .ui-button--md {
   padding: var(--spacing-3) var(--spacing-5);
   font-size: var(--font-size-base);
-  min-height: 40px;
+  min-height: var(--clean-button-height-md, 40px);
 }
 
 .ui-button--lg {
   padding: var(--spacing-4) var(--spacing-6);
   font-size: var(--font-size-lg);
-  min-height: 48px;
+  min-height: var(--clean-button-height-lg, 48px);
 }
 
 /* States */
@@ -175,14 +150,16 @@
 /* Icon Styles */
 .ui-button__icon {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .ui-button__icon--left {
-  margin-right: calc(var(--spacing-2) * -1);
+  margin-right: calc(var(--spacing-1) * -1);
 }
 
 .ui-button__icon--right {
-  margin-left: calc(var(--spacing-2) * -1);
+  margin-left: calc(var(--spacing-1) * -1);
 }
 
 /* Spinner */
@@ -194,8 +171,8 @@
 }
 
 .ui-button__spinner-svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   animation: spin-smooth 0.8s linear infinite;
 }
 
@@ -219,118 +196,27 @@
   gap: var(--spacing-2);
 }
 
-/* ============================================
-   HOLOGRAPHIC BUTTON ENHANCEMENTS
-   ============================================ */
-
-/* Hexagonal shape */
+/* Legacy Holographic Support (Deprecated - kept for backwards compatibility) */
+.ui-button--holographic,
 .ui-button--hexagonal {
-  clip-path: var(--clip-hexagon-soft);
-  border-radius: 0;
-  padding-left: var(--spacing-8);
-  padding-right: var(--spacing-8);
+  /* Remove holographic effects - use standard button styles */
 }
 
-/* Holographic effects */
-.ui-button--holographic {
-  position: relative;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid rgba(6, 182, 212, 0.4);
-  box-shadow: var(--glow-accent-cyan);
-  transition: all var(--duration-base) var(--ease-out);
-}
-
-.ui-button--holographic::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: var(--gradient-border-cyan-magenta);
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity var(--duration-base);
-  z-index: -1;
-  animation: rotate-border 3s linear infinite;
-}
-
-.ui-button--holographic:hover:not(:disabled)::before {
-  opacity: 0.6;
-}
-
-.ui-button--holographic:hover:not(:disabled) {
-  box-shadow: var(--glow-accent-cyan-intense);
-  transform: translateY(-3px) scale(1.02);
-}
-
-.ui-button--holographic:active:not(:disabled) {
-  transform: translateY(-1px) scale(0.98);
-}
-
-/* Glow color variants for holographic buttons */
-.ui-button--glow-cyan {
-  border-color: rgba(6, 182, 212, 0.5);
-  box-shadow: var(--glow-accent-cyan);
-}
-
-.ui-button--glow-cyan:hover:not(:disabled) {
-  box-shadow: var(--glow-accent-cyan-intense);
-  text-shadow: var(--text-glow-cyan);
-}
-
-.ui-button--glow-magenta {
-  border-color: rgba(217, 70, 239, 0.5);
-  box-shadow: var(--glow-accent-magenta);
-}
-
-.ui-button--glow-magenta:hover:not(:disabled) {
-  box-shadow: var(--glow-accent-magenta-intense);
-  text-shadow: var(--text-glow-magenta);
-}
-
-.ui-button--glow-amber {
-  border-color: rgba(245, 158, 11, 0.5);
-  box-shadow: var(--glow-accent-amber);
-}
-
-.ui-button--glow-amber:hover:not(:disabled) {
-  box-shadow: var(--glow-accent-amber-intense);
-  text-shadow: var(--text-glow-amber);
-}
-
+.ui-button--glow-cyan,
+.ui-button--glow-magenta,
+.ui-button--glow-amber,
 .ui-button--glow-violet {
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: var(--glow-primary);
-}
-
-.ui-button--glow-violet:hover:not(:disabled) {
-  box-shadow: var(--glow-primary-intense);
-}
-
-/* Holographic + Hexagonal combination */
-.ui-button--holographic.ui-button--hexagonal {
-  clip-path: var(--clip-hexagon-soft);
-}
-
-.ui-button--holographic.ui-button--hexagonal::before {
-  clip-path: var(--clip-hexagon-soft);
+  /* Remove glow effects - use standard button styles */
 }
 
 /* Accessibility: Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .ui-button--holographic::before {
-    animation: none;
+  .ui-button {
+    transition: none;
   }
   
-  .ui-button--holographic:hover:not(:disabled) {
-    transform: none;
-  }
-  
-  .ui-button--holographic:active:not(:disabled) {
+  .ui-button:hover:not(:disabled),
+  .ui-button:active:not(:disabled) {
     transform: none;
   }
 }
-

@@ -29,6 +29,18 @@ export type { LoadingProps } from './Loading';
 export { CommandPalette, useCommandPalette } from './CommandPalette';
 export type { CommandPaletteProps, CommandItem } from './CommandPalette';
 
+export { 
+  Skeleton, 
+  SkeletonText, 
+  SkeletonCard, 
+  SkeletonList, 
+  SkeletonTable, 
+  SkeletonDashboard,
+  SkeletonActivityItem,
+  SkeletonTransactionItem 
+} from './Skeleton';
+export type { SkeletonProps } from './Skeleton';
+
 export { HolographicBackground } from './HolographicBackground';
 export { HolographicPanel } from './HolographicPanel';
 export type { HolographicPanelProps } from './HolographicPanel';

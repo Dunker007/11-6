@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLLMStore } from '@/services/ai/llmStore';
-import { RefreshCw, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, Clock } from '@/components/Icons/icons';
 import '@/styles/LocalProviderStatus.css';
 
 const LocalProviderStatus: React.FC = React.memo(() => {

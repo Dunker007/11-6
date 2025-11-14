@@ -1,12 +1,21 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo } from 'react';
+import { shallow } from 'zustand/shallow';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { useAPIKeyStore } from '../../services/apiKeys/apiKeyStore';
 import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
 import { Crown, Zap } from 'lucide-react';
 import '../../styles/LLMStatus.css';
 
-function LLMStatus() {
-  const { models, availableProviders, isLoading, discoverProviders } = useLLMStore();
+const LLMStatus = memo(function LLMStatus() {
+  const { models, availableProviders, isLoading, discoverProviders } = useLLMStore(
+    state => ({
+      models: state.models,
+      availableProviders: state.availableProviders,
+      isLoading: state.isLoading,
+      discoverProviders: state.discoverProviders,
+    }),
+    shallow
+  );
   const { keys } = useAPIKeyStore();
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
@@ -223,7 +232,7 @@ function LLMStatus() {
       )}
     </div>
   );
-}
+});
 
 export default LLMStatus;
 

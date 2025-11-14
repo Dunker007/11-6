@@ -1,8 +1,13 @@
+/* Core Design System */
 @import './design-tokens.css';
+@import './themes-clean.css';
+
+/* UI Components */
 @import './ui/Typography.css';
 @import './ui/Interactions.css';
-@import './animations-enhanced.css';
-@import './holographic.css';
+
+/* Animations - Clean & Subtle */
+@import './animations.css';
 
 * {
   margin: 0;

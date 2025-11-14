@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { logger } from '@/services/logging/loggerService';
 import type { LogEntry, LogLevel } from '@/types/logger';
-import { ChevronDown, Trash2, Info, AlertTriangle, XCircle, Bug } from 'lucide-react';
+import { ChevronDown, Trash2, Info, AlertTriangle, XCircle, Bug } from '@/components/Icons/icons';
 import '../../styles/DeveloperConsole.css';
 
 const LogLevelIcon = ({ level }: { level: LogLevel }) => {

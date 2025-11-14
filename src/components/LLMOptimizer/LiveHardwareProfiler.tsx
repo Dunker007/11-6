@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Activity, Zap, TrendingUp, Play, BarChart3 } from 'lucide-react';
+import { Activity, Zap, TrendingUp, Play, BarChart3 } from '@/components/Icons/icons';
 import { useHealthStore } from '@/services/health/healthStore';
 import { useBenchmarkStore } from '@/services/benchmark/benchmarkStore';
 import { windowsOptimizer } from '@/services/windows/windowsOptimizer';

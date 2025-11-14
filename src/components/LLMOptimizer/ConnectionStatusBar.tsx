@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Activity, CheckCircle, XCircle, RefreshCw, Server, Cloud, Zap, Wifi } from 'lucide-react';
+import { shallow } from 'zustand/shallow';
+import { Activity, CheckCircle, XCircle, RefreshCw, Server, Cloud, Zap, Wifi } from '@/components/Icons/icons';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { llmRouter } from '@/services/ai/router';
 import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
@@ -16,7 +17,15 @@ interface ProviderStatus {
 }
 
 const ConnectionStatusBar = () => {
-  const { models, availableProviders, isLoading, discoverProviders } = useLLMStore();
+  const { models, availableProviders, isLoading, discoverProviders } = useLLMStore(
+    state => ({
+      models: state.models,
+      availableProviders: state.availableProviders,
+      isLoading: state.isLoading,
+      discoverProviders: state.discoverProviders,
+    }),
+    shallow
+  );
   const { showToast } = useToast();
   const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
   const [testingProvider, setTestingProvider] = useState<string | null>(null);

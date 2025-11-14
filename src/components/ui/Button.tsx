@@ -64,7 +64,7 @@
  * - Add animation variants
  */
 import { ButtonHTMLAttributes, forwardRef } from 'react';
-import { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from '@/components/Icons/icons';
 import '../../styles/ui/Button.css';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

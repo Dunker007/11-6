@@ -1,4 +1,4 @@
-import { ReactNode, CSSProperties } from 'react';
+import { ReactNode, CSSProperties, memo } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 /**
@@ -26,7 +26,7 @@ export interface HolographicStatCardProps {
   style?: CSSProperties;
 }
 
-export function HolographicStatCard({
+export const HolographicStatCard = memo(function HolographicStatCard({
   label,
   value,
   icon: Icon,
@@ -221,5 +221,5 @@ export function HolographicStatCard({
       </div>
     </div>
   );
-}
+});
 

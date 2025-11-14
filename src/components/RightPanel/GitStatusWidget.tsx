@@ -1,10 +1,11 @@
 // src/components/RightPanel/GitStatusWidget.tsx
+import { memo } from 'react';
 import { useGitHubStore } from '../../services/github/githubStore';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
 import '../../styles/RightPanel.css';
 
-const GitStatusWidget = () => {
+const GitStatusWidget = memo(function GitStatusWidget() {
   const { status, branches } = useGitHubStore();
 
   return (
@@ -40,6 +41,6 @@ const GitStatusWidget = () => {
       </div>
     </div>
   );
-};
+});
 
 export default GitStatusWidget;

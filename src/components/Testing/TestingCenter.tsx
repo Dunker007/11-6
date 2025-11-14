@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { programService } from '@/services/program/programService';
 import { Button } from '../ui/Button';
-import { Play, Loader, CheckCircle, XCircle, ListChecks } from 'lucide-react';
+import { Play, Loader, CheckCircle, XCircle, ListChecks } from '@/components/Icons/icons';
 import '../../styles/TestingCenter.css';
 
 type TestStatus = 'idle' | 'running' | 'completed' | 'error';

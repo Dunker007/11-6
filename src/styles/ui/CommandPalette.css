@@ -57,6 +57,9 @@
 }
 
 .command-palette__group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
@@ -64,6 +67,12 @@
   letter-spacing: var(--letter-spacing-wide);
   padding: var(--spacing-2) var(--spacing-3);
   margin-bottom: var(--spacing-2);
+}
+
+.command-palette__group-icon {
+  display: flex;
+  align-items: center;
+  color: var(--clean-accent-primary, var(--color-primary-500));
 }
 
 .command-palette__item {

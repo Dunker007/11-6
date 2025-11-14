@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { notebookLMService } from '@/services/ai/notebooklmService';
 import { useProjectStore } from '@/services/project/projectStore';
 import { Button } from '../ui';
-import { Send, Copy, Check, MessageSquare } from 'lucide-react';
+import { Send, Copy, Check, MessageSquare } from '@/components/Icons/icons';
 import LoadingSpinner from '../shared/LoadingSpinner';
 import '../../styles/ProjectQA.css';
 

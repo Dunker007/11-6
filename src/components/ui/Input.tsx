@@ -1,5 +1,5 @@
 import React, { InputHTMLAttributes, TextareaHTMLAttributes, forwardRef } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle } from '@/components/Icons/icons';
 import '../../styles/ui/Input.css';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {

@@ -1,22 +1,28 @@
 import React, { HTMLAttributes, ReactNode } from 'react';
-import { HolographicPanel } from './HolographicPanel';
 import '../../styles/ui/Card.css';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'elevated' | 'flat' | 'outlined';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   hover?: boolean;
+  /** @deprecated holographic mode is no longer supported - use standard variants */
   holographic?: boolean;
+  /** @deprecated float is no longer supported */
   float?: boolean;
+  /** @deprecated corners is no longer supported */
   corners?: boolean;
+  /** @deprecated scanline is no longer supported */
   scanline?: boolean;
+  /** @deprecated glowVariant is no longer supported */
   glowVariant?: 'primary' | 'secondary' | 'accent' | 'warning';
+  /** @deprecated glowIntensity is no longer supported */
   glowIntensity?: 'none' | 'low' | 'medium' | 'high';
   children: ReactNode;
 }
 
 /**
  * Styled surface component with variant, padding, and hover affordances.
+ * Clean, modern design with subtle glassmorphism effects.
  *
  * @param props - Visual configuration and standard div props.
  * @returns Decorative container for grouping UI content.
@@ -25,12 +31,7 @@ export const Card: React.FC<CardProps> = ({
   variant = 'elevated',
   padding = 'md',
   hover = false,
-  holographic = false,
-  float = false,
-  corners = false,
-  scanline = false,
-  glowVariant = 'primary',
-  glowIntensity = 'medium',
+  // holographic and related props are deprecated but kept for backwards compatibility
   children,
   className = '',
   ...props
@@ -39,39 +40,16 @@ export const Card: React.FC<CardProps> = ({
   const variantClass = `ui-card--${variant}`;
   const paddingClass = `ui-card--padding-${padding}`;
   const hoverClass = hover ? 'ui-card--hover' : '';
-  const holographicClass = holographic ? 'ui-card--holographic' : '';
 
   const classes = [
     baseClasses,
     variantClass,
     paddingClass,
     hoverClass,
-    holographicClass,
     className,
   ]
     .filter(Boolean)
     .join(' ');
-
-  // If holographic mode is enabled, wrap in HolographicPanel
-  if (holographic) {
-    const { onClick, onMouseEnter, onMouseLeave, ...restProps } = props as any;
-    return (
-      <HolographicPanel
-        variant={glowVariant}
-        glowIntensity={glowIntensity}
-        float={float}
-        corners={corners}
-        scanline={scanline}
-        className={classes}
-        onClick={onClick}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        {...restProps}
-      >
-        {children}
-      </HolographicPanel>
-    );
-  }
 
   return (
     <div className={classes} {...props}>

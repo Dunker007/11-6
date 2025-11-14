@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { Zap, TrendingUp, Settings as SettingsIcon, DollarSign, Code, BrainCircuit, Bitcoin, Lightbulb, FolderPlus, Rocket, Activity, Play, Minus, Square, X } from 'lucide-react';
+import { Zap, TrendingUp, Settings as SettingsIcon, DollarSign, Code, BrainCircuit, Bitcoin, Lightbulb, FolderPlus, Rocket, Activity, Play, Minus, Square, X } from '@/components/Icons/icons';
 import { useLLMOptimizerStore } from '@/services/ai/llmOptimizerStore';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { useFinancialStore } from '@/services/backoffice/financialStore';

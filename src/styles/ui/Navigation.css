@@ -1,4 +1,9 @@
-/* Enhanced Tab Navigation Styles */
+/**
+ * Navigation Component Styles - Clean Modern Design
+ * Updated: 2025-11-14
+ */
+
+/* Tab Navigation Container */
 .tab-selector {
   display: flex;
   gap: var(--spacing-2);
@@ -10,7 +15,7 @@
   overflow-y: hidden;
   scroll-behavior: smooth;
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.5) transparent;
+  scrollbar-color: var(--clean-accent-primary, rgba(139, 92, 246, 0.4)) transparent;
   width: 100%;
   min-width: 0;
 }
@@ -29,28 +34,29 @@
 }
 
 .tab-selector::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.5);
+  background: var(--clean-accent-primary, rgba(139, 92, 246, 0.4));
   border-radius: var(--radius-full);
 }
 
 .tab-selector::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.7);
+  background: var(--clean-accent-primary-hover, rgba(139, 92, 246, 0.6));
 }
 
+/* Tab Button */
 .tab-btn-large {
   position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-md);
-  color: var(--color-text-secondary);
+  background: var(--clean-bg-elevated, var(--color-bg-tertiary));
+  border: 1px solid var(--clean-border-default, var(--color-border-primary));
+  border-radius: var(--radius-base);
+  color: var(--clean-text-secondary, var(--color-text-secondary));
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: all var(--clean-transition-base, var(--transition-base));
   outline: none;
   white-space: nowrap;
   flex-shrink: 0;
@@ -58,38 +64,40 @@
 }
 
 .tab-btn-large:focus-visible {
-  outline: 2px solid var(--color-border-focus);
+  outline: 2px solid var(--clean-accent-primary, var(--color-border-focus));
   outline-offset: 2px;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  box-shadow: var(--clean-glow-focus, 0 0 0 3px rgba(139, 124, 232, 0.2));
 }
 
 .tab-btn-large:hover {
-  background: var(--color-bg-elevated);
-  border-color: var(--color-primary-500);
-  color: var(--color-text-primary);
-  transform: translateY(-2px);
+  background: var(--clean-bg-hover, var(--color-bg-elevated));
+  border-color: var(--clean-accent-primary, var(--color-primary-500));
+  color: var(--clean-text-primary, var(--color-text-primary));
+  transform: translateY(-1px);
 }
 
 .tab-btn-large.active {
-  background: var(--gradient-primary);
-  border-color: var(--color-primary-500);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-glow-primary);
+  background: var(--clean-accent-primary, var(--color-primary-500));
+  border-color: var(--clean-accent-primary, var(--color-primary-500));
+  color: white;
+  box-shadow: var(--clean-shadow-sm, var(--shadow-sm));
 }
 
-.tab-btn-large.active:focus-visible {
-  box-shadow: var(--shadow-glow-primary-lg), 0 0 0 3px rgba(139, 92, 246, 0.2);
+.tab-btn-large.active:hover {
+  background: var(--clean-accent-primary-hover, var(--color-primary-600));
+  box-shadow: var(--clean-shadow-md, var(--shadow-md));
 }
 
+/* Shortcut Hint */
 .tab-shortcut-hint {
   font-size: var(--font-size-xs);
   opacity: 0.6;
   margin-left: auto;
   padding: var(--spacing-1) var(--spacing-2);
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: var(--radius-sm);
   font-family: var(--font-family-mono);
-  transition: var(--transition-opacity);
+  transition: opacity var(--clean-transition-fast, 150ms);
 }
 
 .tab-btn-large:hover .tab-shortcut-hint {
@@ -97,57 +105,121 @@
 }
 
 .tab-btn-large.active .tab-shortcut-hint {
-  opacity: 0.8;
-  background: rgba(255, 255, 255, 0.2);
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.15);
 }
 
-/* Keyboard navigation indicator */
-.tab-btn-large[aria-selected="true"]::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 2px;
-  background: var(--color-primary-500);
-  border-radius: var(--radius-full);
+/* Icon Styling */
+.tab-btn-large svg {
+  flex-shrink: 0;
+  transition: transform var(--clean-transition-fast, 150ms);
 }
 
-/* Responsive tab navigation */
+.tab-btn-large:hover svg {
+  transform: scale(1.1);
+}
+
+/* Compact Tabs */
+.tab-btn-compact {
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+}
+
+/* Vertical Navigation */
+.nav-vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.nav-vertical .tab-btn-large {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-base);
+  color: var(--clean-text-secondary, var(--text-secondary));
+  text-decoration: none;
+  transition: all var(--clean-transition-base, var(--transition-base));
+  cursor: pointer;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--clean-bg-elevated, var(--bg-secondary));
+  color: var(--clean-text-primary, var(--text-primary));
+}
+
+.sidebar-nav-item.active {
+  background: var(--clean-accent-primary, var(--accent-primary));
+  color: white;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--clean-text-secondary, var(--text-secondary));
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.breadcrumb-item a {
+  color: var(--clean-text-secondary, var(--text-secondary));
+  text-decoration: none;
+  transition: color var(--clean-transition-fast, 150ms);
+}
+
+.breadcrumb-item a:hover {
+  color: var(--clean-text-primary, var(--text-primary));
+}
+
+.breadcrumb-separator {
+  color: var(--clean-text-tertiary, var(--text-muted));
+}
+
+/* Accessibility: Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .tab-btn-large,
+  .sidebar-nav-item {
+    transition: none;
+  }
+  
+  .tab-btn-large:hover,
+  .tab-btn-large:hover svg {
+    transform: none;
+  }
+}
+
+/* Responsive: Mobile adjustments */
 @media (max-width: 768px) {
   .tab-selector {
-    overflow-x: auto;
-    justify-content: flex-start;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-primary-500) transparent;
+    gap: var(--spacing-1);
   }
-
-  .tab-selector::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  .tab-selector::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .tab-selector::-webkit-scrollbar-thumb {
-    background: var(--color-primary-500);
-    border-radius: var(--radius-full);
-  }
-
-  .tab-btn-large span:not(.tab-shortcut-hint) {
-    display: none;
-  }
-
+  
   .tab-btn-large {
-    min-width: 48px;
-    justify-content: center;
-    padding: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-xs);
   }
-
+  
   .tab-shortcut-hint {
-    display: none;
+    display: none; /* Hide shortcuts on mobile */
   }
 }
-

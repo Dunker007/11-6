@@ -4,6 +4,8 @@ import { useProjectStore } from '../../services/project/projectStore';
 import ActivityItem from './ActivityItem';
 import { errorLogger } from '../../services/errors/errorLogger';
 import { measureRender } from '../../utils/performance';
+import { useVirtualScroll } from '@/utils/hooks/usePerformance';
+import { SkeletonActivityItem } from '@/components/ui';
 import TechIcon from '../Icons/TechIcon';
 import { Filter } from 'lucide-react';
 import '../../styles/ActivityFeed.css';
@@ -20,6 +22,7 @@ const ActivityFeed = memo(() => {
     'all'
   );
   const [errorCount, setErrorCount] = React.useState(0);
+  const [isInitialLoad, setIsInitialLoad] = React.useState(true);
 
   React.useEffect(() => {
     const updateErrorCount = () => {
@@ -33,6 +36,13 @@ const ActivityFeed = memo(() => {
     );
     return unsubscribe;
   }, []);
+
+  // Simulate initial load state for better UX
+  React.useEffect(() => {
+    if (activities.length > 0 && isInitialLoad) {
+      setIsInitialLoad(false);
+    }
+  }, [activities.length, isInitialLoad]);
 
   const filteredActivities = useMemo(() => {
     return measureRender(
@@ -67,6 +77,15 @@ const ActivityFeed = memo(() => {
     setFilterMode(mode);
   }, []);
 
+  // Virtual scrolling for large lists
+  const ITEM_HEIGHT = 70; // Approximate height of ActivityItem
+  const CONTAINER_HEIGHT = 600; // Maximum container height
+  const { visibleItems, totalHeight, offsetY, handleScroll } = useVirtualScroll(
+    filteredActivities,
+    ITEM_HEIGHT,
+    CONTAINER_HEIGHT
+  );
+
   return (
     <div className="activity-feed-container redesigned">
       <div className="feed-header">
@@ -97,11 +116,26 @@ const ActivityFeed = memo(() => {
           </button>
         </div>
       </div>
-      <div className="feed-list">
-        {filteredActivities.length > 0 ? (
-          filteredActivities.map((activity) => (
-            <ActivityItem key={activity.id} activity={activity} />
-          ))
+      <div 
+        className="feed-list" 
+        onScroll={handleScroll}
+        style={{ maxHeight: `${CONTAINER_HEIGHT}px`, overflow: 'auto' }}
+      >
+        {isInitialLoad && activities.length === 0 ? (
+          // Show skeleton while loading initial data
+          <>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <SkeletonActivityItem key={index} />
+            ))}
+          </>
+        ) : filteredActivities.length > 0 ? (
+          <div style={{ height: `${totalHeight}px`, position: 'relative' }}>
+            <div style={{ transform: `translateY(${offsetY}px)` }}>
+              {visibleItems.map(({ item: activity }) => (
+                <ActivityItem key={activity.id} activity={activity} />
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="empty-feed">
             <TechIcon icon={Filter} size={32} />
