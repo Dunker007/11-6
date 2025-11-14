@@ -17,7 +17,7 @@ interface ConsolePanelProps {
 
 type FilterType = 'all' | 'errors' | 'warnings';
 
-export default function ConsolePanel({ output, isVisible = false, onToggle, onClear }: ConsolePanelProps) {
+export default function ConsolePanel({ output, isVisible = false, onToggle, onClear: _onClear }: ConsolePanelProps) {
   const [isExpanded, setIsExpanded] = useState(isVisible);
   const [geminiStatus, setGeminiStatus] = useState<'active' | 'unavailable' | 'checking'>('checking');
   const [filter, setFilter] = useState<FilterType>('all');
@@ -131,6 +131,8 @@ export default function ConsolePanel({ output, isVisible = false, onToggle, onCl
 
   const filteredOutput = formatOutput(output);
 
+  const handleClear = _onClear || (() => {});
+
   return (
     <div className={`console-panel ${isExpanded ? 'expanded' : ''}`}>
       <div className="console-header" onClick={handleToggle}>
@@ -211,7 +213,7 @@ export default function ConsolePanel({ output, isVisible = false, onToggle, onCl
                     📋 Copy
                   </button>
                   <button
-                    onClick={handleClear}
+                    onClick={() => handleClear()}
                     className="console-clear-btn"
                     title="Clear console"
                   >

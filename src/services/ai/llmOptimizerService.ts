@@ -17,6 +17,7 @@ import type {
   DriverInfo,
   StorageDriversStatus,
 } from '@/types/optimizer';
+import type { Systeminformation } from 'systeminformation';
 
 const DEFAULT_BENCHMARK_PROMPT =
   'Respond with a short confirmation message that says "Benchmark OK". This is a latency measurement request.';
@@ -276,6 +277,7 @@ const USE_CASE_PRIORITIES: Record<LLMUseCase, string[]> = {
   'creative-writing': ['creative', 'chat'],
   'fine-tuning': ['code', 'balanced'],
   multimodal: ['multimodal', 'long-context'],
+  reasoning: ['reasoning', 'thinking'],
 };
 
 function getOperatingSystem(): string | null {
@@ -288,6 +290,22 @@ function getOperatingSystem(): string | null {
   if (/Android/.test(ua)) return 'Android';
   if (/iPhone|iPad/.test(ua)) return 'iOS';
   return null;
+}
+
+interface GPUAdapter {
+  name?: string;
+  features?: { has: (feature: string) => boolean };
+  requestAdapterInfo?: () => Promise<{ vendor: string; architecture: string }>;
+}
+
+interface ExtendedNavigator extends Navigator {
+  gpu?: {
+    requestAdapter: () => Promise<GPUAdapter | null>;
+  };
+  deviceMemory?: number;
+  userAgentData?: {
+    platform?: string;
+  };
 }
 
 async function detectGPUInfo(): Promise<{
@@ -303,7 +321,7 @@ async function detectGPUInfo(): Promise<{
       
       if (graphics && graphics.controllers && graphics.controllers.length > 0) {
         // Find discrete GPU (prefer NVIDIA, AMD, or non-Intel)
-        let discreteGPU = graphics.controllers.find((gpu: any) => {
+        let discreteGPU = graphics.controllers.find((gpu: Systeminformation.GraphicsControllerData) => {
           const vendor = (gpu.vendor || '').toLowerCase();
           const model = (gpu.model || '').toLowerCase();
           // Check for discrete GPU vendors
@@ -352,10 +370,11 @@ async function detectGPUInfo(): Promise<{
   }
 
   try {
-    if ('gpu' in navigator && typeof (navigator as any).gpu?.requestAdapter === 'function') {
-      const adapter = await (navigator as any).gpu.requestAdapter() as any;
+    const extendedNavigator = navigator as ExtendedNavigator;
+    if (extendedNavigator.gpu && typeof extendedNavigator.gpu.requestAdapter === 'function') {
+      const adapter: GPUAdapter | null = await extendedNavigator.gpu.requestAdapter();
       if (adapter) {
-        const name = (adapter as any).name || null;
+        const name = adapter.name || null;
         const info = await adapter.requestAdapterInfo?.();
         const vendor = info?.vendor || '';
         const architecture = info?.architecture || '';
@@ -479,7 +498,7 @@ export async function detectHardwareProfile(): Promise<HardwareProfile> {
 
   const deviceMemory =
     typeof navigator !== 'undefined' && 'deviceMemory' in navigator
-      ? Number((navigator as any).deviceMemory) || null
+      ? Number((navigator as ExtendedNavigator).deviceMemory) || null
       : null;
 
   const gpuInfo = await detectGPUInfo();
@@ -487,7 +506,7 @@ export async function detectHardwareProfile(): Promise<HardwareProfile> {
 
   let cpuModel: string | null = null;
   if (typeof navigator !== 'undefined' && 'userAgentData' in navigator) {
-    const uaData = (navigator as any).userAgentData;
+    const uaData = (navigator as ExtendedNavigator).userAgentData;
     cpuModel = uaData?.platform ?? null;
   }
   if (!cpuModel && typeof navigator !== 'undefined') {
@@ -761,7 +780,7 @@ export async function runBenchmark(request: BenchmarkRequest): Promise<Benchmark
       try {
         // Set preferred provider temporarily for this benchmark
         const originalPreferred = llmRouter.getPreferredProvider();
-        llmRouter.setPreferredProvider(entry.provider as any);
+        llmRouter.setPreferredProvider(entry.provider as 'ollama' | 'lmstudio' | 'gemini');
         
         const response = await provider.generate(prompt, {
           model: actualModelId,

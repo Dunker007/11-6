@@ -1,0 +1,141 @@
+.testing-center {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  color: var(--text-primary);
+}
+
+.testing-center-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+.testing-center-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.test-dashboard {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+.test-progress h3,
+.upcoming-tests h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.progress-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.progress-item {
+  display: grid;
+  grid-template-columns: 120px 1fr 80px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar {
+  height: 10px;
+  background-color: var(--bg-secondary);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: 5px;
+  transition: width 0.3s ease-in-out;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.upcoming-tests ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.upcoming-tests li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.test-output {
+  margin-top: 1rem;
+}
+
+.output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.output-header h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--border-radius-full);
+  font-size: 0.85rem;
+}
+
+.status-badge.idle {
+  background-color: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.status-badge.running {
+  background-color: var(--accent-secondary-transparent);
+  color: var(--accent-secondary);
+}
+
+.status-badge.completed {
+  background-color: var(--success-transparent);
+  color: var(--success);
+}
+
+.status-badge.error {
+  background-color: var(--error-transparent);
+  color: var(--error);
+}
+
+.output-console {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 1rem;
+  min-height: 200px;
+  max-height: 500px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

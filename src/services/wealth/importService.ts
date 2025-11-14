@@ -10,8 +10,7 @@
  */
 
 import { wealthService } from './wealthService';
-import { transactionImportService } from './transactionImportService';
-import type { Transaction, Asset, Account } from '@/types/wealth';
+import type { Transaction, Asset } from '@/types/wealth';
 
 export type ImportSource = 'csv' | 'mint' | 'personal_capital' | 'broker_statement' | 'crypto_exchange';
 
@@ -197,8 +196,8 @@ class ImportService {
           id: crypto.randomUUID(),
           type: type.includes('credit') || amount > 0 ? 'income' : 'expense',
           amount: Math.abs(amount),
-          date,
-          category: this.mapMintCategory(category),
+          date: date || new Date(),
+          category: this.mapMintCategory(category) as 'food' | 'shopping' | 'transportation' | 'utilities' | 'entertainment' | 'travel' | 'healthcare' | 'education' | 'personal_care' | 'gifts' | 'investments' | 'savings' | 'other',
           accountId,
           description,
         };
@@ -301,7 +300,7 @@ class ImportService {
   /**
    * Import from broker statement (PDF)
    */
-  private async importFromBrokerStatement(file: File): Promise<ImportResult> {
+  private async importFromBrokerStatement(_file: File): Promise<ImportResult> {
     // PDF parsing would require a library like pdf-parse
     // For now, return error suggesting CSV export
     return {
@@ -440,7 +439,7 @@ class ImportService {
         type: amount > 0 ? 'income' : 'expense',
         amount: Math.abs(amount),
         date,
-        category: this.mapCategory(category),
+        category: this.mapCategory(category) as 'food' | 'shopping' | 'transportation' | 'utilities' | 'entertainment' | 'travel' | 'healthcare' | 'education' | 'personal_care' | 'gifts' | 'investments' | 'savings' | 'other',
         accountId,
         description,
       };

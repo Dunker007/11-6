@@ -73,15 +73,16 @@
  */
 import electron from 'electron';
 const { app, BrowserWindow, ipcMain, dialog, screen, Menu, shell } = electron;
-import updaterPkg from 'electron-updater';
-const { autoUpdater } = updaterPkg;
+// import updaterPkg from 'electron-updater';
+// const { autoUpdater } = updaterPkg; // Commented out - causes issues in dev mode
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
 import { exec, spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
 import os from 'os';
+import crypto from 'crypto';
 
 const execAsync = promisify(exec);
 
@@ -970,34 +971,30 @@ ipcMain.handle('fs:listDrives', async () => {
   }
 });
 
-async function calculateDirectorySize(dirPath: string): Promise<number> {
-  let totalSize = 0;
-  try {
-    const entries = await fs.readdir(dirPath, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(dirPath, entry.name);
-      try {
-        if (entry.isDirectory()) {
-          totalSize += await calculateDirectorySize(fullPath);
-        } else {
-          const stats = await fs.stat(fullPath);
-          totalSize += stats.size;
-        }
-      } catch {
-        // Skip files we can't access
-        continue;
-      }
+/**
+ * Recursively gets the size of a directory.
+ * @param directoryPath The path to the directory.
+ * @returns The total size in bytes.
+ */
+function getDirectorySize(directoryPath: string): number {
+  let size = 0;
+  const files = readdirSync(directoryPath);
+  for (const file of files) {
+    const filePath = path.join(directoryPath, file);
+    const stats = statSync(filePath);
+    if (stats.isFile()) {
+      size += stats.size;
+    } else if (stats.isDirectory()) {
+      size += getDirectorySize(filePath);
     }
-  } catch {
-    // Skip directories we can't access
   }
-  return totalSize;
+  return size;
 }
 
 ipcMain.handle('fs:getDirectorySize', async (_event, dirPath: string) => {
   try {
     const normalizedPath = path.normalize(dirPath);
-    const size = await calculateDirectorySize(normalizedPath);
+    const size = getDirectorySize(normalizedPath);
     return { success: true, size };
   } catch (error) {
     return { success: false, error: (error as Error).message, size: 0 };

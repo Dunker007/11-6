@@ -1,31 +1,9 @@
 import { apiKeyService } from '@/services/apiKeys/apiKeyService';
+import type { Notebook, Source, NotebookDocument } from '@/types/notebooklm';
+import { fileSystemService } from '../filesystem/fileSystemService';
 
-export interface NotebookDocument {
-  id: string;
-  title: string;
-  content: string;
-  uploadedAt: Date;
-  sourceUrl?: string;
-  tags: string[];
-}
-
-export interface Notebook {
-  id: string;
-  name: string;
-  documents: NotebookDocument[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface NotebookResponse {
-  text: string;
-  sources: string[];
-  citations: Array<{
-    documentId: string;
-    excerpt: string;
-    page?: number;
-  }>;
-}
+const IGNORED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webp', '.pdf', '.zip', '.gz', '.tar', '.lock'];
+const MAX_FILE_SIZE_BYTES = 1024 * 1024; // 1MB
 
 /**
  * NotebookLM Service
@@ -36,9 +14,11 @@ export class NotebookLMService {
   private static instance: NotebookLMService;
   private notebooks: Map<string, Notebook> = new Map();
   private readonly STORAGE_KEY = 'dlx_notebooklm_notebooks';
+  private apiKey: string | null = null;
 
   private constructor() {
     this.loadNotebooks();
+    this.initialize();
   }
 
   static getInstance(): NotebookLMService {
@@ -76,13 +56,19 @@ export class NotebookLMService {
     }
   }
 
+  private async initialize() {
+    await apiKeyService.ensureInitialized();
+    this.apiKey = await apiKeyService.getKeyForProviderAsync('notebooklm');
+  }
+
   /**
    * Create a new notebook
    */
-  async createNotebook(name: string): Promise<Notebook> {
+  async createNotebook(name: string, description?: string): Promise<Notebook> {
     const notebook: Notebook = {
       id: crypto.randomUUID(),
       name,
+      description,
       documents: [],
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -122,31 +108,213 @@ export class NotebookLMService {
    */
   async uploadDocument(
     notebookId: string,
-    title: string,
-    content: string,
-    sourceUrl?: string,
-    tags: string[] = []
+    document: Omit<NotebookDocument, 'id' | 'uploadedAt'>
   ): Promise<NotebookDocument> {
     const notebook = this.notebooks.get(notebookId);
     if (!notebook) {
       throw new Error('Notebook not found');
     }
 
-    const document: NotebookDocument = {
-      id: crypto.randomUUID(),
-      title,
-      content,
+    // Check if a document with the same path or title already exists to prevent duplicates
+    const existingDocIndex = notebook.documents.findIndex(
+      (doc) => (doc.sourcePath && doc.sourcePath === document.sourcePath) || doc.title === document.title
+    );
+
+    const newDocument: NotebookDocument = {
+      id: existingDocIndex !== -1 ? notebook.documents[existingDocIndex].id : crypto.randomUUID(),
+      ...document,
       uploadedAt: new Date(),
-      sourceUrl,
-      tags,
     };
 
-    notebook.documents.push(document);
+    if (existingDocIndex !== -1) {
+      // Update existing document
+      notebook.documents[existingDocIndex] = newDocument;
+    } else {
+      // Add new document
+      notebook.documents.push(newDocument);
+    }
+
     notebook.updatedAt = new Date();
     this.notebooks.set(notebookId, notebook);
     this.saveNotebooks();
 
-    return document;
+    return newDocument;
+  }
+
+  async syncProjectFilesToNotebook(
+    notebookId: string,
+    projectRoot: string
+  ): Promise<{ added: number; updated: number; skipped: number }> {
+    const notebook = this.notebooks.get(notebookId);
+    if (!notebook) {
+      throw new Error('Notebook not found');
+    }
+
+    let stats = { added: 0, updated: 0, skipped: 0 };
+    
+    // Recursively get all files in the project
+    const getAllFiles = async (dir: string): Promise<string[]> => {
+      const result = await fileSystemService.readdir(dir);
+      if (!result.success || !result.data) return [];
+      
+      const files: string[] = [];
+      for (const entry of result.data) {
+        if (entry.isDirectory) {
+          files.push(...await getAllFiles(entry.path));
+        } else {
+          files.push(entry.path);
+        }
+      }
+      return files;
+    };
+
+    const files = await getAllFiles(projectRoot);
+
+    const processFile = async (filePath: string) => {
+      const extension = filePath.substring(filePath.lastIndexOf('.'));
+      if (IGNORED_EXTENSIONS.includes(extension)) {
+        stats.skipped++;
+        return;
+      }
+
+      try {
+        const fileContentResult = await fileSystemService.readFile(filePath);
+        if (!fileContentResult.success || !fileContentResult.data) {
+          stats.skipped++;
+          return;
+        }
+        
+        const fileContent = fileContentResult.data;
+        if (fileContent.length > MAX_FILE_SIZE_BYTES) {
+          stats.skipped++;
+          return;
+        }
+
+        const existingDoc = notebook.documents.find(
+          (doc) => doc.sourcePath === filePath
+        );
+
+        if (existingDoc && existingDoc.content === fileContent) {
+          // Content is unchanged, skip
+          return;
+        }
+
+        await this.uploadDocument(notebookId, {
+          title: filePath.replace(projectRoot, ''),
+          content: fileContent,
+          sourcePath: filePath,
+          tags: ['project-file'],
+        });
+
+        if (existingDoc) {
+          stats.updated++;
+        } else {
+          stats.added++;
+        }
+      } catch (error) {
+        console.error(`Failed to process file ${filePath}:`, error);
+        stats.skipped++;
+      }
+    };
+
+    // Using a sequential loop to avoid overwhelming the system
+    for (const file of files) {
+      await processFile(file);
+    }
+
+    return stats;
+  }
+
+  async answerProjectQuestion(
+    projectId: string,
+    projectName: string,
+    projectRoot: string,
+    question: string
+  ): Promise<any> {
+    // Find or create a dedicated notebook for this project
+    let projectNotebook = Array.from(this.notebooks.values()).find(
+      (n) => n.projectId === projectId
+    );
+
+    if (!projectNotebook) {
+      projectNotebook = await this.createNotebook(
+        `Project Context: ${projectName}`,
+        `This notebook contains the source code for the '${projectName}' project.`
+      );
+      projectNotebook.projectId = projectId;
+      this.notebooks.set(projectNotebook.id, projectNotebook);
+      this.saveNotebooks();
+    }
+
+    // Sync project files to the notebook
+    // In a real application, you might do this in the background or only if changes are detected.
+    await this.syncProjectFilesToNotebook(projectNotebook.id, projectRoot);
+
+    // Now, query the notebook with the user's question
+    return this.queryNotebook(projectNotebook.id, question);
+  }
+
+  /**
+   * List all available notebooks from the NotebookLM API.
+   * NOTE: This is a mocked implementation.
+   */
+  async listNotebooks(): Promise<Notebook[]> {
+    if (!this.apiKey) {
+      // Return local notebooks if API key is not available
+      return this.getNotebooks();
+    }
+
+    // MOCK IMPLEMENTATION
+    console.log('Fetching notebooks from NotebookLM API...');
+    await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+    
+    const mockNotebooks: Notebook[] = [
+      { id: 'notebook-1', name: 'Project Titan Research', documents: [], createdAt: new Date(), updatedAt: new Date() },
+      { id: 'notebook-2', name: 'Q3 Marketing Strategy', documents: [], createdAt: new Date(), updatedAt: new Date() },
+      { id: 'notebook-3', name: 'Competitor Analysis', documents: [], createdAt: new Date(), updatedAt: new Date() },
+    ];
+
+    // Merge with local notebooks
+    mockNotebooks.forEach(nb => {
+      if (!this.notebooks.has(nb.id)) {
+        this.notebooks.set(nb.id, nb);
+      }
+    });
+    this.saveNotebooks();
+    
+    return Array.from(this.notebooks.values());
+  }
+
+  /**
+   * List all sources for a given notebook from the NotebookLM API.
+   * NOTE: This is a mocked implementation.
+   */
+  async listSources(notebookId: string): Promise<Source[]> {
+    if (!this.apiKey) {
+      throw new Error('NotebookLM API key not configured.');
+    }
+    
+    console.log(`Fetching sources for notebook ${notebookId}...`);
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+    
+    // MOCK IMPLEMENTATION
+    const mockSources: { [key: string]: Source[] } = {
+      'notebook-1': [
+        { id: 'source-1-1', displayName: 'Titan Architecture Spec.pdf', type: 'file' },
+        { id: 'source-1-2', displayName: 'User Interview Notes.gdoc', type: 'google_doc' },
+        { id: 'source-1-3', displayName: 'Market Research Report.pdf', type: 'file' },
+      ],
+      'notebook-2': [
+        { id: 'source-2-1', displayName: 'Campaign Brief.gdoc', type: 'google_doc' },
+        { id: 'source-2-2', displayName: 'Social Media Analytics.url', type: 'url' },
+      ],
+      'notebook-3': [
+        { id: 'source-3-1', displayName: 'Competitor X Website Analysis.pdf', type: 'file' },
+        { id: 'source-3-2', displayName: 'Competitor Y Funding News.url', type: 'url' },
+      ],
+    };
+
+    return mockSources[notebookId] || [];
   }
 
   /**
@@ -156,7 +324,7 @@ export class NotebookLMService {
   async queryNotebook(
     notebookId: string,
     question: string
-  ): Promise<NotebookResponse> {
+  ): Promise<any> { // Changed NotebookResponse to any as it's no longer defined locally
     const notebook = this.notebooks.get(notebookId);
     if (!notebook) {
       throw new Error('Notebook not found');

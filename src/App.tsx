@@ -67,6 +67,7 @@ import UpdateNotification from './components/System/UpdateNotification';
 import WindowControls from './components/System/WindowControls';
 import ItorToolbar from './components/Agents/ItorToolbar';
 import InsightsStream from './components/Agents/InsightsStream';
+import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
 import { ToastProvider } from './components/ui';
 import { errorLogger } from './services/errors/errorLogger';
 import { useProjectStore } from './services/project/projectStore';
@@ -94,8 +95,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     this.state = { hasError: false, error: null, errorCount: 0 };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error, errorCount: 0 };
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -104,9 +105,13 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // Log to error capture system
     errorLogger.logFromError('react', error, 'critical', {
       componentStack: errorInfo.componentStack ?? undefined,
-      activeFile:
-        useProjectStore.getState().activeProject?.activeFile ?? undefined,
+      activeFile: useProjectStore.getState().activeFile ?? undefined,
     });
+
+    // Increment error count to track consecutive errors
+    this.setState((prevState) => ({
+      errorCount: prevState.errorCount + 1,
+    }));
   }
 
   handleRetry = () => {
@@ -351,13 +356,24 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
 function App() {
   const [showInsights, setShowInsights] = React.useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = React.useState(false);
 
   React.useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      const target = e.target as HTMLElement;
+      const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
       // Ctrl+Shift+I to toggle insights stream
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
         e.preventDefault();
         setShowInsights(prev => !prev);
+      }
+
+      // ? to show keyboard shortcuts (only when not typing)
+      if (!isTyping && e.key === '?' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setShowKeyboardHelp(true);
       }
     };
 
@@ -368,7 +384,7 @@ function App() {
   return (
     <ToastProvider>
       <ErrorBoundary>
-        <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative', background: 'var(--bg-primary-gradient)' }}>
+        <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
           <div className="title-bar-draggable">
             <WindowControls />
           </div>
@@ -394,6 +410,10 @@ function App() {
               />
             </div>
           )}
+          <KeyboardShortcutsHelp
+            isOpen={showKeyboardHelp}
+            onClose={() => setShowKeyboardHelp(false)}
+          />
         </div>
       </ErrorBoundary>
     </ToastProvider>

@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -42,6 +43,12 @@ export default defineConfig({
     hmr: {
       overlay: true,
     },
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Surrogate-Control': 'no-store',
+    },
   },
       build: {
         outDir: 'dist',
@@ -77,17 +84,62 @@ export default defineConfig({
           },
           output: {
             manualChunks: (id) => {
-              // Monaco Editor (large dependency)
+              // Monaco Editor (large dependency - ~2MB)
               if (id.includes('node_modules/monaco-editor') || id.includes('node_modules/@monaco-editor')) {
                 return 'monaco-vendor';
               }
-              // Lucide icons
+              // Lucide icons (moderate size)
               if (id.includes('node_modules/lucide-react')) {
                 return 'icons-vendor';
               }
-              // All other node_modules INCLUDING React - keep React in vendor for proper loading
+              // React and React DOM (core framework)
+              if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+                return 'react-vendor';
+              }
+              // Zustand (state management)
+              if (id.includes('node_modules/zustand')) {
+                return 'zustand-vendor';
+              }
+              // Google AI SDK (large)
+              if (id.includes('node_modules/@google/generative-ai')) {
+                return 'google-ai-vendor';
+              }
+              // Transformers.js (large ML library)
+              if (id.includes('node_modules/@xenova/transformers')) {
+                return 'transformers-vendor';
+              }
+              // LanceDB (large database library)
+              if (id.includes('node_modules/@lancedb')) {
+                return 'lancedb-vendor';
+              }
+              // Octokit (GitHub API)
+              if (id.includes('node_modules/@octokit')) {
+                return 'github-vendor';
+              }
+              // React Grid Layout
+              if (id.includes('node_modules/react-grid-layout')) {
+                return 'grid-layout-vendor';
+              }
+              // React Markdown
+              if (id.includes('node_modules/react-markdown')) {
+                return 'markdown-vendor';
+              }
+              // All other node_modules
               if (id.includes('node_modules')) {
                 return 'vendor';
+              }
+              // Split large service files
+              if (id.includes('/services/ai/router')) {
+                return 'router-service';
+              }
+              if (id.includes('/services/ai/providers')) {
+                return 'providers-service';
+              }
+              if (id.includes('/components/VibeEditor')) {
+                return 'vibe-editor';
+              }
+              if (id.includes('/components/LLMOptimizer')) {
+                return 'llm-optimizer';
               }
             },
           },

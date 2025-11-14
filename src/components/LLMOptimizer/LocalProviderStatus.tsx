@@ -3,7 +3,7 @@ import { useLLMStore } from '@/services/ai/llmStore';
 import { RefreshCw, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import '@/styles/LocalProviderStatus.css';
 
-const LocalProviderStatus: React.FC = () => {
+const LocalProviderStatus: React.FC = React.memo(() => {
   const localProviders = useLLMStore((state) => state.localProviders);
   const discoverLocalProviders = useLLMStore((state) => state.discoverLocalProviders);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -78,7 +78,9 @@ const LocalProviderStatus: React.FC = () => {
       )}
     </div>
   );
-};
+});
+
+LocalProviderStatus.displayName = 'LocalProviderStatus';
 
 export default LocalProviderStatus;
 

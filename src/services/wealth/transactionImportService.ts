@@ -10,6 +10,7 @@
 import { wealthService } from './wealthService';
 import { accountAggregationService } from './accountAggregationService';
 import type { Transaction, BudgetCategory, TransactionRule, Merchant } from '@/types/wealth';
+import { logger } from '../logging/loggerService';
 
 export interface ImportedTransaction {
   id?: string;
@@ -66,7 +67,7 @@ class TransactionImportService {
         });
       }
     } catch (error) {
-      console.error('Failed to load merchants:', error);
+      logger.error('Failed to load merchants', { error });
     }
   }
 
@@ -80,7 +81,7 @@ class TransactionImportService {
         this.rules = JSON.parse(stored);
       }
     } catch (error) {
-      console.error('Failed to load transaction rules:', error);
+      logger.error('Failed to load transaction rules', { error });
     }
   }
 
@@ -91,7 +92,7 @@ class TransactionImportService {
     try {
       localStorage.setItem('wealth_merchants', JSON.stringify(Array.from(this.merchants.values())));
     } catch (error) {
-      console.error('Failed to save merchants:', error);
+      logger.error('Failed to save merchants', { error });
     }
   }
 
@@ -102,14 +103,14 @@ class TransactionImportService {
     try {
       localStorage.setItem('wealth_transaction_rules', JSON.stringify(this.rules));
     } catch (error) {
-      console.error('Failed to save rules:', error);
+      logger.error('Failed to save rules', { error });
     }
   }
 
   /**
    * Import transactions from a connected account
    */
-  async importFromAccount(connectionId: string, startDate?: Date, endDate?: Date): Promise<ImportResult> {
+  async importFromAccount(connectionId: string, _startDate?: Date, _endDate?: Date): Promise<ImportResult> {
     const connection = accountAggregationService.getConnection(connectionId);
     if (!connection) {
       throw new Error(`Connection not found: ${connectionId}`);
@@ -131,14 +132,20 @@ class TransactionImportService {
    * Transform provider transaction to our format
    */
   private transformTransaction(
-    rawTx: any,
+    rawTx: unknown,
     accountId: string
   ): ImportedTransaction {
+    if (typeof rawTx !== 'object' || rawTx === null) {
+      throw new Error('Invalid raw transaction data');
+    }
+
+    const tx = rawTx as Record<string, unknown>;
+
     return {
-      date: new Date(rawTx.date),
-      amount: rawTx.amount || 0,
-      description: rawTx.description || rawTx.name || '',
-      merchant: rawTx.merchant || rawTx.name,
+      date: new Date(tx.date as string),
+      amount: typeof tx.amount === 'number' ? tx.amount : 0,
+      description: (typeof tx.description === 'string' ? tx.description : '') || (typeof tx.name === 'string' ? tx.name : ''),
+      merchant: (typeof tx.merchant === 'string' ? tx.merchant : '') || (typeof tx.name === 'string' ? tx.name : ''),
       accountId,
       category: undefined, // Will be categorized
     };
@@ -213,7 +220,7 @@ class TransactionImportService {
         result.imported++;
         result.transactions.push(tx);
       } catch (error) {
-        console.error('Error processing transaction:', error);
+        logger.error('Error processing transaction', { tx, error });
         result.errors++;
       }
     }
@@ -470,7 +477,7 @@ class TransactionImportService {
       nextExpected?: Date;
     }> = [];
 
-    groups.forEach((txs, key) => {
+    groups.forEach((txs, _key) => {
       if (txs.length < 3) return; // Need at least 3 occurrences
 
       // Sort by date

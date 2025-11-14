@@ -1,4 +1,7 @@
 import type { APIKey, APIProvider } from '../../types/apiKeys';
+import type { GeminiModelInfo } from '../../types/gemini';
+import { activityService } from '../activity/activityService';
+import { logger } from '../logging/loggerService';
 
 const STORAGE_KEY = 'dlx_api_keys';
 const ENCRYPTION_KEY_NAME = 'dlx_api_encryption_key';
@@ -59,7 +62,7 @@ async function encrypt(text: string): Promise<string> {
     // Persist IV alongside ciphertext so decryption can restore the nonce.
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
-    console.error('Encryption failed:', error);
+    logger.error('Encryption failed:', { error });
     throw new Error('Failed to encrypt data');
   }
 }
@@ -84,7 +87,7 @@ async function decrypt(encrypted: string): Promise<string> {
     const decoder = new TextDecoder();
     return decoder.decode(decrypted);
   } catch (error) {
-    console.error('Decryption failed:', error);
+    logger.error('Decryption failed:', { error });
     return '';
   }
 }
@@ -97,7 +100,7 @@ export class APIKeyService {
   private constructor() {
     // Initialize and track the promise
     this.initializationPromise = this.loadKeys().catch((error) => {
-      console.error('Failed to initialize API keys:', error);
+      logger.error('Failed to initialize API keys:', { error });
     });
   }
 
@@ -150,7 +153,7 @@ export class APIKeyService {
               
               return decrypted;
             } catch (error) {
-              console.error(`Failed to decrypt key ${key.id}:`, error);
+              logger.error(`Failed to decrypt key ${key.id}:`, { error });
               return null;
             }
           })
@@ -164,7 +167,7 @@ export class APIKeyService {
           });
       }
     } catch (error) {
-      console.error('Failed to load API keys:', error);
+      logger.error('Failed to load API keys:', { error });
       // Clear corrupted data
       try {
         localStorage.removeItem(STORAGE_KEY);
@@ -179,7 +182,7 @@ export class APIKeyService {
       // Encrypt all keys in parallel
       const encryptedKeys = await Promise.all(
         Array.from(this.keys.values()).map(async (key) => {
-          const saved: any = {
+          const saved: Partial<APIKey> & { key: string } = {
             ...key,
             key: await encrypt(key.key), // Encrypt before saving
           };
@@ -198,11 +201,11 @@ export class APIKeyService {
       );
       localStorage.setItem(STORAGE_KEY, JSON.stringify(encryptedKeys));
     } catch (error) {
-      console.error('Failed to save API keys:', error);
+      logger.error('Failed to save API keys:', { error });
     }
   }
 
-  async addKey(provider: APIProvider, key: string, name: string, metadata?: Record<string, any>): Promise<APIKey> {
+  async addKey(provider: APIProvider, key: string, name: string, metadata?: Record<string, unknown>): Promise<APIKey> {
     // Ensure initialization is complete before adding keys
     await this.ensureInitialized();
     
@@ -238,6 +241,14 @@ export class APIKeyService {
 
     this.keys.set(apiKey.id, apiKey);
     await this.saveKeys();
+
+    activityService.addActivity({
+      type: 'system',
+      action: 'API Key Added',
+      description: `Added API key for ${provider}`,
+    });
+    logger.info('API key added', { provider, keyId: apiKey.id });
+
     return apiKey;
   }
 
@@ -274,6 +285,12 @@ export class APIKeyService {
       return await this.validateGeminiKey(key);
     }
 
+    // Google Cloud validation
+    if (provider === 'googlecloud') {
+      // Keys are often not prefixed, so just check for decent length.
+      return key.length > 20;
+    }
+
     // In production, make actual API calls to validate
     // For now, just check format
     try {
@@ -287,8 +304,9 @@ export class APIKeyService {
         default:
           return key.length > 0;
       }
-    } catch {
-      return false;
+    } catch (error) {
+      logger.warn('Error during API key validation health check', { provider, error });
+      return false; // Assume invalid on error
     }
   }
 
@@ -319,7 +337,7 @@ export class APIKeyService {
       // Note: Tier detection is handled separately in detectGeminiTier()
       return true;
     } catch (error) {
-      console.error('Gemini key validation error:', error);
+      logger.error('Gemini key validation error:', { error });
       return false;
     }
   }
@@ -341,11 +359,11 @@ export class APIKeyService {
         return 'unknown';
       }
 
-      const data = await response.json();
+      const data: { models?: GeminiModelInfo[] } = await response.json();
       const models = data.models || [];
       
       // Check for Pro-tier models
-      const hasProModels = models.some((m: any) => 
+      const hasProModels = models.some((m: GeminiModelInfo) => 
         m.name?.includes('gemini-1.5-pro') || 
         m.name?.includes('gemini-ultra') ||
         m.name?.includes('gemini-2.0')
@@ -353,7 +371,7 @@ export class APIKeyService {
 
       // Check for advanced features (function calling, grounding)
       // Pro tier typically has access to more advanced features
-      const hasAdvancedFeatures = models.some((m: any) => 
+      const hasAdvancedFeatures = models.some((m: GeminiModelInfo) => 
         m.supportedGenerationMethods?.includes('generateContent') &&
         m.supportedGenerationMethods?.length > 1
       );
@@ -364,7 +382,7 @@ export class APIKeyService {
 
       return 'free';
     } catch (error) {
-      console.error('Gemini tier detection error:', error);
+      logger.error('Gemini tier detection error:', { error });
       return 'unknown';
     }
   }
@@ -393,6 +411,12 @@ export class APIKeyService {
     const deleted = this.keys.delete(id);
     if (deleted) {
       await this.saveKeys();
+      activityService.addActivity({
+        type: 'system',
+        action: 'API Key Deleted',
+        description: `Deleted API key ${id}`,
+      });
+      logger.info('API key deleted', { keyId: id });
     }
     return deleted;
   }
@@ -487,6 +511,12 @@ export class APIKeyService {
       }
       this.keys.set(keyId, key);
       await this.saveKeys();
+      activityService.addActivity({
+        type: 'system',
+        action: 'API Key Usage Recorded',
+        description: `Recorded usage for key ${key.id} for provider ${key.provider}`,
+      });
+      logger.info('API key usage recorded', { keyId: key.id, provider: key.provider });
     }
   }
 
@@ -498,7 +528,10 @@ export class APIKeyService {
   getKeyUsage(keyId: string): string[] {
     const key = this.keys.get(keyId);
     if (key?.metadata?.usedBy) {
-      return key.metadata.usedBy as string[];
+      const usedBy = key.metadata.usedBy;
+      if (Array.isArray(usedBy) && usedBy.every(item => typeof item === 'string')) {
+        return usedBy;
+      }
     }
     return [];
   }
@@ -508,6 +541,7 @@ export class APIKeyService {
     
     const key = this.getKeyForProvider(provider);
     if (!key && provider !== 'lmstudio' && provider !== 'ollama') {
+      logger.warn('Health check failed: No key available', { provider });
       return false;
     }
 
@@ -519,7 +553,8 @@ export class APIKeyService {
           headers: { 'Content-Type': 'application/json' },
         });
         return response.ok;
-      } catch {
+      } catch (error) {
+        logger.warn('Health check failed for lmstudio', { error });
         return false;
       }
     }
@@ -530,7 +565,8 @@ export class APIKeyService {
           method: 'GET',
         });
         return response.ok;
-      } catch {
+      } catch (error) {
+        logger.warn('Health check failed for ollama', { error });
         return false;
       }
     }
@@ -546,7 +582,8 @@ export class APIKeyService {
           },
         });
         return response.ok;
-      } catch {
+      } catch (error) {
+        logger.warn('Health check failed for gemini', { error });
         return false;
       }
     }
@@ -582,6 +619,27 @@ export class APIKeyService {
       };
       this.keys.set(id, key);
       await this.saveKeys();
+    }
+  }
+
+  // TODO: Integrate health checks into key validation
+  // @ts-expect-error - Function defined for future use
+  private async performHealthCheck(provider: APIProvider, key: string): Promise<boolean> {
+    logger.info(`Performing health check for ${provider}...`);
+    try {
+      switch (provider) {
+        case 'openai':
+          return key.startsWith('sk-') && key.length > 20;
+        case 'anthropic':
+          return key.startsWith('sk-ant-') && key.length > 20;
+        case 'notebooklm':
+          return key.length > 10; // Adjust based on actual format
+        default:
+          return true; // Assume valid for others
+      }
+    } catch (error) {
+      logger.warn(`Health check failed for ${provider}`, { error });
+      return false;
     }
   }
 }

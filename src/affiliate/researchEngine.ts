@@ -122,7 +122,7 @@ Format as JSON with contentIdeas array and metadata fields.
     try {
       const response = await aiServiceBridge.generateResponse(prompt);
       const opportunity = JSON.parse(
-        response.text.replace(/```json\n?|\n?|\n```/g, '')
+        response.text.replace(/```json\n?|\n?```/g, '')
       );
 
       return {

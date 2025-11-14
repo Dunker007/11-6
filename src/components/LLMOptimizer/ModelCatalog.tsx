@@ -75,7 +75,7 @@
  * - Custom model recommendations
  */
 import { useMemo, useState, memo, useCallback } from 'react';
-import { Filter, Info, Package, Search, Sparkles, ExternalLink, Download } from 'lucide-react';
+import { Filter, Info, Package, Search, Sparkles, ExternalLink, Download, Star } from 'lucide-react';
 import { useDebounce } from '@/utils/hooks/useDebounce';
 import { useToast } from '@/components/ui';
 import { useLLMStore } from '@/services/ai/llmStore';
@@ -105,7 +105,7 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { showToast } = useToast();
-  const { pullModel, pullingModels } = useLLMStore();
+  const { pullModel, pullingModels, toggleFavorite, isFavorite } = useLLMStore();
 
   /**
    * Launch the external download URL for a catalog entry and surface toast feedback.
@@ -167,7 +167,7 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
 
       const success = await measureAsync(
         `ModelCatalog.pullModel:${entry.id}`,
-        () => pullModel(entry.id, entry.pullCommand),
+        () => pullModel(entry.id, entry.pullCommand || ''),
         5000,
         { provider: entry.provider, sizeGB: entry.sizeGB }
       );
@@ -216,12 +216,20 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
               entry.family.toLowerCase().includes(needle) ||
               entry.tags.some((tag) => tag.toLowerCase().includes(needle))
             );
+          })
+          .sort((a, b) => {
+            // Sort favorites to the top
+            const aFav = isFavorite(a.id);
+            const bFav = isFavorite(b.id);
+            if (aFav && !bFav) return -1;
+            if (!aFav && bFav) return 1;
+            return 0; // Keep original order for non-favorites
           });
       },
       8,
       { totalEntries: entries?.length ?? 0, providerFilter, hasSearch: Boolean(debouncedSearchTerm) }
     );
-  }, [entries, providerFilter, debouncedSearchTerm]);
+  }, [entries, providerFilter, debouncedSearchTerm, isFavorite]);
 
   return (
     <div className="model-catalog-card">
@@ -281,7 +289,19 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
                   </span>
                 )}
               </div>
-              <span className="model-family">{entry.family}</span>
+              <div className="header-right">
+                <button
+                  className={`favorite-btn ${isFavorite(entry.id) ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(entry.id);
+                  }}
+                  title={isFavorite(entry.id) ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Star size={14} fill={isFavorite(entry.id) ? 'currentColor' : 'none'} />
+                </button>
+                <span className="model-family">{entry.family}</span>
+              </div>
             </div>
             <div className="catalog-card-body">
               <h4>{entry.displayName}</h4>

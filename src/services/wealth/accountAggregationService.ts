@@ -422,7 +422,7 @@ class AccountAggregationService {
   /**
    * Sync accounts from Schwab
    */
-  private async syncSchwabAccounts(connectionId: string): Promise<SyncResult> {
+  private async syncSchwabAccounts(_connectionId: string): Promise<SyncResult> {
     // Use existing schwabService
     try {
       const accounts = await schwabService.getAccounts();
@@ -523,13 +523,13 @@ class AccountAggregationService {
   }
 
   /**
-   * Store encrypted credentials securely
+   * Store encrypted credentials securely (reserved for future use)
    */
-  private async storeCredentials(_connectionId: string, _credentials: unknown): Promise<void> {
-    // In real implementation, would encrypt and store securely
-    // For now, just log (credentials should never be stored in plain text)
-    console.log('Storing encrypted credentials');
-  }
+  // private async _storeCredentials(_connectionId: string, _credentials: unknown): Promise<void> {
+  //   // In real implementation, would encrypt and store securely
+  //   // For now, just log (credentials should never be stored in plain text)
+  //   console.log('Storing encrypted credentials');
+  // }
 }
 
 export const accountAggregationService = AccountAggregationService.getInstance();

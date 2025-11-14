@@ -30,11 +30,11 @@ export interface GeminiFunctionDeclaration {
       type: string;
       description?: string;
       enum?: string[];
-      items?: any;
-      [key: string]: any;
+      items?: unknown;
+      [key: string]: unknown;
     }>;
     required?: string[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -44,12 +44,12 @@ export interface GeminiTool {
 
 export interface GeminiFunctionCall {
   name: string;
-  args?: Record<string, any>;
+  args?: Record<string, unknown>;
 }
 
 export interface GeminiFunctionResponse {
   name: string;
-  response: any;
+  response: unknown;
 }
 
 export interface GeminiContentPart {
@@ -117,8 +117,67 @@ export interface GeminiGenerationConfig {
   responseMimeType?: string;
   responseSchema?: {
     type: 'object';
-    properties?: Record<string, any>;
+    properties?: Record<string, unknown>;
     required?: string[];
   };
+}
+
+export interface GeminiRequestBody {
+  contents: GeminiContent[];
+  systemInstruction?: GeminiSystemInstruction;
+  tools?: GeminiTool[];
+  safetySettings?: GeminiSafetySetting[];
+  generationConfig?: GeminiGenerationConfig;
+  groundingConfig?: GeminiGroundingConfig;
+}
+
+export interface GeminiCandidate {
+  content: {
+    parts: GeminiContentPart[];
+  };
+  finishReason: 'STOP' | 'MAX_TOKENS' | 'SAFETY' | 'RECITATION' | 'OTHER';
+  safetyRatings: Array<{
+    category: GeminiSafetyCategory;
+    probability: 'NEGLIGIBLE' | 'LOW' | 'MEDIUM' | 'HIGH';
+  }>;
+}
+
+export interface GeminiResponseData {
+  candidates: GeminiCandidate[];
+  usageMetadata: {
+    promptTokenCount: number;
+    candidatesTokenCount: number;
+    totalTokenCount: number;
+  };
+  groundingMetadata?: {
+    groundingChunks?: Array<{
+      web?: {
+        uri?: string;
+        title?: string;
+      };
+    }>;
+  };
+}
+
+export interface GeminiModelInfo {
+  name: string;
+  supportedGenerationMethods: string[];
+}
+
+export interface GeminiErrorDetail {
+  '@type': string;
+  reason?: string;
+  metadata?: {
+    service?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+export interface GeminiError {
+  code: number;
+  message: string;
+  status: string;
+  details?: GeminiErrorDetail[];
 }
 

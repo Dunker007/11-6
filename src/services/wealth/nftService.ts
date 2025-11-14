@@ -21,6 +21,10 @@ interface OpenSeaCollection {
   total_supply?: number;
 }
 
+interface OpenSeaCollectionResponse {
+  collection?: OpenSeaCollection;
+}
+
 interface OpenSeaNFT {
   identifier: string;
   collection: string;
@@ -49,6 +53,32 @@ interface OpenSeaNFT {
   }>;
 }
 
+interface OpenSeaNFTResponse {
+  nft?: OpenSeaNFT;
+}
+
+interface OpenSeaAssetEvent {
+  event_type: string;
+  total_price?: string;
+  payment_token?: {
+    decimals: number;
+  };
+  seller?: { address: string };
+  from_account?: { address: string };
+  to_account?: { address: string };
+  winner_account?: { address: string };
+  transaction?: { transaction_hash: string };
+  event_timestamp?: string;
+  created_date?: string;
+}
+
+interface OpenSeaEventsResponse {
+  asset_events?: OpenSeaAssetEvent[];
+  events?: OpenSeaAssetEvent[];
+}
+
+type CachedData = OpenSeaNFT | number | OpenSeaCollection | OpenSeaAssetEvent[];
+
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
@@ -56,7 +86,7 @@ interface CacheEntry<T> {
 
 class NFTService {
   private static instance: NFTService;
-  private cache: Map<string, CacheEntry<any>> = new Map();
+  private cache: Map<string, CacheEntry<CachedData>> = new Map();
   private apiKey: string | null = null;
 
   private constructor() {
@@ -131,10 +161,12 @@ class NFTService {
         throw new Error(`OpenSea API error: ${response.status}`);
       }
 
-      const data = await response.json();
-      const nft: OpenSeaNFT = data.nft || data;
+      const data: OpenSeaNFTResponse = await response.json();
+      const nft: OpenSeaNFT | null = data.nft || (data as unknown as OpenSeaNFT) || null;
 
-      this.setCache(cacheKey, nft);
+      if (nft) {
+        this.setCache(cacheKey, nft);
+      }
       return nft;
     } catch (error) {
       console.error('Failed to fetch OpenSea NFT data:', error);
@@ -173,8 +205,8 @@ class NFTService {
         throw new Error(`OpenSea API error: ${response.status}`);
       }
 
-      const data = await response.json();
-      const floorPrice = data.collection?.floor_price || null;
+      const data: OpenSeaCollectionResponse = await response.json();
+      const floorPrice = data.collection?.floor_price ?? null;
 
       if (floorPrice !== null) {
         this.setCache(cacheKey, floorPrice);
@@ -220,10 +252,10 @@ class NFTService {
         throw new Error(`OpenSea API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: OpenSeaEventsResponse = await response.json();
       const events = data.asset_events || data.events || [];
 
-      return events.map((event: any) => {
+      return events.map((event: OpenSeaAssetEvent) => {
         const eventType = event.event_type || 'transfer';
         let type: 'mint' | 'purchase' | 'sale' | 'transfer' = 'transfer';
         
@@ -238,14 +270,14 @@ class NFTService {
           : undefined;
 
         return {
-          date: new Date(event.event_timestamp || event.created_date),
+          date: new Date(event.event_timestamp || event.created_date || Date.now()),
           type,
           price,
           from: event.from_account?.address,
           to: event.to_account?.address || event.winner_account?.address,
           transactionHash: event.transaction?.transaction_hash,
         };
-      }).sort((a: any, b: any) => b.date.getTime() - a.date.getTime());
+      }).sort((a, b) => b.date.getTime() - a.date.getTime());
     } catch (error) {
       console.error('Failed to fetch NFT transaction history:', error);
       return [];
@@ -257,13 +289,13 @@ class NFTService {
    */
   async updateNFTAsset(asset: NFTAsset): Promise<NFTAsset> {
     // Get floor price
-    const floorPrice = await this.getCollectionFloorPrice(asset.collectionName, asset.chain);
+    const floorPrice = await this.getCollectionFloorPrice(asset.collectionName, asset.chain === 'other' ? 'ethereum' : asset.chain);
     if (floorPrice !== null) {
       asset.currentFloorPrice = floorPrice;
     }
 
     // Get NFT details
-    const nftData = await this.getNFTData(asset.contractAddress, asset.tokenId, asset.chain);
+    const nftData = await this.getNFTData(asset.contractAddress, asset.tokenId, asset.chain === 'other' ? 'ethereum' : asset.chain);
     if (nftData) {
       if (nftData.name && !asset.name) {
         asset.name = nftData.name;
@@ -296,7 +328,7 @@ class NFTService {
     const transactions = await this.getTransactionHistory(
       asset.contractAddress,
       asset.tokenId,
-      asset.chain
+      asset.chain === 'other' ? 'ethereum' : asset.chain
     );
     if (transactions.length > 0) {
       asset.transactionHistory = transactions;
@@ -326,8 +358,8 @@ class NFTService {
       }
 
       const data = await response.json();
-      return (data.collections || []).map((col: any) => ({
-        collection: col.collection || col.slug,
+      return (data.collections || []).map((col: OpenSeaCollection) => ({
+        collection: col.collection,
         name: col.name,
         description: col.description,
         image_url: col.image_url,
@@ -354,7 +386,7 @@ class NFTService {
     return `${baseUrl}/${asset.contractAddress}/${asset.tokenId}`;
   }
 
-  private getCached<T>(key: string): T | null {
+  private getCached<T extends CachedData>(key: string): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
     
@@ -367,9 +399,9 @@ class NFTService {
     return entry.data as T;
   }
 
-  private setCache<T>(key: string, data: T): void {
+  private setCache<T extends CachedData>(key: string, data: T): void {
     this.cache.set(key, {
-      data,
+      data: data as CachedData,
       timestamp: Date.now(),
     });
   }

@@ -1,10 +1,10 @@
 declare global {
   interface Window {
     ipcRenderer: {
-      on(channel: string, listener: (event: any, ...args: any[]) => void): void;
-      off(channel: string, listener: (event: any, ...args: any[]) => void): void;
-      send(channel: string, ...args: any[]): void;
-      invoke(channel: string, ...args: any[]): Promise<any>;
+      on(channel: string, listener: (event: unknown, ...args: unknown[]) => void): void;
+      off(channel: string, listener: (event: unknown, ...args: unknown[]) => void): void;
+      send(channel: string, ...args: unknown[]): void;
+      invoke(channel: string, ...args: unknown[]): Promise<unknown>;
     };
     fileSystem: {
       readFile(path: string): Promise<{ success: boolean; content?: string; error?: string }>;
@@ -67,7 +67,7 @@ declare global {
       onError(callback: (executionId: string, error: { error: string }) => void): () => void;
     };
     updater: {
-      check(): Promise<{ success: boolean; error?: string; updateInfo?: any }>;
+      check(): Promise<{ success: boolean; error?: string; updateInfo?: unknown }>;
       install(): Promise<{ success: boolean; error?: string }>;
       onAvailable(callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void): () => void;
       onDownloaded(callback: (info: { version: string; releaseDate: string; releaseNotes?: string }) => void): () => void;
@@ -111,6 +111,7 @@ declare global {
 export interface FileSystemEntry {
   name: string;
   isDirectory: boolean;
+  isFile: boolean; // Convenience property (inverse of isDirectory)
   path: string;
 }
 

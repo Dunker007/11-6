@@ -5,7 +5,7 @@ import { wealthMarketDataService } from '@/services/wealth/marketDataService';
 import { useToast } from '@/components/ui';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 import type { Watchlist } from '@/types/wealth';
-import '../../styles/WealthLab.css';
+import '@/styles/WealthLab.css';
 
 function Watchlist() {
   const { showToast } = useToast();

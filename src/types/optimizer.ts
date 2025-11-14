@@ -73,7 +73,8 @@ export type LLMUseCase =
   | 'summarization'
   | 'creative-writing'
   | 'fine-tuning'
-  | 'multimodal';
+  | 'multimodal'
+  | 'reasoning';
 
 export type OptimizationPriority = 'quality' | 'speed' | 'balanced';
 

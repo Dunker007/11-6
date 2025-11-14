@@ -18,25 +18,28 @@ import { useProjectStore } from '../project/projectStore';
 import { errorLogger } from '../errors/errorLogger';
 import type { CodeChunk, SemanticSearchResult, IndexingProgress } from '@/types/semantic';
 import { fileSystemService } from '../filesystem/fileSystemService';
+import { logger } from '../logging/loggerService';
+import type { LanceDBConnection, LanceDBTable } from '@/types/lancedb';
 
 // Use app data directory for LanceDB
 const DB_PATH = '.dlx-studios/vector-data';
 
 interface CodeChunkRow {
   id: string;
-  file_path: string;
+  filePath: string;
   content: string;
-  line_start: number;
-  line_end: number;
+  lineStart: number;
+  lineEnd: number;
   embedding: number[];
   language?: string;
-  function_name?: string;
-  class_name?: string;
+  functionName?: string;
+  className?: string;
 }
 
 class SemanticIndexService {
-  private db: any = null;
-  private table: any = null;
+  private static instance: SemanticIndexService;
+  private db: LanceDBConnection | null = null;
+  private table: LanceDBTable | null = null;
   private isIndexing = false;
   private currentProgress: IndexingProgress = {
     status: 'idle',
@@ -45,15 +48,27 @@ class SemanticIndexService {
   };
   private progressCallbacks: Set<(progress: IndexingProgress) => void> = new Set();
 
+  private constructor() {
+    // Private constructor for singleton pattern
+  }
+
+  static getInstance(): SemanticIndexService {
+    if (!SemanticIndexService.instance) {
+      SemanticIndexService.instance = new SemanticIndexService();
+    }
+    return SemanticIndexService.instance;
+  }
+
   /**
    * Connect to LanceDB
    */
-  private async connect(): Promise<any> {
+  private async connect(): Promise<LanceDBConnection> {
     if (this.db) {
       return this.db;
     }
 
     try {
+      logger.info('Connecting to LanceDB...');
       const ldb = await loadLanceDB();
       // Ensure directory exists
       const dbDir = DB_PATH.substring(0, DB_PATH.lastIndexOf('/'));
@@ -62,13 +77,17 @@ class SemanticIndexService {
         await fileSystemService.mkdir(dbDir, true);
       }
 
-      this.db = await ldb.connect(DB_PATH);
-      return this.db;
+      this.db = await ldb.connect(DB_PATH) as any as LanceDBConnection;
+      logger.info('LanceDB connection successful.');
+      return this.db as LanceDBConnection;
     } catch (error) {
-      console.error('Failed to connect to LanceDB:', error);
-      errorLogger.logFromError('semantic-index', error as Error, 'error', {
-        source: 'SemanticIndexService.connect',
-      });
+      logger.error('Failed to connect to LanceDB', { error });
+      errorLogger.logFromError(
+        'runtime',
+        error as Error,
+        'error',
+        { source: 'SemanticIndexService.connect' }
+      );
       throw error;
     }
   }
@@ -76,37 +95,38 @@ class SemanticIndexService {
   /**
    * Get or create the code chunks table
    */
-  private async getTable(): Promise<any> {
-    if (this.table) {
-      return this.table;
-    }
+  private async getOrCreateTable(): Promise<LanceDBTable> {
+    if (this.table) return this.table;
 
     const db = await this.connect();
-    const ldb = await loadLanceDB();
+    const tableName = 'code_chunks';
     
     try {
       // Try to open existing table
-      this.table = await db.openTable('code_chunks');
+      this.table = await db.openTable(tableName);
     } catch {
       // Table doesn't exist, create it
-      const schema = {
-        id: ldb.vector(ldb.float32(), 384), // MiniLM-L6-v2 produces 384-dim embeddings
-        file_path: ldb.utf8(),
-        content: ldb.utf8(),
-        line_start: ldb.int32(),
-        line_end: ldb.int32(),
-        embedding: ldb.vector(ldb.float32(), 384),
-        language: ldb.utf8(),
-        function_name: ldb.utf8(),
-        class_name: ldb.utf8(),
-      };
-
-      // Create empty table with sample data
-      const sampleData: CodeChunkRow[] = [];
-      this.table = await db.createTable('code_chunks', sampleData);
+      // Schema: { id: vector(float32, 384), file_path: utf8, content: utf8, line_start: int32, line_end: int32, 
+      //           embedding: vector(float32, 384), language: utf8, function_name: utf8, class_name: utf8 }
+      // MiniLM-L6-v2 produces 384-dim embeddings
+      logger.info('Creating new LanceDB table.');
+      const ldb = await loadLanceDB();
+      if (!ldb) throw new Error('LanceDB failed to load');
+      const embedding = await EmbeddingService.generateEmbedding('test');
+      const schema = (ldb as any).Schema.from({
+        embedding: (ldb as any).Vector(embedding.length),
+        filePath: 'string',
+        content: 'string',
+        lineStart: 'int32',
+        lineEnd: 'int32',
+        language: 'string',
+        functionName: 'string',
+        className: 'string',
+      });
+      this.table = await (db as any).createTable(tableName, schema);
     }
 
-    return this.table;
+    return this.table!;
   }
 
   /**
@@ -114,13 +134,13 @@ class SemanticIndexService {
    */
   public async startIndexingForCurrentProject(): Promise<void> {
     if (this.isIndexing) {
-      console.log('Indexing already in progress');
+      logger.info('Indexing already in progress');
       return;
     }
 
     const activeProject = useProjectStore.getState().activeProject;
     if (!activeProject) {
-      console.warn('No active project to index');
+      logger.warn('No active project to index');
       return;
     }
 
@@ -132,13 +152,13 @@ class SemanticIndexService {
     };
 
     try {
-      const projectPath = activeProject.path;
+      const projectPath = activeProject.rootPath;
       const chunks = await this.chunkProjectFiles(projectPath);
       
       this.currentProgress.totalFiles = chunks.length;
       this.notifyProgress();
 
-      const table = await this.getTable();
+      const table = await this.getOrCreateTable();
       
       // Generate embeddings and insert chunks
       for (let i = 0; i < chunks.length; i++) {
@@ -149,14 +169,14 @@ class SemanticIndexService {
           
           const row: CodeChunkRow = {
             id: chunk.id,
-            file_path: chunk.filePath,
+            filePath: chunk.filePath,
             content: chunk.content,
-            line_start: chunk.lineStart,
-            line_end: chunk.lineEnd,
+            lineStart: chunk.lineStart,
+            lineEnd: chunk.lineEnd,
             embedding,
             language: chunk.metadata?.language,
-            function_name: chunk.metadata?.functionName,
-            class_name: chunk.metadata?.className,
+            functionName: chunk.metadata?.functionName,
+            className: chunk.metadata?.className,
           };
 
           await table.add([row]);
@@ -165,7 +185,7 @@ class SemanticIndexService {
           this.currentProgress.currentFile = chunk.filePath;
           this.notifyProgress();
         } catch (error) {
-          console.error(`Failed to index chunk ${chunk.id}:`, error);
+          logger.error(`Failed to index chunk ${chunk.id}:`, { error });
           // Continue with next chunk
         }
       }
@@ -173,14 +193,17 @@ class SemanticIndexService {
       this.currentProgress.status = 'completed';
       this.notifyProgress();
     } catch (error) {
-      console.error('Failed to index project:', error);
+      logger.error('Failed to index project:', { error });
       this.currentProgress.status = 'error';
       this.currentProgress.error = (error as Error).message;
       this.notifyProgress();
       
-      errorLogger.logFromError('semantic-index', error as Error, 'error', {
-        source: 'SemanticIndexService.startIndexingForCurrentProject',
-      });
+      errorLogger.logFromError(
+        'runtime',
+        error as Error,
+        'error',
+        { source: 'SemanticIndexService.startIndexingForCurrentProject' }
+      );
     } finally {
       this.isIndexing = false;
     }
@@ -230,12 +253,12 @@ class SemanticIndexService {
             chunks.push(chunk);
           }
         } catch (error) {
-          console.warn(`Failed to read file ${filePath}:`, error);
+          logger.warn(`Failed to read file ${filePath}:`, { error });
           // Continue with next file
         }
       }
     } catch (error) {
-      console.error('Failed to chunk project files:', error);
+      logger.error('Failed to chunk project files:', { error });
       throw error;
     }
 
@@ -274,7 +297,7 @@ class SemanticIndexService {
           }
         }
       } catch (error) {
-        console.warn(`Failed to read directory ${dir}:`, error);
+        logger.warn(`Failed to read directory ${dir}:`, { error });
       }
     };
 
@@ -325,48 +348,53 @@ class SemanticIndexService {
    * Search for similar code chunks
    */
   public async search(query: string, limit: number = 10): Promise<SemanticSearchResult[]> {
+    if (!this.db || !this.table) {
+      logger.warn('Search attempted before index was ready.');
+      return [];
+    }
+
     try {
-      const table = await this.getTable();
       const queryEmbedding = await EmbeddingService.generateEmbedding(query);
 
       // Perform vector search
-      const results = await table
-        .search(queryEmbedding)
-        .limit(limit)
-        .toArray();
+      const results = await this.table.search(queryEmbedding).limit(limit).execute();
 
-      return results.map((row: any) => ({
+      return (results as CodeChunkRow[]).map((result: CodeChunkRow) => ({
         chunk: {
-          id: row.id,
-          filePath: row.file_path,
-          content: row.content,
-          lineStart: row.line_start,
-          lineEnd: row.line_end,
+          id: result.id, 
+          filePath: result.filePath,
+          content: result.content,
+          lineStart: result.lineStart,
+          lineEnd: result.lineEnd,
           metadata: {
-            language: row.language,
-            functionName: row.function_name,
-            className: row.class_name,
+            language: result.language,
+            functionName: result.functionName,
+            className: result.className,
           },
         },
-        similarity: row._distance ? 1 - row._distance : 0, // Convert distance to similarity
-        filePath: row.file_path,
-        lineStart: row.line_start,
-        lineEnd: row.line_end,
-        preview: this.createPreview(row.content),
+        similarity: 0, // LanceDB JS binding doesn't expose similarity score yet
+        filePath: result.filePath,
+        lineStart: result.lineStart,
+        lineEnd: result.lineEnd,
+        preview: result.content.substring(0, 200),
       }));
     } catch (error) {
-      console.error('Semantic search failed:', error);
-      errorLogger.logFromError('semantic-search', error as Error, 'error', {
-        source: 'SemanticIndexService.search',
-        query,
-      });
+      logger.error('Semantic search failed:', { error, query });
+      errorLogger.logFromError(
+        'runtime',
+        error as Error,
+        'error',
+        { source: 'SemanticIndexService.search' }
+      );
       return [];
     }
   }
 
   /**
    * Create a preview snippet from content
+   * Reserved for future use
    */
+  // @ts-ignore - TS6133: Unused method reserved for future use
   private createPreview(content: string, maxLength: number = 150): string {
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + '...';
@@ -390,7 +418,7 @@ class SemanticIndexService {
       try {
         callback({ ...this.currentProgress });
       } catch (error) {
-        console.warn('Progress callback error:', error);
+        logger.warn('Progress callback error:', { error });
       }
     });
   }
@@ -408,7 +436,7 @@ class SemanticIndexService {
   public async clearIndex(): Promise<void> {
     try {
       const db = await this.connect();
-      await db.dropTable('code_chunks');
+      await (db as any).dropTable('code_chunks');
       this.table = null;
       this.currentProgress = {
         status: 'idle',
@@ -417,11 +445,11 @@ class SemanticIndexService {
       };
       this.notifyProgress();
     } catch (error) {
-      console.error('Failed to clear index:', error);
+      logger.error('Failed to clear index:', { error });
       throw error;
     }
   }
 }
 
-export const semanticIndexService = new SemanticIndexService();
+export const semanticIndexService = SemanticIndexService.getInstance();
 

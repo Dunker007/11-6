@@ -1,6 +1,8 @@
 @import './design-tokens.css';
 @import './ui/Typography.css';
 @import './ui/Interactions.css';
+@import './animations-enhanced.css';
+@import './holographic.css';
 
 * {
   margin: 0;

@@ -84,8 +84,16 @@ function ItorToolbar() {
     const savedPosition = localStorage.getItem('itor-toolbar-position');
     if (savedPosition) {
       try {
-        const { x, y } = JSON.parse(savedPosition);
-        setPosition({ x, y });
+        const parsed = JSON.parse(savedPosition);
+        const { x, y } = parsed;
+        
+        // Validate that x and y are valid numbers
+        if (typeof x === 'number' && typeof y === 'number' && !isNaN(x) && !isNaN(y)) {
+          setPosition({ x, y });
+        } else {
+          // Invalid position values, use default
+          setPosition({ x: window.innerWidth - 100, y: 60 });
+        }
       } catch (e) {
         // Invalid saved position, use default
         setPosition({ x: window.innerWidth - 100, y: 60 });

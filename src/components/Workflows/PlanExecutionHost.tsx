@@ -72,7 +72,7 @@
  * - Custom execution strategies
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Play,
   Pause,

@@ -88,6 +88,7 @@ export interface PlanStep {
 export interface Plan {
   id: string;
   title: string;
+  description?: string; // Optional description for more detailed plans
   status: PlanStatus;
   steps: PlanStep[];
   currentStep: number;

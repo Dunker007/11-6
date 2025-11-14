@@ -1,4 +1,4 @@
-import { memo, ReactNode } from 'react';
+import { memo } from 'react';
 import LoadingSpinner from './LoadingSpinner';
 import '../../styles/shared/LoadingState.css';
 

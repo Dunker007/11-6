@@ -23,6 +23,10 @@ const AssetList = memo(function AssetList() {
       cash: [],
       domain: [],
       collectible: [],
+      nft: [],
+      private_investment: [],
+      commodity: [],
+      derivative: [],
       other: [],
     };
 

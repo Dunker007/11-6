@@ -4,10 +4,7 @@
  * Handles file operations, command execution, and plan state management
  */
 
-import type { Plan, PlanStep, PlanStepStatus, PlanStatus } from '@/types/plan';
-import { fileSystemService } from '@/services/filesystem/fileSystemService';
-import { useProjectStore } from '@/services/project/projectStore';
-import { eventBus } from '@/services/events/eventBus';
+import type { Plan, PlanStep } from '@/types/plan';
 import { errorLogger } from '@/services/errors/errorLogger';
 
 export interface PlanExecutionOptions {
@@ -128,11 +125,12 @@ class PlanExecutionService {
       }
 
       this.notifyListeners(planId, state);
-      errorLogger.logFromError(error, {
-        category: 'plan-execution',
-        source: 'PlanExecutionService',
-        metadata: { planId, stepIndex: state.currentStepIndex },
-      });
+      errorLogger.logFromError(
+        'runtime',
+        error as Error,
+        'error',
+        { source: 'PlanExecutionService' }
+      );
     }
   }
 

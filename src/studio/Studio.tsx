@@ -9,7 +9,6 @@ import { ErrorBoundary } from '../components/shared/ErrorBoundary';
 // CommandPalette component has been removed
 import { useProjectStore } from '../services/project/projectStore';
 import { useWebContainerStore } from '../core/webcontainer/webContainerStore';
-import { projectService } from '../services/project/projectService';
 import { aiServiceBridge } from '../services/ai/aiServiceBridge';
 import { llmRouter } from '../services/ai/router';
 import { apiKeyService } from '../services/apiKeys/apiKeyService';
@@ -81,7 +80,8 @@ function Studio() {
         if (cancelled) return;
 
         // Load project files into WebContainer
-        await loadProjectFromService(activeProject.id, projectService);
+        const coreProjectService = (await import('../core/project/projectService')).projectService;
+        await loadProjectFromService(activeProject.id, coreProjectService);
         
         if (cancelled) return;
 

@@ -168,18 +168,28 @@ Return a JSON object with:
     if (lowerPrompt.includes('add') && (lowerPrompt.includes('component') || lowerPrompt.includes('page'))) {
       const componentName = this.extractComponentName(prompt);
       return {
+        id: crypto.randomUUID(),
+        title: `Add ${componentName} component`,
+        status: 'pending',
+        currentStep: 0,
         steps: [
           {
+            id: crypto.randomUUID(),
             type: 'THINK',
+            status: 'pending',
             thought: `Creating a new ${componentName} component`,
           },
           {
+            id: crypto.randomUUID(),
             type: 'EDIT_FILE',
+            status: 'pending',
             filePath: `src/components/${componentName}.tsx`,
             content: `Create a React component named ${componentName}`,
           },
           {
+            id: crypto.randomUUID(),
             type: 'EDIT_FILE',
+            status: 'pending',
             filePath: `src/components/${componentName}.css`,
             content: 'Add basic styles for the component',
           },
@@ -189,17 +199,27 @@ Return a JSON object with:
 
     if (lowerPrompt.includes('rename') || lowerPrompt.includes('refactor')) {
       return {
+        id: crypto.randomUUID(),
+        title: 'Refactor code',
+        status: 'pending',
+        currentStep: 0,
         steps: [
           {
+            id: crypto.randomUUID(),
             type: 'THINK',
+            status: 'pending',
             thought: 'Analyzing codebase for refactoring opportunities',
           },
           {
+            id: crypto.randomUUID(),
             type: 'READ_FILE',
+            status: 'pending',
             filePath: 'src/',
           },
           {
+            id: crypto.randomUUID(),
             type: 'THINK',
+            status: 'pending',
             thought: 'Identifying files that need updates',
           },
         ],
@@ -208,13 +228,21 @@ Return a JSON object with:
 
     // Generic plan
     return {
+      id: crypto.randomUUID(),
+      title: prompt.substring(0, 50),
+      status: 'pending',
+      currentStep: 0,
       steps: [
         {
+          id: crypto.randomUUID(),
           type: 'THINK',
+          status: 'pending',
           thought: `Understanding request: "${prompt}"`,
         },
         {
+          id: crypto.randomUUID(),
           type: 'THINK',
+          status: 'pending',
           thought: 'This feature requires manual implementation or more specific instructions',
         },
       ],

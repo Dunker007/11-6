@@ -30,13 +30,13 @@ class EmbeddingService {
     EmbeddingService.loadingPromise = (async () => {
       try {
         console.log('Loading embedding model:', EmbeddingService.MODEL_NAME);
-        const pipeline = await pipeline('feature-extraction', EmbeddingService.MODEL_NAME, {
+        const pipelineInstance = await pipeline('feature-extraction', EmbeddingService.MODEL_NAME, {
           quantized: true,
         });
-        EmbeddingService.instance = pipeline;
+        EmbeddingService.instance = pipelineInstance as Pipeline;
         EmbeddingService.loadingPromise = null;
         console.log('Embedding model loaded successfully');
-        return pipeline;
+        return pipelineInstance as Pipeline;
       } catch (error) {
         EmbeddingService.loadingPromise = null;
         console.error('Failed to load embedding model:', error);
@@ -74,7 +74,8 @@ class EmbeddingService {
    * Generate embeddings for multiple texts (batch processing)
    */
   public static async generateEmbeddings(texts: string[]): Promise<number[][]> {
-    const pipeline = await EmbeddingService.getInstance();
+    // Ensure model is loaded
+    await EmbeddingService.getInstance();
     const embeddings: number[][] = [];
 
     // Process in batches to avoid memory issues

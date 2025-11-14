@@ -1,17 +1,17 @@
 // Only import systeminformation in Electron context
 // In browser, this will be null and we'll use mock data
-let si: any = null;
+let si: typeof import('systeminformation') | null = null;
 if (typeof process !== 'undefined' && process.versions?.electron) {
-  try {
-    // Only require in Electron context
-    si = require('systeminformation');
-  } catch {
-    // systeminformation not available
+  import('systeminformation').then(systeminformation => {
+    si = systeminformation;
+  }).catch(() => {
     si = null;
-  }
+  });
 }
 
 import { logSlowOperation } from '@/utils/performance';
+import { logger } from '../logging/loggerService';
+import type { Systeminformation } from 'systeminformation';
 
 export interface SystemStats {
   cpu: {
@@ -76,7 +76,7 @@ export interface HealthAlert {
   severity: 'warning' | 'critical';
   timestamp: Date;
   acknowledged: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class HealthMonitor {
@@ -84,6 +84,8 @@ export class HealthMonitor {
   private metrics: Map<string, HealthMetric> = new Map();
   private alerts: HealthAlert[] = [];
   private monitoringInterval: NodeJS.Timeout | null = null;
+  private webglCanvas: HTMLCanvasElement | null = null;
+  private webglContext: WebGLRenderingContext | null = null;
 
   private constructor() {}
 
@@ -99,17 +101,16 @@ export class HealthMonitor {
 
     // Return mock data if systeminformation is not available (browser context)
     if (!si) {
-      // Try to detect GPU via WebGL in browser
+      // Try to detect GPU via WebGL in browser (cached)
       let browserGPU: SystemStats['gpu'] | undefined;
-      try {
-        const canvas = document.createElement('canvas');
-        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        if (gl) {
-          const webglContext = gl as WebGLRenderingContext;
-          const debugInfo = webglContext.getExtension('WEBGL_debug_renderer_info');
+      
+      // If we already have a cached GPU context, use it immediately
+      if (this.webglContext) {
+        try {
+          const debugInfo = this.webglContext.getExtension('WEBGL_debug_renderer_info');
           if (debugInfo) {
-            const vendor = webglContext.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-            const renderer = webglContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            const vendor = this.webglContext.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            const renderer = this.webglContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
             browserGPU = {
               name: renderer || vendor || 'Unknown GPU (Browser)',
               memoryGB: null,
@@ -119,9 +120,30 @@ export class HealthMonitor {
               temperature: undefined,
             };
           }
+        } catch (error) {
+          logger.warn('Failed to get GPU info from cached context:', { error });
         }
-      } catch (error) {
-        console.warn('Failed to detect GPU via WebGL:', error);
+      } else {
+        // Initialize WebGL context in background (non-blocking for first call)
+        setTimeout(() => {
+          try {
+            if (!this.webglCanvas) {
+              this.webglCanvas = document.createElement('canvas');
+              this.webglCanvas.width = 1;
+              this.webglCanvas.height = 1;
+              const gl = this.webglCanvas.getContext('webgl', { 
+                failIfMajorPerformanceCaveat: true 
+              }) || this.webglCanvas.getContext('experimental-webgl', {
+                failIfMajorPerformanceCaveat: true
+              });
+              if (gl) {
+                this.webglContext = gl as WebGLRenderingContext;
+              }
+            }
+          } catch (error) {
+            logger.warn('Failed to initialize WebGL context:', { error });
+          }
+        }, 0);
       }
 
       const fallbackStats: SystemStats = {
@@ -180,7 +202,7 @@ export class HealthMonitor {
       if (graphics && graphics.controllers && graphics.controllers.length > 0) {
         // Find discrete GPU (prefer NVIDIA, AMD, or non-Intel)
         // Prefer discrete GPUs so we surface the most meaningful VRAM stats.
-        let discreteGPU = graphics.controllers.find((gpu: any) => {
+        let discreteGPU = graphics.controllers.find((gpu: Systeminformation.GraphicsControllerData) => {
           const vendor = (gpu.vendor || '').toLowerCase();
           const model = (gpu.model || '').toLowerCase();
           return vendor.includes('nvidia') || 
@@ -194,8 +216,8 @@ export class HealthMonitor {
           const gpuName = gpu.model || gpu.vendor || 'Unknown GPU';
           const memoryTotalGB = gpu.memoryTotal ? Math.round(gpu.memoryTotal / 1024) : null;
           const memoryUsedGB = gpu.memoryUsed ? Math.round(gpu.memoryUsed / 1024) : null;
-          const utilization = gpu.utilizationGPU || gpu.utilizationGpu || null;
-          const temperature = gpu.temperatureGpu || gpu.temperature || null;
+          const utilization = (gpu as any).utilizationGPU || gpu.utilizationGpu || null;
+          const temperature = gpu.temperatureGpu || (gpu as any).temperature || null;
           
           gpuStats = {
             name: gpuName,
@@ -209,7 +231,7 @@ export class HealthMonitor {
       }
     } catch (error) {
       // GPU stats not available, continue without them
-      console.warn('Failed to get GPU stats:', error);
+      logger.warn('Failed to get GPU stats:', { error });
     }
 
     const stats: SystemStats = {
@@ -225,14 +247,14 @@ export class HealthMonitor {
         free: mem.free,
         usage: (mem.used / mem.total) * 100,
       },
-      disk: fsSize.map((disk: any) => ({
+      disk: fsSize.map((disk: Systeminformation.FsSizeData) => ({
         total: disk.size,
         used: disk.used,
         free: disk.available,
         usage: (disk.used / disk.size) * 100,
       })),
       network: {
-        interfaces: networkStats.map((iface: any) => ({
+        interfaces: networkStats.map((iface: Systeminformation.NetworkStatsData) => ({
           name: iface.iface,
           bytesReceived: iface.rx_bytes,
           bytesSent: iface.tx_bytes,
@@ -437,7 +459,7 @@ export class HealthMonitor {
     metric: string,
     message: string,
     severity: 'warning' | 'critical',
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): void {
     const existingAlert = this.alerts.find(
       (a) => a.metric === metric && !a.acknowledged
@@ -462,7 +484,7 @@ export class HealthMonitor {
     metric: string,
     message: string,
     severity: 'warning' | 'critical',
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): void {
     this.alerts.push({
       id: crypto.randomUUID(),
@@ -496,12 +518,36 @@ export class HealthMonitor {
         const stats = await this.getSystemStats();
         await this.checkHealth(stats);
       } catch (error) {
-        console.error('Health monitoring error:', error);
+        logger.error('Health monitoring error:', { error });
       }
     }, intervalMs);
   }
 
   stopMonitoring(): void {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = null;
+    }
+  }
+
+  /**
+   * Clean up resources (WebGL context, intervals)
+   */
+  cleanup(): void {
+    // Clean up WebGL context
+    if (this.webglContext) {
+      const loseContext = this.webglContext.getExtension('WEBGL_lose_context');
+      if (loseContext) {
+        loseContext.loseContext();
+      }
+      this.webglContext = null;
+    }
+    if (this.webglCanvas) {
+      this.webglCanvas.remove();
+      this.webglCanvas = null;
+    }
+
+    // Stop monitoring interval
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;

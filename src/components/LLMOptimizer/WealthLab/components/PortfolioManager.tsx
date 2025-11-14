@@ -4,7 +4,7 @@ import { portfolioService } from '@/services/wealth/portfolioService';
 import { useToast } from '@/components/ui';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 import type { Portfolio } from '@/types/wealth';
-import '../../styles/WealthLab.css';
+import '@/styles/WealthLab.css';
 
 function PortfolioManager() {
   const { showToast } = useToast();

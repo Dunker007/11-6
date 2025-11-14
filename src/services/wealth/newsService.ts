@@ -8,7 +8,6 @@ import { wealthMarketDataService } from './marketDataService';
 import { aiServiceBridge } from '@/services/ai/aiServiceBridge';
 import type { NewsArticle, MarketInsight, Portfolio } from '@/types/wealth';
 
-const NEWS_KEY = 'dlx_wealth_news';
 const INSIGHTS_KEY = 'dlx_wealth_insights';
 
 class NewsService {
@@ -82,7 +81,7 @@ class NewsService {
     return this.fetchNews([], 50);
   }
 
-  async analyzeSentiment(articleId: string, article: NewsArticle): Promise<'positive' | 'negative' | 'neutral'> {
+  async analyzeSentiment(_articleId: string, article: NewsArticle): Promise<'positive' | 'negative' | 'neutral'> {
     // Use LLM for sentiment analysis
     try {
       const prompt = `Analyze the sentiment of this financial news article. Respond with only one word: "positive", "negative", or "neutral".
@@ -90,14 +89,11 @@ class NewsService {
 Title: ${article.title}
 Summary: ${article.summary}`;
 
-      const response = await aiServiceBridge.structureIdea(prompt, {
-        temperature: 0.3,
-        maxTokens: 10,
-      });
+      const response = await aiServiceBridge.structureIdea(prompt);
 
-      const sentiment = response.toLowerCase().trim();
-      if (sentiment.includes('positive')) return 'positive';
-      if (sentiment.includes('negative')) return 'negative';
+      const sentimentText = (typeof response === 'string' ? response : response.summary || '').toLowerCase().trim();
+      if (sentimentText.includes('positive')) return 'positive';
+      if (sentimentText.includes('negative')) return 'negative';
       return 'neutral';
     } catch (error) {
       console.error('Failed to analyze sentiment:', error);
@@ -215,13 +211,11 @@ ${newsSummary}
 
 Portfolio performance: ${portfolio.performance.totalReturnPercent.toFixed(2)}%`;
 
-      const llmResponse = await aiServiceBridge.structureIdea(prompt, {
-        temperature: 0.7,
-        maxTokens: 200,
-      });
+      const llmResponse = await aiServiceBridge.structureIdea(prompt);
 
       // Parse LLM response into insights
-      const lines = llmResponse.split('\n').filter(line => line.trim());
+      const responseText = typeof llmResponse === 'string' ? llmResponse : llmResponse.summary || '';
+      const lines = responseText.split('\n').filter(line => line.trim());
       lines.forEach(line => {
         if (line.trim().length > 10) {
           insights.push({

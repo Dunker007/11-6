@@ -250,7 +250,7 @@ export class WindowsOptimizer {
     const optimization = this.optimizations.find(opt => opt.id === optimizationId);
     if (!optimization) {
       return {
-        optimization: optimization as WindowsOptimization,
+        optimization: optimization as unknown as WindowsOptimization,
         success: false,
         error: 'Optimization not found',
         applied: false,
@@ -338,7 +338,7 @@ export class WindowsOptimizer {
     const optimization = this.optimizations.find(opt => opt.id === optimizationId);
     if (!optimization) {
       return {
-        optimization: optimization as WindowsOptimization,
+        optimization: optimization as unknown as WindowsOptimization,
         success: false,
         error: 'Optimization not found',
         applied: false,

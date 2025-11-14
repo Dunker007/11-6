@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { Settings as SettingsIcon, Key, Palette, Sliders, BookOpen, Info } from 'lucide-react';
+import { Settings as SettingsIcon, Key, Palette, Sliders, BookOpen, Info, HardDrive } from 'lucide-react';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import '../../styles/Settings.css';
 
@@ -10,8 +10,9 @@ const AppearanceSettings = lazy(() => import('./AppearanceSettings'));
 const AdvancedSettings = lazy(() => import('./AdvancedSettings'));
 const TestingSettings = lazy(() => import('./TestingSettings'));
 const AboutSettings = lazy(() => import('./AboutSettings'));
+const StorageDiagnostics = lazy(() => import('./StorageDiagnostics'));
 
-type SettingsSection = 'api' | 'general' | 'appearance' | 'advanced' | 'testing' | 'about';
+type SettingsSection = 'api' | 'general' | 'appearance' | 'storage' | 'advanced' | 'testing' | 'about';
 
 /**
  * Hub component for user-configurable application settings rendered via lazy-loaded sections.
@@ -25,6 +26,7 @@ function Settings() {
     { id: 'api', label: 'API Keys', icon: Key },
     { id: 'general', label: 'General', icon: SettingsIcon },
     { id: 'appearance', label: 'Appearance', icon: Palette },
+    { id: 'storage', label: 'Storage', icon: HardDrive },
     { id: 'advanced', label: 'Advanced', icon: Sliders },
     { id: 'testing', label: 'Testing Tutorial', icon: BookOpen },
     { id: 'about', label: 'About', icon: Info },
@@ -72,6 +74,7 @@ function Settings() {
               {activeSection === 'api' && <APISettings />}
               {activeSection === 'general' && <GeneralSettings />}
               {activeSection === 'appearance' && <AppearanceSettings />}
+              {activeSection === 'storage' && <StorageDiagnostics />}
               {activeSection === 'advanced' && <AdvancedSettings />}
               {activeSection === 'testing' && <TestingSettings />}
               {activeSection === 'about' && <AboutSettings />}

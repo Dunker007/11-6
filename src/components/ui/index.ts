@@ -29,3 +29,13 @@ export type { LoadingProps } from './Loading';
 export { CommandPalette, useCommandPalette } from './CommandPalette';
 export type { CommandPaletteProps, CommandItem } from './CommandPalette';
 
+export { HolographicBackground } from './HolographicBackground';
+export { HolographicPanel } from './HolographicPanel';
+export type { HolographicPanelProps } from './HolographicPanel';
+export { HolographicProgressBar } from './HolographicProgressBar';
+export type { HolographicProgressBarProps } from './HolographicProgressBar';
+export { HolographicStatCard } from './HolographicStatCard';
+export type { HolographicStatCardProps } from './HolographicStatCard';
+export { HolographicChartWrapper } from './HolographicChartWrapper';
+export type { HolographicChartWrapperProps } from './HolographicChartWrapper';
+

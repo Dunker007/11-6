@@ -134,9 +134,10 @@ const ModelDetailModal = ({ entry, isOpen, onClose }: ModelDetailModalProps) => 
     const issues: string[] = [];
     const warnings: string[] = [];
 
-    if (entry.minSystemMemoryGB && stats.memory.totalGB) {
-      if (stats.memory.totalGB < entry.minSystemMemoryGB) {
-        issues.push(`Requires ${entry.minSystemMemoryGB}GB RAM, you have ${stats.memory.totalGB.toFixed(1)}GB`);
+    if (entry.minSystemMemoryGB && stats.memory.total) {
+      const totalGB = stats.memory.total / (1024 ** 3);
+      if (totalGB < entry.minSystemMemoryGB) {
+        issues.push(`Requires ${entry.minSystemMemoryGB}GB RAM, you have ${totalGB.toFixed(1)}GB`);
       }
     }
 

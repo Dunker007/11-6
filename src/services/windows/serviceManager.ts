@@ -166,7 +166,13 @@ export class ServiceManager {
     try {
       const result = await window.windows?.getServiceStatus(serviceName);
       if (result?.success && result.service) {
-        return result.service;
+        const service = result.service as Partial<WindowsService> & { Name: string; Status: string; StartType: string };
+        return {
+          Name: service.Name,
+          DisplayName: service.DisplayName || service.Name,
+          Status: service.Status,
+          StartType: service.StartType,
+        };
       }
       return null;
     } catch (error) {

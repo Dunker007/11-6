@@ -1,0 +1,548 @@
+/**
+ * Holographic Command Center Styles
+ *
+ * Specific styling for the LLMRevenueCommandCenter to create a 
+ * sci-fi holographic command center aesthetic
+ */
+
+/* ============================================
+   TOP BAR
+   ============================================ */
+
+.mockup-top-bar.llm-revenue-bar {
+  position: relative;
+  background: var(--gradient-h-bg-secondary);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: var(--glow-h-cyan);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.mockup-top-bar.llm-revenue-bar::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: var(--gradient-h-border);
+  background-size: 200% 200%;
+  animation: holo-border-glow 8s linear infinite;
+  z-index: 0;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.mockup-top-bar.llm-revenue-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-h-scanline);
+  animation: holo-scanline 6s linear infinite;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tab-selector {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   SIDEBAR HOLOGRAPHIC STYLING
+   ============================================ */
+
+.mockup-sidebar.left,
+.mockup-sidebar.right {
+  position: relative;
+  background: var(--gradient-h-bg-secondary);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: var(--glow-h-cyan);
+  overflow-y: auto;
+  z-index: 1;
+}
+
+.mockup-sidebar.left::before,
+.mockup-sidebar.right::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: var(--gradient-h-border);
+  background-size: 200% 200%;
+  animation: holo-border-glow 8s linear infinite;
+  z-index: 0;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.mockup-sidebar .sidebar-section {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   CENTER CONTENT AREA
+   ============================================ */
+
+.mockup-center {
+  position: relative;
+  z-index: 1;
+}
+
+.connection-status-section {
+  position: relative;
+  background: var(--gradient-h-bg-secondary);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: var(--glow-h-cyan);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  overflow: hidden;
+}
+
+.connection-status-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: var(--gradient-h-border);
+  background-size: 200% 200%;
+  animation: holo-border-glow 8s linear infinite;
+  z-index: 0;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.connection-status-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-h-scanline);
+  animation: holo-scanline 6s linear infinite;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.connection-status-heading {
+  position: relative;
+  z-index: 1;
+  color: var(--color-accent-cyan-500);
+  text-shadow: var(--glow-h-cyan);
+}
+
+/* ============================================
+   WORKFLOWS SECTION
+   ============================================ */
+
+.workflows-sidebar {
+  position: relative;
+  background: var(--gradient-h-bg-secondary);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-right: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: var(--glow-h-cyan);
+  overflow: hidden;
+}
+
+.workflows-sidebar::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: var(--gradient-h-border);
+  background-size: 200% 200%;
+  animation: holo-border-glow 8s linear infinite;
+  z-index: 0;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.workflow-type-btn {
+  position: relative;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: var(--glow-h-cyan);
+  transition: all var(--duration-base) var(--ease-out);
+  overflow: hidden;
+}
+
+.workflow-type-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: var(--gradient-h-border);
+  background-size: 200% 200%;
+  animation: holo-border-glow 8s linear infinite;
+  z-index: 0;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.workflow-type-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-h-scanline);
+  animation: holo-scanline 6s linear infinite;
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.workflow-type-btn:hover,
+.workflow-type-btn.active {
+  box-shadow: var(--glow-h-magenta);
+  border-color: var(--color-accent-magenta-500);
+  transform: translateY(-2px) translateZ(5px);
+}
+
+.workflow-type-btn span,
+.workflow-type-btn svg {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+
+.loading-state {
+  position: relative;
+}
+
+.loading-spinner {
+  position: relative;
+  animation: spin 1s linear infinite, holo-pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   TAB BUTTONS - HUD STYLE
+   ============================================ */
+
+.tab-btn-large {
+  position: relative;
+  transition: all var(--duration-base) var(--ease-out);
+  overflow: visible; /* Changed to visible for corner accents */
+}
+
+/* Bottom glow line indicator */
+.tab-btn-large::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--gradient-h-border);
+  background-size: 200% 200%;
+  animation: holo-border-glow 8s linear infinite;
+  opacity: 0;
+  transform: scaleX(0);
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.tab-btn-large:hover::before,
+.tab-btn-large.active::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* Top-left corner accent */
+.tab-btn-large::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid var(--color-accent-cyan-500);
+  border-left: 2px solid var(--color-accent-cyan-500);
+  opacity: 0;
+  transform: translate(-2px, -2px);
+  transition: all var(--duration-base) var(--ease-out);
+  box-shadow: var(--glow-h-cyan);
+}
+
+.tab-btn-large.active::after,
+.tab-btn-large:hover::after {
+  opacity: 1;
+}
+
+.tab-btn-large.active {
+  box-shadow: var(--glow-h-cyan);
+  color: var(--color-accent-cyan-500);
+  text-shadow: var(--glow-h-cyan);
+}
+
+.tab-btn-large:hover {
+  box-shadow: var(--glow-h-magenta);
+  color: var(--color-accent-magenta-500);
+  text-shadow: var(--glow-h-magenta);
+}
+
+.tab-btn-large:hover::after {
+  border-color: var(--color-accent-magenta-500);
+  box-shadow: var(--glow-h-magenta);
+}
+
+/* Active tab pulse effect */
+.tab-btn-large.active {
+  animation: holo-pulse-glow 2s ease-in-out infinite;
+}
+
+/* Shortcut hint styling */
+.tab-shortcut-hint {
+  font-size: var(--font-size-xs);
+  opacity: 0.6;
+  padding: var(--spacing-1) var(--spacing-2);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  font-family: monospace;
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.tab-btn-large:hover .tab-shortcut-hint,
+.tab-btn-large.active .tab-shortcut-hint {
+  opacity: 1;
+  border-color: var(--color-accent-cyan-500);
+  box-shadow: var(--glow-h-cyan);
+}
+
+/* ============================================
+   HUD STATUS INDICATORS
+   ============================================ */
+
+/* Status badge base */
+.hud-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.hud-status-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-h-scanline);
+  animation: holo-scanline 6s linear infinite;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* Status dot indicator */
+.hud-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+  z-index: 1;
+}
+
+.hud-status-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: holo-pulse-glow 2s ease-in-out infinite;
+}
+
+/* Status variants */
+.hud-status-badge.online {
+  border-color: var(--color-success);
+  box-shadow: var(--shadow-glow-success);
+}
+
+.hud-status-badge.online .hud-status-dot {
+  background: var(--color-success);
+  box-shadow: var(--shadow-glow-success);
+}
+
+.hud-status-badge.offline {
+  border-color: var(--color-error);
+  box-shadow: var(--shadow-glow-error);
+}
+
+.hud-status-badge.offline .hud-status-dot {
+  background: var(--color-error);
+  box-shadow: var(--shadow-glow-error);
+}
+
+.hud-status-badge.warning {
+  border-color: var(--color-warning);
+  box-shadow: var(--shadow-glow-warning);
+}
+
+.hud-status-badge.warning .hud-status-dot {
+  background: var(--color-warning);
+  box-shadow: var(--shadow-glow-warning);
+}
+
+.hud-status-badge.info {
+  border-color: var(--color-accent-cyan-500);
+  box-shadow: var(--glow-h-cyan);
+}
+
+.hud-status-badge.info .hud-status-dot {
+  background: var(--color-accent-cyan-500);
+  box-shadow: var(--glow-h-cyan);
+}
+
+/* Hexagonal status badge */
+.hud-status-badge.hexagonal {
+  clip-path: var(--clip-hexagon-soft);
+  padding-left: var(--spacing-4);
+  padding-right: var(--spacing-4);
+}
+
+/* HUD divider */
+.hud-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--gradient-h-border);
+  background-size: 100% 200%;
+  animation: holo-border-glow 8s linear infinite;
+  opacity: 0.5;
+}
+
+/* HUD section header */
+.hud-section-header {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-cyan-500);
+  text-shadow: var(--glow-h-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--spacing-2);
+  padding-left: var(--spacing-2);
+  border-left: 2px solid var(--color-accent-cyan-500);
+  box-shadow: var(--glow-h-cyan);
+}
+
+/* HUD data display */
+.hud-data-display {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: var(--radius-md);
+  font-family: monospace;
+  font-size: var(--font-size-sm);
+}
+
+.hud-data-label {
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+.hud-data-value {
+  color: var(--color-accent-cyan-300);
+  text-shadow: var(--glow-h-cyan);
+  font-weight: var(--font-weight-medium);
+}
+
+/* HUD metric card */
+.hud-metric-card {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-3);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.hud-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--gradient-h-border);
+  background-size: 200% 100%;
+  animation: holo-border-glow 8s linear infinite;
+}
+
+.hud-metric-card:hover {
+  border-color: var(--color-accent-magenta-500);
+  box-shadow: var(--glow-h-magenta);
+  transform: translateY(-2px);
+}
+
+.hud-metric-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--spacing-1);
+}
+
+.hud-metric-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent-cyan-300);
+  text-shadow: var(--glow-h-cyan);
+  font-family: monospace;
+}

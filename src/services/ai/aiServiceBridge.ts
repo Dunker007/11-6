@@ -74,6 +74,7 @@ import { Plan, PlanResponse, StructuredIdea } from '@/types/plan';
 import { multiFileContextService } from './multiFileContextService';
 import { projectKnowledgeService } from './projectKnowledgeService';
 import { llmRouter } from './router';
+import { logger } from '../logging/loggerService';
 
 class AIServiceBridge {
   private indexingActive = false;
@@ -96,7 +97,7 @@ class AIServiceBridge {
    * ```
    */
   async startIndexing(projectRoot: string): Promise<void> {
-    console.log('Starting project indexing (renderer-side):', projectRoot);
+    logger.info('Starting project indexing (renderer-side):', { projectRoot });
     this.indexingActive = true;
     this.currentProjectRoot = projectRoot;
 
@@ -106,10 +107,10 @@ class AIServiceBridge {
       if (project) {
         // Analyze project structure and build context
         await multiFileContextService.analyzeProject(project);
-        console.log('Project indexing complete');
+        logger.info('Project indexing complete');
       }
     } catch (error) {
-      console.error('Error during project indexing:', error);
+      logger.error('Error during project indexing:', { error });
       throw error;
     }
   }
@@ -129,7 +130,7 @@ class AIServiceBridge {
    * ```
    */
   async stopIndexing(): Promise<void> {
-    console.log('Stopping project indexing');
+    logger.info('Stopping project indexing');
     this.indexingActive = false;
     this.currentProjectRoot = null;
   }
@@ -153,7 +154,7 @@ class AIServiceBridge {
    * ```
    */
   async createPlan(prompt: string): Promise<PlanResponse> {
-    console.log('Creating plan for prompt:', prompt);
+    logger.info('Creating plan for prompt:', { prompt });
 
     try {
       // Get project context for better AI understanding
@@ -201,7 +202,7 @@ Keep the plan concise and actionable.
           };
         }
       } catch (llmError) {
-        console.warn('LLM generation failed, using mock plan:', llmError);
+        logger.warn('LLM generation failed, using mock plan:', { llmError });
       }
 
       // Fallback: Generate a simple mock plan
@@ -210,7 +211,7 @@ Keep the plan concise and actionable.
         plan: this.generateMockPlan(prompt),
       };
     } catch (error) {
-      console.error('Error creating plan:', error);
+      logger.error('Error creating plan:', { error });
       return {
         success: false,
         error: (error as Error).message,
@@ -235,7 +236,7 @@ Keep the plan concise and actionable.
    * ```
    */
   async structureIdea(rawText: string): Promise<StructuredIdea> {
-    console.log('Structuring idea from raw text');
+    logger.info('Structuring idea from raw text');
 
     try {
       const prompt = `
@@ -262,7 +263,7 @@ Return a JSON object with:
           return structured as StructuredIdea;
         }
       } catch (llmError) {
-        console.warn('LLM structuring failed, using simple processing:', llmError);
+        logger.warn('LLM structuring failed, using simple processing:', { llmError });
       }
 
       // Fallback: Simple text processing
@@ -272,7 +273,7 @@ Return a JSON object with:
 
       return { title, summary };
     } catch (error) {
-      console.error('Error structuring idea:', error);
+      logger.error('Error structuring idea:', { error });
       // Return safe fallback
       return {
         title: rawText.substring(0, 50) + '...',
@@ -291,18 +292,28 @@ Return a JSON object with:
     if (lowerPrompt.includes('add') && (lowerPrompt.includes('component') || lowerPrompt.includes('page'))) {
       const componentName = this.extractComponentName(prompt);
       return {
+        id: crypto.randomUUID(),
+        title: `Add ${componentName} component`,
+        status: 'pending',
+        currentStep: 0,
         steps: [
           {
+            id: crypto.randomUUID(),
             type: 'THINK',
+            status: 'pending',
             thought: `Creating a new ${componentName} component`,
           },
           {
+            id: crypto.randomUUID(),
             type: 'EDIT_FILE',
+            status: 'pending',
             filePath: `src/components/${componentName}.tsx`,
             content: `Create a React component named ${componentName}`,
           },
           {
+            id: crypto.randomUUID(),
             type: 'EDIT_FILE',
+            status: 'pending',
             filePath: `src/components/${componentName}.css`,
             content: 'Add basic styles for the component',
           },
@@ -312,32 +323,50 @@ Return a JSON object with:
 
     if (lowerPrompt.includes('rename') || lowerPrompt.includes('refactor')) {
       return {
+        id: crypto.randomUUID(),
+        title: 'Refactor code',
+        status: 'pending',
+        currentStep: 0,
         steps: [
-          {
-            type: 'THINK',
-            thought: 'Analyzing codebase for refactoring opportunities',
-          },
-          {
-            type: 'READ_FILE',
-            filePath: 'src/',
-          },
-          {
-            type: 'THINK',
-            thought: 'Identifying files that need updates',
-          },
+        {
+          id: crypto.randomUUID(),
+          type: 'THINK',
+          status: 'pending',
+          thought: 'Analyzing codebase for refactoring opportunities',
+        },
+        {
+          id: crypto.randomUUID(),
+          type: 'READ_FILE',
+          status: 'pending',
+          filePath: 'src/',
+        },
+        {
+          id: crypto.randomUUID(),
+          type: 'THINK',
+          status: 'pending',
+          thought: 'Identifying files that need updates',
+        },
         ],
       };
     }
 
     // Generic plan
     return {
+      id: crypto.randomUUID(),
+      title: prompt.substring(0, 50),
+      status: 'pending',
+      currentStep: 0,
       steps: [
         {
+          id: crypto.randomUUID(),
           type: 'THINK',
+          status: 'pending',
           thought: `Understanding request: "${prompt}"`,
         },
         {
+          id: crypto.randomUUID(),
           type: 'THINK',
+          status: 'pending',
           thought: 'This feature requires manual implementation or more specific instructions',
         },
       ],
@@ -398,7 +427,7 @@ Return a JSON object with:
       });
       return { text: response.text };
     } catch (error) {
-      console.error('AI Service Bridge generateResponse error:', error);
+      logger.error('AI Service Bridge generateResponse error:', { error });
       return { text: "Sorry, I'm having trouble connecting right now. Please try again." };
     }
   }
@@ -433,7 +462,7 @@ Return a JSON object with:
     diff?: string;
     error?: string;
   }> {
-    console.log('Turbo Edit:', instruction);
+    logger.info('Turbo Edit:', { instruction });
 
     try {
       const projectContext = projectKnowledgeService.getFullProjectContext();
@@ -473,14 +502,14 @@ Generate the edited code that fulfills the user's instruction. Return ONLY the e
           diff,
         };
       } catch (llmError) {
-        console.warn('LLM turbo edit failed:', llmError);
+        logger.warn('LLM turbo edit failed:', { llmError });
         return {
           success: false,
           error: (llmError as Error).message,
         };
       }
     } catch (error) {
-      console.error('Error in turbo edit:', error);
+      logger.error('Error in turbo edit:', { error });
       return {
         success: false,
         error: (error as Error).message,

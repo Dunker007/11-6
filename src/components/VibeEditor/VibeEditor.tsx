@@ -728,7 +728,6 @@ function VibeEditor() {
                 theme="VibeDSTheme"
                 options={{
                   minimap: { enabled: true },
-                  breadcrumb: { enabled: true },
                   fontSize: 14,
                   lineNumbers: 'on',
                   roundedSelection: false,

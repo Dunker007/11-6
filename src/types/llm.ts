@@ -89,7 +89,7 @@ export interface LLMModel {
     quantization?: string;
     loaded?: boolean;
     modifiedAt?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

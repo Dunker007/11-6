@@ -7,7 +7,7 @@
  */
 
 import { wealthService } from './wealthService';
-import type { Asset, TaxLot, Position } from '@/types/wealth';
+import type { TaxLot } from '@/types/wealth';
 
 export type TaxLotMethod = 'FIFO' | 'LIFO' | 'SPECIFIC_ID';
 

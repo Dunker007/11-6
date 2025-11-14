@@ -89,15 +89,28 @@ import { useAPIKeyStore } from '../../services/apiKeys/apiKeyStore';
 import { useLLMOptimizerStore } from '../../services/ai/llmOptimizerStore';
 import { getTemperatureForPriority } from '../../utils/llmConfig';
 import { detectTaskType } from '@/utils/taskDetector';
+import { imageToBase64 } from '@/utils/imageUtils';
 import { errorLogger } from '@/services/errors/errorLogger';
 import { suggestFix } from '@/utils/errorHelpers';
 import { logSlowOperation } from '@/utils/performance';
 import EdAvatar from '../Agents/EdAvatar';
 import TechIcon from '../Icons/TechIcon';
-import { Send, Sparkles, Copy, Check, Code, Lightbulb, Settings, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Send,
+  Sparkles,
+  Copy,
+  Check,
+  Code,
+  Lightbulb,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  Paperclip,
+  XCircle,
+} from 'lucide-react';
 import { Button, Textarea } from '../ui';
 import GeminiFunctionCalls from '../LLMOptimizer/GeminiFunctionCalls';
-import type { GeminiSafetySetting, GeminiTool, GeminiFunctionCall } from '../../types/gemini';
+import type { GeminiSafetySetting, GeminiTool, GeminiFunctionCall, GeminiContent } from '../../types/gemini';
 import type { GenerateOptions, TaskType } from '../../types/llm';
 import '../../styles/AIAssistant.css';
 
@@ -133,6 +146,8 @@ function AIAssistant() {
   const [geminiSystemInstruction, setGeminiSystemInstruction] = useState<string>('');
   const [geminiTools, _setGeminiTools] = useState<GeminiTool[]>([]);
   const [lastFunctionCalls, setLastFunctionCalls] = useState<GeminiFunctionCall[]>([]);
+  const [attachedImage, setAttachedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -147,25 +162,34 @@ function AIAssistant() {
   useEffect(() => {
     const loadConversation = async () => {
       if (activeProject) {
-        const conversations = await agentMemoryService.searchConversations({
-          agent: 'vibed-ed',
-          projectId: activeProject.id,
-          limit: 1,
-        });
-        
-        if (conversations.length > 0) {
-          const conv = conversations[0];
-          setConversationId(conv.id);
-          setMessages(conv.messages.map(msg => ({
-            id: msg.id,
-            role: msg.role,
-            content: msg.content,
-            timestamp: msg.timestamp,
-          })));
-        } else {
-          // Create new conversation
-          const newConv = await agentMemoryService.createConversation('vibed-ed', activeProject.id);
-          setConversationId(newConv.id);
+        try {
+          const conversations = await agentMemoryService.searchConversations({
+            agent: 'vibed-ed',
+            projectId: activeProject.id,
+            limit: 1,
+          });
+          
+          if (conversations.length > 0) {
+            const conv = conversations[0];
+            setConversationId(conv.id);
+            setMessages(conv.messages.map(msg => ({
+              id: msg.id,
+              role: msg.role,
+              content: msg.content,
+              timestamp: msg.timestamp,
+            })));
+          } else {
+            // Create new conversation
+            const newConv = await agentMemoryService.createConversation('vibed-ed', activeProject.id);
+            setConversationId(newConv.id);
+          }
+        } catch (error) {
+          console.error('Failed to load conversation:', error);
+          errorLogger.logFromError(error as Error, {
+            category: 'ai',
+            source: 'AIAssistant.loadConversation',
+            message: 'Failed to load or create conversation',
+          });
         }
       }
     };
@@ -176,6 +200,18 @@ function AIAssistant() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    if (!attachedImage) {
+      setImagePreview(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(attachedImage);
+  }, [attachedImage]);
 
   // Generate proactive suggestions based on project state
   useEffect(() => {
@@ -230,13 +266,26 @@ function AIAssistant() {
     setProactiveSuggestions(suggestions.slice(0, 3));
   }, [activeProject, activeFile]);
 
+  const handleImageAttach = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setAttachedImage(file);
+    }
+  };
+
   const handleSend = async () => {
-    if (!input.trim() || isLoading || isStreaming) return;
+    if ((!input.trim() && !attachedImage) || isLoading || isStreaming) return;
+
+    // If there's an image but no text, use a default prompt.
+    const userMessageContent =
+      input.trim() === '' && attachedImage
+        ? "Describe this image in detail."
+        : input.trim();
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: input.trim(),
+      content: userMessageContent, // This will now show the default prompt in UI
       timestamp: new Date(),
     };
 
@@ -244,25 +293,29 @@ function AIAssistant() {
     setInput('');
     setIsStreaming(true);
     setEdStatus('thinking');
+    // Clear image after sending
+    setAttachedImage(null);
+    setImagePreview(null);
 
     let streamStart = 0;
     let currentTaskType: TaskType | undefined;
 
     try {
       // Build context-aware prompt with Vibed Ed persona
-      let prompt = input.trim();
+      // Use the potentially defaulted userMessageContent instead of input.trim()
+      let prompt = userMessageContent;
 
       // Check if user is asking about military background
       const isMilitaryQuestion =
-        /military|usmc|marine|veteran|vet|service/.test(input.toLowerCase());
+        /military|usmc|marine|veteran|vet|service/.test(userMessageContent.toLowerCase());
 
       // Build base prompt with file context
-      let basePrompt = input.trim();
+      let basePrompt = userMessageContent;
 
       if (activeFile) {
         const fileContent = getFileContent(activeFile);
         if (fileContent) {
-          basePrompt = `Current file: ${activeFile}\n\nFile content:\n\`\`\`\n${fileContent}\n\`\`\`\n\nUser request: ${input.trim()}`;
+          basePrompt = `Current file: ${activeFile}\n\nFile content:\n\`\`\`\n${fileContent}\n\`\`\`\n\nUser request: ${userMessageContent}`;
         }
       }
 
@@ -334,15 +387,68 @@ function AIAssistant() {
 
       prompt = `${personaPrompt}\n\nUser request: ${basePrompt}`;
 
-      // Build generation options with dynamic temperature based on optimization priority
-      const generateOptions: GenerateOptions = {
-        // Use temperature from optimization priority (applies to all providers)
+      // Build generation options
+      let generateOptions: GenerateOptions = {
         temperature: getTemperatureForPriority(priority),
       };
 
-      // Hint routing logic with the inferred task type.
-      generateOptions.taskType = detectTaskType(input.trim());
-      currentTaskType = generateOptions.taskType;
+      // Handle multi-modal input if an image is attached
+      if (attachedImage) {
+        try {
+          const base64Image = await imageToBase64(attachedImage);
+          const contents: GeminiContent[] = [
+            {
+              role: 'user',
+              parts: [
+                { text: userMessageContent },
+                {
+                  inlineData: {
+                    mimeType: attachedImage.type,
+                    data: base64Image,
+                  },
+                },
+              ],
+            },
+          ];
+          generateOptions.contents = contents;
+          // Force vision model if not already set by task detector
+          generateOptions.model = 'gemini-pro-vision';
+          currentTaskType = 'vision';
+        } catch (e) {
+          // Image processing failed - provide user feedback
+          setIsStreaming(false);
+          setEdStatus('error');
+          const error = e as Error;
+          const capturedError = errorLogger.logFromError('runtime', error, 'error', {
+            source: 'AIAssistant',
+            action: 'imageProcessing',
+          });
+          const friendlyMessage = errorLogger.getUserFriendlyMessage(capturedError);
+          const errorMessage: Message = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: [
+              'Sorry, couldn\'t process that image.',
+              friendlyMessage,
+              '',
+              'Try these next steps:',
+              '- Make sure the image file isn\'t corrupted',
+              '- Try a different image format (PNG, JPEG)',
+              '- Check that the image isn\'t too large',
+              '- Retry the request',
+            ].join('\n'),
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+          return; // Stop execution if image processing fails
+        }
+      }
+
+      // Hint routing logic with the inferred task type if no image.
+      if (!attachedImage) {
+        generateOptions.taskType = detectTaskType(userMessageContent);
+        currentTaskType = generateOptions.taskType;
+      }
       
       // Add Gemini-specific options if Gemini is active
       if (isGeminiActive) {
@@ -688,21 +794,46 @@ function AIAssistant() {
         <div className="ed-avatar-container">
           <EdAvatar size="md" animated={true} />
         </div>
-        <Textarea
-          ref={inputRef}
-          placeholder="Ask Ed anything... (Shift+Enter for new line)"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
-          rows={3}
-          disabled={isLoading || isStreaming}
-          className="message-input"
-          fullWidth
-        />
+        <div className="input-wrapper">
+          {imagePreview && (
+            <div className="image-preview">
+              <img src={imagePreview} alt="Attached preview" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="remove-image-btn"
+                onClick={() => setAttachedImage(null)}
+              >
+                <XCircle size={16} />
+              </Button>
+            </div>
+          )}
+          <Textarea
+            ref={inputRef}
+            placeholder="Ask Ed anything... (Shift+Enter for new line)"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            rows={3}
+            disabled={isLoading || isStreaming}
+            className="message-input"
+            fullWidth
+          />
+        </div>
+        <label htmlFor="image-upload" className="attach-button">
+          <Paperclip />
+          <input
+            id="image-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleImageAttach}
+            style={{ display: 'none' }}
+          />
+        </label>
         <Button
           variant="primary"
           onClick={handleSend}
-          disabled={!input.trim() || isLoading || isStreaming}
+          disabled={(!input.trim() && !attachedImage) || isLoading || isStreaming}
           isLoading={isStreaming || isLoading}
           title="Send message"
           leftIcon={Send}

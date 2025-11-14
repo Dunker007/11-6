@@ -8,7 +8,8 @@ export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
 export interface Toast {
   id: string;
   title?: string;
-  message: string;
+  message?: string; // Made optional - can use title+description instead
+  description?: string; // Optional description for more detailed toasts
   variant: ToastVariant;
   duration?: number;
   action?: {

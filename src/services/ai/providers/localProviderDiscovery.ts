@@ -12,6 +12,11 @@ export interface LocalProviderState {
   lastChecked?: Date;
 }
 
+interface ProviderResponse {
+  models?: unknown[];
+  data?: unknown[];
+}
+
 export class LocalProviderDiscovery {
   private static instance: LocalProviderDiscovery;
   private discoveryInterval: NodeJS.Timeout | null = null;
@@ -77,7 +82,7 @@ export class LocalProviderDiscovery {
         // Try to get model count
         let modelCount = 0;
         try {
-          const data = await response.json();
+          const data: ProviderResponse = await response.json();
           if (name === 'Ollama') {
             modelCount = Array.isArray(data.models) ? data.models.length : 0;
           } else {

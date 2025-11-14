@@ -1,0 +1,437 @@
+/**
+ * Holographic Effects & Animations
+ * 
+ * Advanced 3D holographic effects matching the DLX Command Center aesthetic
+ * - Floating animations with 3D tilt
+ * - Glowing pulse effects
+ * - Scanning line animations
+ * - Particle drift
+ * - Neural network pulses
+ */
+
+/* ============================================
+   HOLOGRAPHIC VARIABLES
+   ============================================ */
+:root {
+  /* Solid holographic gradient backgrounds with glassmorphism */
+  --gradient-h-bg-secondary: linear-gradient(135deg, rgba(10, 10, 15, 0.95), rgba(26, 26, 46, 0.95));
+  --gradient-h-border: linear-gradient(45deg, rgba(0, 240, 255, 0.5), rgba(255, 0, 255, 0.5), rgba(255, 191, 0, 0.5));
+  --gradient-h-scanline: linear-gradient(0deg, transparent 0%, rgba(0, 240, 255, 0.1) 50%, transparent 100%);
+}
+
+/* ============================================
+   KEYFRAME ANIMATIONS
+   ============================================ */
+
+/* 3D Floating effect with subtle rotation */
+@keyframes holo-float {
+  0%, 100% {
+    transform: translateY(0px) translateZ(0) rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: translateY(-10px) translateZ(5px) rotateX(2deg) rotateY(1deg);
+  }
+  50% {
+    transform: translateY(-15px) translateZ(8px) rotateX(0deg) rotateY(-2deg);
+  }
+  75% {
+    transform: translateY(-10px) translateZ(5px) rotateX(-2deg) rotateY(1deg);
+  }
+}
+
+/* Gentle floating for less emphasis */
+@keyframes holo-float-subtle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Pulsing glow effect for borders/elements */
+@keyframes holo-glow-pulse {
+  0%, 100% {
+    box-shadow: var(--glow-accent-cyan);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: var(--glow-accent-cyan-intense);
+    opacity: 0.8;
+  }
+}
+
+/* Pulsing glow for magenta */
+@keyframes holo-glow-pulse-magenta {
+  0%, 100% {
+    box-shadow: var(--glow-accent-magenta);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: var(--glow-accent-magenta-intense);
+    opacity: 0.8;
+  }
+}
+
+/* Pulsing glow for amber */
+@keyframes holo-glow-pulse-amber {
+  0%, 100% {
+    box-shadow: var(--glow-accent-amber);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: var(--glow-accent-amber-intense);
+    opacity: 0.8;
+  }
+}
+
+/* Scanning line effect (like HUD scanner) */
+@keyframes holo-scan {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(200%);
+    opacity: 0;
+  }
+}
+
+/* Particle drift animation */
+@keyframes particle-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--drift-x, 100px), var(--drift-y, -100px)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Neural connection pulse */
+@keyframes neural-pulse {
+  0%, 100% {
+    stroke-dashoffset: 1000;
+    opacity: 0.3;
+  }
+  50% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* Rotating border gradient */
+@keyframes rotate-border {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Shimmer effect for loading states */
+@keyframes holo-shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* Text glow pulse */
+@keyframes text-glow-pulse {
+  0%, 100% {
+    text-shadow: var(--text-glow-cyan);
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(6, 182, 212, 1), 0 0 20px rgba(6, 182, 212, 0.8);
+  }
+}
+
+/* Hexagon spinner rotation */
+@keyframes hexagon-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Scale pulse for interactions */
+@keyframes scale-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Ripple effect for clicks */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Corner bracket animation */
+@keyframes corner-expand {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    width: 20px;
+    height: 20px;
+    opacity: 1;
+  }
+}
+
+/* Particle orbit (for loaders) */
+@keyframes particle-orbit {
+  0% {
+    transform: rotate(0deg) translateX(30px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(30px) rotate(-360deg);
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Floating animations */
+.holo-float {
+  animation: holo-float 6s ease-in-out infinite;
+}
+
+.holo-float-subtle {
+  animation: holo-float-subtle 4s ease-in-out infinite;
+}
+
+.holo-float-delay-1 {
+  animation-delay: 0.5s;
+}
+
+.holo-float-delay-2 {
+  animation-delay: 1s;
+}
+
+.holo-float-delay-3 {
+  animation-delay: 1.5s;
+}
+
+/* Glow pulse */
+.holo-glow-pulse {
+  animation: holo-glow-pulse 2s ease-in-out infinite;
+}
+
+.holo-glow-pulse-magenta {
+  animation: holo-glow-pulse-magenta 2s ease-in-out infinite;
+}
+
+.holo-glow-pulse-amber {
+  animation: holo-glow-pulse-amber 2s ease-in-out infinite;
+}
+
+/* Scanline effect container */
+.holo-scanline {
+  position: relative;
+  overflow: hidden;
+}
+
+.holo-scanline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--gradient-scanner);
+  animation: holo-scan 3s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Text glow */
+.text-glow-cyan {
+  text-shadow: var(--text-glow-cyan);
+  animation: text-glow-pulse 2s ease-in-out infinite;
+}
+
+.text-glow-magenta {
+  text-shadow: var(--text-glow-magenta);
+}
+
+.text-glow-amber {
+  text-shadow: var(--text-glow-amber);
+}
+
+/* 3D Transform setup */
+.holo-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* Holographic panel base */
+.holo-panel {
+  background: var(--color-bg-glass-light);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glow-accent-cyan),
+              0 8px 32px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.holo-panel::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--gradient-border-cyan-magenta);
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  transition: opacity var(--duration-base);
+  z-index: -1;
+  animation: rotate-border 3s linear infinite;
+}
+
+.holo-panel:hover::before {
+  opacity: 0.5;
+}
+
+/* Hexagonal clip */
+.clip-hexagon {
+  clip-path: var(--clip-hexagon);
+}
+
+.clip-hexagon-soft {
+  clip-path: var(--clip-hexagon-soft);
+}
+
+.clip-octagon {
+  clip-path: var(--clip-octagon);
+}
+
+/* Corner brackets (HUD style) */
+.holo-corners::before,
+.holo-corners::after,
+.holo-corners .holo-corner-tl,
+.holo-corners .holo-corner-tr,
+.holo-corners .holo-corner-bl,
+.holo-corners .holo-corner-br {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-secondary-500);
+  box-shadow: var(--border-glow-cyan);
+}
+
+.holo-corners::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 4px 0 0 0;
+}
+
+.holo-corners::after {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+  border-radius: 0 4px 0 0;
+}
+
+/* Shimmer loading */
+.holo-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(6, 182, 212, 0.1) 0%,
+    rgba(6, 182, 212, 0.3) 50%,
+    rgba(6, 182, 212, 0.1) 100%
+  );
+  background-size: 1000px 100%;
+  animation: holo-shimmer 2s infinite;
+}
+
+/* Particle container */
+.holo-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Interactive glow on hover */
+.holo-interactive {
+  transition: all var(--duration-base) var(--ease-out);
+  cursor: pointer;
+}
+
+.holo-interactive:hover {
+  box-shadow: var(--glow-accent-cyan-intense);
+  transform: translateY(-2px);
+}
+
+.holo-interactive:active {
+  transform: translateY(0);
+  box-shadow: var(--glow-accent-cyan);
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .holo-float,
+  .holo-float-subtle,
+  .holo-glow-pulse,
+  .holo-glow-pulse-magenta,
+  .holo-glow-pulse-amber,
+  .holo-scanline::after,
+  .text-glow-cyan,
+  .holo-panel::before {
+    animation: none;
+  }
+  
+  .holo-interactive:hover {
+    transform: none;
+  }
+}
+

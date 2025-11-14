@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { Zap, TrendingUp, Settings as SettingsIcon, DollarSign, Code, Bitcoin, Lightbulb, FolderPlus, Rocket, Activity, Play, Minus, Square, X } from 'lucide-react';
+import { Zap, TrendingUp, Settings as SettingsIcon, DollarSign, Code, BrainCircuit, Bitcoin, Lightbulb, FolderPlus, Rocket, Activity, Play, Minus, Square, X } from 'lucide-react';
 import { useLLMOptimizerStore } from '@/services/ai/llmOptimizerStore';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { useFinancialStore } from '@/services/backoffice/financialStore';
@@ -21,8 +21,7 @@ import LocalProviderStatus from './LocalProviderStatus';
 import ModelStatusDashboard from './ModelStatusDashboard';
 import QuickTestInterface from './QuickTestInterface';
 import VibedEd from './VibedEd/VibedEd';
-import GeminiStudioPanel from './GeminiStudioPanel';
-import { OSOptimizationsPanel } from './OSOptimizationsPanel';
+import GoogleAIHub from './GoogleAIHub';
 import '../../styles/LLMOptimizer.css';
 import '../../styles/LayoutMockups.css';
 import '../../styles/ui/Navigation.css';
@@ -31,6 +30,9 @@ import '../../styles/ui/Responsive.css';
 import '../../styles/ModelStatusDashboard.css';
 import '../../styles/QuickModelActions.css';
 import '../../styles/QuickTestInterface.css';
+import '../../styles/HolographicCommandCenter.css';
+import { OSOptimizationsPanel } from './OSOptimizationsPanel';
+import { HolographicPanel } from '../ui';
 
 // Lazy load heavy components
 const IdeaLab = lazy(() => import('./IdeaLab'));
@@ -52,7 +54,7 @@ const QuickLabs = lazy(() => import('../QuickLabs/QuickLabs'));
 // Lazy load Settings
 const Settings = lazy(() => import('../Settings/Settings'));
 
-type TabType = 'llm' | 'revenue' | 'vibed-ed' | 'crypto-lab' | 'wealth-lab' | 'idea-lab' | 'workflows' | 'quick-labs' | 'settings';
+type TabType = 'llm' | 'revenue' | 'vibed-ed' | 'google-ai-hub' | 'crypto-lab' | 'wealth-lab' | 'idea-lab' | 'workflows' | 'quick-labs' | 'settings';
 type WorkflowType = 'project' | 'build' | 'deploy' | 'monitor' | 'monetize' | null;
 
 function LLMRevenueCommandCenter() {
@@ -64,12 +66,6 @@ function LLMRevenueCommandCenter() {
   // LLM Store
   const discoverProviders = useLLMStore((state) => state.discoverProviders);
   const discoverLocalProviders = useLLMStore((state) => state.discoverLocalProviders);
-  const models = useLLMStore((state) => state.models);
-  
-  // Check if Gemini is available
-  const hasGemini = useMemo(() => {
-    return models.some(m => m.provider === 'gemini' && m.isAvailable);
-  }, [models]);
   
   // LLM Optimizer Store
   const detectHardware = useLLMOptimizerStore((state) => state.detectHardware);
@@ -94,7 +90,8 @@ function LLMRevenueCommandCenter() {
     const intervalId = setInterval(discoverLocalProviders, 10000); // every 10 seconds
 
     return () => clearInterval(intervalId); // Cleanup on unmount
-  }, [detectHardware, loadCatalog, discoverProviders, discoverLocalProviders, refreshFinancials]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount - functions are stable Zustand actions
 
   // Helper function to get tab display name
   const getTabName = useCallback((tab: TabType): string => {
@@ -102,6 +99,7 @@ function LLMRevenueCommandCenter() {
       'llm': 'LLM Optimization',
       'revenue': 'Revenue & Monetization',
       'vibed-ed': 'Vibed Ed',
+      'google-ai-hub': 'Google AI Hub',
       'crypto-lab': 'Crypto Lab',
       'wealth-lab': 'Wealth Lab',
       'idea-lab': 'Idea Lab',
@@ -117,12 +115,13 @@ function LLMRevenueCommandCenter() {
     { id: 'llm', icon: <Zap size={18} />, shortcut: 'Alt+1' },
     { id: 'revenue', icon: <DollarSign size={18} />, shortcut: 'Alt+2' },
     { id: 'vibed-ed', icon: <Code size={18} />, shortcut: 'Alt+3' },
-    { id: 'crypto-lab', icon: <Bitcoin size={18} />, shortcut: 'Alt+4' },
-    { id: 'wealth-lab', icon: <TrendingUp size={18} />, shortcut: 'Alt+5' },
-    { id: 'idea-lab', icon: <Lightbulb size={18} />, shortcut: 'Alt+6' },
-    { id: 'workflows', icon: <Play size={18} />, shortcut: 'Alt+7' },
-    { id: 'quick-labs', icon: <Code size={18} />, shortcut: 'Alt+8' },
-    { id: 'settings', icon: <SettingsIcon size={18} />, shortcut: 'Alt+9' },
+    { id: 'google-ai-hub', icon: <BrainCircuit size={18} />, shortcut: 'Alt+4' },
+    { id: 'crypto-lab', icon: <Bitcoin size={18} />, shortcut: 'Alt+5' },
+    { id: 'wealth-lab', icon: <TrendingUp size={18} />, shortcut: 'Alt+6' },
+    { id: 'idea-lab', icon: <Lightbulb size={18} />, shortcut: 'Alt+7' },
+    { id: 'workflows', icon: <Play size={18} />, shortcut: 'Alt+8' },
+    { id: 'quick-labs', icon: <Code size={18} />, shortcut: 'Alt+9' },
+    { id: 'settings', icon: <SettingsIcon size={18} />, shortcut: 'Alt+0' },
   ], []);
 
   // Memoize tab change handler
@@ -139,12 +138,12 @@ function LLMRevenueCommandCenter() {
         return;
       }
 
-      // Alt + number keys for quick tab switching (1-9)
+      // Alt + number keys for quick tab switching (1-0)
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
-        const tabs: TabType[] = ['llm', 'revenue', 'vibed-ed', 'crypto-lab', 'wealth-lab', 'idea-lab', 'workflows', 'quick-labs', 'settings'];
+        const tabs: TabType[] = ['llm', 'revenue', 'vibed-ed', 'google-ai-hub', 'crypto-lab', 'wealth-lab', 'idea-lab', 'workflows', 'quick-labs', 'settings'];
         const key = e.key;
-        if (key >= '1' && key <= '9') {
-          const index = parseInt(key) - 1;
+        if ((key >= '1' && key <= '9') || key === '0') {
+          const index = key === '0' ? 9 : parseInt(key) - 1;
           if (tabs[index]) {
             e.preventDefault();
             handleTabChange(tabs[index]);
@@ -154,7 +153,7 @@ function LLMRevenueCommandCenter() {
 
       // Arrow keys for tab navigation (when tab selector is focused)
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-        const tabs: TabType[] = ['llm', 'revenue', 'vibed-ed', 'crypto-lab', 'wealth-lab', 'idea-lab', 'workflows', 'quick-labs', 'settings'];
+        const tabs: TabType[] = ['llm', 'revenue', 'vibed-ed', 'google-ai-hub', 'crypto-lab', 'wealth-lab', 'idea-lab', 'workflows', 'quick-labs', 'settings'];
         const currentIndex = tabs.indexOf(activeTab);
         if (currentIndex !== -1) {
           if (e.key === 'ArrowLeft' && currentIndex > 0) {
@@ -242,7 +241,7 @@ function LLMRevenueCommandCenter() {
         </div>
       </div>
 
-      <div className={`mockup-main-layout llm-revenue-layout ${activeTab === 'idea-lab' || activeTab === 'crypto-lab' || activeTab === 'wealth-lab' || activeTab === 'vibed-ed' || activeTab === 'workflows' || activeTab === 'quick-labs' || activeTab === 'settings' ? 'full-width-tab' : ''} ${activeTab === 'revenue' ? 'revenue-tab-layout' : ''}`} style={{ position: 'relative', zIndex: 1 }}>
+      <div className={`mockup-main-layout llm-revenue-layout ${activeTab === 'idea-lab' || activeTab === 'google-ai-hub' || activeTab === 'crypto-lab' || activeTab === 'wealth-lab' || activeTab === 'vibed-ed' || activeTab === 'workflows' || activeTab === 'quick-labs' || activeTab === 'settings' ? 'full-width-tab' : ''} ${activeTab === 'revenue' ? 'revenue-tab-layout' : ''}`} style={{ position: 'relative', zIndex: 1 }}>
         {/* Left Panel */}
         {activeTab === 'llm' && (
           <div className="mockup-sidebar left">
@@ -277,6 +276,15 @@ function LLMRevenueCommandCenter() {
                 <span>Loading Vibed Ed...</span>
               </div>}>
                 <VibedEd />
+              </Suspense>
+            </ErrorBoundary>
+          ) : activeTab === 'google-ai-hub' ? (
+            <ErrorBoundary sectionName="Google AI Hub">
+              <Suspense fallback={<div className="loading-state slide-up-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', gap: '0.75rem' }}>
+                <div className="loading-spinner" style={{ width: '20px', height: '20px', border: '2px solid rgba(139, 92, 246, 0.3)', borderTopColor: 'var(--violet-500)', borderRadius: '50%' }}></div>
+                <span>Loading Google AI Hub...</span>
+              </div>}>
+                <GoogleAIHub />
               </Suspense>
             </ErrorBoundary>
           ) : activeTab === 'crypto-lab' ? (
@@ -437,7 +445,6 @@ function LLMRevenueCommandCenter() {
         {activeTab === 'llm' && (
           <div className="mockup-sidebar right">
             <LocalProviderStatus />
-            {hasGemini && <GeminiStudioPanel />}
             <ModelStatusDashboard catalog={modelCatalog || []} />
             <QuickTestInterface />
             <SystemAlertsCompact />

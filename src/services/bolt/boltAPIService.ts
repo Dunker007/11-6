@@ -3,7 +3,7 @@
  * Handles communication with bolt.diy API for sending build packages
  */
 
-import type { BoltBuildPackage, PackageValidationResult } from '@/types/bolt';
+import type { BoltBuildPackage } from '@/types/bolt';
 
 interface BoltAPIResponse {
   success: boolean;

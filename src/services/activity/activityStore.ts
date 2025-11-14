@@ -65,7 +65,7 @@ import { getActivityIconAndColor } from './activityIconMapper';
 
 interface ActivityState {
   activities: Activity[];
-  addActivity: (type: ActivityType, action: string, description: string, metadata?: any) => void;
+  addActivity: (type: ActivityType, action: string, description: string, metadata?: Record<string, unknown>) => void;
   clearActivities: () => void;
   refreshActivities: () => void;
 }

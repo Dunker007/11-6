@@ -21,7 +21,6 @@ const LiveHardwareProfiler = () => {
   const { isRunning, runBenchmarkSuite } = useBenchmarkStore();
   const [showBenchmark, setShowBenchmark] = useState(false);
   const [showOptimizer, setShowOptimizer] = useState(false);
-  const [updateInterval] = useState<NodeJS.Timeout | null>(null);
   const [isWindows, setIsWindows] = useState(false);
 
   useEffect(() => {
@@ -43,14 +42,9 @@ const LiveHardwareProfiler = () => {
     getSystemStats();
 
     return () => {
-      if (isMonitoring) {
-        stopMonitoring();
-      }
-      if (updateInterval) {
-        clearInterval(updateInterval);
-      }
+      stopMonitoring();
     };
-  }, []);
+  }, []); // Empty array prevents re-running on every render
 
   const handleRunBenchmark = useCallback(async () => {
     setShowBenchmark(true);

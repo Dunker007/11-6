@@ -8,6 +8,21 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Migrate to new storage service (one-time cleanup) -->
+    <script>
+      try {
+        const migrated = localStorage.getItem('dlx-storage-migrated');
+        if (!migrated) {
+          console.log('[Startup] Migrating to new storage service...');
+          // Only clear old activities key - new storage service will handle the rest
+          localStorage.removeItem('dlx-activities');
+          localStorage.setItem('dlx-storage-migrated', 'true');
+          console.log('[Startup] Migration complete');
+        }
+      } catch (error) {
+        console.log('[Startup] Migration skipped:', error);
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

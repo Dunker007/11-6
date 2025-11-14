@@ -8,7 +8,7 @@ import { semanticIndexService } from '@/services/ai/semanticIndexService';
 import { useVibesStore } from './vibesStore';
 import { useAgentStore } from './agentStore';
 import { insightsStreamStore } from './insightsStreamStore';
-import type { CodeVibe } from '@/types/agents';
+import type { CodeVibe, VibeType } from '@/types/agents';
 
 class ProactiveAgentService {
   private analysisTimeout: NodeJS.Timeout | null = null;
@@ -63,7 +63,7 @@ class ProactiveAgentService {
 
       // Log to insights stream
       if (allVibes.length > 0) {
-        insightsStreamStore.addInsight({
+        insightsStreamStore.getState().addInsight({
           id: `vibes-${Date.now()}`,
           type: 'code-vibe',
           agent: 'System',
@@ -90,7 +90,7 @@ class ProactiveAgentService {
   /**
    * Run Itor's analysis (bug/style detection)
    */
-  private async runItorAnalysis(code: string, filePath: string): Promise<CodeVibe[]> {
+  private async runItorAnalysis(code: string, _filePath: string): Promise<CodeVibe[]> {
     const prompt = `You are Itor, a code review agent. Analyze this code snippet for bugs, style issues, and best practices.
 
 Code:
@@ -125,7 +125,7 @@ Example: [{"type": "bug", "message": "Potential null reference", "suggestion": "
   /**
    * Run Vibed Ed's analysis (performance/refactoring)
    */
-  private async runVibedEdAnalysis(code: string, filePath: string): Promise<CodeVibe[]> {
+  private async runVibedEdAnalysis(code: string, _filePath: string): Promise<CodeVibe[]> {
     // Get semantic context from the codebase
     const semanticContext = await semanticIndexService.search(
       `code similar to: ${code.substring(0, 200)}`,
@@ -188,9 +188,9 @@ Example: [{"type": "performance", "message": "Consider memoizing this calculatio
         .filter(item => this.isValidVibe(item))
         .map((item, index) => ({
           id: `${agent}-${Date.now()}-${index}`,
-          type: item.type,
-          message: item.message,
-          suggestion: item.suggestion,
+          type: item.type as VibeType, // Safe after isValidVibe filter
+          message: item.message as string,
+          suggestion: item.suggestion as string,
           agent,
           lineStart: Math.max(1, item.lineStart || 1),
           lineEnd: Math.max(item.lineStart || 1, item.lineEnd || item.lineStart || 1),
@@ -206,14 +206,18 @@ Example: [{"type": "performance", "message": "Consider memoizing this calculatio
   /**
    * Validate that an object is a valid CodeVibe
    */
-  private isValidVibe(item: any): item is Partial<CodeVibe> {
+  private isValidVibe(item: unknown): item is Partial<CodeVibe> {
+    if (!item || typeof item !== 'object') {
+      return false;
+    }
+
+    const vibe = item as Record<string, unknown>;
+
     return (
-      item &&
-      typeof item === 'object' &&
-      ['performance', 'refactor', 'bug', 'style'].includes(item.type) &&
-      typeof item.message === 'string' &&
-      typeof item.lineStart === 'number' &&
-      item.lineStart > 0
+      ['performance', 'refactor', 'bug', 'style'].includes(vibe.type as VibeType) &&
+      typeof vibe.message === 'string' &&
+      typeof vibe.lineStart === 'number' &&
+      vibe.lineStart > 0
     );
   }
 }

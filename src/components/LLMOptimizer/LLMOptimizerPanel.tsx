@@ -73,6 +73,7 @@ import StrategySelector from './StrategySelector';
 import BenchmarkRunner from './BenchmarkRunner';
 import SystemHealth from './SystemHealth';
 import LLMRevenueCommandCenter from './LLMRevenueCommandCenter';
+import GoogleAIHub from './GoogleAIHub';
 import { useLLMOptimizerStore } from '@/services/ai/llmOptimizerStore';
 import { useLLMStore } from '@/services/ai/llmStore';
 import { llmOptimizerService } from '@/services/ai/llmOptimizerService';
@@ -101,7 +102,7 @@ const LLMOptimizerPanel = () => {
 
   const [preselectedBenchmarkModels, setPreselectedBenchmarkModels] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
-  const [activeTab, setActiveTab] = useState<'optimization' | 'health' | 'revenue'>('revenue');
+  const [activeTab, setActiveTab] = useState<'optimization' | 'health' | 'revenue' | 'google-ai'>('revenue');
   const useCaseOptions = useMemo(() => llmOptimizerService.getUseCaseOptions(), []);
 
   useEffect(() => {
@@ -155,6 +156,12 @@ const LLMOptimizerPanel = () => {
           onClick={() => setActiveTab('revenue')}
         >
           LLM & Revenue
+        </button>
+        <button
+          className={`optimizer-tab ${activeTab === 'google-ai' ? 'active' : ''}`}
+          onClick={() => setActiveTab('google-ai')}
+        >
+          Google AI Hub
         </button>
       </div>
 
@@ -230,6 +237,12 @@ const LLMOptimizerPanel = () => {
       {activeTab === 'revenue' && (
         <div className="optimizer-revenue-view">
           <LLMRevenueCommandCenter />
+        </div>
+      )}
+
+      {activeTab === 'google-ai' && (
+        <div className="optimizer-google-ai-view">
+          <GoogleAIHub />
         </div>
       )}
 

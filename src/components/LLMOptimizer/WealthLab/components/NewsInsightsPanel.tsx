@@ -5,7 +5,7 @@ import { watchlistService } from '@/services/wealth/watchlistService';
 import { useToast } from '@/components/ui';
 import { formatRelativeTime } from '@/utils/formatters';
 import type { NewsArticle, MarketInsight, NewsSentiment } from '@/types/wealth';
-import '../../styles/WealthLab.css';
+import '@/styles/WealthLab.css';
 
 function NewsInsightsPanel() {
   const { showToast } = useToast();

@@ -11,7 +11,13 @@
 import { wealthService } from './wealthService';
 import { taxReportingService } from './taxReportingService';
 import { dividendTrackingService } from './dividendTrackingService';
-import type { Asset, Transaction, NetWorthHistory, Budget } from '@/types/wealth';
+import type { Asset, Transaction, NetWorthHistory, Budget, NetWorth } from '@/types/wealth';
+
+// TODO: Add proper type definitions for tax and dividend types
+type TaxReport = any;
+type Form1099BEntry = any;
+type DividendSummary = any;
+type DividendCalendarEntry = any;
 
 export type ExportFormat = 'csv' | 'excel' | 'pdf';
 export type ExportType = 
@@ -346,7 +352,7 @@ class ExportService {
   /**
    * Convert data to CSV
    */
-  private toCSV(data: Record<string, any>[], includeHeaders: boolean = true): Blob {
+  private toCSV(data: Record<string, unknown>[], includeHeaders: boolean = true): Blob {
     if (data.length === 0) {
       return new Blob([''], { type: 'text/csv' });
     }
@@ -380,7 +386,7 @@ class ExportService {
   /**
    * Convert data to Excel (simplified - would use a library like xlsx in production)
    */
-  private toExcel(sheetName: string, data: Record<string, any>[]): Blob {
+  private toExcel(_sheetName: string, data: Record<string, unknown>[]): Blob {
     // In production, would use xlsx library
     // For now, return CSV with .xlsx extension (not ideal, but functional)
     const csv = this.toCSV(data, true);
@@ -479,7 +485,7 @@ class ExportService {
     </table>`;
   }
 
-  private formatBudgetForPDF(budget: Budget, budgetVsActual: Record<string, any>): string {
+  private formatBudgetForPDF(_budget: Budget, budgetVsActual: Record<string, { budgeted: number; actual: number; remaining: number; percentUsed: number; }>): string {
     return `<table>
       <tr>
         <th>Category</th>
@@ -500,7 +506,7 @@ class ExportService {
     </table>`;
   }
 
-  private formatTaxReportForPDF(report: any, form1099B: any[]): string {
+  private formatTaxReportForPDF(report: TaxReport, form1099B: Form1099BEntry[]): string {
     return `
       <h2>Tax Report Summary</h2>
       <p>Total Realized Gains: $${report.totalRealizedGains.toFixed(2)}</p>
@@ -532,7 +538,7 @@ class ExportService {
     `;
   }
 
-  private formatDividendReportForPDF(summary: any, calendar: any[]): string {
+  private formatDividendReportForPDF(summary: DividendSummary, calendar: DividendCalendarEntry[]): string {
     return `
       <h2>Dividend Summary</h2>
       <p>Total Dividends: $${summary.totalDividends.toFixed(2)}</p>
@@ -559,7 +565,7 @@ class ExportService {
     `;
   }
 
-  private formatPortfolioReportForPDF(assets: Asset[], netWorth: any, history: NetWorthHistory[]): string {
+  private formatPortfolioReportForPDF(_assets: Asset[], netWorth: NetWorth, _history: NetWorthHistory[]): string {
     return `
       <h2>Portfolio Summary</h2>
       <p>Total Assets: $${netWorth.totalAssets.toFixed(2)}</p>

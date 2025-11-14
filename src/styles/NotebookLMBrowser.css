@@ -1,0 +1,132 @@
+/* src/styles/NotebookLMBrowser.css */
+.notebook-lm-browser {
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.notebook-lm-browser h4 {
+  margin-top: 0;
+  color: var(--text-primary);
+}
+
+.notebook-lm-browser p {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.notebook-controls {
+  margin-bottom: 1rem;
+}
+
+.notebook-controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.notebook-controls button:hover {
+  background-color: var(--bg-hover);
+}
+
+.notebook-controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.notebook-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--error-color);
+  color: var(--error-color);
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.notebook-columns {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 1rem;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.notebook-list-column,
+.source-list-column {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+
+.notebook-list-column h5,
+.source-list-column h5 {
+  margin: 0 0 0.5rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.notebook-list-column ul,
+.source-list-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notebook-list-column li,
+.source-list-column li {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.notebook-list-column li:hover {
+  background-color: var(--bg-hover);
+}
+
+.notebook-list-column li.active {
+  background-color: var(--accent-primary-faded);
+  color: var(--accent-primary);
+}
+
+.notebook-list-column li span,
+.source-list-column li span {
+  margin-left: 0.75rem;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -145,6 +145,11 @@ When adding documentation:
 - [`../.cursorrules`](../.cursorrules) - Architecture rules
 - [`../AI_SERVICES_CONSOLIDATION.md`](../AI_SERVICES_CONSOLIDATION.md) - AI architecture details
 - [`../QUICK_REFERENCE.md`](../QUICK_REFERENCE.md) - Quick usage reference
+- [Project Review Detailed Analysis](reports/PROJECT_REVIEW_DETAILED_ANALYSIS_V2.md)
+- [Project Review Recommendations](reports/PROJECT_REVIEW_RECOMMENDATIONS_V2.md)
+- [Project Review Risk Assessment](reports/PROJECT_REVIEW_RISK_ASSESSMENT.md)
+- [Gemini Expert Review](reports/GEMINI_EXPERT_REVIEW.md)
+- [Gemini Quick Start Guide](reports/GEMINI_QUICK_START.md)
 
 ---
 

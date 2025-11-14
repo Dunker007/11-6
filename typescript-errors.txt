@@ -1,0 +1,55 @@
+
+> dlx-studios-ultimate@1.0.1 typecheck
+> tsc --noEmit
+
+src/components/LLMOptimizer/ModelCatalog.tsx(170,35): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/LLMOptimizer/ModelStatusDashboard.tsx(136,38): error TS2322: Type 'ModelCatalogEntry | { id: string; displayName: string; provider: "lmstudio" | "ollama" | "ollama-cloud" | "gemini" | "notebooklm" | "openai" | "anthropic"; ... 4 more ...; description: string; }' is not assignable to type 'ModelCatalogEntry'.
+  Type '{ id: string; displayName: string; provider: "lmstudio" | "ollama" | "ollama-cloud" | "gemini" | "notebooklm" | "openai" | "anthropic"; sizeGB: number; contextWindow: number; tags: never[]; family: "lmstudio" | ... 5 more ... | "anthropic"; description: string; }' is missing the following properties from type 'ModelCatalogEntry': bestFor, strengths, limitations
+src/components/VibeEditor/VibeEditor.tsx(731,19): error TS2353: Object literal may only specify known properties, and 'breadcrumb' does not exist in type 'IStandaloneEditorConstructionOptions'.
+src/services/agents/proactiveAgentService.ts(187,7): error TS2322: Type '{ id: string; type: VibeType | undefined; message: string | undefined; suggestion: string | undefined; agent: "Vibed Ed" | "Itor"; lineStart: number; lineEnd: number; filePath: string; createdAt: Date; }[]' is not assignable to type 'CodeVibe[]'.
+  Type '{ id: string; type: VibeType | undefined; message: string | undefined; suggestion: string | undefined; agent: "Vibed Ed" | "Itor"; lineStart: number; lineEnd: number; filePath: string; createdAt: Date; }' is not assignable to type 'CodeVibe'.
+    Types of property 'type' are incompatible.
+      Type 'VibeType | undefined' is not assignable to type 'VibeType'.
+        Type 'undefined' is not assignable to type 'VibeType'.
+src/services/ai/aiServiceBridge.ts(324,7): error TS2739: Type '{ steps: ({ id: `${string}-${string}-${string}-${string}-${string}`; type: "THINK"; status: "pending"; thought: string; } | { id: `${string}-${string}-${string}-${string}-${string}`; type: "READ_FILE"; status: "pending"; filePath: string; })[]; }' is missing the following properties from type 'Plan': id, title, status, currentStep
+src/services/ai/aiServiceBridge.ts(349,5): error TS2739: Type '{ steps: { id: `${string}-${string}-${string}-${string}-${string}`; type: "THINK"; status: "pending"; thought: string; }[]; }' is missing the following properties from type 'Plan': id, title, status, currentStep
+src/services/ai/embeddingService.ts(30,5): error TS2322: Type 'Promise<FeatureExtractionPipeline>' is not assignable to type 'Promise<Pipeline>'.
+  Property 'processor' is missing in type 'FeatureExtractionPipeline' but required in type 'Pipeline'.
+src/services/ai/embeddingService.ts(36,9): error TS2741: Property 'processor' is missing in type 'FeatureExtractionPipeline' but required in type 'Pipeline'.
+src/services/ai/embeddingService.ts(47,5): error TS2322: Type 'Pipeline | null' is not assignable to type 'Pipeline'.
+  Type 'null' is not assignable to type 'Pipeline'.
+src/services/ai/geminiFunctions.ts(171,15): error TS6198: All destructured elements are unused.
+src/services/ai/llmOptimizerService.ts(36,27): error TS2322: Type '"reasoning"' is not assignable to type 'LLMUseCase'.
+src/services/ai/llmOptimizerService.ts(56,27): error TS2322: Type '"reasoning"' is not assignable to type 'LLMUseCase'.
+src/services/ai/llmOptimizerService.ts(219,64): error TS2322: Type '"reasoning"' is not assignable to type 'LLMUseCase'.
+src/services/ai/semanticIndexService.ts(69,32): error TS2345: Argument of type '"semantic-index"' is not assignable to parameter of type 'ErrorCategory'.
+src/services/ai/semanticIndexService.ts(173,32): error TS2345: Argument of type '"semantic-index"' is not assignable to parameter of type 'ErrorCategory'.
+src/services/ai/semanticIndexService.ts(351,32): error TS2345: Argument of type '"semantic-search"' is not assignable to parameter of type 'ErrorCategory'.
+src/services/benchmark/benchmarkStore.ts(3,31): error TS6196: 'BenchmarkResult' is declared but never used.
+src/services/bolt/boltAPIService.ts(6,33): error TS6196: 'PackageValidationResult' is declared but never used.
+src/services/wealth/importService.ts(199,11): error TS2322: Type 'Date | null' is not assignable to type 'Date'.
+  Type 'null' is not assignable to type 'Date'.
+src/services/wealth/importService.ts(200,11): error TS2322: Type 'string' is not assignable to type 'BudgetCategory'.
+src/services/wealth/importService.ts(442,9): error TS2322: Type 'string' is not assignable to type 'BudgetCategory'.
+src/services/wealth/newsService.ts(92,68): error TS2554: Expected 1 arguments, but got 2.
+src/services/wealth/newsService.ts(217,71): error TS2554: Expected 1 arguments, but got 2.
+src/services/wealth/nftService.ts(260,81): error TS2345: Argument of type '"other" | "polygon" | "ethereum" | "solana"' is not assignable to parameter of type '"polygon" | "ethereum" | "solana" | undefined'.
+  Type '"other"' is not assignable to type '"polygon" | "ethereum" | "solana" | undefined'.
+src/services/wealth/nftService.ts(266,81): error TS2345: Argument of type '"other" | "polygon" | "ethereum" | "solana"' is not assignable to parameter of type '"polygon" | "ethereum" | "solana" | undefined'.
+  Type '"other"' is not assignable to type '"polygon" | "ethereum" | "solana" | undefined'.
+src/services/wealth/nftService.ts(299,7): error TS2345: Argument of type '"other" | "polygon" | "ethereum" | "solana"' is not assignable to parameter of type '"polygon" | "ethereum" | "solana" | undefined'.
+  Type '"other"' is not assignable to type '"polygon" | "ethereum" | "solana" | undefined'.
+src/services/wealth/portfolioAnalyticsService.ts(350,32): error TS18048: 'trackingError' is possibly 'undefined'.
+src/services/wealth/portfolioAnalyticsService.ts(350,67): error TS18048: 'trackingError' is possibly 'undefined'.
+src/services/wealth/portfolioService.ts(210,5): error TS2739: Type '{ stock: number; etf: number; bond: number; mutual_fund: number; crypto: number; real_estate: number; cash: number; domain: number; collectible: number; other: number; }' is missing the following properties from type 'Record<AssetType, number>': nft, private_investment, commodity, derivative
+src/services/wealth/portfolioService.ts(312,7): error TS2739: Type '{ stock: number; etf: number; bond: number; mutual_fund: number; crypto: number; real_estate: number; cash: number; domain: number; collectible: number; other: number; }' is missing the following properties from type 'Record<AssetType, number>': nft, private_investment, commodity, derivative
+src/services/windows/serviceManager.ts(169,9): error TS2741: Property 'DisplayName' is missing in type '{ Name: string; Status: string; StartType: string; }' but required in type 'WindowsService'.
+src/services/windows/windowsOptimizer.ts(253,23): error TS2352: Conversion of type 'undefined' to type 'WindowsOptimization' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/services/windows/windowsOptimizer.ts(341,23): error TS2352: Conversion of type 'undefined' to type 'WindowsOptimization' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/services/workflow/planExecutionService.ts(128,32): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'ErrorCategory'.
+src/studio/ConsolePanel.tsx(154,17): error TS2304: Cannot find name 'handleClear'.
+src/studio/ConsolePanel.tsx(214,30): error TS2304: Cannot find name 'handleClear'.
+src/studio/Editor.tsx(194,15): error TS2322: Type 'true' is not assignable to type 'ShowLightbulbIconMode | undefined'.
+src/studio/Studio.tsx(84,56): error TS2345: Argument of type 'import("C:/Repos GIT/11-6/11-6/src/services/project/projectService").ProjectService' is not assignable to parameter of type 'import("C:/Repos GIT/11-6/11-6/src/core/project/projectService").ProjectService'.
+  Types have separate declarations of a private property 'projects'.

@@ -18,6 +18,7 @@ interface HealthStore {
   acknowledgeAlert: (id: string) => void;
   startMonitoring: (intervalMs?: number) => void;
   stopMonitoring: () => void;
+  cleanup: () => void;
   clearAlerts: () => void;
 }
 
@@ -80,6 +81,14 @@ export const useHealthStore = create<HealthStore>((set) => ({
   stopMonitoring: () => {
     healthMonitor.stopMonitoring();
     set({ isMonitoring: false });
+  },
+
+  cleanup: () => {
+    healthMonitor.cleanup();
+    set({ 
+      isMonitoring: false,
+      stats: null,
+    });
   },
 
   clearAlerts: () => {

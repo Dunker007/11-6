@@ -69,6 +69,7 @@
 import { CapturedError, ErrorCategory, ErrorSeverity, ErrorContext, ErrorFilter, ErrorStats } from '../../types/error';
 import { errorContext } from './errorContext';
 import { getUserFacingMessage, getRecoveryChecklist } from './errorMessages';
+import { logger } from '../logging/loggerService';
 
 type ErrorListener = (error: CapturedError) => void;
 
@@ -80,6 +81,7 @@ class ErrorLogger {
   private readonly STORAGE_KEY = 'dlx-errors';
   private readonly MAX_ERRORS = 500; // Keep last 500 errors
   private readonly DEDUP_WINDOW = 5000; // 5 seconds for deduplication
+  private storageDisabled = false; // Disable localStorage on quota errors
 
   private constructor() {
     this.sessionId = this.generateSessionId();
@@ -334,6 +336,11 @@ class ErrorLogger {
   // Removed unused getBrowserInfo method
 
   private saveErrors(): void {
+    // Skip if localStorage is disabled
+    if (this.storageDisabled) {
+      return;
+    }
+
     try {
       // Remove heavy data before saving
       const lightweight = this.errors.map(({ stack, context, ...rest }) => ({
@@ -351,7 +358,14 @@ class ErrorLogger {
       
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(lightweight));
     } catch (error) {
-      console.error('Failed to save errors to localStorage:', error);
+      // Disable future localStorage attempts
+      this.storageDisabled = true;
+      
+      // Use original console to avoid recursion
+      const originalError = (console as any).__originalError;
+      if (originalError) {
+        originalError('ErrorLogger: localStorage disabled due to quota error:', error);
+      }
     }
   }
 
@@ -364,7 +378,7 @@ class ErrorLogger {
         this.clearOldErrors();
       }
     } catch (error) {
-      console.error('Failed to load errors from localStorage:', error);
+      logger.error('Failed to load errors from localStorage', { error });
       this.errors = [];
     }
   }
@@ -374,29 +388,28 @@ class ErrorLogger {
       try {
         listener(error);
       } catch (err) {
-        console.error('Error in error listener:', err);
+        logger.error('Error in error listener', { error: err });
       }
     });
   }
 
   private logToConsole(error: CapturedError): void {
-    const style = {
+    // Style definitions for console logging (currently not used but kept for future)
+    /* const style = {
       critical: 'background: #dc2626; color: white; font-weight: bold;',
       error: 'background: #ef4444; color: white;',
       warning: 'background: #f59e0b; color: white;',
       info: 'background: #3b82f6; color: white;',
-    };
+    }; */
 
-    console.groupCollapsed(
-      `%c[${error.severity.toUpperCase()}] ${error.type}`,
-      style[error.severity],
-      error.message
-    );
-    console.log('Error ID:', error.id);
-    console.log('Timestamp:', new Date(error.timestamp).toISOString());
-    if (error.stack) console.log('Stack:', error.stack);
-    console.log('Context:', error.context);
-    console.groupEnd();
+    logger.error(`[${error.severity.toUpperCase()}] ${error.type}`, {
+      severity: error.severity,
+      type: error.type,
+      message: error.message,
+      id: error.id,
+      timestamp: error.timestamp,
+      context: error.context,
+    });
   }
 }
 

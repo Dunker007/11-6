@@ -1,14 +1,14 @@
-import TestingTutorial from '../Testing/TestingTutorial';
+import TestingCenter from '../Testing/TestingCenter';
 
 /**
- * Settings section wrapper that embeds the testing tutorial experience.
+ * Settings section wrapper that embeds the testing center experience.
  *
- * @returns Container rendering the interactive testing tutorial content.
+ * @returns Container rendering the interactive testing center content.
  */
 function TestingSettings() {
   return (
     <div className="testing-settings">
-      <TestingTutorial />
+      <TestingCenter />
     </div>
   );
 }

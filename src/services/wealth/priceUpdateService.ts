@@ -9,7 +9,6 @@
  */
 
 import { wealthMarketDataService } from './marketDataService';
-import type { Asset } from '@/types/wealth';
 
 export type PriceUpdateInterval = '1s' | '15s' | '1m' | '5m' | '15m' | '1h';
 
@@ -39,7 +38,8 @@ class PriceUpdateService {
   private updateIntervals: Map<string, NodeJS.Timeout> = new Map();
   private subscribers: Map<string, Set<(update: PriceUpdate) => void>> = new Map();
   private alerts: Map<string, PriceAlert[]> = new Map();
-  private isActive = false;
+  // Unused for now - reserved for future use
+  // private _isActive = false;
 
   // Update intervals by asset type
   private readonly INTERVALS: Record<string, PriceUpdateInterval> = {
@@ -270,14 +270,14 @@ class PriceUpdateService {
    * Start the service (called when Wealth Lab is opened)
    */
   start(): void {
-    this.isActive = true;
+    // this.isActive = true; // Commented out - reserved for future use
   }
 
   /**
    * Stop the service (called when Wealth Lab is closed)
    */
   stop(): void {
-    this.isActive = false;
+    // this.isActive = false; // Commented out - reserved for future use
     
     // Clear all intervals
     this.updateIntervals.forEach(interval => clearInterval(interval));

@@ -13,7 +13,7 @@ import { Input } from '@/components/ui';
 import { Progress } from '@/components/ui';
 import { Badge } from '@/components/ui';
 import { useToast } from '@/components/ui';
-import { Rocket, CheckCircle, XCircle, AlertCircle, Download, Key, ExternalLink } from 'lucide-react';
+import { Rocket, CheckCircle, XCircle, AlertCircle, Download, Key } from 'lucide-react';
 import type { BoltBuildPackage, PackageValidationResult } from '@/types/bolt';
 import '@/styles/BoltExport.css';
 

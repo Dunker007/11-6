@@ -13,7 +13,6 @@ interface ProviderStatus {
   modelCount: number;
   type: 'local' | 'cloud';
   latency?: number;
-  isTesting?: boolean;
 }
 
 const ConnectionStatusBar = () => {
@@ -25,47 +24,60 @@ const ConnectionStatusBar = () => {
 
   useEffect(() => {
     const updateStatuses = () => {
-      const ollama: ProviderStatus = {
-        name: 'Ollama',
-        provider: 'ollama',
-        isOnline: availableProviders.includes('ollama'),
-        modelCount: models.filter(m => m.provider === 'ollama').length,
-        type: 'local',
-      };
+      const newStatuses: Omit<ProviderStatus, 'latency'>[] = [
+        {
+          name: 'Ollama',
+          provider: 'ollama',
+          isOnline: availableProviders.includes('ollama'),
+          modelCount: models.filter((m) => m.provider === 'ollama').length,
+          type: 'local',
+        },
+        {
+          name: 'LM Studio',
+          provider: 'lmstudio',
+          isOnline: availableProviders.includes('lmstudio'),
+          modelCount: models.filter((m) => m.provider === 'lmstudio').length,
+          type: 'local',
+        },
+        {
+          name: 'Gemini',
+          provider: 'gemini',
+          isOnline: availableProviders.includes('gemini'),
+          modelCount: models.filter((m) => m.provider === 'gemini').length,
+          type: 'cloud',
+        },
+        {
+          name: 'NotebookLM',
+          provider: 'notebooklm',
+          isOnline: availableProviders.includes('notebooklm'),
+          modelCount: models.filter((m) => m.provider === 'notebooklm').length,
+          type: 'cloud',
+        },
+        {
+          name: 'Ollama Cloud',
+          provider: 'ollama-cloud',
+          isOnline: availableProviders.includes('ollama-cloud'),
+          modelCount: models.filter((m) => m.provider === 'ollama-cloud').length,
+          type: 'cloud',
+        },
+        {
+          name: 'OpenRouter',
+          provider: 'openrouter',
+          isOnline: availableProviders.includes('openrouter'),
+          modelCount: models.filter(
+            (m) => m.provider === 'openai' || m.provider === 'anthropic'
+          ).length,
+          type: 'cloud',
+        },
+      ];
 
-      const lmstudio: ProviderStatus = {
-        name: 'LM Studio',
-        provider: 'lmstudio',
-        isOnline: availableProviders.includes('lmstudio'),
-        modelCount: models.filter(m => m.provider === 'lmstudio').length,
-        type: 'local',
-      };
-
-      const gemini: ProviderStatus = {
-        name: 'Gemini',
-        provider: 'gemini',
-        isOnline: availableProviders.includes('gemini'),
-        modelCount: models.filter(m => m.provider === 'gemini').length,
-        type: 'cloud',
-      };
-
-      const notebooklm: ProviderStatus = {
-        name: 'NotebookLM',
-        provider: 'notebooklm',
-        isOnline: availableProviders.includes('notebooklm'),
-        modelCount: models.filter(m => m.provider === 'notebooklm').length,
-        type: 'cloud',
-      };
-
-      const openrouter: ProviderStatus = {
-        name: 'OpenRouter',
-        provider: 'openrouter',
-        isOnline: availableProviders.includes('openrouter'),
-        modelCount: models.filter(m => m.provider === 'openai' || m.provider === 'anthropic').length,
-        type: 'cloud',
-      };
-
-      setProviderStatuses([ollama, lmstudio, gemini, notebooklm, openrouter]);
+      setProviderStatuses(prevStatuses => {
+        const prevStatusMap = new Map(prevStatuses.map(s => [s.provider, s]));
+        return newStatuses.map(newStatus => ({
+          ...newStatus,
+          latency: prevStatusMap.get(newStatus.provider)?.latency,
+        }));
+      });
     };
 
     updateStatuses();
@@ -137,7 +149,7 @@ const ConnectionStatusBar = () => {
   }, [showToast]);
 
   const getStatusIcon = (status: ProviderStatus) => {
-    if (status.isTesting || (isLoading && testingProvider === status.provider)) {
+    if (testingProvider === status.provider) {
       return <Activity className="connection-bar-icon checking" size={14} />;
     }
     if (status.isOnline) {
@@ -191,7 +203,7 @@ const ConnectionStatusBar = () => {
                 e.stopPropagation();
                 handleTestConnection(status.provider);
               }}
-              disabled={status.isTesting || isLoading}
+              disabled={testingProvider === status.provider || isLoading}
               title={`Test ${status.name} connection`}
               style={{
                 background: 'transparent',

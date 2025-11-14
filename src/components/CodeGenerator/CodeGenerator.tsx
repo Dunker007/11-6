@@ -12,6 +12,7 @@ import {
   FileText,
   Brain,
   Zap,
+  LucideIcon,
 } from 'lucide-react';
 import '../../styles/CodeGenerator.css';
 
@@ -20,7 +21,7 @@ interface GenerationTemplate {
   name: string;
   description: string;
   category: 'component' | 'function' | 'class' | 'api' | 'test' | 'config';
-  icon: any;
+  icon: LucideIcon;
   prompt: string;
 }
 

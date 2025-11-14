@@ -9,7 +9,7 @@ export type LLMProvider =
   | 'openrouter'
   | 'github';
 
-export type APIProvider = LLMProvider | 'coinbase' | 'schwab' | 'plaid' | 'yodlee';
+export type APIProvider = LLMProvider | 'googlecloud' | 'coinbase' | 'schwab' | 'plaid' | 'yodlee';
 
 export interface APIKey {
   id: string;

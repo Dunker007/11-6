@@ -77,9 +77,10 @@
  */
 import { create } from 'zustand';
 import { llmRouter } from './router';
-import type { LLMModel, StreamChunk } from '../../types/llm';
+import type { LLMModel, StreamChunk, GenerateOptions } from '../../types/llm';
 import { localProviderDiscovery, type LocalProviderState } from './providers/localProviderDiscovery';
 import { withAsyncOperation } from '@/utils/storeHelpers';
+import { logger } from '../logging/loggerService';
 
 interface LLMStore {
   models: LLMModel[];
@@ -89,14 +90,36 @@ interface LLMStore {
   error: string | null;
   activeModel: LLMModel | null; // Track currently active model
   pullingModels: Set<string>; // Track models being pulled
+  favoriteModels: Set<string>; // Track favorite/pinned models
   discoverProviders: () => Promise<void>;
   discoverLocalProviders: () => Promise<void>;
   setActiveModel: (model: LLMModel | null) => void;
   switchToModel: (modelId: string) => Promise<boolean>;
   pullModel: (modelId: string, pullCommand: string) => Promise<boolean>;
-  generate: (prompt: string, options?: any) => Promise<string>;
-  streamGenerate: (prompt: string, options?: any) => AsyncGenerator<StreamChunk>;
+  toggleFavorite: (modelId: string) => void;
+  isFavorite: (modelId: string) => boolean;
+  generate: (prompt: string, options?: GenerateOptions) => Promise<string>;
+  streamGenerate: (prompt: string, options?: GenerateOptions) => AsyncGenerator<StreamChunk>;
 }
+
+// Load favorites from localStorage
+const loadFavorites = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem('llm-favorites');
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+// Save favorites to localStorage
+const saveFavorites = (favorites: Set<string>): void => {
+  try {
+    localStorage.setItem('llm-favorites', JSON.stringify(Array.from(favorites)));
+  } catch {
+    // Silently fail if localStorage is not available
+  }
+};
 
 export const useLLMStore = create<LLMStore>((set, get) => ({
   models: [],
@@ -109,6 +132,7 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
   error: null,
   activeModel: null,
   pullingModels: new Set(),
+  favoriteModels: loadFavorites(),
 
   discoverProviders: async () => {
     await withAsyncOperation(
@@ -136,7 +160,7 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       const providers = await localProviderDiscovery.discover();
       set({ localProviders: providers });
     } catch (error) {
-      console.error('Failed to discover local providers:', error);
+      logger.error('Failed to discover local providers', { error });
       // Don't set error state, just log it
     }
   },
@@ -145,7 +169,10 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
     set({ activeModel: model });
     // Update router's preferred provider based on active model
     if (model) {
-      llmRouter.setPreferredProvider(model.provider as any);
+      const validProviders = ['lmstudio', 'ollama', 'ollama-cloud', 'gemini', 'notebooklm', 'openrouter'] as const;
+      if (validProviders.includes(model.provider as any)) {
+        llmRouter.setPreferredProvider(model.provider as typeof validProviders[number]);
+      }
     }
   },
 
@@ -166,7 +193,10 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
     }
 
     set({ activeModel: model, error: null });
-    llmRouter.setPreferredProvider(model.provider as any);
+    const validProviders = ['lmstudio', 'ollama', 'ollama-cloud', 'gemini', 'notebooklm', 'openrouter'] as const;
+    if (validProviders.includes(model.provider as any)) {
+      llmRouter.setPreferredProvider(model.provider as typeof validProviders[number]);
+    }
     return true;
   },
 
@@ -182,32 +212,39 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
     }));
 
     try {
-      if (!window.llm?.pullModel) {
-        throw new Error('Model pulling not available');
+      // Try Electron IPC first (for future desktop features)
+      if (window.llm?.pullModel) {
+        const result = await window.llm.pullModel(modelId, pullCommand);
+        
+        if (result.success) {
+          await get().discoverProviders();
+          set((state) => {
+            const newPulling = new Set(state.pullingModels);
+            newPulling.delete(modelId);
+            return { pullingModels: newPulling };
+          });
+          return true;
+        } else {
+          throw new Error(result.error || 'Failed to pull model');
+        }
       }
 
-      const result = await window.llm.pullModel(modelId, pullCommand);
-      
-      if (result.success) {
-        // Refresh providers to get updated model list
-        await get().discoverProviders();
-        set((state) => {
-          const newPulling = new Set(state.pullingModels);
-          newPulling.delete(modelId);
-          return { pullingModels: newPulling };
-        });
-        return true;
-      } else {
-        set((state) => {
-          const newPulling = new Set(state.pullingModels);
-          newPulling.delete(modelId);
-          return { 
-            pullingModels: newPulling,
-            error: result.error || 'Failed to pull model',
-          };
-        });
-        return false;
+      // Fallback to direct Ollama API call (works in dev/browser mode)
+      const ollamaProvider = llmRouter.getProvider('ollama');
+      if (!ollamaProvider || !('pullModel' in ollamaProvider)) {
+        throw new Error('Ollama provider not available or does not support pulling');
       }
+
+      await (ollamaProvider as any).pullModel(modelId);
+      
+      // Refresh providers to get updated model list
+      await get().discoverProviders();
+      set((state) => {
+        const newPulling = new Set(state.pullingModels);
+        newPulling.delete(modelId);
+        return { pullingModels: newPulling };
+      });
+      return true;
     } catch (error) {
       set((state) => {
         const newPulling = new Set(state.pullingModels);
@@ -256,6 +293,23 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       set({ error: (error as Error).message, isLoading: false });
       throw error;
     }
+  },
+
+  toggleFavorite: (modelId: string) => {
+    set((state) => {
+      const newFavorites = new Set(state.favoriteModels);
+      if (newFavorites.has(modelId)) {
+        newFavorites.delete(modelId);
+      } else {
+        newFavorites.add(modelId);
+      }
+      saveFavorites(newFavorites);
+      return { favoriteModels: newFavorites };
+    });
+  },
+
+  isFavorite: (modelId: string) => {
+    return get().favoriteModels.has(modelId);
   },
 }));
 

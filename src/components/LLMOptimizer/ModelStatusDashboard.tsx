@@ -8,6 +8,7 @@ import { Zap, Activity, CheckCircle2, XCircle } from 'lucide-react';
 import { useLLMStore } from '@/services/ai/llmStore';
 import TechIcon from '../Icons/TechIcon';
 import QuickModelActions from './QuickModelActions';
+import type { LLMModel } from '@/types/llm';
 import type { ModelCatalogEntry } from '@/types/optimizer';
 import '@/styles/ModelStatusDashboard.css';
 
@@ -15,8 +16,11 @@ interface ModelStatusDashboardProps {
   catalog?: ModelCatalogEntry[];
 }
 
-const ModelStatusDashboard: React.FC<ModelStatusDashboardProps> = ({ catalog = [] }) => {
-  const { models, activeModel, availableProviders, isLoading } = useLLMStore();
+const ModelStatusDashboard: React.FC<ModelStatusDashboardProps> = React.memo(({ catalog = [] }) => {
+  const models = useLLMStore((state) => state.models);
+  const activeModel = useLLMStore((state) => state.activeModel);
+  const availableProviders = useLLMStore((state) => state.availableProviders);
+  const isLoading = useLLMStore((state) => state.isLoading);
 
   // Group models by provider and status
   const modelGroups = useMemo(() => {
@@ -25,8 +29,8 @@ const ModelStatusDashboard: React.FC<ModelStatusDashboardProps> = ({ catalog = [
       providerName: string;
       type: 'local' | 'cloud';
       isOnline: boolean;
-      models: typeof models;
-      activeModel?: typeof models[0];
+      models: LLMModel[];
+      activeModel?: LLMModel;
     }> = {};
 
     const providerMap: Record<string, { name: string; type: 'local' | 'cloud' }> = {
@@ -37,7 +41,7 @@ const ModelStatusDashboard: React.FC<ModelStatusDashboardProps> = ({ catalog = [
       openrouter: { name: 'OpenRouter', type: 'cloud' },
     };
 
-    models.forEach((model) => {
+    models.forEach((model: LLMModel) => {
       const providerInfo = providerMap[model.provider];
       if (!providerInfo) return;
 
@@ -122,7 +126,7 @@ const ModelStatusDashboard: React.FC<ModelStatusDashboardProps> = ({ catalog = [
             </div>
 
             <div className="models-list">
-              {group.models.slice(0, 5).map((model) => (
+              {group.models.slice(0, 5).map((model: LLMModel) => (
                 <div
                   key={model.id}
                   className={`model-item ${activeModel?.id === model.id ? 'active' : ''}`}
@@ -136,12 +140,15 @@ const ModelStatusDashboard: React.FC<ModelStatusDashboardProps> = ({ catalog = [
                   <QuickModelActions model={catalog.find(c => c.id === model.id) || {
                     id: model.id,
                     displayName: model.name,
-                    provider: model.provider,
+                    provider: model.provider as 'ollama' | 'lmstudio' | 'openrouter',
                     sizeGB: 0,
                     contextWindow: model.contextWindow || 4096,
                     tags: [],
                     family: model.provider,
                     description: '',
+                    bestFor: [],
+                    strengths: [],
+                    limitations: [],
                   }} compact={true} />
                 </div>
               ))}
@@ -156,7 +163,9 @@ const ModelStatusDashboard: React.FC<ModelStatusDashboardProps> = ({ catalog = [
       </div>
     </div>
   );
-};
+});
+
+ModelStatusDashboard.displayName = 'ModelStatusDashboard';
 
 export default ModelStatusDashboard;
 

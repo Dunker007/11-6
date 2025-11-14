@@ -73,12 +73,24 @@
  * - Request queuing and rate limiting
  * - Multi-provider parallel generation for comparison
  */
-import { LMStudioProvider, OllamaProvider, type LLMProvider } from './providers/localLLM';
-import { GeminiProvider, NotebookLMProvider, OllamaCloudProvider } from './providers/cloudLLM';
+import { activityService } from '../activity/activityService';
+import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk, TaskType } from '@/types/llm';
+import { localProviderDiscovery } from './providers/localProviderDiscovery';
+import {
+  type LLMProvider,
+  lmStudioProvider,
+  ollamaProvider,
+} from './providers/localLLM';
+import {
+  GeminiProvider,
+  NotebookLMProvider,
+  OllamaCloudProvider,
+} from './providers/cloudLLM';
 import { OpenRouterProvider } from './providers/openRouter';
 import { tokenTrackingService } from './tokenTrackingService';
-import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk, TaskType } from '@/types/llm';
 import { measureAsync, logSlowOperation } from '@/utils/performance';
+import { errorLogger } from '@/services/errors/errorLogger';
+import { logger } from '@/services/logging/loggerService';
 
 export type { LLMProvider };
 
@@ -88,24 +100,21 @@ export class LLMRouter {
   private providers: Map<string, LLMProvider> = new Map();
   private preferredProvider: 'lmstudio' | 'ollama' | 'ollama-cloud' | 'gemini' | 'notebooklm' | 'openrouter' | null = null;
   private strategy: ProviderStrategy = 'cloud-fallback'; // Default to cloud fallback for reliability
-  private openRouterProvider: OpenRouterProvider;
+  private openRouterProvider: OpenRouterProvider = new OpenRouterProvider();
   private studioContext: boolean = false; // Track if Studio is active
   private providerHealthCache: Map<string, { status: boolean; timestamp: number }> = new Map();
-  private readonly HEALTH_CACHE_TTL = 5000;
+  private readonly HEALTH_CACHE_TTL = 30000; // 30 seconds - reduce redundant health checks
+  private discoveryInProgress = false; // Prevent concurrent discovery calls
+  private lastDiscoveryTime = 0; // Track last discovery time for debouncing
+  private readonly DISCOVERY_DEBOUNCE_MS = 2000; // Minimum 2 seconds between discoveries
 
   constructor() {
-    // Local providers
-    this.providers.set('lmstudio', new LMStudioProvider());
-    this.providers.set('ollama', new OllamaProvider());
-    
-    // Cloud providers
+    this.providers.set('ollama', ollamaProvider);
+    this.providers.set('lmstudio', lmStudioProvider);
     this.providers.set('gemini', new GeminiProvider());
     this.providers.set('notebooklm', new NotebookLMProvider());
-    this.providers.set('ollama-cloud', new OllamaCloudProvider());
-    
-    // OpenRouter (unified cloud fallback)
-    this.openRouterProvider = new OpenRouterProvider();
     this.providers.set('openrouter', this.openRouterProvider);
+    this.providers.set('ollama-cloud', new OllamaCloudProvider());
     
     // Load saved strategy from localStorage
     try {
@@ -114,9 +123,20 @@ export class LLMRouter {
         this.strategy = savedStrategy as ProviderStrategy;
       }
     } catch (error) {
-      console.warn('Failed to load strategy from localStorage:', error);
+      logger.warn('Failed to load strategy from localStorage:', { error: error instanceof Error ? error.message : String(error) });
       // Continue with default strategy
     }
+
+    this.setStrategy('local-first');
+    logger.info('LLMRouter initialized');
+    this.discoverLocalProviders();
+  }
+
+  private async discoverLocalProviders() {
+    logger.info('Discovering local LLM providers...');
+    const discovered = await localProviderDiscovery.discover();
+    // In a real app, you might auto-enable/disable providers based on discovery
+    logger.info('Discovered local providers', { discovered });
   }
 
   setOpenRouterKey(key: string) {
@@ -125,6 +145,12 @@ export class LLMRouter {
 
   setStrategy(strategy: ProviderStrategy) {
     this.strategy = strategy;
+    activityService.addActivity({
+      type: 'ai',
+      action: 'Strategy Changed',
+      description: `LLM routing strategy set to ${strategy}`,
+    });
+    logger.info(`LLM routing strategy set to ${strategy}`);
   }
 
   getStrategy(): ProviderStrategy {
@@ -132,35 +158,83 @@ export class LLMRouter {
   }
 
   async discoverProviders(): Promise<{ provider: string; available: boolean; models: LLMModel[] }[]> {
-    return measureAsync(
-      'llmRouter.discoverProviders',
-      async () => {
-        const results: { provider: string; available: boolean; models: LLMModel[] }[] = [];
+    // Prevent concurrent discovery calls
+    if (this.discoveryInProgress) {
+      console.log('[Router] Discovery already in progress, skipping...');
+      // Return cached results if available
+      const cachedResults: { provider: string; available: boolean; models: LLMModel[] }[] = [];
+      for (const [name] of this.providers.entries()) {
+        const cached = this.providerHealthCache.get(name);
+        cachedResults.push({
+          provider: name,
+          available: cached?.status ?? false,
+          models: [], // Don't return models during concurrent call
+        });
+      }
+      return cachedResults;
+    }
 
-        for (const [name, provider] of this.providers.entries()) {
-          try {
-        const isHealthy = await this.isProviderHealthy(name, provider);
-            const models = isHealthy ? await provider.getModels() : [];
-            results.push({
-              provider: name,
-              available: isHealthy,
-              models,
-            });
-          } catch (error) {
-            console.error(`Failed to discover ${name}:`, error);
-            results.push({
-              provider: name,
-              available: false,
-              models: [],
-            });
-          }
-        }
+    // Debounce: don't run if called too soon after last discovery
+    const now = Date.now();
+    if (now - this.lastDiscoveryTime < this.DISCOVERY_DEBOUNCE_MS) {
+      console.log(`[Router] Discovery debounced (${now - this.lastDiscoveryTime}ms since last)`);
+      // Return cached results
+      const cachedResults: { provider: string; available: boolean; models: LLMModel[] }[] = [];
+      for (const [name] of this.providers.entries()) {
+        const cached = this.providerHealthCache.get(name);
+        cachedResults.push({
+          provider: name,
+          available: cached?.status ?? false,
+          models: [],
+        });
+      }
+      return cachedResults;
+    }
 
-        return results;
-      },
-      200,
-      { providerCount: this.providers.size, strategy: this.strategy }
-    );
+    this.discoveryInProgress = true;
+    this.lastDiscoveryTime = now;
+
+    try {
+      return await measureAsync(
+        'llmRouter.discoverProviders',
+        async () => {
+          console.log('[Router] discoverProviders() called - clearing cache for fresh checks');
+          // Clear cache to force fresh health checks
+          this.clearHealthCache();
+          
+          const results: { provider: string; available: boolean; models: LLMModel[] }[] = [];
+
+          // Run health checks in parallel for better performance
+          const healthCheckPromises = Array.from(this.providers.entries()).map(async ([name, provider]) => {
+            try {
+              const isHealthy = await this.isProviderHealthy(name, provider);
+              const models = isHealthy ? await provider.getModels() : [];
+              return {
+                provider: name,
+                available: isHealthy,
+                models,
+              };
+            } catch (error) {
+              logger.error(`Failed to discover ${name}:`, { error: error instanceof Error ? error.message : String(error) });
+              return {
+                provider: name,
+                available: false,
+                models: [],
+              };
+            }
+          });
+
+          const healthResults = await Promise.all(healthCheckPromises);
+          results.push(...healthResults);
+
+          return results;
+        },
+        500, // Network-heavy operation with 6 providers, 500ms is reasonable
+        { providerCount: this.providers.size, strategy: this.strategy }
+      );
+    } finally {
+      this.discoveryInProgress = false;
+    }
   }
 
   async getAvailableProvider(): Promise<LLMProvider | null> {
@@ -233,6 +307,10 @@ export class LLMRouter {
       }
     }
 
+    logger.warn('No healthy LLM providers found for the current strategy.', {
+      strategy: this.strategy,
+      preferredProvider: this.preferredProvider,
+    });
     return null;
   }
 
@@ -262,11 +340,12 @@ export class LLMRouter {
     );
     
     if (!provider) {
+      logger.error('No LLM providers available. Please configure Ollama, LM Studio, or OpenRouter.');
       throw new Error('No LLM providers available. Please configure Ollama, LM Studio, or OpenRouter.');
     }
 
     try {
-      const response = await measureAsync(
+      const response: GenerateResponse = await measureAsync(
         `llmRouter.generate:${provider.name}`,
         () => provider.generate(prompt, options),
         500,
@@ -286,14 +365,19 @@ export class LLMRouter {
       
       return response;
     } catch (error) {
-      console.error(`Provider ${provider.name} failed:`, error);
+      logger.error('Error in LLMRouter generate', { prompt, options, error });
+      errorLogger.logFromError('runtime', error as Error, 'error', {
+        source: 'LLMRouter.generate',
+        prompt,
+        options,
+      });
       
       // Try fallback if enabled
       if (this.strategy === 'cloud-fallback' || this.strategy === 'hybrid') {
         const fallback = await this.getFallbackProvider(provider);
         if (fallback) {
-          console.log(`Falling back to ${fallback.name}`);
-          const response = await measureAsync(
+          logger.info(`Falling back to ${fallback.name}`);
+          const response: GenerateResponse = await measureAsync(
             `llmRouter.generate:${fallback.name}`,
             () => fallback.generate(prompt, options),
             500,
@@ -369,21 +453,53 @@ export class LLMRouter {
   }
 
   private async isProviderHealthy(name: string, provider: LLMProvider): Promise<boolean> {
+    // Skip Ollama Cloud in browser mode to avoid CORS errors
+    if (name === 'ollama-cloud') {
+      const isElectron = typeof window !== 'undefined' && 'ipcRenderer' in window;
+      if (!isElectron) {
+        console.log(`[Router] Skipping ${name} health check (browser mode)`);
+        return false;
+      }
+    }
     const cached = this.providerHealthCache.get(name);
     const now = Date.now();
     if (cached && now - cached.timestamp < this.HEALTH_CACHE_TTL) {
+      const age = now - cached.timestamp;
+      console.log(`[Router] Using cached health for ${name}: ${cached.status} (age: ${age}ms)`);
       return cached.status;
     }
 
+    console.log(`[Router] Running fresh health check for ${name}`);
     try {
-      const status = await provider.healthCheck();
+      // Add 5-second timeout to prevent hanging
+      const timeoutPromise = new Promise<boolean>((_, reject) => 
+        setTimeout(() => reject(new Error('Health check timeout')), 5000)
+      );
+      const status = await Promise.race([
+        provider.healthCheck(),
+        timeoutPromise
+      ]);
+      console.log(`[Router] Health check result for ${name}: ${status}`);
       this.providerHealthCache.set(name, { status, timestamp: now });
       return status;
     } catch (error) {
-      console.warn(`Health check failed for provider ${name}:`, error);
+      const isTimeout = error instanceof Error && error.message === 'Health check timeout';
+      console.error(`[Router] Health check ${isTimeout ? 'timeout' : 'failed'} for ${name}:`, error);
+      logger.warn(`Health check ${isTimeout ? 'timeout' : 'failed'} for provider ${name}:`, { 
+        error: error instanceof Error ? error.message : String(error),
+        timeout: isTimeout
+      });
       this.providerHealthCache.set(name, { status: false, timestamp: now });
       return false;
     }
+  }
+
+  /**
+   * Clear the health check cache to force fresh checks
+   */
+  clearHealthCache(): void {
+    console.log('[Router] Clearing health check cache');
+    this.providerHealthCache.clear();
   }
 
   private async selectProvider(options?: GenerateOptions): Promise<LLMProvider | null> {
@@ -467,6 +583,7 @@ export class LLMRouter {
     );
 
     if (!provider) {
+      logger.error('No LLM providers available. Please configure Ollama, LM Studio, or OpenRouter.');
       throw new Error('No LLM providers available. Please configure Ollama, LM Studio, or OpenRouter.');
     }
 
@@ -490,12 +607,17 @@ export class LLMRouter {
           750,
           { failure: true, model: options?.model, taskType: options?.taskType }
         );
-        console.error(`Streaming with provider ${provider.name} failed:`, error);
+        logger.error('Error in LLMRouter streamGenerate', { prompt, options, error });
+        errorLogger.logFromError('runtime', error as Error, 'error', {
+          source: 'LLMRouter.streamGenerate',
+          prompt,
+          options,
+        });
 
         if (this.strategy === 'cloud-fallback' || this.strategy === 'hybrid') {
           const fallback = await this.getFallbackProvider(provider);
           if (fallback && fallback !== provider) {
-            console.log(`Streaming falling back to ${fallback.name}`);
+            logger.info(`Streaming falling back to ${fallback.name}`);
             provider = fallback;
             continue;
           }
@@ -508,6 +630,12 @@ export class LLMRouter {
 
   setPreferredProvider(provider: 'lmstudio' | 'ollama' | 'ollama-cloud' | 'gemini' | 'notebooklm' | 'openrouter'): void {
     this.preferredProvider = provider;
+    activityService.addActivity({
+      type: 'ai',
+      action: 'Preferred Provider Set',
+      description: `Preferred LLM provider set to ${provider}`,
+    });
+    logger.info(`Preferred LLM provider set to ${provider}`);
   }
 
   getPreferredProvider(): 'lmstudio' | 'ollama' | 'ollama-cloud' | 'gemini' | 'notebooklm' | 'openrouter' | null {

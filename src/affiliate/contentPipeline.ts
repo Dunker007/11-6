@@ -218,6 +218,11 @@ Format as JSON with:
     affiliateLinks: AffiliateLink[],
     estimatedTraffic: number
   ): number {
+    // Guard clause: return 0 if no affiliate links
+    if (affiliateLinks.length === 0) {
+      return 0;
+    }
+
     const averageConversionRate = 0.02; // 2% click-to-conversion
     const averageCommission =
       affiliateLinks.reduce((sum, link) => sum + link.commission, 0) /

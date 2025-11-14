@@ -67,6 +67,10 @@ class PortfolioService {
         cash: 0,
         domain: 0,
         collectible: 0,
+        nft: 0,
+        private_investment: 0,
+        commodity: 0,
+        derivative: 0,
         other: 0,
       },
       performance: {
@@ -213,6 +217,10 @@ class PortfolioService {
       cash: 0,
       domain: 0,
       collectible: 0,
+      nft: 0,
+      private_investment: 0,
+      commodity: 0,
+      derivative: 0,
       other: 0,
     };
 
@@ -249,7 +257,7 @@ class PortfolioService {
     return 'stock'; // Default to stock
   }
 
-  async calculateReturns(portfolioId: string, period: '1d' | '1w' | '1mo' | '3mo' | '6mo' | '1y' | 'ytd' | 'all'): Promise<number> {
+  async calculateReturns(portfolioId: string, _period: '1d' | '1w' | '1mo' | '3mo' | '6mo' | '1y' | 'ytd' | 'all'): Promise<number> {
     const portfolio = this.portfolios.get(portfolioId);
     if (!portfolio) return 0;
 
@@ -315,6 +323,10 @@ class PortfolioService {
         cash: 0,
         domain: 0,
         collectible: 0,
+        nft: 0,
+        private_investment: 0,
+        commodity: 0,
+        derivative: 0,
         other: 0,
       };
     }
@@ -354,7 +366,7 @@ class PortfolioService {
 
   async rebalancePortfolio(
     portfolioId: string,
-    targetAllocation: Record<string, number>
+    _targetAllocation: Record<string, number>
   ): Promise<{ symbol: string; action: 'buy' | 'sell'; quantity: number }[]> {
     const portfolio = this.portfolios.get(portfolioId);
     if (!portfolio) return [];

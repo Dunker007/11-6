@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { X, Trash2, FolderOpen, Download, ArrowUpDown } from 'lucide-react';
-import TechIcon from '@/components/Icons/TechIcon';
+import { X, Trash2, FolderOpen, ArrowUpDown } from 'lucide-react';
 import { formatBytes, formatDate } from '@/utils/formatters';
 import '@/styles/LargeFilesModal.css';
 

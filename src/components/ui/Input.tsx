@@ -9,6 +9,8 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
+  holographic?: boolean; // New prop: Enable holographic styling
+  glowColor?: 'cyan' | 'magenta' | 'amber' | 'violet'; // New prop: Glow color for holographic mode
 }
 
 /**
@@ -27,6 +29,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       leftIcon,
       rightIcon,
       fullWidth = false,
+      holographic = false, // Destructure new prop
+      glowColor = 'cyan', // Destructure new prop
       className = '',
       id,
       ...props
@@ -38,11 +42,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const baseClasses = 'ui-input-wrapper';
     const widthClass = fullWidth ? 'ui-input-wrapper--full-width' : '';
     const errorClass = hasError ? 'ui-input-wrapper--error' : '';
+    const holographicClass = holographic ? `ui-input-wrapper--holographic ui-input-wrapper--holographic-${glowColor}` : ''; // New class
 
     const wrapperClasses = [
       baseClasses,
       widthClass,
       errorClass,
+      holographicClass, // Add new class
       className,
     ]
       .filter(Boolean)
@@ -105,6 +111,8 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   helperText?: string;
   fullWidth?: boolean;
   resize?: 'none' | 'vertical' | 'horizontal' | 'both';
+  holographic?: boolean; // New prop: Enable holographic styling
+  glowColor?: 'cyan' | 'magenta' | 'amber' | 'violet'; // New prop: Glow color for holographic mode
 }
 
 /**
@@ -122,6 +130,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       helperText,
       fullWidth = false,
       resize = 'vertical',
+      holographic = false, // Destructure new prop
+      glowColor = 'cyan', // Destructure new prop
       className = '',
       id,
       ...props
@@ -133,11 +143,13 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     const baseClasses = 'ui-input-wrapper';
     const widthClass = fullWidth ? 'ui-input-wrapper--full-width' : '';
     const errorClass = hasError ? 'ui-input-wrapper--error' : '';
+    const holographicClass = holographic ? `ui-input-wrapper--holographic ui-input-wrapper--holographic-${glowColor}` : ''; // New class
 
     const wrapperClasses = [
       baseClasses,
       widthClass,
       errorClass,
+      holographicClass, // Add new class
       className,
     ]
       .filter(Boolean)

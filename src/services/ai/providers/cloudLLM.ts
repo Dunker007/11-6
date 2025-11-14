@@ -83,12 +83,40 @@
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
 import type { LLMProvider } from '../router';
 import { apiKeyService } from '@/services/apiKeys/apiKeyService';
+import { logger } from '@/services/logging/loggerService';
 import type {
   GeminiSystemInstruction,
   GeminiContent,
   GeminiResponseMetadata,
   GeminiFunctionCall,
+  GeminiError,
+  GeminiRequestBody,
+  GeminiResponseData,
+  GeminiCandidate,
+  GeminiContentPart,
 } from '@/types/gemini';
+import { OllamaModel } from '@/types/localLLM';
+
+/**
+ * Parses a Gemini API error response and returns a standardized message.
+ * @param error - The error object from the API response.
+ * @returns A formatted error message string.
+ */
+function formatGeminiError(error: GeminiError): string {
+  let message = error.message || 'An unknown error occurred';
+  if (error.details) {
+    const details = error.details
+      .map((detail) => {
+        let detailMessage = `Type: ${detail['@type']}`;
+        if (detail.reason) detailMessage += `, Reason: ${detail.reason}`;
+        if (detail.metadata?.service) detailMessage += `, Service: ${detail.metadata.service}`;
+        return detailMessage;
+      })
+      .join('; ');
+    message += ` | Details: ${details}`;
+  }
+  return `[${error.code} ${error.status}] ${message}`;
+}
 
 export class GeminiProvider implements LLMProvider {
   name = 'Google Gemini';
@@ -185,12 +213,13 @@ export class GeminiProvider implements LLMProvider {
     prompt: string,
     options?: GenerateOptions
   ): GeminiContent[] {
-    // If contents are provided, use them (multi-modal support)
+    // If contents are provided directly, use them. This is the primary
+    // way to support complex multi-modal prompts.
     if (options?.contents && options.contents.length > 0) {
       return options.contents;
     }
 
-    // Otherwise, build from prompt
+    // Otherwise, build a simple text-only prompt.
     return [
       {
         role: 'user',
@@ -209,7 +238,7 @@ export class GeminiProvider implements LLMProvider {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
 
     // Build request body with all advanced features
-    const requestBody: any = {
+    const requestBody: GeminiRequestBody = {
       contents: this.buildContents(prompt, options),
       generationConfig: {
         temperature: options?.temperature ?? 0.91,
@@ -219,19 +248,19 @@ export class GeminiProvider implements LLMProvider {
 
     // Add advanced generation config
     if (options?.topP !== undefined) {
-      requestBody.generationConfig.topP = options.topP;
+      requestBody.generationConfig!.topP = options.topP;
     }
     if (options?.topK !== undefined) {
-      requestBody.generationConfig.topK = options.topK;
+      requestBody.generationConfig!.topK = options.topK;
     }
     if (options?.candidateCount !== undefined) {
-      requestBody.generationConfig.candidateCount = options.candidateCount;
+      requestBody.generationConfig!.candidateCount = options.candidateCount;
     }
     if (options?.stopSequences && options.stopSequences.length > 0) {
-      requestBody.generationConfig.stopSequences = options.stopSequences;
+      requestBody.generationConfig!.stopSequences = options.stopSequences;
     }
     if (options?.responseMimeType) {
-      requestBody.generationConfig.responseMimeType = options.responseMimeType;
+      requestBody.generationConfig!.responseMimeType = options.responseMimeType;
     }
 
     // Add system instruction
@@ -264,22 +293,33 @@ export class GeminiProvider implements LLMProvider {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
-      throw new Error(`Gemini API error: ${error.error?.message || response.statusText}`);
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          throw new Error(`Gemini API error: ${formatGeminiError(errorData.error)}`);
+        }
+        throw new Error(`Gemini API error: ${response.statusText}`);
+      } catch (e) {
+        if (e instanceof Error && e.message.startsWith('Gemini API error:')) {
+          throw e;
+        }
+        logger.error('Failed to parse Gemini API error response', { status: response.status, statusText: response.statusText });
+        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+      }
     }
 
-    const data = await response.json();
+    const data: GeminiResponseData = await response.json();
 
     // Extract text from all candidates
     const candidates = data.candidates || [];
     const primaryCandidate = candidates[0];
     const text = primaryCandidate?.content?.parts
-      ?.map((part: any) => part.text || '')
+      ?.map((part: GeminiContentPart) => part.text || '')
       .join('') || '';
 
     // Extract function calls
     const functionCalls: GeminiFunctionCall[] = [];
-    primaryCandidate?.content?.parts?.forEach((part: any) => {
+    primaryCandidate?.content?.parts?.forEach((part: GeminiContentPart) => {
       if (part.functionCall) {
         functionCalls.push({
           name: part.functionCall.name,
@@ -298,7 +338,7 @@ export class GeminiProvider implements LLMProvider {
             totalTokens: data.usageMetadata.totalTokenCount,
           }
         : undefined,
-      safetyRatings: primaryCandidate?.safetyRatings?.map((rating: any) => ({
+      safetyRatings: primaryCandidate?.safetyRatings?.map((rating) => ({
         category: rating.category,
         probability: rating.probability,
       })),
@@ -311,7 +351,7 @@ export class GeminiProvider implements LLMProvider {
       finishReason: primaryCandidate?.finishReason,
       metadata,
       functionCalls: functionCalls.length > 0 ? functionCalls : undefined,
-      candidates: candidates.map((candidate: any) => ({
+      candidates: candidates.map((candidate: GeminiCandidate) => ({
         content: {
           parts: candidate.content?.parts || [],
         },
@@ -330,7 +370,7 @@ export class GeminiProvider implements LLMProvider {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${this.apiKey}`;
 
     // Build request body with all advanced features (same as generate)
-    const requestBody: any = {
+    const requestBody: GeminiRequestBody = {
       contents: this.buildContents(prompt, options),
       generationConfig: {
         temperature: options?.temperature ?? 0.91,
@@ -340,16 +380,16 @@ export class GeminiProvider implements LLMProvider {
 
     // Add advanced generation config
     if (options?.topP !== undefined) {
-      requestBody.generationConfig.topP = options.topP;
+      requestBody.generationConfig!.topP = options.topP;
     }
     if (options?.topK !== undefined) {
-      requestBody.generationConfig.topK = options.topK;
+      requestBody.generationConfig!.topK = options.topK;
     }
     if (options?.stopSequences && options.stopSequences.length > 0) {
-      requestBody.generationConfig.stopSequences = options.stopSequences;
+      requestBody.generationConfig!.stopSequences = options.stopSequences;
     }
     if (options?.responseMimeType) {
-      requestBody.generationConfig.responseMimeType = options.responseMimeType;
+      requestBody.generationConfig!.responseMimeType = options.responseMimeType;
     }
 
     // Add system instruction
@@ -382,8 +422,18 @@ export class GeminiProvider implements LLMProvider {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
-      throw new Error(`Gemini API error: ${error.error?.message || response.statusText}`);
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          throw new Error(`Gemini API error: ${formatGeminiError(errorData.error)}`);
+        }
+        throw new Error(`Gemini API error: ${response.statusText}`);
+      } catch (e) {
+        if (e instanceof Error && e.message.startsWith('Gemini API error:')) {
+          throw e;
+        }
+        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+      }
     }
 
     const reader = response.body?.getReader();
@@ -413,16 +463,16 @@ export class GeminiProvider implements LLMProvider {
             }
 
             try {
-              const parsed = JSON.parse(data);
+              const parsed: GeminiResponseData = JSON.parse(data);
               // Extract text and function calls from all parts
               const parts = parsed.candidates?.[0]?.content?.parts || [];
               const text = parts
-                .map((part: any) => part.text || '')
+                .map((part: GeminiContentPart) => part.text || '')
                 .join('');
               
               // Extract function calls from parts
               const functionCalls: GeminiFunctionCall[] = [];
-              parts.forEach((part: any) => {
+              parts.forEach((part: GeminiContentPart) => {
                 if (part.functionCall) {
                   functionCalls.push({
                     name: part.functionCall.name,
@@ -639,8 +689,21 @@ export class OllamaCloudProvider implements LLMProvider {
   }
 
   async healthCheck(): Promise<boolean> {
+    // Skip health check in browser/dev server mode - Ollama Cloud doesn't support CORS
+    // Only check in Electron where CORS restrictions don't apply
+    const isElectron = typeof window !== 'undefined' && 'ipcRenderer' in window;
+    if (!isElectron) {
+      return false;
+    }
+
     try {
       await this.loadAPIKey();
+      
+      // Skip health check if no API key (Ollama Cloud requires authentication)
+      if (!this.apiKey) {
+        return false;
+      }
+      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
       
@@ -662,7 +725,7 @@ export class OllamaCloudProvider implements LLMProvider {
       clearTimeout(timeoutId);
       return response.ok;
     } catch (error) {
-      console.warn('Ollama Cloud health check failed:', error);
+      // Silently handle network errors
       return false;
     }
   }
@@ -697,7 +760,7 @@ export class OllamaCloudProvider implements LLMProvider {
       const data = await response.json();
       const models = Array.isArray(data.models) ? data.models : [];
 
-      return models.map((model: any) => ({
+      return models.map((model: OllamaModel) => ({
         id: model.name || 'unknown',
         name: model.name || 'Unknown Model',
         provider: 'ollama-cloud' as const,
@@ -805,7 +868,7 @@ export class OllamaCloudProvider implements LLMProvider {
     return models[0].id;
   }
 
-  private detectContextWindow(model: any): number {
+  private detectContextWindow(model: OllamaModel): number {
     // Try to get from model details first
     if (model.details?.context_length) return model.details.context_length;
     

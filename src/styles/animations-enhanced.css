@@ -1,0 +1,248 @@
+/**
+ * Enhanced Animations & Micro-interactions
+ * Smooth, performant animations that enhance UX without being distracting
+ */
+
+/* ===== Spring-based Animations ===== */
+@keyframes spring-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  50% {
+    transform: scale(1.02) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes spring-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* ===== Smooth Slide Animations ===== */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Pulse & Glow Effects ===== */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+  }
+}
+
+@keyframes subtle-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* ===== Success & Error States ===== */
+@keyframes success-bounce {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+/* ===== Loading States ===== */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes loading-dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%, 100% {
+    content: '...';
+  }
+}
+
+/* ===== Utility Classes ===== */
+
+/* Spring entrance */
+.animate-spring-in {
+  animation: spring-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Slide animations */
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+.animate-slide-in-down {
+  animation: slide-in-down 0.3s ease-out;
+}
+
+/* Stagger children animations */
+.animate-stagger-children > * {
+  opacity: 0;
+  animation: spring-in 0.4s ease-out forwards;
+}
+
+.animate-stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.animate-stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.animate-stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.animate-stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.animate-stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.animate-stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.animate-stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.animate-stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);
+}
+
+.hover-scale {
+  transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* Focus states */
+.focus-ring {
+  transition: outline 0.2s ease, outline-offset 0.2s ease;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--violet-500);
+  outline-offset: 2px;
+}
+
+/* Loading shimmer */
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 0%,
+    var(--bg-tertiary) 50%,
+    var(--bg-secondary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Success/Error feedback */
+.feedback-success {
+  animation: success-bounce 0.5s ease-out;
+}
+
+.feedback-error {
+  animation: shake 0.5s ease-out;
+}
+
+/* Pulse for notifications */
+.pulse-notification {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, textarea, select {
+  transition: all 0.2s ease;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

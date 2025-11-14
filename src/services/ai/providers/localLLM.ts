@@ -66,6 +66,15 @@
  * - Connection pooling
  */
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
+import { logger } from '@/services/logging/loggerService';
+import type {
+  LMStudioModel,
+  OllamaModel,
+  LMStudioCompletionResponse,
+  OllamaCompletionResponse,
+  LMStudioStreamResponse,
+  OllamaStreamResponse,
+} from '@/types/localLLM';
 
 export interface LLMProvider {
   name: string;
@@ -84,19 +93,27 @@ export class LMStudioProvider implements LLMProvider {
   private healthCheckTimeout = 5000; // 5 seconds
 
   async healthCheck(): Promise<boolean> {
+    const url = `${this.baseUrl}/models`;
+    console.log(`[LM Studio] Health check starting: ${url}`);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
       
-      const response = await fetch(`${this.baseUrl}/models`, {
+      logger.info(`Checking LM Studio at ${url}`);
+      const response = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
       });
       
       clearTimeout(timeoutId);
-      return response.ok;
-    } catch {
+      const isHealthy = response.ok;
+      console.log(`[LM Studio] Health check result: ${isHealthy ? 'ONLINE' : 'OFFLINE'} (status: ${response.status})`);
+      logger.info(`LM Studio health check: ${isHealthy ? 'online' : 'offline'} (status: ${response.status})`);
+      return isHealthy;
+    } catch (error) {
+      console.error(`[LM Studio] Health check FAILED:`, error);
+      logger.warn('LM Studio health check failed:', { error, url });
       return false;
     }
   }
@@ -118,10 +135,10 @@ export class LMStudioProvider implements LLMProvider {
         return [];
       }
 
-      const data = await response.json();
+      const data: { data: LMStudioModel[] } = await response.json();
       const models = Array.isArray(data.data) ? data.data : [];
 
-      return models.map((model: any) => ({
+      return models.map((model: LMStudioModel) => ({
         id: model.id || model.name || 'unknown',
         name: model.name || model.id || 'Unknown Model',
         provider: 'lmstudio' as const,
@@ -134,18 +151,19 @@ export class LMStudioProvider implements LLMProvider {
         },
       }));
     } catch (error) {
-      console.error('Failed to fetch LM Studio models:', error);
+      logger.error('Failed to fetch LM Studio models:', { error });
       return [];
     }
   }
 
-  private detectContextWindow(model: any): number {
+  private detectContextWindow(model: LMStudioModel | OllamaModel): number {
     // Try to get from model metadata first
-    if (model.context_length) return model.context_length;
-    if (model.contextLength) return model.contextLength;
+    if ('context_length' in model && model.context_length) return model.context_length;
+    if ('contextLength' in model && model.contextLength) return model.contextLength;
+    if ('details' in model && model.details?.context_length) return model.details.context_length;
     
     // Fallback to name-based detection
-    const name = (model.name || model.id || '').toLowerCase();
+    const name = ('id' in model ? (model.name || model.id) : model.name || '').toLowerCase();
     if (name.includes('32b')) return 32768;
     if (name.includes('16b') || name.includes('14b')) return 16384;
     if (name.includes('7b') || name.includes('8b')) return 8192;
@@ -200,7 +218,7 @@ export class LMStudioProvider implements LLMProvider {
         throw new Error(`LM Studio API error: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
+      const data: LMStudioCompletionResponse = await response.json();
       return {
         text: data.choices[0]?.message?.content || '',
         tokensUsed: data.usage?.total_tokens,
@@ -278,7 +296,7 @@ export class LMStudioProvider implements LLMProvider {
               }
 
               try {
-                const parsed = JSON.parse(data);
+                const parsed: LMStudioStreamResponse = JSON.parse(data);
                 const content = parsed.choices[0]?.delta?.content || '';
                 if (content) {
                   yield { text: content, done: false };
@@ -322,19 +340,26 @@ export class OllamaProvider implements LLMProvider {
   private requestTimeout = 30000; // 30 seconds
 
   async healthCheck(): Promise<boolean> {
+    const url = `${this.baseUrl}/tags`;
+    console.log(`[Ollama] Health check starting: ${url}`);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
       
-      const response = await fetch(`${this.baseUrl}/tags`, {
+      logger.info(`Checking Ollama at ${url}`);
+      const response = await fetch(url, {
         method: 'GET',
         signal: controller.signal,
       });
       
       clearTimeout(timeoutId);
-      return response.ok;
+      const isHealthy = response.ok;
+      console.log(`[Ollama] Health check result: ${isHealthy ? 'ONLINE' : 'OFFLINE'} (status: ${response.status})`);
+      logger.info(`Ollama health check: ${isHealthy ? 'online' : 'offline'} (status: ${response.status})`);
+      return isHealthy;
     } catch (error) {
-      console.warn('Ollama health check failed:', error);
+      console.error(`[Ollama] Health check FAILED:`, error);
+      logger.warn('Ollama health check failed:', { error, url });
       return false;
     }
   }
@@ -355,10 +380,10 @@ export class OllamaProvider implements LLMProvider {
         throw new Error(`Ollama returned ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: { models: OllamaModel[] } = await response.json();
       const models = Array.isArray(data.models) ? data.models : [];
 
-      return models.map((model: any) => ({
+      return models.map((model: OllamaModel) => ({
         id: model.name || 'unknown',
         name: model.name || 'Unknown Model',
         provider: 'ollama' as const,
@@ -372,7 +397,7 @@ export class OllamaProvider implements LLMProvider {
         },
       }));
     } catch (error) {
-      console.error('Failed to fetch Ollama models:', error);
+      logger.error('Failed to fetch Ollama models:', { error });
       return [];
     }
   }
@@ -416,7 +441,7 @@ export class OllamaProvider implements LLMProvider {
           throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
         }
 
-        const data = await response.json();
+        const data: OllamaCompletionResponse = await response.json();
         
         return {
           text: data.response || '',
@@ -458,9 +483,11 @@ export class OllamaProvider implements LLMProvider {
     return models[0].id;
   }
 
-  private detectContextWindow(model: any): number {
+  private detectContextWindow(model: OllamaModel | LMStudioModel): number {
     // Try to get from model details first
-    if (model.details?.context_length) return model.details.context_length;
+    if ('details' in model && model.details?.context_length) return model.details.context_length;
+    if ('context_length' in model && model.context_length) return model.context_length;
+    if ('contextLength' in model && model.contextLength) return model.contextLength;
     
     // Fallback to name-based detection
     const name = (model.name || '').toLowerCase();
@@ -550,7 +577,7 @@ export class OllamaProvider implements LLMProvider {
 
           for (const line of lines) {
             try {
-              const parsed = JSON.parse(line);
+              const parsed: OllamaStreamResponse = JSON.parse(line);
               const content = parsed.response || '';
               if (content) {
                 yield { text: content, done: false };
@@ -585,5 +612,78 @@ export class OllamaProvider implements LLMProvider {
       throw error;
     }
   }
+
+  /**
+   * Pull/download a model from Ollama registry
+   * @param modelName - Name of the model to pull (e.g., 'llama2', 'mistral')
+   * @param onProgress - Optional callback for progress updates
+   * @returns Promise that resolves when pull is complete
+   */
+  async pullModel(
+    modelName: string, 
+    onProgress?: (progress: { status: string; completed?: number; total?: number }) => void
+  ): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/pull`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: modelName }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama pull failed: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n').filter((line) => line.trim());
+
+          for (const line of lines) {
+            try {
+              const progress = JSON.parse(line);
+              if (onProgress) {
+                onProgress({
+                  status: progress.status || 'pulling',
+                  completed: progress.completed,
+                  total: progress.total,
+                });
+              }
+              logger.info(`Ollama pull progress for ${modelName}:`, { 
+                status: progress.status,
+                percent: progress.total ? Math.round((progress.completed / progress.total) * 100) : undefined 
+              });
+            } catch {
+              // Skip invalid JSON
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
+
+      logger.info(`Successfully pulled model: ${modelName}`);
+    } catch (error) {
+      logger.error(`Failed to pull model ${modelName}:`, { 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+      throw error;
+    }
+  }
 }
+
+export const lmStudioProvider = new LMStudioProvider();
+export const ollamaProvider = new OllamaProvider();
 

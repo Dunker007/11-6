@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { benchmarkService } from '@/services/benchmark/benchmarkService';
-import type { BenchmarkSuite, BenchmarkResult } from '@/services/benchmark/benchmarkService';
+import type { BenchmarkSuite } from '@/services/benchmark/benchmarkService';
 
 interface BenchmarkStore {
   suite: BenchmarkSuite | null;

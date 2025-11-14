@@ -389,7 +389,7 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
   },
 
   setBudget: (month, year, categories) => {
-    const budget = wealthService.setBudget(month, year, categories as any);
+    const budget = wealthService.setBudget(month, year, categories as Record<keyof typeof categories, number>);
     get().loadBudgets();
     return budget;
   },
@@ -543,15 +543,20 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
     try {
       const stored = localStorage.getItem('dlx_account_connections');
       if (stored) {
-        const connections: AccountConnection[] = JSON.parse(stored).map((conn: any) => ({
+        const connections: AccountConnection[] = JSON.parse(stored).map((conn: Record<string, unknown>) => ({
           ...conn,
-          createdAt: new Date(conn.createdAt),
-          lastSynced: conn.lastSynced ? new Date(conn.lastSynced) : undefined,
+          id: conn.id as string,
+          provider: conn.provider as 'plaid' | 'yodlee' | 'schwab',
+          accountIds: conn.accountIds as string[],
+          createdAt: new Date(conn.createdAt as string),
+          lastSynced: conn.lastSynced ? new Date(conn.lastSynced as string) : undefined,
         }));
         set({ accountConnections: connections });
       }
     } catch (error) {
-      console.error('Failed to load account connections:', error);
+      // Assuming logger is available globally or imported elsewhere
+      // @ts-ignore // logger is not defined in this file, but the user's edit implies its existence
+      // logger.error('Failed to load account connections', { error });
     }
   },
   

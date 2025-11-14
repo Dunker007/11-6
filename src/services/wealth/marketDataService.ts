@@ -9,6 +9,8 @@
 
 import { marketDataService as coinGeckoService } from '@/services/crypto/marketDataService';
 import type { CryptoETF, NewsArticle, DividendPayment } from '@/types/wealth';
+import type { YahooFinanceResponse, NewsAPIResponse, NewsAPIArticle } from '@/types/marketData';
+import { logger } from '../logging/loggerService';
 
 const YAHOO_FINANCE_API_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
 const NEWS_API_BASE = 'https://newsapi.org/v2';
@@ -22,8 +24,8 @@ interface CacheEntry<T> {
 
 class WealthMarketDataService {
   private static instance: WealthMarketDataService;
-  private cache: Map<string, CacheEntry<any>> = new Map();
-  private rateLimitQueue: Array<() => Promise<any>> = [];
+  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private rateLimitQueue: Array<() => Promise<unknown>> = [];
   private isProcessingQueue = false;
 
   private constructor() {}
@@ -117,13 +119,13 @@ class WealthMarketDataService {
           };
         }
       } catch (error) {
-        console.error(`Failed to fetch crypto price for ${symbol}:`, error);
+        logger.error(`Failed to fetch crypto price for ${symbol}`, { error });
       }
     }
 
     try {
       const url = `${YAHOO_FINANCE_API_BASE}/${symbol}?interval=1d&range=1d`;
-      const data = await this.rateLimitedFetch<any>(`price_${symbol}`, url);
+      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`price_${symbol}`, url);
       
       if (data?.chart?.result?.[0]) {
         const result = data.chart.result[0];
@@ -142,7 +144,7 @@ class WealthMarketDataService {
         };
       }
     } catch (error) {
-      console.error(`Failed to fetch price for ${symbol}:`, error);
+      logger.error(`Failed to fetch price for ${symbol}`, { error });
     }
 
     throw new Error(`Unable to fetch price for ${symbol}`);
@@ -164,7 +166,7 @@ class WealthMarketDataService {
 
     try {
       const url = `${YAHOO_FINANCE_API_BASE}/${symbol}?interval=${interval}&range=${range}`;
-      const data = await this.rateLimitedFetch<any>(`history_${symbol}_${period}`, url, 60000);
+      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`history_${symbol}_${period}`, url, 60000);
       
       if (data?.chart?.result?.[0]) {
         const result = data.chart.result[0];
@@ -181,7 +183,7 @@ class WealthMarketDataService {
         };
       }
     } catch (error) {
-      console.error(`Failed to fetch historical data for ${symbol}:`, error);
+      logger.error(`Failed to fetch historical data for ${symbol}`, { error });
     }
 
     return {
@@ -212,7 +214,7 @@ class WealthMarketDataService {
         });
       });
     } catch (error) {
-      console.error('Failed to search crypto:', error);
+      logger.error('Failed to search crypto', { error });
     }
 
     return results.slice(0, 20);
@@ -241,7 +243,7 @@ class WealthMarketDataService {
         };
       }
     } catch (error) {
-      console.error(`Failed to get crypto details for ${symbol}:`, error);
+      logger.error(`Failed to get crypto details for ${symbol}`, { error });
     }
 
     return {
@@ -263,10 +265,10 @@ class WealthMarketDataService {
       const query = symbols && symbols.length > 0 ? symbols.join(' OR ') : 'finance OR stock OR crypto';
       const url = `${NEWS_API_BASE}/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&pageSize=${limit}&language=en`;
       
-      const data = await this.rateLimitedFetch<any>(`news_${query}_${limit}`, url, NEWS_CACHE_TTL);
+      const data = await this.rateLimitedFetch<NewsAPIResponse>(`news_${query}_${limit}`, url, NEWS_CACHE_TTL);
       
       if (data?.articles) {
-        data.articles.forEach((article: any) => {
+        data.articles.forEach((article: NewsAPIArticle) => {
           articles.push({
             id: crypto.randomUUID(),
             title: article.title,
@@ -284,7 +286,7 @@ class WealthMarketDataService {
         });
       }
     } catch (error) {
-      console.error('Failed to fetch market news:', error);
+      logger.error('Failed to fetch market news', { error });
       return this.getMockNews(symbols, limit);
     }
 
@@ -386,13 +388,12 @@ class WealthMarketDataService {
     try {
       // Yahoo Finance dividend endpoint
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5y&events=div`;
-      const data = await this.rateLimitedFetch<any>(`dividends_${symbol}`, url, 300000); // Cache for 5 minutes
+      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`dividends_${symbol}`, url, 300000); // Cache for 5 minutes
       
       if (data?.chart?.result?.[0]?.events?.dividends) {
         const dividendEvents = data.chart.result[0].events.dividends;
-        const timestamps = data.chart.result[0].timestamp || [];
         
-        Object.entries(dividendEvents).forEach(([timestamp, div]: [string, any]) => {
+        Object.entries(dividendEvents).forEach(([timestamp, div]) => {
           const date = new Date(parseInt(timestamp) * 1000);
           
           if (startDate && date < startDate) return;
@@ -414,7 +415,7 @@ class WealthMarketDataService {
         });
       }
     } catch (error) {
-      console.error(`Failed to fetch dividend history for ${symbol}:`, error);
+      logger.error(`Failed to fetch dividend history for ${symbol}`, { error });
     }
     
     return dividends.sort((a, b) => b.exDividendDate.getTime() - a.exDividendDate.getTime());
@@ -439,12 +440,12 @@ class WealthMarketDataService {
     try {
       // Yahoo Finance earnings calendar endpoint
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2y&events=earnings`;
-      const data = await this.rateLimitedFetch<any>(`earnings_${symbol}`, url, 300000);
+      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`earnings_${symbol}`, url, 300000);
       
       if (data?.chart?.result?.[0]?.events?.earnings) {
         const earningsEvents = data.chart.result[0].events.earnings;
         
-        Object.entries(earningsEvents).forEach(([timestamp, earning]: [string, any]) => {
+        Object.entries(earningsEvents).forEach(([timestamp, earning]) => {
           const date = new Date(parseInt(timestamp) * 1000);
           
           earnings.push({
@@ -456,7 +457,7 @@ class WealthMarketDataService {
         });
       }
     } catch (error) {
-      console.error(`Failed to fetch earnings calendar for ${symbol}:`, error);
+      logger.error(`Failed to fetch earnings calendar for ${symbol}`, { error });
     }
     
     return earnings.sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -465,7 +466,7 @@ class WealthMarketDataService {
   /**
    * Get options chain data (for advanced users)
    */
-  async getOptionsChain(symbol: string, expirationDate?: Date): Promise<Array<{
+  async getOptionsChain(_symbol: string, _expirationDate?: Date): Promise<Array<{
     strike: number;
     expirationDate: Date;
     calls?: {

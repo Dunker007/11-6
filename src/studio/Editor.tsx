@@ -11,7 +11,7 @@ interface EditorProps {
 function CodeEditor(_props: EditorProps) {
   const [content, setContent] = useState('');
   const [language, setLanguage] = useState('typescript');
-  const [isEditorReady, setIsEditorReady] = useState(false);
+  const [_isEditorReady, setIsEditorReady] = useState(false);
 
   const { activeFile, getFileContent, updateFile, setActiveFile: setStoreActiveFile } = useProjectStore();
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -191,7 +191,7 @@ function CodeEditor(_props: EditorProps) {
             dragAndDrop: true,
             links: true,
             lightbulb: {
-              enabled: true,
+              enabled: 'on' as monaco.editor.ShowLightbulbIconMode,
             },
           }}
         />

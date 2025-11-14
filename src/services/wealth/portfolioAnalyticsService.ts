@@ -11,7 +11,7 @@
 
 import { wealthService } from './wealthService';
 import { wealthMarketDataService } from './marketDataService';
-import type { Asset, Position, AssetType } from '@/types/wealth';
+import type { Position, AssetType } from '@/types/wealth';
 
 export type TimePeriod = '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | '5Y' | 'ALL';
 
@@ -114,8 +114,9 @@ class PortfolioAnalyticsService {
     }
 
     // Calculate portfolio value at start and end of period
-    const endDate = new Date();
-    const startDate = this.getStartDate(period, endDate);
+    // const endDate = new Date();
+    // Calculate period start date (unused for simplified implementation)
+    // const _startDate = this.getStartDate(period, endDate);
 
     // Get historical prices (simplified - would need actual historical data)
     const totalCostBasis = positions.reduce((sum, pos) => sum + (pos.costBasis * pos.quantity), 0);
@@ -229,7 +230,7 @@ class PortfolioAnalyticsService {
   /**
    * Calculate performance attribution
    */
-  async calculatePerformanceAttribution(period: TimePeriod = '1Y'): Promise<PerformanceAttribution> {
+  async calculatePerformanceAttribution(_period: TimePeriod = '1Y'): Promise<PerformanceAttribution> {
     const assets = wealthService.getAssets();
     const positions: Position[] = [];
     
@@ -254,12 +255,14 @@ class PortfolioAnalyticsService {
     });
 
     const totalCostBasis = positions.reduce((sum, pos) => sum + (pos.costBasis * pos.quantity), 0);
-    const totalCurrentValue = positions.reduce((sum, pos) => {
-      const asset = assets.find(a => a.symbol === pos.symbol);
-      const price = asset?.currentPrice || pos.costBasis;
-      return sum + (price * pos.quantity);
-    }, 0);
-    const totalReturn = totalCurrentValue - totalCostBasis;
+    // Calculate total current value (unused for simplified implementation)
+    // const totalCurrentValue = positions.reduce((sum, pos) => {
+    //   const asset = assets.find(a => a.symbol === pos.symbol);
+    //   const price = asset?.currentPrice || pos.costBasis;
+    //   return sum + (price * pos.quantity);
+    // }, 0);
+    // Calculate total return (unused for simplified implementation)
+    // const _totalReturn = totalCurrentValue - totalCostBasis;
 
     const assetContributions = positions.map(pos => {
       const asset = assets.find(a => a.symbol === pos.symbol);
@@ -344,7 +347,7 @@ class PortfolioAnalyticsService {
       const trackingError = this.calculateTrackingError(portfolioData, benchmarkData.close);
 
       // Calculate information ratio
-      const informationRatio = trackingError > 0 ? excessReturn / trackingError : undefined;
+      const informationRatio = trackingError !== undefined && trackingError > 0 ? excessReturn / trackingError : undefined;
 
       return {
         portfolioReturn,
@@ -426,31 +429,31 @@ class PortfolioAnalyticsService {
     }
   }
 
-  private calculateVolatility(positions: Position[], period: TimePeriod): number {
+  private calculateVolatility(_positions: Position[], _period: TimePeriod): number {
     // Simplified volatility calculation
     // In real implementation, would calculate from daily returns
     return 0.15; // Placeholder: 15% annualized volatility
   }
 
-  private calculateSortinoRatio(positions: Position[], annualizedReturn: number): number | undefined {
+  private calculateSortinoRatio(_positions: Position[], _annualizedReturn: number): number | undefined {
     // Simplified Sortino ratio (downside deviation)
     // In real implementation, would calculate downside deviation
     return undefined;
   }
 
-  private calculateMaxDrawdown(positions: Position[], period: TimePeriod): { amount: number; percent: number } {
+  private calculateMaxDrawdown(_positions: Position[], _period: TimePeriod): { amount: number; percent: number } {
     // Simplified max drawdown calculation
     // In real implementation, would track peak-to-trough declines
     return { amount: 0, percent: 0 };
   }
 
-  private calculateVaR(positions: Position[], confidence: number): number | undefined {
+  private calculateVaR(_positions: Position[], _confidence: number): number | undefined {
     // Simplified VaR calculation
     // In real implementation, would use historical simulation or parametric methods
     return undefined;
   }
 
-  private async getPortfolioHistoricalData(positions: Position[], startDate: Date): Promise<number[]> {
+  private async getPortfolioHistoricalData(_positions: Position[], _startDate: Date): Promise<number[]> {
     // Simplified - would need to aggregate historical prices for all positions
     return [];
   }

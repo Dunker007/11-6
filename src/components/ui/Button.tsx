@@ -74,6 +74,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: LucideIcon;
   rightIcon?: LucideIcon;
   fullWidth?: boolean;
+  hexagonal?: boolean;
+  holographic?: boolean;
+  glowColor?: 'cyan' | 'magenta' | 'amber' | 'violet';
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -85,6 +88,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       leftIcon: LeftIcon,
       rightIcon: RightIcon,
       fullWidth = false,
+      hexagonal = false,
+      holographic = false,
+      glowColor = 'cyan',
       children,
       className = '',
       disabled,
@@ -98,6 +104,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const widthClass = fullWidth ? 'ui-button--full-width' : '';
     const loadingClass = isLoading ? 'ui-button--loading' : '';
     const disabledClass = disabled || isLoading ? 'ui-button--disabled' : '';
+    const hexagonalClass = hexagonal ? 'ui-button--hexagonal' : '';
+    const holographicClass = holographic ? 'ui-button--holographic' : '';
+    const glowClass = holographic ? `ui-button--glow-${glowColor}` : '';
 
     const classes = [
       baseClasses,
@@ -106,6 +115,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       widthClass,
       loadingClass,
       disabledClass,
+      hexagonalClass,
+      holographicClass,
+      glowClass,
       className,
     ]
       .filter(Boolean)
