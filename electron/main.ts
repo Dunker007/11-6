@@ -83,6 +83,8 @@ import { exec, spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
 import os from 'os';
 import crypto from 'crypto';
+import { registerDebuggerHandlers } from './ipc/debuggerHandlers.js';
+import { registerESLintHandlers } from './ipc/eslintHandlers.js';
 
 const execAsync = promisify(exec);
 
@@ -1651,6 +1653,63 @@ ipcMain.handle('benchmark:disk', async () => {
       readSpeed: 0,
       writeSpeed: 0,
     };
+  }
+});
+
+// Register debugger IPC handlers
+registerDebuggerHandlers(ipcMain);
+
+// Register ESLint IPC handlers
+registerESLintHandlers(ipcMain);
+
+// --------- npm Audit IPC Handlers ---------
+ipcMain.handle('npm:audit', async (_event, projectPath: string) => {
+  try {
+    const { stdout, stderr } = await execAsync('npm audit --json', {
+      cwd: projectPath,
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+    });
+
+    if (stderr && !stdout) {
+      return { success: false, error: stderr, data: null };
+    }
+
+    try {
+      const auditData = JSON.parse(stdout || '{}');
+      return { success: true, data: auditData };
+    } catch (parseError) {
+      return { success: false, error: 'Failed to parse audit output', data: null };
+    }
+  } catch (error: any) {
+    // npm audit returns exit code 1 when vulnerabilities are found
+    // but still outputs valid JSON
+    if (error.stdout) {
+      try {
+        const auditData = JSON.parse(error.stdout);
+        return { success: true, data: auditData };
+      } catch {
+        return { success: false, error: (error as Error).message, data: null };
+      }
+    }
+    return { success: false, error: (error as Error).message, data: null };
+  }
+});
+
+ipcMain.handle('npm:audit-fix', async (_event, projectPath: string, force: boolean = false) => {
+  try {
+    const command = force ? 'npm audit fix --force' : 'npm audit fix';
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: projectPath,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    return { success: true, output: stdout, error: stderr || null };
+  } catch (error: any) {
+    // npm audit fix may return exit code 1 even on partial success
+    if (error.stdout) {
+      return { success: true, output: error.stdout, error: error.stderr || null };
+    }
+    return { success: false, error: (error as Error).message };
   }
 });
 

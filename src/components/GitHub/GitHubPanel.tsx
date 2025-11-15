@@ -71,8 +71,11 @@ import { useState, useEffect } from 'react';
 import { useGitHubStore } from '../../services/github/githubStore';
 import { useFileSystemStore } from '../../services/filesystem/fileSystemStore';
 import { githubService } from '../../services/github/githubService';
-import { Zap, RefreshCw, ArrowRight } from 'lucide-react';
+import { Zap, RefreshCw, ArrowRight, GitCommit, GitMerge, FileDiff } from 'lucide-react';
 import GitWizard from './GitWizard';
+import GitDiffViewer from './GitDiffViewer';
+import CommitHistoryViewer from './CommitHistoryViewer';
+import MergeConflictResolver from './MergeConflictResolver';
 import '../../styles/GitHubPanel.css';
 
 function GitHubPanel() {
@@ -103,6 +106,10 @@ function GitHubPanel() {
   const [newBranchName, setNewBranchName] = useState('');
 
   const [showWizard, setShowWizard] = useState(false);
+  const [showDiffViewer, setShowDiffViewer] = useState(false);
+  const [selectedDiffFile, setSelectedDiffFile] = useState<string | undefined>();
+  const [showCommitHistory, setShowCommitHistory] = useState(false);
+  const [showConflictResolver, setShowConflictResolver] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -258,6 +265,10 @@ function GitHubPanel() {
                 <ArrowRight size={20} />
                 <span>Git Wizard</span>
               </button>
+              <button onClick={() => setShowCommitHistory(true)} className="quick-action-btn" title="View commit history">
+                <GitCommit size={20} />
+                <span>Commit History</span>
+              </button>
             </div>
           </div>
 
@@ -266,6 +277,49 @@ function GitHubPanel() {
               <div className="wizard-container">
                 <button onClick={() => setShowWizard(false)} className="wizard-close">×</button>
                 <GitWizard />
+              </div>
+            </div>
+          )}
+
+          {showDiffViewer && currentDirectory && (
+            <div className="diff-viewer-overlay">
+              <div className="diff-viewer-container">
+                <GitDiffViewer
+                  repoPath={currentDirectory}
+                  filePath={selectedDiffFile}
+                  base="HEAD"
+                  onClose={() => {
+                    setShowDiffViewer(false);
+                    setSelectedDiffFile(undefined);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {showCommitHistory && currentDirectory && (
+            <div className="diff-viewer-overlay">
+              <div className="diff-viewer-container">
+                <CommitHistoryViewer
+                  repoPath={currentDirectory}
+                  initialBranch={status?.branch}
+                  onClose={() => setShowCommitHistory(false)}
+                />
+              </div>
+            </div>
+          )}
+
+          {showConflictResolver && currentDirectory && (
+            <div className="diff-viewer-overlay">
+              <div className="diff-viewer-container">
+                <MergeConflictResolver
+                  repoPath={currentDirectory}
+                  onResolved={() => {
+                    setShowConflictResolver(false);
+                    getStatus(currentDirectory);
+                  }}
+                  onClose={() => setShowConflictResolver(false)}
+                />
               </div>
             </div>
           )}
@@ -284,14 +338,49 @@ function GitHubPanel() {
                   <span>Changes:</span>
                   <strong>{status.files.length} file(s)</strong>
                 </div>
+                {status.hasConflicts && (
+                  <div className="status-item conflict-warning">
+                    <span>Conflicts:</span>
+                    <strong>{status.conflictedFiles.length} file(s)</strong>
+                    <button
+                      onClick={() => setShowConflictResolver(true)}
+                      className="resolve-conflicts-btn"
+                      title="Resolve merge conflicts"
+                    >
+                      <GitMerge size={14} />
+                      Resolve
+                    </button>
+                  </div>
+                )}
               </div>
 
               {status.files.length > 0 && (
                 <div className="changed-files">
-                  <h5>Changed Files</h5>
+                  <div className="changed-files-header">
+                    <h5>Changed Files</h5>
+                    <button
+                      onClick={() => {
+                        setSelectedDiffFile(undefined);
+                        setShowDiffViewer(true);
+                      }}
+                      className="view-diff-btn"
+                      title="View all diffs"
+                    >
+                      <FileDiff size={16} />
+                      View Diffs
+                    </button>
+                  </div>
                   <div className="file-list">
                     {status.files.map((file, index) => (
-                      <div key={index} className="file-change-item">
+                      <div
+                        key={index}
+                        className="file-change-item"
+                        onClick={() => {
+                          setSelectedDiffFile(file.path);
+                          setShowDiffViewer(true);
+                        }}
+                        title={`Click to view diff for ${file.path}`}
+                      >
                         <span className={`file-status ${file.status}`}>
                           {file.status === 'modified' && '●'}
                           {file.status === 'added' && '+'}

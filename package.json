@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "prepare": "husky install",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
@@ -50,6 +51,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-grid-layout": "^1.3.5",
     "@types/systeminformation": "^3.23.1",
+    "@types/chrome-remote-interface": "^0.33.0",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
     "@vitejs/plugin-react": "^5.1.1",
@@ -62,6 +64,8 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^4.6.0",
     "globals": "^16.5.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.0",
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
     "tailwindcss": "^3.4.3",
@@ -88,6 +92,7 @@
     "react-markdown": "^10.1.0",
     "simple-git": "^3.30.0",
     "systeminformation": "^5.22.9",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "chrome-remote-interface": "^0.33.2"
   }
 }

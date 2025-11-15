@@ -89,6 +89,10 @@ import { proactiveAgentService } from '@/services/agents/proactiveAgentService';
 import { useVibesStore } from '@/services/agents/vibesStore';
 import { semanticIndexService } from '@/services/ai/semanticIndexService';
 import { VibeDSTheme } from '@/services/theme/VibeDSEditorTheme';
+import { eslintService } from '@/services/codeQuality/eslintService';
+import { monacoCompletionsProvider } from '@/services/editor/monacoCompletionsProvider';
+import { aiTabCompletionService } from '@/services/ai/aiTabCompletionService';
+import '@/styles/aiTabCompletion.css';
 import FileExplorer from './FileExplorer';
 import TurboEdit from './TurboEdit';
 import AIAssistant from '../AIAssistant/AIAssistant';
@@ -124,6 +128,7 @@ function VibeEditor() {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const decorationsRef = useRef<string[]>([]);
+  const lintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const vibes = useVibesStore((state) => state.vibes);
 
   useEffect(() => {
@@ -336,6 +341,59 @@ function VibeEditor() {
     };
   }, [vibes, activeFilePath]);
 
+  // Real-time ESLint integration
+  useEffect(() => {
+    if (!editorRef.current || !activeFilePath || !fileContent) {
+      return;
+    }
+
+    // Debounce linting
+    if (lintTimeoutRef.current) {
+      clearTimeout(lintTimeoutRef.current);
+    }
+
+    lintTimeoutRef.current = setTimeout(async () => {
+      try {
+        // Only lint TypeScript/JavaScript files
+        const ext = activeFilePath.split('.').pop()?.toLowerCase();
+        if (!['ts', 'tsx', 'js', 'jsx'].includes(ext || '')) {
+          return;
+        }
+
+        const lintResult = await eslintService.lintFile(activeFilePath, fileContent);
+        
+        if (editorRef.current && lintResult.results.length > 0) {
+          const monaco = (window as any).monaco;
+          if (monaco) {
+            const markers = eslintService.eslintResultsToMonacoMarkers(lintResult.results);
+            const model = editorRef.current.getModel();
+            if (model) {
+              monaco.editor.setModelMarkers(model, 'eslint', markers);
+            }
+          }
+        } else if (editorRef.current) {
+          // Clear markers if no errors
+          const monaco = (window as any).monaco;
+          if (monaco) {
+            const model = editorRef.current.getModel();
+            if (model) {
+              monaco.editor.setModelMarkers(model, 'eslint', []);
+            }
+          }
+        }
+      } catch (error) {
+        // Silently fail - ESLint might not be available
+        console.debug('ESLint not available:', error);
+      }
+    }, 500); // Debounce 500ms
+
+    return () => {
+      if (lintTimeoutRef.current) {
+        clearTimeout(lintTimeoutRef.current);
+      }
+    };
+  }, [fileContent, activeFilePath]);
+
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
@@ -344,6 +402,9 @@ function VibeEditor() {
       }
       if (statusTimeoutRef.current) {
         clearTimeout(statusTimeoutRef.current);
+      }
+      if (lintTimeoutRef.current) {
+        clearTimeout(lintTimeoutRef.current);
       }
     };
   }, []);
@@ -724,6 +785,12 @@ function VibeEditor() {
                   // Define and apply custom theme
                   monaco.editor.defineTheme('VibeDSTheme', VibeDSTheme);
                   monaco.editor.setTheme('VibeDSTheme');
+                  
+                  // Initialize AI-powered completions
+                  monacoCompletionsProvider.initialize(monaco);
+                  
+                  // Initialize Tab completion (Copilot-style)
+                  aiTabCompletionService.initialize(editor, monaco);
                 }}
                 theme="VibeDSTheme"
                 options={{

@@ -61,6 +61,8 @@ export interface GitStatus {
   branch: string;
   ahead: number;
   behind: number;
+  hasConflicts: boolean;
+  conflictedFiles: string[];
   files: {
     path: string;
     status: 'modified' | 'added' | 'deleted' | 'renamed' | 'untracked';
@@ -155,6 +157,8 @@ export class GitHubService {
         branch: branch,
         ahead: status.ahead,
         behind: status.behind,
+        hasConflicts: status.conflicted.length > 0,
+        conflictedFiles: status.conflicted || [],
         files: status.files.map((file) => ({
           path: file.path,
           status: file.working_dir as GitStatus['files'][0]['status'],

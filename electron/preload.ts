@@ -273,3 +273,35 @@ safeExpose('windowControls', {
   close: () => ipcRenderer.invoke('window:close'),
 });
 
+// --------- Expose Debugger API ---------
+safeExpose('debugger', {
+  connect: (port?: number) => ipcRenderer.invoke('debugger:connect', port),
+  disconnect: () => ipcRenderer.invoke('debugger:disconnect'),
+  setBreakpoint: (filePath: string, line: number, column?: number) => 
+    ipcRenderer.invoke('debugger:setBreakpoint', filePath, line, column),
+  removeBreakpoint: (breakpointId: string) => 
+    ipcRenderer.invoke('debugger:removeBreakpoint', breakpointId),
+  getBreakpoints: () => ipcRenderer.invoke('debugger:getBreakpoints'),
+  stepOver: () => ipcRenderer.invoke('debugger:stepOver'),
+  stepInto: () => ipcRenderer.invoke('debugger:stepInto'),
+  stepOut: () => ipcRenderer.invoke('debugger:stepOut'),
+  resume: () => ipcRenderer.invoke('debugger:resume'),
+  pause: () => ipcRenderer.invoke('debugger:pause'),
+  getCallStack: () => ipcRenderer.invoke('debugger:getCallStack'),
+  getVariables: (callFrameId: string) => ipcRenderer.invoke('debugger:getVariables', callFrameId),
+  evaluate: (expression: string, callFrameId?: string) => 
+    ipcRenderer.invoke('debugger:evaluate', expression, callFrameId),
+});
+
+// --------- Expose npm API ---------
+safeExpose('npm', {
+  audit: (projectPath: string) => ipcRenderer.invoke('npm:audit', projectPath),
+  auditFix: (projectPath: string, force?: boolean) => ipcRenderer.invoke('npm:audit-fix', projectPath, force),
+});
+
+// --------- Expose ESLint API ---------
+safeExpose('eslint', {
+  lint: (filePath: string, content: string) => ipcRenderer.invoke('eslint:lint', filePath, content),
+  fix: (filePath: string, content: string) => ipcRenderer.invoke('eslint:fix', filePath, content),
+});
+
