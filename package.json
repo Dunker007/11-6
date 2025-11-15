@@ -37,6 +37,9 @@
   },
   "homepage": "https://github.com/Dunker007/11-6#readme",
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/crypto-js": "^4.2.2",
     "@types/lodash": "^4.17.4",
     "@types/node": "^20.12.12",
