@@ -114,4 +114,8 @@ download*.jpg
 download*.jpeg
 download*.gif
 
+# Large backup files
+*-backup-*.zip
+11-6-backup-*.zip
+
 
