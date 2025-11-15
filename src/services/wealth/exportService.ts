@@ -13,11 +13,45 @@ import { taxReportingService } from './taxReportingService';
 import { dividendTrackingService } from './dividendTrackingService';
 import type { Asset, Transaction, NetWorthHistory, Budget, NetWorth } from '@/types/wealth';
 
-// TODO: Add proper type definitions for tax and dividend types
-type TaxReport = any;
-type Form1099BEntry = any;
-type DividendSummary = any;
-type DividendCalendarEntry = any;
+// Type definitions for tax and dividend exports
+export interface TaxReport {
+  year: number;
+  totalIncome: number;
+  totalDeductions: number;
+  taxableIncome: number;
+  taxOwed: number;
+  refund: number;
+  filingStatus: 'single' | 'married' | 'head' | 'widow';
+  forms: Form1099BEntry[];
+}
+
+export interface Form1099BEntry {
+  symbol: string;
+  description: string;
+  dateAcquired: Date;
+  dateSold: Date;
+  proceeds: number;
+  costBasis: number;
+  gainLoss: number;
+  shortTerm: boolean;
+}
+
+export interface DividendSummary {
+  year: number;
+  totalDividends: number;
+  qualifiedDividends: number;
+  nonQualifiedDividends: number;
+  foreignTaxPaid: number;
+  entries: DividendCalendarEntry[];
+}
+
+export interface DividendCalendarEntry {
+  date: Date;
+  symbol: string;
+  amount: number;
+  type: 'qualified' | 'non-qualified' | 'return-of-capital';
+  foreignTaxWithheld?: number;
+}
 
 export type ExportFormat = 'csv' | 'excel' | 'pdf';
 export type ExportType = 

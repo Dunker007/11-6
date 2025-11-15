@@ -30,6 +30,19 @@ The application will open automatically in a new Electron window.
 
 ## 🎯 Core Features
 
+### Testing (NEW)
+**What it does**: Run unit tests and view coverage reports.
+
+**Available Commands:**
+- `npm test` - Run Vitest unit tests in watch mode
+- `npm run test:ui` - Open Vitest UI for visual test debugging
+- `npm run test:coverage` - Generate coverage reports
+- `npm run test:e2e` - Run Playwright end-to-end tests
+
+**See:** `TESTING.md` for comprehensive testing guide
+
+---
+
 ### 1. LLM Optimization (Alt+1)
 
 **What it does**: Manage and optimize your local and cloud LLM providers.
