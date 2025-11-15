@@ -9,22 +9,11 @@
  */
 
 import { wealthService } from './wealthService';
-import { taxReportingService } from './taxReportingService';
-import { dividendTrackingService } from './dividendTrackingService';
+import { taxReportingService, type TaxReport } from './taxReportingService';
+import { dividendTrackingService, type DividendSummary, type DividendCalendarEntry } from './dividendTrackingService';
 import type { Asset, Transaction, NetWorthHistory, Budget, NetWorth } from '@/types/wealth';
 
-// Type definitions for tax and dividend exports
-export interface TaxReport {
-  year: number;
-  totalIncome: number;
-  totalDeductions: number;
-  taxableIncome: number;
-  taxOwed: number;
-  refund: number;
-  filingStatus: 'single' | 'married' | 'head' | 'widow';
-  forms: Form1099BEntry[];
-}
-
+// Form 1099-B entry type for exports
 export interface Form1099BEntry {
   symbol: string;
   description: string;
@@ -34,23 +23,6 @@ export interface Form1099BEntry {
   costBasis: number;
   gainLoss: number;
   shortTerm: boolean;
-}
-
-export interface DividendSummary {
-  year: number;
-  totalDividends: number;
-  qualifiedDividends: number;
-  nonQualifiedDividends: number;
-  foreignTaxPaid: number;
-  entries: DividendCalendarEntry[];
-}
-
-export interface DividendCalendarEntry {
-  date: Date;
-  symbol: string;
-  amount: number;
-  type: 'qualified' | 'non-qualified' | 'return-of-capital';
-  foreignTaxWithheld?: number;
 }
 
 export type ExportFormat = 'csv' | 'excel' | 'pdf';
