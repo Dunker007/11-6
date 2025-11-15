@@ -20,6 +20,7 @@ import type { CodeChunk, SemanticSearchResult, IndexingProgress } from '@/types/
 import { fileSystemService } from '../filesystem/fileSystemService';
 import { logger } from '../logging/loggerService';
 import type { LanceDBConnection, LanceDBTable } from '@/types/lancedb';
+import type { LanceDBModule } from '@/types/external';
 
 // Use app data directory for LanceDB
 const DB_PATH = '.dlx-studios/vector-data';
@@ -77,7 +78,7 @@ class SemanticIndexService {
         await fileSystemService.mkdir(dbDir, true);
       }
 
-      this.db = await ldb.connect(DB_PATH) as any as LanceDBConnection;
+      this.db = await ldb.connect(DB_PATH) as unknown as LanceDBConnection;
       logger.info('LanceDB connection successful.');
       return this.db as LanceDBConnection;
     } catch (error) {
@@ -110,11 +111,11 @@ class SemanticIndexService {
       //           embedding: vector(float32, 384), language: utf8, function_name: utf8, class_name: utf8 }
       // MiniLM-L6-v2 produces 384-dim embeddings
       logger.info('Creating new LanceDB table.');
-      const ldb = await loadLanceDB();
+      const ldb = await loadLanceDB() as unknown as LanceDBModule;
       if (!ldb) throw new Error('LanceDB failed to load');
       const embedding = await EmbeddingService.generateEmbedding('test');
-      const schema = (ldb as any).Schema.from({
-        embedding: (ldb as any).Vector(embedding.length),
+      const schema = ldb.Schema.from({
+        embedding: ldb.Vector(embedding.length),
         filePath: 'string',
         content: 'string',
         lineStart: 'int32',
@@ -123,7 +124,7 @@ class SemanticIndexService {
         functionName: 'string',
         className: 'string',
       });
-      this.table = await (db as any).createTable(tableName, schema);
+      this.table = await db.createTable(tableName, schema) as unknown as LanceDBTable;
     }
 
     return this.table!;
@@ -436,7 +437,7 @@ class SemanticIndexService {
   public async clearIndex(): Promise<void> {
     try {
       const db = await this.connect();
-      await (db as any).dropTable('code_chunks');
+      await db.dropTable('code_chunks');
       this.table = null;
       this.currentProgress = {
         status: 'idle',

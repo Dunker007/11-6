@@ -4,6 +4,7 @@
  */
 
 import { pipeline, Pipeline } from '@xenova/transformers';
+import { logger } from '../logging/loggerService';
 
 class EmbeddingService {
   private static instance: Pipeline | null = null;
@@ -29,17 +30,17 @@ class EmbeddingService {
 
     EmbeddingService.loadingPromise = (async () => {
       try {
-        console.log('Loading embedding model:', EmbeddingService.MODEL_NAME);
+        logger.info('Loading embedding model:', { model: EmbeddingService.MODEL_NAME });
         const pipelineInstance = await pipeline('feature-extraction', EmbeddingService.MODEL_NAME, {
           quantized: true,
         });
         EmbeddingService.instance = pipelineInstance as Pipeline;
         EmbeddingService.loadingPromise = null;
-        console.log('Embedding model loaded successfully');
+        logger.info('Embedding model loaded successfully');
         return pipelineInstance as Pipeline;
       } catch (error) {
         EmbeddingService.loadingPromise = null;
-        console.error('Failed to load embedding model:', error);
+        logger.error('Failed to load embedding model:', { error, model: EmbeddingService.MODEL_NAME });
         throw error;
       }
     })();
@@ -58,8 +59,8 @@ class EmbeddingService {
     }
 
     // Generate embedding
-    const pipeline = await EmbeddingService.getInstance();
-    const result = await pipeline(text, { pooling: 'mean', normalize: true });
+    const pipelineInstance = await EmbeddingService.getInstance();
+    const result = await pipelineInstance(text, { pooling: 'mean', normalize: true });
     
     // Convert to array
     const embedding = Array.from(result.data) as number[];
@@ -112,7 +113,7 @@ class EmbeddingService {
 
       return parsed.embedding;
     } catch (error) {
-      console.warn('Failed to get cached embedding:', error);
+      logger.warn('Failed to get cached embedding:', { error });
       return null;
     }
   }
@@ -135,7 +136,7 @@ class EmbeddingService {
 
       localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
     } catch (error) {
-      console.warn('Failed to cache embedding:', error);
+      logger.warn('Failed to cache embedding:', { error });
       // Ignore cache errors - not critical
     }
   }
@@ -195,7 +196,7 @@ class EmbeddingService {
         }
       }
     } catch (error) {
-      console.warn('Failed to enforce cache size limit:', error);
+      logger.warn('Failed to enforce cache size limit:', { error });
     }
   }
 
@@ -209,7 +210,7 @@ class EmbeddingService {
       );
       keys.forEach(key => localStorage.removeItem(key));
     } catch (error) {
-      console.warn('Failed to clear embedding cache:', error);
+      logger.warn('Failed to clear embedding cache:', { error });
     }
   }
 }

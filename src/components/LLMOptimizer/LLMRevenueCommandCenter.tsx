@@ -195,21 +195,21 @@ function LLMRevenueCommandCenter() {
           <div className="titlebar-controls">
             <button 
               className="titlebar-button" 
-              onClick={() => (window as any).windowControls?.minimize?.()}
+              onClick={() => window.windowControls?.minimize()}
               aria-label="Minimize"
             >
               <Minus size={14} />
             </button>
             <button 
               className="titlebar-button" 
-              onClick={() => (window as any).windowControls?.maximize?.()}
+              onClick={() => window.windowControls?.maximize()}
               aria-label="Maximize"
             >
               <Square size={12} />
             </button>
             <button 
               className="titlebar-button titlebar-close" 
-              onClick={() => (window as any).windowControls?.close?.()}
+              onClick={() => window.windowControls?.close()}
               aria-label="Close"
             >
               <X size={14} />

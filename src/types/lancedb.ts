@@ -6,6 +6,7 @@ export interface LanceDBConnection {
   openTable(name: string, schema?: unknown): Promise<LanceDBTable>;
   tableNames(): Promise<string[]>;
   createTable(name: string, schema: unknown): Promise<LanceDBTable>;
+  dropTable(name: string): Promise<void>;
 }
 
 export interface LanceDBTable {

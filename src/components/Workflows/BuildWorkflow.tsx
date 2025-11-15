@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useWorkflowStore } from '@/services/workflow/workflowStore';
 import { useProjectStore } from '@/services/project/projectStore';
 import { useToast } from '@/components/ui';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 import WorkflowRunner from './WorkflowRunner';
 import TechIcon from '../Icons/TechIcon';
 import { Play, History, Zap } from 'lucide-react';
@@ -189,6 +190,7 @@ function BuildWorkflow() {
         )}
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
 

@@ -265,3 +265,11 @@ safeExpose('benchmark', {
   disk: () => ipcRenderer.invoke('benchmark:disk'),
 });
 
+// --------- Expose Window Controls API ---------
+safeExpose('windowControls', {
+  isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+  minimize: () => ipcRenderer.invoke('window:minimize'),
+  maximize: () => ipcRenderer.invoke('window:maximize'),
+  close: () => ipcRenderer.invoke('window:close'),
+});
+

@@ -1,4 +1,5 @@
 import { llmRouter } from './router';
+import { logger } from '../logging/loggerService';
 import type {
   HardwareProfile,
   ModelCatalogEntry,
@@ -359,7 +360,7 @@ async function detectGPUInfo(): Promise<{
         }
       }
     } catch (error) {
-      console.warn('Failed to detect GPU via systeminformation:', error);
+      logger.warn('Failed to detect GPU via systeminformation:', { error });
       // Fall through to browser APIs
     }
   }
@@ -485,7 +486,7 @@ export async function detectHardwareProfile(): Promise<HardwareProfile> {
         source: 'auto-detected',
       };
     } catch (error) {
-      console.warn('Failed to detect hardware via systeminformation:', error);
+      logger.warn('Failed to detect hardware via systeminformation:', { error });
       // Fall through to browser APIs
     }
   }
@@ -771,7 +772,7 @@ export async function runBenchmark(request: BenchmarkRequest): Promise<Benchmark
       }
     } catch (err) {
       // If we can't get models, use catalog ID as fallback
-      console.warn(`Could not get models from ${entry.provider}, using catalog ID:`, err);
+      logger.warn(`Could not get models from ${entry.provider}, using catalog ID:`, { error: err });
     }
 
     let error: string | undefined;
@@ -896,7 +897,7 @@ export function getUseCaseOptions(): { id: LLMUseCase; label: string; descriptio
 
 async function detectDevTool(name: string, command: string, installUrl?: string): Promise<DevTool> {
   try {
-    if (!window.devTools) {
+    if (typeof window === 'undefined' || !('devTools' in window) || !window.devTools) {
       return {
         name,
         command,
@@ -907,7 +908,12 @@ async function detectDevTool(name: string, command: string, installUrl?: string)
       };
     }
 
-    const checkResult = await window.devTools.check(command);
+    const devTools = window.devTools as {
+      check: (command: string) => Promise<{ success: boolean; installed?: boolean; output?: string; error?: string }>;
+      getVersion: (command: string) => Promise<{ success: boolean; version?: string; error?: string }>;
+      install: (command: string) => Promise<{ success: boolean; output?: string; error?: string }>;
+    };
+    const checkResult = await devTools.check(command);
     if (!checkResult.installed) {
       return {
         name,
@@ -919,7 +925,7 @@ async function detectDevTool(name: string, command: string, installUrl?: string)
       };
     }
 
-    const versionResult = await window.devTools.getVersion(command);
+    const versionResult = await devTools.getVersion(command);
     return {
       name,
       command,
@@ -981,7 +987,7 @@ export async function detectStorageDrivers(): Promise<StorageDriversStatus> {
 
       // Check for USB storage drivers
       if (usb && usb.length > 0) {
-        const usbStorage = usb.filter((device: any) => 
+        const usbStorage = usb.filter((device: Systeminformation.UsbData) => 
           device.type && device.type.toLowerCase().includes('storage')
         );
         if (usbStorage.length > 0) {
@@ -995,7 +1001,7 @@ export async function detectStorageDrivers(): Promise<StorageDriversStatus> {
         }
       }
     } catch (error) {
-      console.warn('Failed to detect storage drivers:', error);
+      logger.warn('Failed to detect storage drivers:', { error });
     }
   }
 
@@ -1045,10 +1051,20 @@ export async function detectDevTools(): Promise<DevToolsStatus> {
 
 export async function cleanTempFiles(): Promise<CleanupResult> {
   try {
-    if (!window.system) {
+    if (typeof window === 'undefined' || !('system' in window) || !window.system) {
       return { filesDeleted: 0, spaceFreed: 0, errors: ['System API not available'] };
     }
-    const result = await window.system.cleanTempFiles();
+    const system = window.system as {
+      cleanTempFiles: () => Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }>;
+      cleanCache: () => Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }>;
+      deepClean: () => Promise<{
+        tempFiles: { filesDeleted: number; spaceFreed: number; errors: string[] };
+        cache: { filesDeleted: number; spaceFreed: number; errors: string[] };
+        registry: { cleaned: number; errors: string[] };
+        oldInstallations: { found: Array<{ name: string; path: string; size: number }>; removed: number; errors: string[] };
+      }>;
+    };
+    const result = await system.cleanTempFiles();
     return result;
   } catch (error) {
     return { filesDeleted: 0, spaceFreed: 0, errors: [(error as Error).message] };
@@ -1057,10 +1073,20 @@ export async function cleanTempFiles(): Promise<CleanupResult> {
 
 export async function cleanCache(): Promise<CleanupResult> {
   try {
-    if (!window.system) {
+    if (typeof window === 'undefined' || !('system' in window) || !window.system) {
       return { filesDeleted: 0, spaceFreed: 0, errors: ['System API not available'] };
     }
-    const result = await window.system.cleanCache();
+    const system = window.system as {
+      cleanTempFiles: () => Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }>;
+      cleanCache: () => Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }>;
+      deepClean: () => Promise<{
+        tempFiles: { filesDeleted: number; spaceFreed: number; errors: string[] };
+        cache: { filesDeleted: number; spaceFreed: number; errors: string[] };
+        registry: { cleaned: number; errors: string[] };
+        oldInstallations: { found: Array<{ name: string; path: string; size: number }>; removed: number; errors: string[] };
+      }>;
+    };
+    const result = await system.cleanCache();
     return result;
   } catch (error) {
     return { filesDeleted: 0, spaceFreed: 0, errors: [(error as Error).message] };
@@ -1069,7 +1095,7 @@ export async function cleanCache(): Promise<CleanupResult> {
 
 export async function deepCleanSystem(): Promise<SystemCleanupResults> {
   try {
-    if (!window.system) {
+    if (typeof window === 'undefined' || !('system' in window) || !window.system) {
       return {
         tempFiles: { filesDeleted: 0, spaceFreed: 0, errors: ['System API not available'] },
         cache: { filesDeleted: 0, spaceFreed: 0, errors: ['System API not available'] },
@@ -1077,7 +1103,17 @@ export async function deepCleanSystem(): Promise<SystemCleanupResults> {
         oldInstallations: { found: [], removed: 0, errors: [] },
       };
     }
-    const result = await window.system.deepClean();
+    const system = window.system as {
+      cleanTempFiles: () => Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }>;
+      cleanCache: () => Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }>;
+      deepClean: () => Promise<{
+        tempFiles: { filesDeleted: number; spaceFreed: number; errors: string[] };
+        cache: { filesDeleted: number; spaceFreed: number; errors: string[] };
+        registry: { cleaned: number; errors: string[] };
+        oldInstallations: { found: Array<{ name: string; path: string; size: number }>; removed: number; errors: string[] };
+      }>;
+    };
+    const result = await system.deepClean();
     return result;
   } catch (error) {
     return {

@@ -44,6 +44,7 @@ export default [
       'react-hooks/set-state-in-effect': 'warn',
       'no-unreachable': 'warn',
       'no-prototype-builtins': 'warn',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
 ];

@@ -187,18 +187,33 @@ Keep the plan concise and actionable.
 
       try {
         // Try to use configured LLM
+        // Temperature 0.91 for creative plan generation tasks
         const response = await llmRouter.generate(fullPrompt, {
-          temperature: 0.7,
+          temperature: 0.91,
           maxTokens: 2048,
         });
 
         // Parse LLM response
         const jsonMatch = response.text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-          const planData = JSON.parse(jsonMatch[0]);
+          const planData = JSON.parse(jsonMatch[0]) as Partial<Plan>;
+          // Ensure all steps have required properties
+          const plan: Plan = {
+            id: planData.id || crypto.randomUUID(),
+            title: planData.title || prompt.substring(0, 50),
+            status: planData.status || 'pending',
+            currentStep: planData.currentStep || 0,
+            steps: (planData.steps || []).map((step: Partial<PlanStep>) => ({
+              id: step.id || crypto.randomUUID(),
+              type: step.type || 'THINK',
+              status: step.status || 'pending',
+              ...step,
+            })),
+            ...planData,
+          };
           return {
             success: true,
-            plan: planData as Plan,
+            plan,
           };
         }
       } catch (llmError) {
@@ -252,8 +267,9 @@ Return a JSON object with:
 `;
 
       try {
+        // Temperature 0.91 for creative idea structuring tasks
         const response = await llmRouter.generate(prompt, {
-          temperature: 0.7,
+          temperature: 0.91,
           maxTokens: 256,
         });
 
@@ -484,8 +500,9 @@ Generate the edited code that fulfills the user's instruction. Return ONLY the e
 `;
 
       try {
+        // Temperature 0.91 for creative code editing tasks
         const response = await llmRouter.generate(prompt, {
-          temperature: 0.7,
+          temperature: 0.91,
           maxTokens: 2048,
         });
 

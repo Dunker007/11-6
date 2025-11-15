@@ -19,7 +19,7 @@ export interface SmartCompletion {
   insertText: string;
   sortText?: string;
   filterText?: string;
-  range?: any;
+  range?: Monaco.IRange | Monaco.languages.CompletionItemRanges;
 }
 
 class MonacoCompletionsProvider {
@@ -134,7 +134,7 @@ class MonacoCompletionsProvider {
    */
   private async getImportCompletions(
     context: CompletionContext,
-    range: any
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Promise<Monaco.languages.CompletionItem[]> {
     if (!this.monaco || !context.projectId) return [];
 
@@ -178,7 +178,7 @@ class MonacoCompletionsProvider {
    */
   private async getMemberCompletions(
     context: CompletionContext,
-    range: any
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Promise<Monaco.languages.CompletionItem[]> {
     if (!this.monaco) return [];
 
@@ -217,7 +217,7 @@ class MonacoCompletionsProvider {
    */
   private async getSymbolCompletions(
     context: CompletionContext,
-    range: any
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Promise<Monaco.languages.CompletionItem[]> {
     if (!this.monaco || !context.projectId) return [];
 
@@ -269,11 +269,15 @@ class MonacoCompletionsProvider {
   private getSnippetCompletions(
     language: string,
     _context: CompletionContext,
-    range: any
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Monaco.languages.CompletionItem[] {
     if (!this.monaco) return [];
 
-    const snippets: Record<string, any[]> = {
+    const snippets: Record<string, Array<{
+      label: string;
+      insertText: string;
+      detail: string;
+    }>> = {
       typescript: [
         {
           label: 'function',
@@ -297,7 +301,7 @@ class MonacoCompletionsProvider {
         },
         {
           label: 'try',
-          insertText: 'try {\n\t$0\n} catch (error) {\n\tconsole.error(error);\n}',
+          insertText: 'try {\n\t$0\n} catch (error) {\n\tlogger.error(error);\n}',
           detail: 'Try-catch block',
         },
       ],
@@ -341,7 +345,7 @@ class MonacoCompletionsProvider {
    */
   private async getAICompletions(
     context: CompletionContext,
-    range: any
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Promise<Monaco.languages.CompletionItem[]> {
     if (!this.monaco) return [];
 
@@ -377,7 +381,7 @@ class MonacoCompletionsProvider {
         range,
       }];
     } catch (error) {
-      console.error('AI completion failed:', error);
+      logger.error('AI completion failed:', { error });
       return [];
     }
   }

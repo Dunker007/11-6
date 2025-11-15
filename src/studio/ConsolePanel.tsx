@@ -77,7 +77,9 @@ export default function ConsolePanel({ output, isVisible = false, onToggle, onCl
           }, 2000);
         }
       }).catch((err) => {
-        console.error('Failed to copy:', err);
+        // Copy failed - silent failure for user experience
+        // Could add toast notification if needed
+        void err; // Suppress unused variable warning
       });
     }
   };

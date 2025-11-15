@@ -1,4 +1,6 @@
 import type { UpdateInfo, UpdateProgress } from '@/types/update';
+import type { UpdaterAPI } from '@/types/electron';
+import { logger } from '../logging/loggerService';
 
 class UpdateService {
   private static instance: UpdateService;
@@ -13,8 +15,8 @@ class UpdateService {
   }
 
   private setupListeners() {
-    if (typeof window !== 'undefined' && (window as any).updater) {
-      const updater = (window as any).updater;
+    if (typeof window !== 'undefined' && window.updater) {
+      const updater: UpdaterAPI = window.updater;
 
       updater.onAvailable((info: UpdateInfo) => {
         this.notifyListeners('available', info);
@@ -34,16 +36,16 @@ class UpdateService {
     }
   }
 
-  async checkForUpdates(): Promise<{ success: boolean; error?: string; updateInfo?: any }> {
-    if (typeof window !== 'undefined' && (window as any).updater) {
-      return await (window as any).updater.check();
+  async checkForUpdates(): Promise<{ success: boolean; error?: string; updateInfo?: UpdateInfo; suppressed?: boolean }> {
+    if (typeof window !== 'undefined' && window.updater) {
+      return await window.updater.check();
     }
     return { success: false, error: 'Update service not available' };
   }
 
   async installUpdate(): Promise<{ success: boolean; error?: string }> {
-    if (typeof window !== 'undefined' && (window as any).updater) {
-      return await (window as any).updater.install();
+    if (typeof window !== 'undefined' && window.updater) {
+      return await window.updater.install();
     }
     return { success: false, error: 'Update service not available' };
   }
@@ -59,12 +61,12 @@ class UpdateService {
     };
   }
 
-  private notifyListeners(event: string, data: any) {
+  private notifyListeners(event: string, data: unknown) {
     this.listeners.get(event)?.forEach((callback) => {
       try {
         callback(data);
       } catch (error) {
-        console.error(`Error in update listener for ${event}:`, error);
+        logger.error(`Error in update listener for ${event}:`, { error });
       }
     });
   }

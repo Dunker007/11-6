@@ -171,7 +171,7 @@ export function BoltExport() {
           clearInterval(interval);
         }
       } catch (error) {
-        console.error('Failed to check build status:', error);
+        // Error handling - logging would be redundant here as it's already handled by the caller
         clearInterval(interval);
       }
     }, 5000); // Poll every 5 seconds

@@ -3,6 +3,8 @@
  * Tracks token usage by provider and date for cost analysis
  */
 
+import { logger } from '../logging/loggerService';
+
 export interface TokenUsageEntry {
   provider: string;
   tokens: number;
@@ -45,7 +47,7 @@ class TokenTrackingService {
 
       localStorage.setItem(this.storageKey, JSON.stringify(entries));
     } catch (error) {
-      console.warn('Failed to record token usage:', error);
+      logger.warn('Failed to record token usage:', { error });
     }
   }
 
@@ -58,7 +60,7 @@ class TokenTrackingService {
       if (!data) return [];
       return JSON.parse(data) as TokenUsageEntry[];
     } catch (error) {
-      console.warn('Failed to load token usage:', error);
+      logger.warn('Failed to load token usage:', { error });
       return [];
     }
   }
@@ -147,7 +149,7 @@ class TokenTrackingService {
 
       localStorage.setItem(this.storageKey, JSON.stringify(filtered));
     } catch (error) {
-      console.warn('Failed to clear old token usage entries:', error);
+      logger.warn('Failed to clear old token usage entries:', { error });
     }
   }
 
@@ -158,7 +160,7 @@ class TokenTrackingService {
     try {
       localStorage.removeItem(this.storageKey);
     } catch (error) {
-      console.warn('Failed to clear token usage:', error);
+      logger.warn('Failed to clear token usage:', { error });
     }
   }
 }

@@ -77,13 +77,13 @@ function VersionDisplay() {
   }, [loadAppVersion, loadComponentVersions]);
 
   const handleCheckForUpdates = useCallback(async () => {
-    if (typeof window === 'undefined' || !(window as any).updater) {
+    if (typeof window === 'undefined' || !window.updater) {
       return;
     }
 
     setIsCheckingUpdate(true);
     try {
-      await (window as any).updater.check();
+      await window.updater.check();
     } catch (error) {
       // Error logging handled by errorLogger service
       if (process.env.NODE_ENV === 'development') {
@@ -99,7 +99,7 @@ function VersionDisplay() {
   }, [appVersion?.buildDate]);
 
   const hasUpdater = useMemo(() => {
-    return typeof window !== 'undefined' && (window as any).updater;
+    return typeof window !== 'undefined' && window.updater !== undefined;
   }, []);
 
   if (!appVersion) {

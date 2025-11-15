@@ -6,6 +6,7 @@
 
 import type { Plan, PlanStep } from '@/types/plan';
 import { errorLogger } from '@/services/errors/errorLogger';
+import { logger } from '@/services/logging/loggerService';
 
 export interface PlanExecutionOptions {
   autoProceed?: boolean; // Auto-execute next step after current completes
@@ -292,7 +293,7 @@ class PlanExecutionService {
         try {
           listener(state);
         } catch (error) {
-          console.error('Error in plan execution listener:', error);
+          logger.error('Error in plan execution listener:', { error });
         }
       });
     }

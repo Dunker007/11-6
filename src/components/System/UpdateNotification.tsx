@@ -24,7 +24,7 @@ function UpdateNotification() {
 
   useEffect(() => {
     // Listen for update events from Electron main process via preload API
-    if (typeof window === 'undefined' || !(window as any).updater) {
+    if (typeof window === 'undefined' || !window.updater) {
       return;
     }
 
@@ -48,10 +48,10 @@ function UpdateNotification() {
       setIsChecking(false);
     };
 
-    const cleanupAvailable = (window as any).updater.onAvailable(handleUpdateAvailable);
-    const cleanupDownloaded = (window as any).updater.onDownloaded(handleUpdateDownloaded);
-    const cleanupProgress = (window as any).updater.onProgress(handleUpdateProgress);
-    const cleanupError = (window as any).updater.onError(handleUpdateError);
+    const cleanupAvailable = window.updater.onAvailable(handleUpdateAvailable);
+    const cleanupDownloaded = window.updater.onDownloaded(handleUpdateDownloaded);
+    const cleanupProgress = window.updater.onProgress(handleUpdateProgress);
+    const cleanupError = window.updater.onError(handleUpdateError);
 
     return () => {
       cleanupAvailable();
@@ -62,14 +62,14 @@ function UpdateNotification() {
   }, []);
 
   const handleCheckForUpdates = async () => {
-    if (typeof window === 'undefined' || !(window as any).updater) {
+    if (typeof window === 'undefined' || !window.updater) {
       return;
     }
 
     setIsChecking(true);
     setUpdateError(null);
     try {
-      const result = await (window as any).updater.check();
+      const result = await window.updater.check();
       if (!result.success) {
         // Don't set error if it's suppressed (406 errors)
         if (!result.suppressed) {
@@ -84,12 +84,12 @@ function UpdateNotification() {
   };
 
   const handleInstallUpdate = async () => {
-    if (typeof window === 'undefined' || !(window as any).updater) {
+    if (typeof window === 'undefined' || !window.updater) {
       return;
     }
 
     try {
-      await (window as any).updater.install();
+      await window.updater.install();
     } catch (error) {
       setUpdateError((error as Error).message);
     }
@@ -103,7 +103,7 @@ function UpdateNotification() {
   };
 
   // Don't show anything if not in Electron or no updates
-  if (typeof window === 'undefined' || !(window as any).updater) {
+  if (typeof window === 'undefined' || !window.updater) {
     return null;
   }
 

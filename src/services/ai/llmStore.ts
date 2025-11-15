@@ -170,8 +170,9 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
     // Update router's preferred provider based on active model
     if (model) {
       const validProviders = ['lmstudio', 'ollama', 'ollama-cloud', 'gemini', 'notebooklm', 'openrouter'] as const;
-      if (validProviders.includes(model.provider as any)) {
-        llmRouter.setPreferredProvider(model.provider as typeof validProviders[number]);
+      type ValidProvider = typeof validProviders[number];
+      if (validProviders.includes(model.provider as ValidProvider)) {
+        llmRouter.setPreferredProvider(model.provider as ValidProvider);
       }
     }
   },
@@ -194,8 +195,9 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
 
     set({ activeModel: model, error: null });
     const validProviders = ['lmstudio', 'ollama', 'ollama-cloud', 'gemini', 'notebooklm', 'openrouter'] as const;
-    if (validProviders.includes(model.provider as any)) {
-      llmRouter.setPreferredProvider(model.provider as typeof validProviders[number]);
+    type ValidProvider = typeof validProviders[number];
+    if (validProviders.includes(model.provider as ValidProvider)) {
+      llmRouter.setPreferredProvider(model.provider as ValidProvider);
     }
     return true;
   },
@@ -236,7 +238,11 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
         throw new Error('Ollama provider not available or does not support pulling');
       }
 
-      await (ollamaProvider as any).pullModel(modelId);
+      // Type guard: we've checked pullModel exists above
+      interface ProviderWithPullModel {
+        pullModel: (modelId: string) => Promise<void>;
+      }
+      await (ollamaProvider as unknown as ProviderWithPullModel).pullModel(modelId);
       
       // Refresh providers to get updated model list after pulling
       await get().discoverProviders(true);

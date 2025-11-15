@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { X, Zap, Shield, AlertTriangle, CheckCircle, XCircle, Loader } from 'lucide-react';
 import { windowsOptimizer } from '@/services/windows/windowsOptimizer';
 import { useToast } from '@/components/ui';
@@ -9,7 +9,7 @@ interface WindowsOptimizerProps {
   onClose: () => void;
 }
 
-const WindowsOptimizer = ({ onClose }: WindowsOptimizerProps) => {
+const WindowsOptimizer = memo(function WindowsOptimizer({ onClose }: WindowsOptimizerProps) {
   const [optimizations, setOptimizations] = useState<WindowsOptimization[]>([]);
   const [applying, setApplying] = useState<string | null>(null);
   const [systemInfo, setSystemInfo] = useState<{ platform: string; isWindows: boolean; isAdmin: boolean } | null>(null);
@@ -236,7 +236,7 @@ const WindowsOptimizer = ({ onClose }: WindowsOptimizerProps) => {
       )}
     </div>
   );
-};
+});
 
 export default WindowsOptimizer;
 

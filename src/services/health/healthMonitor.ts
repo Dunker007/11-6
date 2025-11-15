@@ -12,6 +12,7 @@ if (typeof process !== 'undefined' && process.versions?.electron) {
 import { logSlowOperation } from '@/utils/performance';
 import { logger } from '../logging/loggerService';
 import type { Systeminformation } from 'systeminformation';
+import { getGpuUtilization, getGpuTemperature, type ExtendedGraphicsControllerData } from '@/types/external';
 
 export interface SystemStats {
   cpu: {
@@ -216,8 +217,8 @@ export class HealthMonitor {
           const gpuName = gpu.model || gpu.vendor || 'Unknown GPU';
           const memoryTotalGB = gpu.memoryTotal ? Math.round(gpu.memoryTotal / 1024) : null;
           const memoryUsedGB = gpu.memoryUsed ? Math.round(gpu.memoryUsed / 1024) : null;
-          const utilization = (gpu as any).utilizationGPU || gpu.utilizationGpu || null;
-          const temperature = gpu.temperatureGpu || (gpu as any).temperature || null;
+          const utilization = getGpuUtilization(gpu);
+          const temperature = getGpuTemperature(gpu);
           
           gpuStats = {
             name: gpuName,

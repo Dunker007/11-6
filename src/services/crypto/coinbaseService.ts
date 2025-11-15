@@ -5,8 +5,10 @@ import type {
   CoinbaseFill,
   OrderSide,
   MarketType,
+  CoinbaseCandleArray,
 } from '@/types/crypto';
 import { apiKeyService } from '@/services/apiKeys/apiKeyService';
+import { logger } from '@/services/logging/loggerService';
 
 const COINBASE_API_BASE = 'https://api.coinbase.com/api/v3/brokerage';
 const COINBASE_SANDBOX_BASE = 'https://api.coinbase.com/api/v3/brokerage'; // Same for now
@@ -51,7 +53,7 @@ class CoinbaseService {
         this.tradingMode = stored;
       }
     } catch (error) {
-      console.error('Failed to load trading mode:', error);
+      logger.error('Failed to load trading mode:', { error });
     }
   }
 
@@ -60,7 +62,7 @@ class CoinbaseService {
     try {
       localStorage.setItem('coinbase_trading_mode', mode);
     } catch (error) {
-      console.error('Failed to save trading mode:', error);
+      logger.error('Failed to save trading mode:', { error });
     }
   }
 
@@ -83,7 +85,7 @@ class CoinbaseService {
         };
       }
     } catch (error) {
-      console.error('Failed to load Coinbase credentials:', error);
+      logger.error('Failed to load Coinbase credentials:', { error });
     }
   }
 
@@ -153,7 +155,7 @@ class CoinbaseService {
   private async authenticatedRequest<T>(
     method: string,
     path: string,
-    body?: any
+    body?: Record<string, unknown> | unknown
   ): Promise<T> {
     // Ensure credentials are loaded before making requests
     await this.ensureCredentialsLoaded();
@@ -188,7 +190,7 @@ class CoinbaseService {
 
       return await response.json();
     } catch (error) {
-      console.error(`Coinbase API request failed:`, error);
+      logger.error('Coinbase API request failed:', { error, method, path });
       throw error;
     }
   }
@@ -222,7 +224,7 @@ class CoinbaseService {
       );
       return data.positions || [];
     } catch (error) {
-      console.error('Failed to fetch positions:', error);
+      logger.error('Failed to fetch positions:', { error });
       return [];
     }
   }
@@ -317,16 +319,16 @@ class CoinbaseService {
   /**
    * Get product (trading pair) information
    */
-  async getProduct(productId: string): Promise<any> {
-    return this.authenticatedRequest('GET', `/products/${productId}`);
+  async getProduct(productId: string): Promise<Record<string, unknown>> {
+    return this.authenticatedRequest<Record<string, unknown>>('GET', `/products/${productId}`);
   }
 
   /**
    * Get all products (trading pairs)
    */
-  async getProducts(productType?: MarketType): Promise<any[]> {
+  async getProducts(productType?: MarketType): Promise<Record<string, unknown>[]> {
     const params = productType ? `?product_type=${productType.toUpperCase()}` : '';
-    const data = await this.authenticatedRequest<{ products: any[] }>(
+    const data = await this.authenticatedRequest<{ products: Record<string, unknown>[] }>(
       'GET',
       `/products${params}`
     );
@@ -341,13 +343,13 @@ class CoinbaseService {
     start: string,
     end: string,
     granularity: string = 'ONE_HOUR'
-  ): Promise<any> {
+  ): Promise<CoinbaseCandleArray[]> {
     const params = new URLSearchParams({
       start,
       end,
       granularity,
     });
-    const data = await this.authenticatedRequest<{ candles: any[] }>(
+    const data = await this.authenticatedRequest<{ candles: CoinbaseCandleArray[] }>(
       'GET',
       `/products/${productId}/candles?${params.toString()}`
     );
@@ -357,8 +359,8 @@ class CoinbaseService {
   /**
    * Get product ticker (24hr stats)
    */
-  async getProductTicker(productId: string): Promise<any> {
-    return this.authenticatedRequest('GET', `/products/${productId}/ticker`);
+  async getProductTicker(productId: string): Promise<Record<string, unknown>> {
+    return this.authenticatedRequest<Record<string, unknown>>('GET', `/products/${productId}/ticker`);
   }
 
   /**

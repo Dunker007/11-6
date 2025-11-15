@@ -8,6 +8,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useWorkflowStore } from '@/services/workflow/workflowStore';
 import { useProjectStore } from '@/services/project/projectStore';
 import { aiServiceBridge } from '@/services/ai/aiServiceBridge';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 import WorkflowRunner from './WorkflowRunner';
 import PlanExecutionHost from './PlanExecutionHost';
 import { BoltExport } from './BoltExport';
@@ -132,6 +133,7 @@ function ProjectWorkflow({ activeWorkflow: _activeWorkflow, onWorkflowChange }: 
   };
 
   return (
+    <ErrorBoundary sectionName="Project Workflow">
     <div className="workflow-container project-workflow">
       <div className="workflow-header">
         <TechIcon icon={FolderPlus} size={24} glow="cyan" />
@@ -273,6 +275,7 @@ function ProjectWorkflow({ activeWorkflow: _activeWorkflow, onWorkflowChange }: 
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
 

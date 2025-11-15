@@ -19,7 +19,7 @@ class LoggerService {
     return LoggerService.instance;
   }
 
-  private addLog(level: LogLevel, message: string, context?: Record<string, any>) {
+  private addLog(level: LogLevel, message: string, context?: Record<string, unknown>) {
     // In production, we might only log warnings and errors
     if (this.isProduction && (level === 'info' || level === 'debug')) {
       return;

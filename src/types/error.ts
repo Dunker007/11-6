@@ -3,7 +3,7 @@
  * Comprehensive type definitions for error logging and tracking
  */
 
-export type ErrorCategory = 'react' | 'console' | 'network' | 'runtime' | 'build' | 'unknown';
+export type ErrorCategory = 'react' | 'console' | 'network' | 'runtime' | 'build' | 'semantic-index' | 'semantic-search' | 'unknown';
 export type ErrorSeverity = 'critical' | 'error' | 'warning' | 'info';
 
 export interface ErrorContext {

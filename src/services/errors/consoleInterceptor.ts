@@ -23,8 +23,12 @@ class ConsoleInterceptor {
     this.originalWarn = console.warn.bind(console);
     
     // Expose original methods globally for emergency use (prevent infinite loops)
-    (console as any).__originalError = this.originalError;
-    (console as any).__originalWarn = this.originalWarn;
+    if (console.__originalError === undefined) {
+      console.__originalError = this.originalError;
+    }
+    if (console.__originalWarn === undefined) {
+      console.__originalWarn = this.originalWarn;
+    }
   }
 
   static getInstance(): ConsoleInterceptor {
@@ -40,12 +44,12 @@ class ConsoleInterceptor {
   activate(): void {
     if (this.isActive) return;
 
-    console.error = (...args: any[]) => {
+    console.error = (...args: unknown[]) => {
       this.handleConsoleError(args);
       this.originalError(...args);
     };
 
-    console.warn = (...args: any[]) => {
+    console.warn = (...args: unknown[]) => {
       this.handleConsoleWarn(args);
       this.originalWarn(...args);
     };
@@ -79,7 +83,7 @@ class ConsoleInterceptor {
     this.ignorePatterns = this.ignorePatterns.filter(p => p.source !== pattern.source);
   }
 
-  private handleConsoleError(args: any[]): void {
+  private handleConsoleError(args: unknown[]): void {
     // Prevent infinite recursion - if already processing, bail out
     if (this.isProcessing) {
       return;
@@ -94,7 +98,7 @@ class ConsoleInterceptor {
 
       // Extract stack trace if Error object is passed
       let stack: string | undefined;
-      const errorObj = args.find(arg => arg instanceof Error);
+      const errorObj = args.find((arg): arg is Error => arg instanceof Error);
       if (errorObj) {
         stack = errorObj.stack;
       }
@@ -105,7 +109,7 @@ class ConsoleInterceptor {
     }
   }
 
-  private handleConsoleWarn(args: any[]): void {
+  private handleConsoleWarn(args: unknown[]): void {
     // Prevent infinite recursion - if already processing, bail out
     if (this.isProcessing) {
       return;
@@ -124,7 +128,7 @@ class ConsoleInterceptor {
     }
   }
 
-  private formatMessage(args: any[]): string {
+  private formatMessage(args: unknown[]): string {
     return args
       .map(arg => {
         if (typeof arg === 'string') return arg;

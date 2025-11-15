@@ -20,7 +20,7 @@ export interface WorkflowStep {
   endTime?: Date;
   duration?: number; // milliseconds
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Workflow {
@@ -35,7 +35,7 @@ export interface Workflow {
   endTime?: Date;
   duration?: number; // milliseconds
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,7 +45,7 @@ export interface WorkflowConfig {
   name: string;
   description?: string;
   steps: Omit<WorkflowStep, 'id' | 'status' | 'startTime' | 'endTime' | 'duration' | 'error'>[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface WorkflowExecutionResult {
@@ -99,7 +99,7 @@ export interface DeploymentTarget {
   url?: string;
   status: 'active' | 'inactive' | 'error';
   lastDeployed?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Monitor Workflow Types
@@ -116,7 +116,7 @@ export interface MonitorAlert {
   severity: 'info' | 'warning' | 'error' | 'critical';
   message: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Monetize Workflow Types
@@ -134,6 +134,6 @@ export interface RevenueStream {
   amount: number;
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'one-time';
   status: 'active' | 'paused' | 'archived';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 

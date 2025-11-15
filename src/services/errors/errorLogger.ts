@@ -362,7 +362,8 @@ class ErrorLogger {
       this.storageDisabled = true;
       
       // Use original console to avoid recursion
-      const originalError = (console as any).__originalError;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const originalError = (console as { __originalError?: typeof console.error }).__originalError;
       if (originalError) {
         originalError('ErrorLogger: localStorage disabled due to quota error:', error);
       }
