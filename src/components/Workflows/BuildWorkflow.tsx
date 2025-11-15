@@ -190,7 +190,6 @@ function BuildWorkflow() {
         )}
       </div>
     </div>
-    </ErrorBoundary>
   );
 }
 

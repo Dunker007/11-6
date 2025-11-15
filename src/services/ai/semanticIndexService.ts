@@ -395,8 +395,8 @@ class SemanticIndexService {
    * Create a preview snippet from content
    * Reserved for future use
    */
-  // @ts-ignore - TS6133: Unused method reserved for future use
-  private createPreview(content: string, maxLength: number = 150): string {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private _createPreview(content: string, maxLength: number = 150): string {
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + '...';
   }

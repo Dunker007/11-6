@@ -1,6 +1,7 @@
 import { apiKeyService } from '@/services/apiKeys/apiKeyService';
-import type { Notebook, Source, NotebookDocument } from '@/types/notebooklm';
+import type { Notebook, Source, NotebookDocument, NotebookResponse } from '@/types/notebooklm';
 import { fileSystemService } from '../filesystem/fileSystemService';
+import { logger } from '../logging/loggerService';
 
 const IGNORED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webp', '.pdf', '.zip', '.gz', '.tar', '.lock'];
 const MAX_FILE_SIZE_BYTES = 1024 * 1024; // 1MB
@@ -43,7 +44,7 @@ export class NotebookLMService {
         });
       }
     } catch (error) {
-      console.error('Failed to load notebooks:', error);
+      logger.error('Failed to load notebooks:', { error });
     }
   }
 
@@ -52,7 +53,7 @@ export class NotebookLMService {
       const notebooksArray = Array.from(this.notebooks.values());
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(notebooksArray));
     } catch (error) {
-      console.error('Failed to save notebooks:', error);
+      logger.error('Failed to save notebooks:', { error });
     }
   }
 
@@ -212,7 +213,7 @@ export class NotebookLMService {
           stats.added++;
         }
       } catch (error) {
-        console.error(`Failed to process file ${filePath}:`, error);
+        logger.error(`Failed to process file ${filePath}:`, { error });
         stats.skipped++;
       }
     };
@@ -265,7 +266,7 @@ export class NotebookLMService {
     }
 
     // MOCK IMPLEMENTATION
-    console.log('Fetching notebooks from NotebookLM API...');
+    logger.info('Fetching notebooks from NotebookLM API...');
     await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
     
     const mockNotebooks: Notebook[] = [
@@ -294,7 +295,7 @@ export class NotebookLMService {
       throw new Error('NotebookLM API key not configured.');
     }
     
-    console.log(`Fetching sources for notebook ${notebookId}...`);
+    logger.info(`Fetching sources for notebook ${notebookId}...`);
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
     
     // MOCK IMPLEMENTATION
@@ -324,7 +325,7 @@ export class NotebookLMService {
   async queryNotebook(
     notebookId: string,
     question: string
-  ): Promise<any> { // Changed NotebookResponse to any as it's no longer defined locally
+  ): Promise<NotebookResponse> {
     const notebook = this.notebooks.get(notebookId);
     if (!notebook) {
       throw new Error('Notebook not found');

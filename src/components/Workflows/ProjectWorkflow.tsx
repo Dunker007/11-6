@@ -8,6 +8,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useWorkflowStore } from '@/services/workflow/workflowStore';
 import { useProjectStore } from '@/services/project/projectStore';
 import { aiServiceBridge } from '@/services/ai/aiServiceBridge';
+import { logger } from '@/services/logging/loggerService';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import WorkflowRunner from './WorkflowRunner';
 import PlanExecutionHost from './PlanExecutionHost';
@@ -114,7 +115,7 @@ function ProjectWorkflow({ activeWorkflow: _activeWorkflow, onWorkflowChange }: 
         setShowPlanSection(true);
       }
     } catch (error) {
-      console.error('Failed to create plan:', error);
+      logger.error('Failed to create plan:', { error });
     } finally {
       setIsCreatingPlan(false);
     }
@@ -247,7 +248,7 @@ function ProjectWorkflow({ activeWorkflow: _activeWorkflow, onWorkflowChange }: 
                 setShowPlanSection(false);
               }}
               onError={(_failedPlan, error) => {
-                console.error('Plan execution error:', error);
+                logger.error('Plan execution error:', { error });
               }}
             />
           </div>

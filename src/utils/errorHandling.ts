@@ -23,7 +23,7 @@
  * ```
  */
 
-import type React from 'react';
+import React from 'react';
 import { errorLogger } from '@/services/errors/errorLogger';
 import { logger } from '@/services/logging/loggerService';
 
@@ -186,12 +186,12 @@ export function createErrorBoundaryConfig(options: {
       handler(error, { componentStack: info.componentStack });
     },
     fallback: ({ error, resetError }: { error: Error; resetError: () => void }) => {
-      return (
-        <div style={{ padding: '1rem', border: '1px solid red', borderRadius: '4px' }}>
-          <h3>Something went wrong</h3>
-          <p>{options.fallbackMessage || error.message}</p>
-          <button onClick={resetError}>Try again</button>
-        </div>
+      return React.createElement(
+        'div',
+        { style: { padding: '1rem', border: '1px solid red', borderRadius: '4px' } },
+        React.createElement('h3', null, 'Something went wrong'),
+        React.createElement('p', null, options.fallbackMessage || error.message),
+        React.createElement('button', { onClick: resetError }, 'Try again')
       );
     },
   };

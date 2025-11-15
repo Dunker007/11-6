@@ -623,7 +623,7 @@ export class APIKeyService {
   }
 
   // TODO: Integrate health checks into key validation
-  // @ts-expect-error - Function defined for future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async performHealthCheck(provider: APIProvider, key: string): Promise<boolean> {
     logger.info(`Performing health check for ${provider}...`);
     try {

@@ -554,9 +554,8 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
         set({ accountConnections: connections });
       }
     } catch (error) {
-      // Assuming logger is available globally or imported elsewhere
-      // @ts-ignore // logger is not defined in this file, but the user's edit implies its existence
-      // logger.error('Failed to load account connections', { error });
+      // Error loading account connections - fail silently to avoid disrupting UI
+      // Could add logger here if needed: logger.error('Failed to load account connections', { error });
     }
   },
   
