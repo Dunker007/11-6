@@ -15,7 +15,7 @@ import type { Asset, Transaction, NetWorthHistory, Budget, NetWorth } from '@/ty
 
 // Form 1099-B entry type for exports
 export interface Form1099BEntry {
-  symbol: string;
+  symbol?: string; // Optional - not always available from taxReportingService
   description: string;
   dateAcquired: Date;
   dateSold: Date;
