@@ -214,7 +214,7 @@ git worktree remove main-worktree
 git worktree prune
 
 # Verify you're in main directory
-pwd  # Should show: 11-6/11-6
+pwd  # Should show: 11-6 (or c:\Repos GIT\11-6 on Windows)
 ```
 
 #### Issue: Merge conflicts

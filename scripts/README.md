@@ -23,7 +23,7 @@ If terminals still start in the wrong directory, you can manually run:
 
 Or simply:
 ```powershell
-cd "c:\Repos GIT\11-6\11-6"
+cd "c:\Repos GIT\11-6"
 ```
 
 ## Verification
@@ -31,6 +31,6 @@ cd "c:\Repos GIT\11-6\11-6"
 To verify the fix is working:
 1. Open a new terminal in Cursor
 2. Run `pwd` (PowerShell) or `cd` (CMD) to check current directory
-3. Should show: `c:\Repos GIT\11-6\11-6`
+3. Should show: `c:\Repos GIT\11-6`
 4. Run `npm run dev` - should work without directory errors
 
