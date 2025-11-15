@@ -774,7 +774,7 @@ export class OllamaCloudProvider implements LLMProvider {
         },
       }));
     } catch (error) {
-      console.error('Failed to fetch Ollama Cloud models:', error);
+      logger.error('Failed to fetch Ollama Cloud models:', { error });
       return [];
     }
   }

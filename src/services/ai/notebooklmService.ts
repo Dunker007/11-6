@@ -231,7 +231,7 @@ export class NotebookLMService {
     projectName: string,
     projectRoot: string,
     question: string
-  ): Promise<any> {
+  ): Promise<NotebookResponse> {
     // Find or create a dedicated notebook for this project
     let projectNotebook = Array.from(this.notebooks.values()).find(
       (n) => n.projectId === projectId

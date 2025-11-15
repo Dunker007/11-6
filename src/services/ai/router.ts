@@ -74,6 +74,7 @@
  * - Multi-provider parallel generation for comparison
  */
 import { activityService } from '../activity/activityService';
+import { logger } from '../logging/loggerService';
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk, TaskType } from '@/types/llm';
 import { localProviderDiscovery } from './providers/localProviderDiscovery';
 import type { LLMProvider } from './providers/types';
@@ -163,7 +164,7 @@ export class LLMRouter {
   async discoverProviders(forceRefresh: boolean = false): Promise<{ provider: string; available: boolean; models: LLMModel[] }[]> {
     // Prevent concurrent discovery calls
     if (this.discoveryInProgress) {
-      console.log('[Router] Discovery already in progress, skipping...');
+      logger.debug('Discovery already in progress, skipping...');
       // Return cached results if available
       const cachedResults: { provider: string; available: boolean; models: LLMModel[] }[] = [];
       for (const [name] of this.providers.entries()) {
@@ -180,7 +181,7 @@ export class LLMRouter {
     // Debounce: don't run if called too soon after last discovery (unless forced)
     const now = Date.now();
     if (!forceRefresh && now - this.lastDiscoveryTime < this.DISCOVERY_DEBOUNCE_MS) {
-      console.log(`[Router] Discovery debounced (${now - this.lastDiscoveryTime}ms since last)`);
+      logger.debug(`Discovery debounced (${now - this.lastDiscoveryTime}ms since last)`);
       // Return cached results
       const cachedResults: { provider: string; available: boolean; models: LLMModel[] }[] = [];
       for (const [name] of this.providers.entries()) {
@@ -204,10 +205,10 @@ export class LLMRouter {
           // Only clear cache if force refresh is requested
           // Otherwise, let isProviderHealthy() use the cache TTL to determine freshness
           if (forceRefresh) {
-            console.log('[Router] discoverProviders() called with forceRefresh - clearing cache for fresh checks');
+            logger.debug('discoverProviders() called with forceRefresh - clearing cache for fresh checks');
             this.clearHealthCache();
           } else {
-            console.log('[Router] discoverProviders() called - using cache when available');
+            logger.debug('discoverProviders() called - using cache when available');
           }
           
           const results: { provider: string; available: boolean; models: LLMModel[] }[] = [];
@@ -465,7 +466,7 @@ export class LLMRouter {
     if (name === 'ollama-cloud') {
       const isElectron = typeof window !== 'undefined' && 'ipcRenderer' in window;
       if (!isElectron) {
-        console.log(`[Router] Skipping ${name} health check (browser mode)`);
+        logger.debug(`Skipping ${name} health check (browser mode)`);
         return false;
       }
     }
@@ -473,11 +474,11 @@ export class LLMRouter {
     const now = Date.now();
     if (cached && now - cached.timestamp < this.HEALTH_CACHE_TTL) {
       const age = now - cached.timestamp;
-      console.log(`[Router] Using cached health for ${name}: ${cached.status} (age: ${age}ms)`);
+      logger.debug(`Using cached health for ${name}: ${cached.status} (age: ${age}ms)`);
       return cached.status;
     }
 
-    console.log(`[Router] Running fresh health check for ${name}`);
+    logger.debug(`Running fresh health check for ${name}`);
     try {
       // Add 5-second timeout to prevent hanging
       const timeoutPromise = new Promise<boolean>((_, reject) => 
@@ -487,12 +488,11 @@ export class LLMRouter {
         provider.healthCheck(),
         timeoutPromise
       ]);
-      console.log(`[Router] Health check result for ${name}: ${status}`);
+      logger.debug(`Health check result for ${name}: ${status}`);
       this.providerHealthCache.set(name, { status, timestamp: now });
       return status;
     } catch (error) {
       const isTimeout = error instanceof Error && error.message === 'Health check timeout';
-      console.error(`[Router] Health check ${isTimeout ? 'timeout' : 'failed'} for ${name}:`, error);
       logger.warn(`Health check ${isTimeout ? 'timeout' : 'failed'} for provider ${name}:`, { 
         error: error instanceof Error ? error.message : String(error),
         timeout: isTimeout
@@ -506,7 +506,7 @@ export class LLMRouter {
    * Clear the health check cache to force fresh checks
    */
   clearHealthCache(): void {
-    console.log('[Router] Clearing health check cache');
+    logger.debug('Clearing health check cache');
     this.providerHealthCache.clear();
   }
 

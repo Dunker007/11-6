@@ -11,6 +11,7 @@
 
 import type { AccountConnection } from '@/types/wealth';
 import { schwabService } from './schwabService';
+import { logger } from '../logging/loggerService';
 
 export type AggregationProvider = 'plaid' | 'yodlee' | 'schwab' | 'manual';
 
@@ -267,7 +268,7 @@ class AccountAggregationService {
         return { authUrl, connectionId };
       }
     } catch (error) {
-      console.error('Schwab OAuth initiation failed:', error);
+      logger.error('Schwab OAuth initiation failed:', { error });
     }
 
     throw new Error('Schwab API credentials required');
@@ -322,7 +323,7 @@ class AccountAggregationService {
     // Exchange public token for access token
     // In real implementation, this would call Plaid API
     // For now, simulate success
-    console.log('Completing Plaid connection');
+    logger.debug('Completing Plaid connection', { connectionId: _connectionId });
   }
 
   /**
@@ -330,7 +331,7 @@ class AccountAggregationService {
    */
   private async completeYodleeConnection(_connectionId: string, _token: string): Promise<void> {
     // Complete Yodlee FastLink flow
-    console.log('Completing Yodlee connection');
+    logger.debug('Completing Yodlee connection', { connectionId: _connectionId });
   }
 
   /**
@@ -458,7 +459,7 @@ class AccountAggregationService {
 
     const syncInterval = setInterval(() => {
       this.syncAccounts(connectionId).catch(error => {
-        console.error(`Auto-sync failed for ${connectionId}:`, error);
+        logger.error(`Auto-sync failed for ${connectionId}:`, { error, connectionId });
       });
     }, intervalMs);
 

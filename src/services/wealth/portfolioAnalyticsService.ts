@@ -9,6 +9,8 @@
  * - Benchmark comparison
  */
 
+import { logger } from '../logging/loggerService';
+
 import { wealthService } from './wealthService';
 import { wealthMarketDataService } from './marketDataService';
 import type { Position, AssetType } from '@/types/wealth';
@@ -358,7 +360,7 @@ class PortfolioAnalyticsService {
         beta,
       };
     } catch (error) {
-      console.error('Failed to compare to benchmark:', error);
+      logger.error('Failed to compare to benchmark:', { error });
       return {
         portfolioReturn: 0,
         benchmarkReturn: 0,

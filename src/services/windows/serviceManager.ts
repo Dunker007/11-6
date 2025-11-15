@@ -1,6 +1,8 @@
 // Windows Service Management Service
 // Provides utilities for managing Windows services
 
+import { logger } from '../logging/loggerService';
+
 export interface WindowsService {
   Name: string;
   DisplayName: string;
@@ -44,7 +46,7 @@ export class ServiceManager {
       }
       throw new Error(result?.error || 'Failed to list services');
     } catch (error) {
-      console.error('Failed to get services:', error);
+      logger.error('Failed to get services:', { error });
       return [];
     }
   }
@@ -176,7 +178,7 @@ export class ServiceManager {
       }
       return null;
     } catch (error) {
-      console.error(`Failed to get status for ${serviceName}:`, error);
+      logger.error(`Failed to get status for ${serviceName}:`, { error });
       return null;
     }
   }

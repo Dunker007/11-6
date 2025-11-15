@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, memo } from 'react';
 import { Download, X, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { formatBytes } from '@/utils/formatters';
 import '../../styles/UpdateNotification.css';
@@ -15,7 +15,7 @@ interface UpdateProgress {
   total: number;
 }
 
-function UpdateNotification() {
+const UpdateNotification = memo(function UpdateNotification() {
   const [updateAvailable, setUpdateAvailable] = useState<UpdateInfo | null>(null);
   const [updateDownloaded, setUpdateDownloaded] = useState<UpdateInfo | null>(null);
   const [updateProgress, setUpdateProgress] = useState<UpdateProgress | null>(null);
@@ -61,7 +61,7 @@ function UpdateNotification() {
     };
   }, []);
 
-  const handleCheckForUpdates = async () => {
+  const handleCheckForUpdates = useCallback(async () => {
     if (typeof window === 'undefined' || !window.updater) {
       return;
     }
@@ -81,9 +81,9 @@ function UpdateNotification() {
     } finally {
       setIsChecking(false);
     }
-  };
+  }, []);
 
-  const handleInstallUpdate = async () => {
+  const handleInstallUpdate = useCallback(async () => {
     if (typeof window === 'undefined' || !window.updater) {
       return;
     }
@@ -93,14 +93,14 @@ function UpdateNotification() {
     } catch (error) {
       setUpdateError((error as Error).message);
     }
-  };
+  }, []);
 
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     setUpdateAvailable(null);
     setUpdateDownloaded(null);
     setUpdateProgress(null);
     setUpdateError(null);
-  };
+  }, []);
 
   // Don't show anything if not in Electron or no updates
   if (typeof window === 'undefined' || !window.updater) {
@@ -196,7 +196,7 @@ function UpdateNotification() {
   }
 
   return null;
-}
+});
 
 export default UpdateNotification;
 

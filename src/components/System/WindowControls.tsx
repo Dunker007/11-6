@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { Minus, Square, X } from 'lucide-react';
 import type { WindowControlsAPI } from '@/types/electron';
+import { logger } from '../../services/logging/loggerService';
 import '../../styles/WindowControls.css';
 
-function WindowControls() {
+const WindowControls = memo(function WindowControls() {
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
@@ -16,7 +17,7 @@ function WindowControls() {
             setIsMaximized(result.isMaximized);
           }
         } catch (error) {
-          console.error('Failed to check window state:', error);
+          logger.error('Failed to check window state:', { error });
         }
       }
     };
@@ -26,17 +27,17 @@ function WindowControls() {
     // Note: We'll poll periodically or rely on user clicks for now
   }, []);
 
-  const handleMinimize = async () => {
+  const handleMinimize = useCallback(async () => {
     if (typeof window !== 'undefined' && window.windowControls) {
       try {
         await window.windowControls.minimize();
       } catch (error) {
-        console.error('Failed to minimize window:', error);
+        logger.error('Failed to minimize window:', { error });
       }
     }
-  };
+  }, []);
 
-  const handleMaximize = async () => {
+  const handleMaximize = useCallback(async () => {
     if (typeof window !== 'undefined' && window.windowControls) {
       try {
         const result = await window.windowControls.maximize();
@@ -44,20 +45,20 @@ function WindowControls() {
           setIsMaximized(result.isMaximized);
         }
       } catch (error) {
-        console.error('Failed to maximize window:', error);
+        logger.error('Failed to maximize window:', { error });
       }
     }
-  };
+  }, []);
 
-  const handleClose = async () => {
+  const handleClose = useCallback(async () => {
     if (typeof window !== 'undefined' && window.windowControls) {
       try {
         await window.windowControls.close();
       } catch (error) {
-        console.error('Failed to close window:', error);
+        logger.error('Failed to close window:', { error });
       }
     }
-  };
+  }, []);
 
   if (typeof window === 'undefined' || !window.windowControls) {
     return null; // Not in Electron environment
@@ -88,7 +89,7 @@ function WindowControls() {
       </button>
     </div>
   );
-}
+});
 
 export default WindowControls;
 

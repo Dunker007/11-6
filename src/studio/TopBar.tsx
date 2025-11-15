@@ -5,6 +5,7 @@ import RevenueDashboard from '../components/RevenueDashboard';
 import Marketplace from '../marketplace/Marketplace';
 import LLMOptimizerPanel from '../components/LLMOptimizer/LLMOptimizerPanel';
 import { luxrigAutomation } from '../affiliate/luxrigAutomation';
+import { logger } from '../services/logging/loggerService';
 import '../styles-new/topbar.css';
 
 interface TopBarProps {
@@ -37,7 +38,7 @@ function TopBar({ activeProject, onToggleSidebar, onOpenMarketplace, onOpenComma
       }
       setAutomationStats(luxrigAutomation.getStats());
     } catch (error) {
-      console.error('Failed to toggle automation:', error);
+      logger.error('Failed to toggle automation:', { error });
     }
   };
 

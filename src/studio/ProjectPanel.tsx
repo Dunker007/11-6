@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useProjectStore } from '../services/project/projectStore';
 import { useFileSystemStore } from '../services/filesystem/fileSystemStore';
 import { projectService } from '../services/project/projectService';
+import { logger } from '../services/logging/loggerService';
 import FileExplorer from '../components/VibeEditor/FileExplorer';
 import LayoutMockupSelector, { type MockupType } from '../components/LayoutPlayground/LayoutMockupSelector';
 import MockupPreviewModal from '../components/LayoutPlayground/Mockups/MockupPreviewModal';
@@ -44,21 +45,21 @@ function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
     setDriveProjectError(null);
 
     try {
-      console.log('Opening directory dialog...');
+      logger.debug('Opening directory dialog...');
 
       if (!openDirectoryDialog) {
-        console.error('openDirectoryDialog function not available');
+        logger.error('openDirectoryDialog function not available');
         setDriveProjectError('Drive access not available - make sure you\'re running the Electron app');
         setIsLoadingDriveProject(false);
         return;
       }
 
       const directories = await openDirectoryDialog();
-      console.log('Dialog result:', directories);
+      logger.debug('Dialog result received', { directoryCount: directories?.length || 0 });
 
       if (directories && directories.length > 0) {
         const projectPath = directories[0];
-        console.log('Loading project from disk:', projectPath);
+        logger.info('Loading project from disk', { projectPath });
 
         // Use projectService to open project from disk
         const project = await projectService.openProjectFromDisk(projectPath);
@@ -70,15 +71,15 @@ function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
           // Select the newly loaded project
           onProjectSelect(project.id);
           
-          console.log('Successfully loaded project from drive:', projectPath, 'Project ID:', project.id);
+          logger.info('Successfully loaded project from drive', { projectPath, projectId: project.id });
         } else {
           setDriveProjectError('Failed to load project from disk. The directory may be empty or inaccessible.');
         }
       } else {
-        console.log('No directory selected');
+        logger.debug('No directory selected');
       }
     } catch (error) {
-      console.error('Failed to open project from drive:', error);
+      logger.error('Failed to open project from drive:', { error });
       setDriveProjectError(`Failed to open directory: ${(error as Error).message}`);
     } finally {
       setIsLoadingDriveProject(false);

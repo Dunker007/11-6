@@ -1,4 +1,5 @@
 import { apiKeyService } from '../apiKeys/apiKeyService';
+import { logger } from '../logging/loggerService';
 
 interface SchwabAccount {
   accountNumber: string;
@@ -47,7 +48,7 @@ export class SchwabService {
         this.accessToken = keys[0].key;
       }
     } catch (error) {
-      console.error('Failed to load Schwab credentials:', error);
+      logger.error('Failed to load Schwab credentials:', { error });
     }
   }
 
@@ -114,7 +115,7 @@ export class SchwabService {
       }
       throw new Error(`OAuth token exchange failed: ${response.statusText}`);
     } catch (error) {
-      console.error('Schwab OAuth token exchange failed:', error);
+      logger.error('Schwab OAuth token exchange failed:', { error });
       throw error;
     }
   }
@@ -149,7 +150,7 @@ export class SchwabService {
       }
       return false;
     } catch (error) {
-      console.error('Schwab authentication failed:', error);
+      logger.error('Schwab authentication failed:', { error });
       return false;
     }
   }
@@ -179,7 +180,7 @@ export class SchwabService {
       const data = await this.authenticatedRequest<{ accounts: SchwabAccount[] }>('/accounts');
       return data.accounts || [];
     } catch (error) {
-      console.error('Failed to fetch Schwab accounts:', error);
+      logger.error('Failed to fetch Schwab accounts:', { error });
       throw error;
     }
   }
@@ -191,7 +192,7 @@ export class SchwabService {
       );
       return data.holdings || [];
     } catch (error) {
-      console.error('Failed to fetch Schwab holdings:', error);
+      logger.error('Failed to fetch Schwab holdings:', { error });
       throw error;
     }
   }
@@ -207,7 +208,7 @@ export class SchwabService {
       );
       return data.transactions || [];
     } catch (error) {
-      console.error('Failed to fetch Schwab transactions:', error);
+      logger.error('Failed to fetch Schwab transactions:', { error });
       throw error;
     }
   }
@@ -230,7 +231,7 @@ export class SchwabService {
         transactions,
       };
     } catch (error) {
-      console.error('Failed to sync Schwab account:', error);
+      logger.error('Failed to sync Schwab account:', { error });
       throw error;
     }
   }

@@ -1,5 +1,6 @@
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
 import type { LLMProvider } from './localLLM';
+import { logger } from '@/services/logging/loggerService';
 
 interface OpenRouterModel {
   id: string;
@@ -66,7 +67,7 @@ export class OpenRouterProvider implements LLMProvider {
         isAvailable: true,
       }));
     } catch (error) {
-      console.error('Failed to fetch OpenRouter models:', error);
+      logger.error('Failed to fetch OpenRouter models:', { error });
       return [];
     }
   }

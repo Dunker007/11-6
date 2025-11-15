@@ -3,6 +3,7 @@
 
 import { serviceManager } from './serviceManager';
 import { registryManager } from './registryManager';
+import { logger } from '../logging/loggerService';
 import type { SystemStats } from '../health/healthMonitor';
 
 export interface WindowsOptimization {
@@ -241,7 +242,7 @@ export class WindowsOptimizer {
       const unusedServices = await serviceManager.getUnusedServices();
       return unusedServices.map(s => s.Name);
     } catch (error) {
-      console.error('Failed to detect unused services:', error);
+      logger.error('Failed to detect unused services:', { error });
       return [];
     }
   }
@@ -404,7 +405,7 @@ export class WindowsOptimizer {
         const adminResult = await window.windows.checkAdmin();
         isAdmin = adminResult.isAdmin;
       } catch (error) {
-        console.error('Failed to check admin status:', error);
+        logger.error('Failed to check admin status:', { error });
       }
     }
 

@@ -70,6 +70,7 @@ import InsightsStream from './components/Agents/InsightsStream';
 import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
 import { ToastProvider } from './components/ui';
 import { errorLogger } from './services/errors/errorLogger';
+import { logger } from './services/logging/loggerService';
 import { useProjectStore } from './services/project/projectStore';
 import './services/theme/themeService'; // Initialize theme on import
 import './styles/index.css';
@@ -102,7 +103,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    logger.error('Error caught by boundary:', { error, errorInfo });
 
     // Log to error capture system
     errorLogger.logFromError('react', error, 'critical', {
@@ -131,7 +132,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       sessionStorage.clear();
       window.location.reload();
     } catch (error) {
-      console.error('Failed to reset application:', error);
+      logger.error('Failed to reset application:', { error });
       window.location.reload();
     }
   };

@@ -64,6 +64,7 @@
  */
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useVersionStore } from '../../services/system/versionStore';
+import { logger } from '../../services/logging/loggerService';
 import { RefreshCw } from 'lucide-react';
 import '../../styles/VersionDisplay.css';
 
@@ -85,10 +86,7 @@ function VersionDisplay() {
     try {
       await window.updater.check();
     } catch (error) {
-      // Error logging handled by errorLogger service
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Failed to check for updates:', error);
-      }
+      logger.error('Failed to check for updates:', { error });
     } finally {
       setIsCheckingUpdate(false);
     }

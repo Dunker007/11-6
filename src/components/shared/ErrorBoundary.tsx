@@ -63,6 +63,7 @@
  */
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { errorLogger } from '@/services/errors/errorLogger';
+import { logger } from '@/services/logging/loggerService';
 import type { CapturedError } from '@/types/error';
 
 interface ErrorBoundaryProps {
@@ -88,7 +89,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(`Error in ${this.props.sectionName || 'component'}:`, error, errorInfo);
+    logger.error(`Error in ${this.props.sectionName || 'component'}:`, { error, errorInfo });
 
     // Log to error capture system
     const capturedError = errorLogger.logFromError('react', error, 'error', {

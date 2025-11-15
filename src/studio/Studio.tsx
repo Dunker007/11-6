@@ -12,6 +12,7 @@ import { useWebContainerStore } from '../core/webcontainer/webContainerStore';
 import { aiServiceBridge } from '../services/ai/aiServiceBridge';
 import { llmRouter } from '../services/ai/router';
 import { apiKeyService } from '../services/apiKeys/apiKeyService';
+import { logger } from '../services/logging/loggerService';
 import '../styles-new/studio.css';
 
 function Studio() {
@@ -39,12 +40,12 @@ function Studio() {
           llmRouter.setStudioContext(true);
           // Set Gemini as preferred provider
           llmRouter.setPreferredProvider('gemini');
-          console.log('Studio: Gemini Flash 2.5 configured as default provider');
+          logger.info('Studio: Gemini Flash 2.5 configured as default provider');
         } else {
-          console.log('Studio: Gemini API key not found, using default provider strategy');
+          logger.debug('Studio: Gemini API key not found, using default provider strategy');
         }
       } catch (error) {
-        console.error('Studio: Failed to configure Gemini:', error);
+        logger.error('Studio: Failed to configure Gemini:', { error });
       }
     };
 
@@ -60,7 +61,9 @@ function Studio() {
   useEffect(() => {
     if (activeProject) {
       // Start AI indexing for context awareness
-      aiServiceBridge.startIndexing(activeProject.rootPath || '').catch(console.error);
+      aiServiceBridge.startIndexing(activeProject.rootPath || '').catch((error) => {
+        logger.error('Failed to start project indexing:', { error });
+      });
     }
   }, [activeProject]);
 
@@ -85,13 +88,13 @@ function Studio() {
         
         if (cancelled) return;
 
-        console.log(`WebContainer ready for project: ${activeProject.name}`);
+        logger.info(`WebContainer ready for project: ${activeProject.name}`);
       } catch (error) {
         if (cancelled) return;
         
         const errorMessage = (error as Error).message;
         setWebContainerError(errorMessage);
-        console.error('Failed to initialize WebContainer:', error);
+        logger.error('Failed to initialize WebContainer:', { error });
         
         // Show error in console panel
         setCommandOutput(`⚠️ WebContainer initialization failed: ${errorMessage}\n\nThis may happen if:\n- WebContainer API is not available\n- Project files are missing\n- Browser doesn't support WebContainer\n\nYou can still edit files, but execution features may be limited.`);
@@ -165,7 +168,7 @@ function Studio() {
         onOutput={(output) => {
           setCommandOutput(output);
           setConsoleVisible(true); // Auto-show console when there's output
-          console.log('Command output:', output);
+          logger.debug('Command output received', { outputLength: output.length });
         }}
       />
 

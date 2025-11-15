@@ -1,5 +1,5 @@
 // src/components/LLMOptimizer/IdeaList.tsx
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Search, Filter, CheckSquare, Square, Download, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
 import { ideaInventoryService, Idea } from '@/services/idea/ideaInventoryService';
 import { useDebounce } from '@/utils/hooks/useDebounce';
@@ -48,13 +48,13 @@ function IdeaList({ onIdeaSelect, selectedIdeaId }: IdeaListProps) {
     return filtered;
   }, [ideas, selectedTopic, debouncedSearchQuery]);
 
-  const handleToggleStatus = (id: string, currentStatus: 'keep' | 'delete' | 'pending') => {
+  const handleToggleStatus = useCallback((id: string, currentStatus: 'keep' | 'delete' | 'pending') => {
     const newStatus = currentStatus === 'keep' ? 'delete' : 'keep';
     ideaInventoryService.updateIdeaStatus(id, newStatus);
     setIdeas(ideaInventoryService.getAllIdeas());
-  };
+  }, []);
 
-  const handleBulkAction = (action: 'keep-all' | 'delete-all' | 'delete-selected') => {
+  const handleBulkAction = useCallback((action: 'keep-all' | 'delete-all' | 'delete-selected') => {
     if (action === 'keep-all') {
       ideaInventoryService.bulkUpdateStatus(filteredIdeas.map(i => i.id), 'keep');
     } else if (action === 'delete-all') {
@@ -64,9 +64,9 @@ function IdeaList({ onIdeaSelect, selectedIdeaId }: IdeaListProps) {
       ideaInventoryService.bulkUpdateStatus(selectedIds, 'delete');
     }
     setIdeas(ideaInventoryService.getAllIdeas());
-  };
+  }, [filteredIdeas]);
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     const json = ideaInventoryService.exportIdeas(idea => idea.status === 'keep');
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -77,17 +77,19 @@ function IdeaList({ onIdeaSelect, selectedIdeaId }: IdeaListProps) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
+  }, []);
 
-  const toggleExpand = (id: string) => {
-    const newExpanded = new Set(expandedIds);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedIds(newExpanded);
-  };
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedIds(prev => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(id)) {
+        newExpanded.delete(id);
+      } else {
+        newExpanded.add(id);
+      }
+      return newExpanded;
+    });
+  }, []);
 
   const getStatusIcon = (status: 'keep' | 'delete' | 'pending') => {
     switch (status) {

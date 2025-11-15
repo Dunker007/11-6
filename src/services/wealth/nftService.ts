@@ -6,6 +6,7 @@
  */
 
 import type { NFTAsset } from '@/types/wealth';
+import { logger } from '../logging/loggerService';
 
 const OPENSEA_API_BASE = 'https://api.opensea.io/api/v2';
 const OPENSEA_POLYGON_API_BASE = 'https://api.opensea.io/api/v2';
@@ -108,7 +109,7 @@ class NFTService {
         this.apiKey = stored;
       }
     } catch (error) {
-      console.error('Failed to load OpenSea API key:', error);
+      logger.error('Failed to load OpenSea API key:', { error });
     }
   }
 
@@ -120,7 +121,7 @@ class NFTService {
     try {
       localStorage.setItem('opensea_api_key', apiKey);
     } catch (error) {
-      console.error('Failed to save OpenSea API key:', error);
+      logger.error('Failed to save OpenSea API key:', { error });
     }
   }
 
@@ -133,7 +134,7 @@ class NFTService {
     chain: 'ethereum' | 'polygon' | 'solana' = 'ethereum'
   ): Promise<OpenSeaNFT | null> {
     if (!this.apiKey && chain !== 'solana') {
-      console.warn('OpenSea API key not configured');
+      logger.warn('OpenSea API key not configured');
       return null;
     }
 
@@ -169,7 +170,7 @@ class NFTService {
       }
       return nft;
     } catch (error) {
-      console.error('Failed to fetch OpenSea NFT data:', error);
+      logger.error('Failed to fetch OpenSea NFT data:', { error, contractAddress, tokenId, chain });
       return null;
     }
   }
@@ -214,7 +215,7 @@ class NFTService {
 
       return floorPrice;
     } catch (error) {
-      console.error('Failed to fetch OpenSea collection floor price:', error);
+      logger.error('Failed to fetch OpenSea collection floor price:', { error, collectionSlug, chain });
       return null;
     }
   }
@@ -279,7 +280,7 @@ class NFTService {
         };
       }).sort((a, b) => b.date.getTime() - a.date.getTime());
     } catch (error) {
-      console.error('Failed to fetch NFT transaction history:', error);
+      logger.error('Failed to fetch NFT transaction history:', { error, contractAddress, tokenId, chain });
       return [];
     }
   }
@@ -368,7 +369,7 @@ class NFTService {
         total_supply: col.total_supply,
       }));
     } catch (error) {
-      console.error('Failed to search OpenSea collections:', error);
+      logger.error('Failed to search OpenSea collections:', { error, query });
       return [];
     }
   }

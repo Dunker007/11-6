@@ -187,7 +187,9 @@ class PlanExecutionService {
         break;
 
       default:
-        throw new Error(`Unknown step type: ${(step as any).type}`);
+        // Type guard to ensure we have a valid step type
+        const unknownStep = step as PlanStep & { type: string };
+        throw new Error(`Unknown step type: ${unknownStep.type}`);
     }
   }
 

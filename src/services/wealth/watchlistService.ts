@@ -5,6 +5,7 @@
  */
 
 import { wealthMarketDataService } from './marketDataService';
+import { logger } from '../logging/loggerService';
 import type { Watchlist, Alert } from '@/types/wealth';
 
 const WATCHLISTS_KEY = 'dlx_wealth_watchlists';
@@ -63,7 +64,7 @@ class WatchlistService {
         });
       }
     } catch (error) {
-      console.error('Failed to load watchlists:', error);
+      logger.error('Failed to load watchlists:', { error });
     }
   }
 
@@ -71,7 +72,7 @@ class WatchlistService {
     try {
       localStorage.setItem(WATCHLISTS_KEY, JSON.stringify(Array.from(this.watchlists.values())));
     } catch (error) {
-      console.error('Failed to save watchlists:', error);
+      logger.error('Failed to save watchlists:', { error });
     }
   }
 
@@ -79,7 +80,7 @@ class WatchlistService {
     try {
       localStorage.setItem(ALERTS_KEY, JSON.stringify(Array.from(this.alerts.values())));
     } catch (error) {
-      console.error('Failed to save alerts:', error);
+      logger.error('Failed to save alerts:', { error });
     }
   }
 
@@ -192,7 +193,7 @@ class WatchlistService {
             this.saveAlerts();
           }
         } catch (error) {
-          console.error(`Failed to check price alert for ${alert.symbol}:`, error);
+          logger.error(`Failed to check price alert for ${alert.symbol}:`, { error });
         }
       }
 
@@ -250,7 +251,7 @@ class WatchlistService {
       this.checkAlerts().then(triggered => {
         if (triggered.length > 0) {
           // In production, emit events or show notifications
-          console.log(`Triggered ${triggered.length} alerts`);
+          logger.info(`Triggered ${triggered.length} alerts`);
         }
       });
     }, 60000);

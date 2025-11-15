@@ -6,6 +6,7 @@
 
 import { wealthMarketDataService } from './marketDataService';
 import { aiServiceBridge } from '@/services/ai/aiServiceBridge';
+import { logger } from '../logging/loggerService';
 import type { NewsArticle, MarketInsight, Portfolio } from '@/types/wealth';
 
 const INSIGHTS_KEY = 'dlx_wealth_insights';
@@ -37,7 +38,7 @@ class NewsService {
         }));
       }
     } catch (error) {
-      console.error('Failed to load insights:', error);
+      logger.error('Failed to load insights:', { error });
     }
   }
 
@@ -45,7 +46,7 @@ class NewsService {
     try {
       localStorage.setItem(INSIGHTS_KEY, JSON.stringify(this.insights));
     } catch (error) {
-      console.error('Failed to save insights:', error);
+      logger.error('Failed to save insights:', { error });
     }
   }
 
@@ -66,7 +67,7 @@ class NewsService {
       this.newsCache.set(cacheKey, articles);
       return articles;
     } catch (error) {
-      console.error('Failed to fetch news:', error);
+      logger.error('Failed to fetch news:', { error, symbols, limit });
       return [];
     }
   }
@@ -96,7 +97,7 @@ Summary: ${article.summary}`;
       if (sentimentText.includes('negative')) return 'negative';
       return 'neutral';
     } catch (error) {
-      console.error('Failed to analyze sentiment:', error);
+      logger.error('Failed to analyze sentiment:', { error, articleId: _articleId });
       return 'neutral';
     }
   }
@@ -229,7 +230,7 @@ Portfolio performance: ${portfolio.performance.totalReturnPercent.toFixed(2)}%`;
         }
       });
     } catch (error) {
-      console.error('Failed to generate LLM insights:', error);
+      logger.error('Failed to generate LLM insights:', { error });
     }
 
     // Save insights

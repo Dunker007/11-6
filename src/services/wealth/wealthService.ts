@@ -12,6 +12,7 @@
  * - Revenue/Monetization = Business income/expenses, SaaS revenue, crypto profits (when withdrawn)
  */
 
+import { logger } from '../logging/loggerService';
 import type {
   Account,
   Asset,
@@ -148,7 +149,7 @@ export class WealthService {
         }));
       }
     } catch (error) {
-      console.error('Failed to load wealth data:', error);
+      logger.error('Failed to load wealth data:', { error });
     }
   }
 
@@ -156,7 +157,7 @@ export class WealthService {
     try {
       localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(Array.from(this.accounts.values())));
     } catch (error) {
-      console.error('Failed to save accounts:', error);
+      logger.error('Failed to save accounts:', { error });
     }
   }
 
@@ -164,7 +165,7 @@ export class WealthService {
     try {
       localStorage.setItem(ASSETS_KEY, JSON.stringify(Array.from(this.assets.values())));
     } catch (error) {
-      console.error('Failed to save assets:', error);
+      logger.error('Failed to save assets:', { error });
     }
   }
 
@@ -172,7 +173,7 @@ export class WealthService {
     try {
       localStorage.setItem(LIABILITIES_KEY, JSON.stringify(Array.from(this.liabilities.values())));
     } catch (error) {
-      console.error('Failed to save liabilities:', error);
+      logger.error('Failed to save liabilities:', { error });
     }
   }
 
@@ -180,7 +181,7 @@ export class WealthService {
     try {
       localStorage.setItem(BUDGETS_KEY, JSON.stringify(Array.from(this.budgets.values())));
     } catch (error) {
-      console.error('Failed to save budgets:', error);
+      logger.error('Failed to save budgets:', { error });
     }
   }
 
@@ -188,7 +189,7 @@ export class WealthService {
     try {
       localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(Array.from(this.transactions.values())));
     } catch (error) {
-      console.error('Failed to save transactions:', error);
+      logger.error('Failed to save transactions:', { error });
     }
   }
 
@@ -196,7 +197,7 @@ export class WealthService {
     try {
       localStorage.setItem(RETIREMENT_PLANS_KEY, JSON.stringify(Array.from(this.retirementPlans.values())));
     } catch (error) {
-      console.error('Failed to save retirement plans:', error);
+      logger.error('Failed to save retirement plans:', { error });
     }
   }
 
@@ -204,7 +205,7 @@ export class WealthService {
     try {
       localStorage.setItem(GOALS_KEY, JSON.stringify(Array.from(this.goals.values())));
     } catch (error) {
-      console.error('Failed to save goals:', error);
+      logger.error('Failed to save goals:', { error });
     }
   }
 
@@ -212,7 +213,7 @@ export class WealthService {
     try {
       localStorage.setItem(NET_WORTH_HISTORY_KEY, JSON.stringify(this.netWorthHistory));
     } catch (error) {
-      console.error('Failed to save net worth history:', error);
+      logger.error('Failed to save net worth history:', { error });
     }
   }
 

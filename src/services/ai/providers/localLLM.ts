@@ -88,7 +88,7 @@ export class LMStudioProvider implements LLMProvider {
 
   async healthCheck(): Promise<boolean> {
     const url = `${this.baseUrl}/models`;
-    console.log(`[LM Studio] Health check starting: ${url}`);
+    logger.debug(`LM Studio health check starting: ${url}`);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
@@ -102,11 +102,9 @@ export class LMStudioProvider implements LLMProvider {
       
       clearTimeout(timeoutId);
       const isHealthy = response.ok;
-      console.log(`[LM Studio] Health check result: ${isHealthy ? 'ONLINE' : 'OFFLINE'} (status: ${response.status})`);
       logger.info(`LM Studio health check: ${isHealthy ? 'online' : 'offline'} (status: ${response.status})`);
       return isHealthy;
     } catch (error) {
-      console.error(`[LM Studio] Health check FAILED:`, error);
       logger.warn('LM Studio health check failed:', { error, url });
       return false;
     }
@@ -335,7 +333,7 @@ export class OllamaProvider implements LLMProvider {
 
   async healthCheck(): Promise<boolean> {
     const url = `${this.baseUrl}/tags`;
-    console.log(`[Ollama] Health check starting: ${url}`);
+    logger.debug(`Ollama health check starting: ${url}`);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
@@ -348,11 +346,9 @@ export class OllamaProvider implements LLMProvider {
       
       clearTimeout(timeoutId);
       const isHealthy = response.ok;
-      console.log(`[Ollama] Health check result: ${isHealthy ? 'ONLINE' : 'OFFLINE'} (status: ${response.status})`);
       logger.info(`Ollama health check: ${isHealthy ? 'online' : 'offline'} (status: ${response.status})`);
       return isHealthy;
     } catch (error) {
-      console.error(`[Ollama] Health check FAILED:`, error);
       logger.warn('Ollama health check failed:', { error, url });
       return false;
     }

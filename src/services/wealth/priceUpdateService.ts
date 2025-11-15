@@ -8,6 +8,8 @@
  * - ETFs: 1 minute
  */
 
+import { logger } from '../logging/loggerService';
+
 import { wealthMarketDataService } from './marketDataService';
 
 export type PriceUpdateInterval = '1s' | '15s' | '1m' | '5m' | '15m' | '1h';
@@ -147,7 +149,7 @@ class PriceUpdateService {
           try {
             callback(update);
           } catch (error) {
-            console.error(`Error in price update callback for ${symbol}:`, error);
+            logger.error(`Error in price update callback for ${symbol}:`, { error, symbol });
           }
         });
       }
@@ -155,7 +157,7 @@ class PriceUpdateService {
       // Check alerts
       this.checkAlerts(symbol, update);
     } catch (error) {
-      console.error(`Failed to fetch price for ${symbol}:`, error);
+      logger.error(`Failed to fetch price for ${symbol}:`, { error, symbol });
     }
   }
 
@@ -230,7 +232,7 @@ class PriceUpdateService {
           try {
             alert.callback(alert, update);
           } catch (error) {
-            console.error(`Error in alert callback for ${alert.id}:`, error);
+            logger.error(`Error in alert callback for ${alert.id}:`, { error, alertId: alert.id });
           }
         }
 

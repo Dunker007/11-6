@@ -72,6 +72,7 @@
  */
 import { projectService } from '../project/projectService';
 import { multiFileContextService } from './multiFileContextService';
+import { logger } from '../logging/loggerService';
 import type { Project, ProjectFile } from '@/types/project';
 
 export interface ProjectKnowledge {
@@ -127,7 +128,7 @@ class ProjectKnowledgeService {
     if (!deepContext && allFiles.length > 0) {
       // Analyze project asynchronously (don't block)
       multiFileContextService.analyzeProject(project).catch(err => {
-        console.warn('Failed to analyze project deeply:', err);
+        logger.warn('Failed to analyze project deeply:', { error: err });
       });
     }
 

@@ -6,6 +6,7 @@
  */
 
 import type { RealEstateAsset } from '@/types/wealth';
+import { logger } from '../logging/loggerService';
 
 const ZILLOW_API_BASE = 'https://api.bridgedataoutput.com/api/v2'; // Zillow API endpoint
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
@@ -58,7 +59,7 @@ class RealEstateService {
         this.apiKey = stored;
       }
     } catch (error) {
-      console.error('Failed to load Zillow API key:', error);
+      logger.error('Failed to load Zillow API key:', { error });
     }
   }
 
@@ -70,7 +71,7 @@ class RealEstateService {
     try {
       localStorage.setItem('zillow_api_key', apiKey);
     } catch (error) {
-      console.error('Failed to save Zillow API key:', error);
+      logger.error('Failed to save Zillow API key:', { error });
     }
   }
 
@@ -84,7 +85,7 @@ class RealEstateService {
     zipCode: string;
   }): Promise<ZillowPropertyData | null> {
     if (!this.apiKey) {
-      console.warn('Zillow API key not configured');
+      logger.warn('Zillow API key not configured');
       return null;
     }
 
@@ -128,7 +129,7 @@ class RealEstateService {
       this.setCache(cacheKey, propertyData);
       return propertyData;
     } catch (error) {
-      console.error('Failed to fetch Zillow property data:', error);
+      logger.error('Failed to fetch Zillow property data:', { error });
       return null;
     }
   }
@@ -224,7 +225,7 @@ class RealEstateService {
         zestimate: result.zestimate?.amount || 0,
       }));
     } catch (error) {
-      console.error('Failed to search Zillow properties:', error);
+      logger.error('Failed to search Zillow properties:', { error });
       return [];
     }
   }
@@ -266,7 +267,7 @@ class RealEstateService {
       this.setCache(cacheKey, history);
       return history;
     } catch (error) {
-      console.error('Failed to fetch Zillow property history:', error);
+      logger.error('Failed to fetch Zillow property history:', { error });
       return [];
     }
   }

@@ -6,6 +6,7 @@
 
 import type { Portfolio, Position, AssetType } from '@/types/wealth';
 import { wealthMarketDataService } from './marketDataService';
+import { logger } from '../logging/loggerService';
 
 const PORTFOLIOS_KEY = 'dlx_wealth_portfolios';
 
@@ -39,7 +40,7 @@ class PortfolioService {
         });
       }
     } catch (error) {
-      console.error('Failed to load portfolios:', error);
+      logger.error('Failed to load portfolios:', { error });
     }
   }
 
@@ -47,7 +48,7 @@ class PortfolioService {
     try {
       localStorage.setItem(PORTFOLIOS_KEY, JSON.stringify(Array.from(this.portfolios.values())));
     } catch (error) {
-      console.error('Failed to save portfolios:', error);
+      logger.error('Failed to save portfolios:', { error });
     }
   }
 
@@ -106,7 +107,7 @@ class PortfolioService {
       const priceData = await wealthMarketDataService.getRealTimePrice(symbol);
       currentPrice = priceData.price;
     } catch (error) {
-      console.error(`Failed to fetch price for ${symbol}, using cost basis:`, error);
+      logger.error(`Failed to fetch price for ${symbol}, using cost basis:`, { error, symbol });
     }
 
     const position: Position = {
@@ -186,7 +187,7 @@ class PortfolioService {
           ? ((priceData.price - position.costBasis) / position.costBasis) * 100 
           : 0;
       } catch (error) {
-        console.error(`Failed to update price for ${position.symbol}:`, error);
+        logger.error(`Failed to update price for ${position.symbol}:`, { error, symbol: position.symbol });
         const currentValue = position.costBasis * position.quantity;
         totalCost += currentValue;
         totalValue += currentValue;
@@ -301,7 +302,7 @@ class PortfolioService {
         difference: portfolio.performance.totalReturnPercent - benchmarkReturn,
       };
     } catch (error) {
-      console.error(`Failed to compare to benchmark:`, error);
+      logger.error(`Failed to compare to benchmark:`, { error, portfolioId, benchmark });
       return {
         portfolioReturn: portfolio.performance.totalReturnPercent,
         benchmarkReturn: 0,

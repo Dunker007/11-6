@@ -1,6 +1,8 @@
 // Windows Registry Management Service
 // Provides utilities for reading and writing registry values
 
+import { logger } from '../logging/loggerService';
+
 export interface RegistryValue {
   path: string;
   value: string;
@@ -113,7 +115,7 @@ export class RegistryManager {
         });
       }
     } catch (error) {
-      console.warn(`Failed to backup registry value ${backupKey}:`, error);
+      logger.warn(`Failed to backup registry value ${backupKey}:`, { error });
     }
   }
 
