@@ -119,7 +119,7 @@ npm run electron:dev
 ### Create Distributable Package:
 
 ```powershell
-cd C:\Repos GIT\11-6\11-6\release
+cd C:\Repos GIT\11-6\release
 
 # Compress the portable folder
 Compress-Archive -Path DLX-Studios-Ultimate-Portable -DestinationPath DLX-Studios-Ultimate-v1.0.1-Portable.zip
@@ -200,13 +200,13 @@ Before distributing:
 
 ### Test It:
 ```bash
-cd C:\Repos GIT\11-6\11-6\release\DLX-Studios-Ultimate-Portable
+cd C:\Repos GIT\11-6\release\DLX-Studios-Ultimate-Portable
 electron .
 ```
 
 ### Zip It:
 ```powershell
-cd C:\Repos GIT\11-6\11-6\release
+cd C:\Repos GIT\11-6\release
 Compress-Archive -Path DLX-Studios-Ultimate-Portable -DestinationPath DLX-Studios-Ultimate-v1.0.1-Portable.zip
 ```
 

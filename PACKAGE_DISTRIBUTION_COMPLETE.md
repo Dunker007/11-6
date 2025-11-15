@@ -10,7 +10,7 @@
 
 ### Location:
 ```
-C:\Repos GIT\11-6\11-6\release\DLX-Studios-Ultimate-v1.0.1-Portable.zip
+C:\Repos GIT\11-6\release\DLX-Studios-Ultimate-v1.0.1-Portable.zip
 ```
 
 ### Package Details:
@@ -234,7 +234,7 @@ Status: ✅ All synced with remote
 ## 📁 Project Structure
 
 ```
-C:\Repos GIT\11-6\11-6\
+C:\Repos GIT\11-6\
 ├── release/
 │   ├── DLX-Studios-Ultimate-Portable/     [Ready to run]
 │   └── DLX-Studios-Ultimate-v1.0.1-Portable.zip  [Distribution]

@@ -26,7 +26,7 @@ Users can now:
 
 ### **Main Installer (Distribute This):**
 ```
-Location: C:\Repos GIT\11-6\11-6\release\
+Location: C:\Repos GIT\11-6\release\
 File: DLX Studios Ultimate-1.0.1-x64.exe
 Size: 188.36 MB
 Type: NSIS Windows Installer
@@ -34,7 +34,7 @@ Type: NSIS Windows Installer
 
 ### **Unpacked Application (For Testing):**
 ```
-Location: C:\Repos GIT\11-6\11-6\release\win-unpacked\
+Location: C:\Repos GIT\11-6\release\win-unpacked\
 File: DLX Studios Ultimate.exe
 Size: 201.06 MB
 Type: Standalone Executable

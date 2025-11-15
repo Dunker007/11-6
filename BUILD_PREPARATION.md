@@ -185,7 +185,7 @@ npm run electron:build:all      # Same as electron:build
 ### System Info:
 - **OS:** Windows 10.0.26200
 - **Shell:** PowerShell 7
-- **Workspace:** C:\Repos GIT\11-6\11-6
+- **Workspace:** C:\Repos GIT\11-6
 
 ---
 
