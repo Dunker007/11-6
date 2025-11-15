@@ -3,6 +3,7 @@
   "productName": "DLX Studios Ultimate",
   "copyright": "Copyright © 2025 DLXStudios.a1",
   "npmRebuild": false,
+  "afterPack": "./scripts/afterPack.cjs",
   "extraMetadata": {
     "description": "AI-Native Development Platform with VibeEditor",
     "version": "1.0.1"
