@@ -23,7 +23,7 @@ function AIStatus() {
   const checkProviders = async () => {
     setIsChecking(true);
     try {
-      const results = await llmRouter.discoverProviders();
+      const results = await llmRouter.discoverProviders(true); // Force fresh check
       const providerStatuses: ProviderStatus[] = results.map((result) => ({
         name: result.provider,
         available: result.available,

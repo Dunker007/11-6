@@ -21,19 +21,24 @@ const LLMStatus = memo(function LLMStatus() {
   const geminiTier = geminiKey?.metadata?.tier as 'free' | 'pro' | 'unknown' | undefined;
 
   useEffect(() => {
-    discoverProviders();
+    // Initial load - use cache if available
+    discoverProviders(false);
     const interval = setInterval(() => {
-      discoverProviders();
+      // Periodic checks - use cache when available (respects 30s cache TTL)
+      discoverProviders(false);
       setLastChecked(new Date());
     }, 30000); // Check every 30 seconds
 
     return () => clearInterval(interval);
-  }, [discoverProviders]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Zustand actions are stable, don't need to be in deps
 
   const handleRefreshInternal = useCallback(async () => {
-    await discoverProviders();
+    // Manual refresh - force fresh checks
+    await discoverProviders(true);
     setLastChecked(new Date());
-  }, [discoverProviders]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Zustand actions are stable, don't need to be in deps
 
   // Debounce manual refresh button clicks (500ms delay)
   const handleRefresh = useDebouncedCallback(handleRefreshInternal, 500);

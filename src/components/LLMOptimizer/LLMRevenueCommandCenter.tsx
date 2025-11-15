@@ -32,7 +32,6 @@ import '../../styles/QuickModelActions.css';
 import '../../styles/QuickTestInterface.css';
 import '../../styles/HolographicCommandCenter.css';
 import { OSOptimizationsPanel } from './OSOptimizationsPanel';
-import { HolographicPanel } from '../ui';
 
 // Lazy load heavy components
 const IdeaLab = lazy(() => import('./IdeaLab'));
@@ -82,7 +81,7 @@ function LLMRevenueCommandCenter() {
   useEffect(() => {
     detectHardware();
     loadCatalog();
-    discoverProviders();
+    discoverProviders(true); // Force fresh check on initial load
     discoverLocalProviders(); // Initial discovery
     refreshFinancials();
 

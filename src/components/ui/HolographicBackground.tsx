@@ -48,7 +48,7 @@ export function HolographicBackground({
   const starsRef = useRef<Particle[]>([]);
   const particlesRef = useRef<Particle[]>([]);
   const neuralNodesRef = useRef<NeuralNode[]>([]);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -130,7 +130,7 @@ export function HolographicBackground({
       }
 
       // Create connections (each node connects to 2-3 nearest neighbors)
-      neuralNodesRef.current.forEach((node, i) => {
+      neuralNodesRef.current.forEach((node) => {
         const distances = neuralNodesRef.current.map((other, j) => ({
           index: j,
           distance: Math.hypot(node.x - other.x, node.y - other.y),

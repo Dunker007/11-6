@@ -110,8 +110,9 @@ const LLMOptimizerPanel = () => {
     setInitialized(true);
     detectHardware();
     loadCatalog();
-    discoverProviders();
-  }, [initialized, detectHardware, loadCatalog, discoverProviders]);
+    discoverProviders(true); // Force fresh check on initial load
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialized]); // Zustand actions are stable, don't need to be in deps
 
   useEffect(() => {
     if (!recommendationTimestamp) {

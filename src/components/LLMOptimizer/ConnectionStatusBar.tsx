@@ -86,20 +86,26 @@ const ConnectionStatusBar = () => {
     updateStatuses();
   }, [models, availableProviders]);
 
-  // Auto-refresh every 10 seconds
+  // Auto-refresh every 30 seconds (matches LLMStatus interval)
   useEffect(() => {
+    // Initial load - use cache if available
+    discoverProviders(false);
     const interval = setInterval(async () => {
-      await discoverProviders();
+      // Periodic checks - use cache when available (respects 30s cache TTL)
+      await discoverProviders(false);
       setLastRefresh(new Date());
-    }, 10000);
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, [discoverProviders]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Zustand actions are stable, don't need to be in deps
 
   const handleRefreshInternal = useCallback(async () => {
-    await discoverProviders();
+    // Manual refresh - force fresh checks
+    await discoverProviders(true);
     setLastRefresh(new Date());
-  }, [discoverProviders]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Zustand actions are stable, don't need to be in deps
 
   const handleRefresh = useDebouncedCallback(handleRefreshInternal, 500);
 

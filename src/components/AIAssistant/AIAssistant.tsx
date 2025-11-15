@@ -185,8 +185,7 @@ function AIAssistant() {
           }
         } catch (error) {
           console.error('Failed to load conversation:', error);
-          errorLogger.logFromError(error as Error, {
-            category: 'ai',
+          errorLogger.logFromError('runtime', error as Error, 'error', {
             source: 'AIAssistant.loadConversation',
             message: 'Failed to load or create conversation',
           });

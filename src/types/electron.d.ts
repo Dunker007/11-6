@@ -46,7 +46,7 @@ declare global {
       setPrimary(displayId: string): Promise<{ success: boolean; error?: string }>;
       setDisplayBounds(displayId: string, bounds: { x: number; y: number; width: number; height: number }): Promise<{ success: boolean; error?: string }>;
     };
-    screen: {
+    screenAPI: {
       getDisplayInfo(): Promise<{
         success: boolean;
         data?: {

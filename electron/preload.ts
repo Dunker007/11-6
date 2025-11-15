@@ -152,7 +152,7 @@ safeExpose('monitor', {
 });
 
 // --------- Expose Screen API ---------
-safeExpose('screen', {
+safeExpose('screenAPI', {
   getDisplayInfo: () => ipcRenderer.invoke('screen:getDisplayInfo'),
 });
 

@@ -81,7 +81,7 @@
  * - Response caching
  */
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
-import type { LLMProvider } from '../router';
+import type { LLMProvider } from './types';
 import { apiKeyService } from '@/services/apiKeys/apiKeyService';
 import { logger } from '@/services/logging/loggerService';
 import type {

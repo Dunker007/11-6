@@ -35,13 +35,19 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Polyfill Node.js modules for browser build
+      'fs': path.resolve(__dirname, './src/utils/polyfills/fs.ts'),
+      'path': path.resolve(__dirname, './src/utils/polyfills/path.ts'),
+      'systeminformation': path.resolve(__dirname, './src/utils/polyfills/systeminformation.ts'),
+      '@lancedb/lancedb': path.resolve(__dirname, './src/utils/polyfills/lancedb.ts'),
     },
   },
   server: {
-    port: 5174,
+    port: 4173,
     strictPort: true,
     hmr: {
       overlay: true,
+      clientPort: 4173,
     },
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -54,34 +60,6 @@ export default defineConfig({
         outDir: 'dist',
         emptyOutDir: true,
         rollupOptions: {
-          external: (id) => {
-            // Externalize Node.js-only modules
-            const nodeModules = [
-              'systeminformation',
-              'simple-git',
-              'chokidar',
-              'fs/promises',
-              'path',
-              'node:buffer',
-              'node:path',
-              'node:events',
-              'child_process',
-              'fs',
-            ];
-            if (nodeModules.includes(id)) return true;
-            
-            // Externalize LanceDB and its native bindings
-            if (id.includes('@lancedb/lancedb') || id.includes('lancedb.win32-x64-msvc')) {
-              return true;
-            }
-            
-            // Externalize any .node files
-            if (id.endsWith('.node')) {
-              return true;
-            }
-            
-            return false;
-          },
           output: {
             manualChunks: (id) => {
               // Monaco Editor (large dependency - ~2MB)

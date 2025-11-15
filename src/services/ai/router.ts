@@ -76,8 +76,8 @@
 import { activityService } from '../activity/activityService';
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk, TaskType } from '@/types/llm';
 import { localProviderDiscovery } from './providers/localProviderDiscovery';
+import type { LLMProvider } from './providers/types';
 import {
-  type LLMProvider,
   lmStudioProvider,
   ollamaProvider,
 } from './providers/localLLM';
@@ -106,7 +106,7 @@ export class LLMRouter {
   private readonly HEALTH_CACHE_TTL = 30000; // 30 seconds - reduce redundant health checks
   private discoveryInProgress = false; // Prevent concurrent discovery calls
   private lastDiscoveryTime = 0; // Track last discovery time for debouncing
-  private readonly DISCOVERY_DEBOUNCE_MS = 2000; // Minimum 2 seconds between discoveries
+  private readonly DISCOVERY_DEBOUNCE_MS = 5000; // Minimum 5 seconds between discoveries
 
   constructor() {
     this.providers.set('ollama', ollamaProvider);
@@ -121,14 +121,17 @@ export class LLMRouter {
       const savedStrategy = localStorage.getItem('llm-strategy');
       if (savedStrategy && ['local-only', 'local-first', 'cloud-fallback', 'hybrid'].includes(savedStrategy)) {
         this.strategy = savedStrategy as ProviderStrategy;
+      } else {
+        // Default to local-first if no saved strategy
+        this.strategy = 'local-first';
       }
     } catch (error) {
-      logger.warn('Failed to load strategy from localStorage:', { error: error instanceof Error ? error.message : String(error) });
-      // Continue with default strategy
+      // Continue with default strategy if localStorage access fails
+      this.strategy = 'local-first';
     }
 
-    this.setStrategy('local-first');
-    logger.info('LLMRouter initialized');
+    // Don't call setStrategy() here - it uses activityService which may not be initialized yet
+    // Strategy is already set above. setStrategy() should only be called when user changes it.
     this.discoverLocalProviders();
   }
 
@@ -157,7 +160,7 @@ export class LLMRouter {
     return this.strategy;
   }
 
-  async discoverProviders(): Promise<{ provider: string; available: boolean; models: LLMModel[] }[]> {
+  async discoverProviders(forceRefresh: boolean = false): Promise<{ provider: string; available: boolean; models: LLMModel[] }[]> {
     // Prevent concurrent discovery calls
     if (this.discoveryInProgress) {
       console.log('[Router] Discovery already in progress, skipping...');
@@ -174,9 +177,9 @@ export class LLMRouter {
       return cachedResults;
     }
 
-    // Debounce: don't run if called too soon after last discovery
+    // Debounce: don't run if called too soon after last discovery (unless forced)
     const now = Date.now();
-    if (now - this.lastDiscoveryTime < this.DISCOVERY_DEBOUNCE_MS) {
+    if (!forceRefresh && now - this.lastDiscoveryTime < this.DISCOVERY_DEBOUNCE_MS) {
       console.log(`[Router] Discovery debounced (${now - this.lastDiscoveryTime}ms since last)`);
       // Return cached results
       const cachedResults: { provider: string; available: boolean; models: LLMModel[] }[] = [];
@@ -198,9 +201,14 @@ export class LLMRouter {
       return await measureAsync(
         'llmRouter.discoverProviders',
         async () => {
-          console.log('[Router] discoverProviders() called - clearing cache for fresh checks');
-          // Clear cache to force fresh health checks
-          this.clearHealthCache();
+          // Only clear cache if force refresh is requested
+          // Otherwise, let isProviderHealthy() use the cache TTL to determine freshness
+          if (forceRefresh) {
+            console.log('[Router] discoverProviders() called with forceRefresh - clearing cache for fresh checks');
+            this.clearHealthCache();
+          } else {
+            console.log('[Router] discoverProviders() called - using cache when available');
+          }
           
           const results: { provider: string; available: boolean; models: LLMModel[] }[] = [];
 
@@ -229,7 +237,7 @@ export class LLMRouter {
 
           return results;
         },
-        500, // Network-heavy operation with 6 providers, 500ms is reasonable
+        750, // Network-heavy operation with 6 providers - health checks can take 500-700ms even with parallel execution
         { providerCount: this.providers.size, strategy: this.strategy }
       );
     } finally {

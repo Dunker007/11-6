@@ -75,15 +75,9 @@ import type {
   LMStudioStreamResponse,
   OllamaStreamResponse,
 } from '@/types/localLLM';
+import type { LLMProvider } from './types';
 
-export interface LLMProvider {
-  name: string;
-  type: 'local' | 'cloud';
-  healthCheck(): Promise<boolean>;
-  getModels(): Promise<LLMModel[]>;
-  generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse>;
-  streamGenerate(prompt: string, options?: GenerateOptions): AsyncGenerator<StreamChunk>;
-}
+export type { LLMProvider };
 
 export class LMStudioProvider implements LLMProvider {
   name = 'LM Studio';

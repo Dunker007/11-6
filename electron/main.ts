@@ -72,7 +72,7 @@
  * - Crash reporting
  */
 import electron from 'electron';
-const { app, BrowserWindow, ipcMain, dialog, screen, Menu, shell } = electron;
+const { app, BrowserWindow, ipcMain, dialog, screen, Menu, shell, protocol } = electron;
 import updaterPkg from 'electron-updater';
 const { autoUpdater } = updaterPkg;
 import path from 'path';
@@ -166,7 +166,7 @@ let win: InstanceType<typeof BrowserWindow> | null = null;
 const preload = isDev 
   ? path.join(__dirname, 'preload.ts')
   : path.resolve(path.join(__dirname, 'preload.js'));
-const url = isDev ? 'http://localhost:5174' : undefined;
+const url = isDev ? 'http://localhost:4173' : undefined;
 
 function createWindow() {
   const savedState = getWindowState();
@@ -366,28 +366,26 @@ function createWindow() {
       win.webContents.openDevTools();
     }
   } else {
-    // In production, use loadFile() which has built-in .asar support
-    // __dirname in production points to resources/app.asar/dist-electron
-    // We need to go up one level to reach dist
-    const indexPath = path.join(__dirname, '../dist/index.html');
+    // In production, use custom app:// protocol which properly handles ES modules
+    // and CORS headers for files served from .asar
+    // Load via custom protocol (handles ES modules correctly)
+    const appUrl = 'app://./index.html';
     
-    debugLog('[Electron] Production mode');
-    debugLog('[Electron] isDev:', isDev);
-    debugLog('[Electron] app.isPackaged:', app.isPackaged);
-    debugLog('[Electron] __dirname:', __dirname);
-    debugLog('[Electron] process.resourcesPath:', process.resourcesPath);
-    debugLog('[Electron] app.getAppPath():', app.getAppPath());
-    debugLog('[Electron] Resolved index path:', indexPath);
-    debugLog('[Electron] Index file exists:', existsSync(indexPath));
-    
-    // Use loadFile() for .asar compatibility - Electron handles .asar paths automatically
-    debugLog('[Electron] Loading index.html using loadFile()...');
-    win.loadFile(indexPath).then(() => {
-      debugLog('[Electron] Successfully loaded index.html');
+    win.loadURL(appUrl).then(() => {
+      // Successfully loaded - no logging needed in production
     }).catch(err => {
-      debugLog('[Electron] ERROR loading index.html:', err.message);
+      debugLog('[Electron] ERROR loading via app:// protocol:', err.message);
       debugLog('[Electron] Error code:', err.code);
       debugLog('[Electron] Error stack:', err.stack);
+      
+      // Fallback to loadFile if protocol fails
+      debugLog('[Electron] Attempting fallback to loadFile()...');
+      const indexPath = path.join(__dirname, '../dist/index.html');
+      if (win) {
+        win.loadFile(indexPath).catch(fallbackErr => {
+          debugLog('[Electron] Fallback also failed:', fallbackErr.message);
+        });
+      }
     });
   }
 
@@ -442,6 +440,112 @@ function createWindow() {
   // Log when DOM is ready
   win.webContents.on('dom-ready', () => {
     debugLog('[Electron] DOM is ready');
+  });
+}
+
+// Register custom protocol to serve files from .asar with proper CORS and MIME types
+// This must be called BEFORE app.whenReady()
+if (!isDev) {
+  protocol.registerSchemesAsPrivileged([
+    {
+      scheme: 'app',
+      privileges: {
+        secure: true,
+        standard: true,
+        corsEnabled: true,
+        supportFetchAPI: true,
+      },
+    },
+  ]);
+}
+
+// Register the file protocol handler - must be called AFTER app is ready
+function registerAppProtocolHandler() {
+  if (isDev) {
+    return; // Skip in dev mode, use http://localhost
+  }
+
+  protocol.registerBufferProtocol('app', (request, callback) => {
+    try {
+      // Get the path from the URL (remove app:// protocol)
+      let url = request.url.replace(/^app:\/\/+/, ''); // Remove protocol and any extra slashes
+      
+      // Remove query string and hash if present
+      const filePath = url.split('?')[0].split('#')[0];
+      
+      // Resolve file path
+      // __dirname in production points to resources/app.asar/dist-electron
+      // We need to serve files from resources/app.asar/dist
+      const distPath = path.join(__dirname, '../dist');
+      let resolvedPath: string;
+      
+      // Normalize path - handle various formats:
+      // - "./index.html" or "/index.html" or "index.html" or "/" -> index.html
+      // - "./assets/..." or "/assets/..." or "assets/..." -> assets/...
+      let normalizedPath = filePath;
+      
+      // Remove leading "./" or "/" or multiple slashes
+      normalizedPath = normalizedPath.replace(/^\.?\/+/, '');
+      
+      // Handle empty path or index
+      if (!normalizedPath || normalizedPath === '' || normalizedPath === 'index.html') {
+        normalizedPath = 'index.html';
+      }
+      
+      // Build full path
+      resolvedPath = path.join(distPath, normalizedPath);
+      
+      // Normalize path separators for Windows and resolve any ".." or "."
+      resolvedPath = path.normalize(resolvedPath);
+      
+      // Security: Ensure resolved path is within dist directory
+      const distPathNormalized = path.normalize(distPath);
+      if (!resolvedPath.startsWith(distPathNormalized)) {
+        console.error('[Protocol] Security violation: Path outside dist:', resolvedPath);
+        callback({ error: -6 }); // FILE_NOT_FOUND
+        return;
+      }
+      
+      if (!existsSync(resolvedPath)) {
+        console.error('[Protocol] File not found:', resolvedPath);
+        callback({ error: -6 }); // FILE_NOT_FOUND
+        return;
+      }
+      
+      // Read file content synchronously (protocol handler should be fast)
+      const fileContent = readFileSync(resolvedPath);
+      
+      // Determine MIME type based on file extension
+      const ext = path.extname(resolvedPath).toLowerCase();
+      let mimeType = 'application/octet-stream';
+      
+      if (ext === '.html' || ext === '') {
+        mimeType = 'text/html; charset=utf-8';
+      } else if (ext === '.js') {
+        mimeType = 'application/javascript; charset=utf-8';
+      } else if (ext === '.css') {
+        mimeType = 'text/css; charset=utf-8';
+      } else if (ext === '.json') {
+        mimeType = 'application/json; charset=utf-8';
+      } else if (ext === '.png') {
+        mimeType = 'image/png';
+      } else if (ext === '.jpg' || ext === '.jpeg') {
+        mimeType = 'image/jpeg';
+      } else if (ext === '.svg') {
+        mimeType = 'image/svg+xml';
+      } else if (ext === '.woff' || ext === '.woff2') {
+        mimeType = `font/${ext.slice(1)}`;
+      }
+      
+      callback({
+        data: fileContent,
+        mimeType: mimeType,
+      });
+    } catch (error) {
+      console.error('[Protocol] Error:', (error as Error).message);
+      console.error('[Protocol] Stack:', (error as Error).stack);
+      callback({ error: -2 }); // ERR_FAILED
+    }
   });
 }
 
@@ -715,9 +819,14 @@ app.on('activate', () => {
 });
 
 app.whenReady().then(() => {
-  createMenu();
-  createWindow();
-  setupAutoUpdater();
+  // Register protocol handler FIRST before creating window
+  registerAppProtocolHandler();
+  // Small delay to ensure protocol is fully registered
+  setTimeout(() => {
+    createMenu();
+    createWindow();
+    setupAutoUpdater();
+  }, 100);
 });
 
 // File System IPC Handlers

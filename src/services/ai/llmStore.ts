@@ -91,7 +91,7 @@ interface LLMStore {
   activeModel: LLMModel | null; // Track currently active model
   pullingModels: Set<string>; // Track models being pulled
   favoriteModels: Set<string>; // Track favorite/pinned models
-  discoverProviders: () => Promise<void>;
+  discoverProviders: (forceRefresh?: boolean) => Promise<void>;
   discoverLocalProviders: () => Promise<void>;
   setActiveModel: (model: LLMModel | null) => void;
   switchToModel: (modelId: string) => Promise<boolean>;
@@ -134,10 +134,10 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
   pullingModels: new Set(),
   favoriteModels: loadFavorites(),
 
-  discoverProviders: async () => {
+  discoverProviders: async (forceRefresh: boolean = false) => {
     await withAsyncOperation(
       async () => {
-        const results = await llmRouter.discoverProviders();
+        const results = await llmRouter.discoverProviders(forceRefresh);
         const available = results.filter((r) => r.available).map((r) => r.provider);
         const allModels = results.flatMap((r) => r.models);
 
@@ -216,8 +216,9 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       if (window.llm?.pullModel) {
         const result = await window.llm.pullModel(modelId, pullCommand);
         
-        if (result.success) {
-          await get().discoverProviders();
+          if (result.success) {
+            // Force refresh to get updated model list after pulling
+            await get().discoverProviders(true);
           set((state) => {
             const newPulling = new Set(state.pullingModels);
             newPulling.delete(modelId);
@@ -237,8 +238,8 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
 
       await (ollamaProvider as any).pullModel(modelId);
       
-      // Refresh providers to get updated model list
-      await get().discoverProviders();
+      // Refresh providers to get updated model list after pulling
+      await get().discoverProviders(true);
       set((state) => {
         const newPulling = new Set(state.pullingModels);
         newPulling.delete(modelId);

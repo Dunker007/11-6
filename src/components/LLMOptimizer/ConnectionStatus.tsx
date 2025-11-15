@@ -98,9 +98,11 @@ const ConnectionStatus = () => {
   }, [autoRetry, providerStatuses]);
 
   const handleRefreshInternal = useCallback(async () => {
-    await discoverProviders();
+    // Manual refresh - force fresh checks
+    await discoverProviders(true);
     setLastRefresh(new Date());
-  }, [discoverProviders]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Zustand actions are stable, don't need to be in deps
 
   const handleRefresh = useDebouncedCallback(handleRefreshInternal, 500);
 
