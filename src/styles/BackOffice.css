@@ -1,74 +1,68 @@
+/* Back Office Styles */
+
 .back-office {
   width: 100%;
   height: 100%;
-  overflow-y: auto;
-}
-
-.back-office.command-center-layout {
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 0; /* Remove padding - let content handle it */
 }
 
-/* Tab Navigation with Command Cards */
 .back-office-tab-nav {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
+  display: flex;
+  flex-direction: row; /* Horizontal layout for full width */
+  gap: 1rem;
+  padding: 1rem; /* Reduced from 1.5rem */
+  border-bottom: 1px solid var(--bg-tertiary);
+  background: var(--bg-secondary);
 }
 
 .back-office-tab-nav .command-card {
-  min-height: 180px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex: 1;
+  transition: var(--transition-base);
 }
 
 .back-office-tab-nav .command-card.active {
-  border-color: var(--emerald-500);
-  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow-primary);
 }
 
 .back-office-tab-nav .tab-content {
-  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  text-align: center;
 }
 
 .back-office-tab-nav .tab-content h3 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, var(--emerald-500), var(--violet-500));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
 }
 
 .back-office-tab-nav .tab-content p {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
 .back-office-content {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 2rem 2rem;
+  flex: 1;
   overflow-y: auto;
+  padding: 1rem; /* Reduced from 1.5rem */
 }
 
-@media (max-width: 768px) {
-  .back-office-tab-nav {
-    grid-template-columns: 1fr;
-  }
+/* Command Center Layout */
+.command-center-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
+

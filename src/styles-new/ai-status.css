@@ -1,0 +1,306 @@
+/* ===============================================
+   AI STATUS COMPONENT
+   Monitor LLM provider health and configuration
+   =============================================== */
+
+.ai-status {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ai-status-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  user-select: none;
+}
+
+.ai-status-header:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.status-summary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-indicator {
+  font-size: var(--font-size-base);
+}
+
+.expand-button {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  padding: var(--spacing-xs);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+}
+
+.expand-button:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.expand-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===============================================
+   EXPANDED DETAILS
+   =============================================== */
+
+.ai-status-details {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-tertiary);
+}
+
+.providers-list {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.provider-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.provider-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.provider-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.provider-status {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.provider-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.provider-type {
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--accent-primary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.provider-models {
+  color: var(--accent-success);
+  font-weight: 500;
+}
+
+/* ===============================================
+   HELP SECTION
+   =============================================== */
+
+.ai-status-help {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--spacing-md);
+  background: var(--bg-primary);
+}
+
+.help-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.help-section:last-child {
+  margin-bottom: 0;
+}
+
+.help-section h4 {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.setup-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.setup-links a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(6, 182, 212, 0.1);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+}
+
+.setup-links a:hover {
+  background: rgba(6, 182, 212, 0.2);
+  color: var(--text-primary);
+}
+
+.help-section ul {
+  margin: 0;
+  padding-left: var(--spacing-md);
+  list-style: none;
+}
+
+.help-section li {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+  position: relative;
+}
+
+.help-section li::before {
+  content: '•';
+  color: var(--accent-primary);
+  position: absolute;
+  left: -var(--spacing-md);
+}
+
+/* ===============================================
+   RESPONSIVE DESIGN
+   =============================================== */
+
+@media (max-width: 768px) {
+  .ai-status {
+    margin: var(--spacing-md);
+    max-width: calc(100vw - 2 * var(--spacing-md));
+  }
+
+  .ai-status-header {
+    padding: var(--spacing-sm);
+  }
+
+  .providers-list {
+    padding: var(--spacing-sm);
+  }
+
+  .ai-status-help {
+    padding: var(--spacing-sm);
+  }
+
+  .provider-item {
+    padding: var(--spacing-sm);
+  }
+}
+
+/* ===============================================
+   ANIMATIONS
+   =============================================== */
+
+.ai-status-details {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.provider-item {
+  animation: fadeIn 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.provider-item:nth-child(1) { animation-delay: 0.05s; }
+.provider-item:nth-child(2) { animation-delay: 0.1s; }
+.provider-item:nth-child(3) { animation-delay: 0.15s; }
+.provider-item:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================================
+   ACCESSIBILITY
+   =============================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-status-details,
+  .provider-item {
+    animation: none !important;
+  }
+}
+
+/* Focus indicators */
+.ai-status-header:focus-within,
+.expand-button:focus,
+.setup-links a:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .ai-status {
+    border: 2px solid var(--text-primary);
+  }
+
+  .provider-item {
+    border: 1px solid var(--text-primary);
+  }
+}

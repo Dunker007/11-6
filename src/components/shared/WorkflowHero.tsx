@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import NeuralCore3D from '../Create/NeuralCore3D';
 import '../../styles/WorkflowHero.css';
 
 interface WorkflowHeroProps {
@@ -31,10 +30,10 @@ function WorkflowHero({
       {/* Background grid */}
       <div className="grid-background"></div>
       
-      {/* Neural Core */}
+      {/* Neural Core - Removed NeuralCore3D component */}
       {showCore && (
         <div className="hero-core">
-          <NeuralCore3D />
+          {/* Neural core visualization placeholder */}
         </div>
       )}
 

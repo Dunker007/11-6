@@ -1,3 +1,72 @@
+/**
+ * multiFileContextService.ts
+ * 
+ * PURPOSE:
+ * Deep project analysis service that builds comprehensive context about project structure,
+ * dependencies, imports, exports, and relationships. Analyzes all files in a project to
+ * create a dependency graph and provide insights for AI operations.
+ * 
+ * ARCHITECTURE:
+ * Analyzes projects by:
+ * - Parsing file content for imports, exports, functions, classes
+ * - Building dependency graphs (what depends on what)
+ * - Building dependents graphs (what depends on this)
+ * - Detecting cycles, orphans, and hotspots
+ * - Resolving import paths (relative, absolute, aliases)
+ * - Grouping files by language
+ * 
+ * CURRENT STATUS:
+ * ✅ Full project analysis implemented
+ * ✅ Dependency graph construction
+ * ✅ Import path resolution
+ * ✅ Graph insights (cycles, orphans, hotspots)
+ * ✅ Multi-language support (TypeScript, JavaScript, Python, etc.)
+ * ✅ Context prompt generation for AI
+ * 
+ * DEPENDENCIES:
+ * - @/types/project: Project and ProjectFile type definitions
+ * 
+ * STATE MANAGEMENT:
+ * - Maintains context cache (Map<projectId, ProjectContext>)
+ * - Does not use Zustand (service pattern)
+ * - Context persists until explicitly cleared
+ * 
+ * PERFORMANCE:
+ * - Efficient regex-based parsing
+ * - Cached contexts prevent re-analysis
+ * - Incremental analysis possible (not yet implemented)
+ * - Graph traversal optimized with Set lookups
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { multiFileContextService } from '@/services/ai/multiFileContextService';
+ * 
+ * // Analyze a project
+ * const context = await multiFileContextService.analyzeProject(project);
+ * 
+ * // Get related files
+ * const related = multiFileContextService.getRelatedFiles(projectId, 'src/utils.ts', 2);
+ * 
+ * // Generate AI context prompt
+ * const prompt = multiFileContextService.generateContextPrompt(projectId, ['src/app.tsx']);
+ * 
+ * // Get graph insights
+ * const insights = multiFileContextService.getGraphInsights(projectId);
+ * console.log(`Cycles: ${insights?.cycles.length}, Orphans: ${insights?.orphans.length}`);
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/ai/aiServiceBridge.ts: Uses this for project indexing
+ * - src/services/ai/projectKnowledgeService.ts: Uses this for deep context
+ * - src/components/AIAssistant/AIAssistant.tsx: Uses context for better AI responses
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Incremental analysis (only analyze changed files)
+ * - AST-based parsing for more accuracy
+ * - Support for more languages
+ * - Real-time dependency graph updates
+ * - Visual dependency graph rendering
+ */
 import type { Project, ProjectFile } from '@/types/project';
 
 export interface FileContext {
@@ -9,19 +78,99 @@ export interface FileContext {
   functions: string[];
   classes: string[];
   dependencies: string[];
+  resolvedDependencies: string[];
+  externalDependencies: string[];
+  lineCount: number;
+  todoCount: number;
+  isTestFile: boolean;
 }
 
 export interface ProjectContext {
   projectId: string;
   files: Map<string, FileContext>;
   dependencyGraph: Map<string, Set<string>>;
+  dependentsGraph: Map<string, Set<string>>;
   filesByLanguage: Map<string, string[]>;
   totalLines: number;
   lastAnalyzed: Date;
 }
 
+export interface ProjectGraphInsights {
+  cycles: string[][];
+  orphans: string[];
+  hotspots: { path: string; dependents: number }[];
+  externalDependencies: string[];
+}
+
 class MultiFileContextService {
   private contexts: Map<string, ProjectContext> = new Map();
+  private readonly extensionCandidates = ['', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json'];
+  private readonly indexCandidates = ['/index.ts', '/index.tsx', '/index.js', '/index.jsx', '/index.mjs', '/index.cjs'];
+
+  private normalizePath(path: string): string {
+    return path.replace(/\\/g, '/').replace(/^\.\/?/, '').replace(/\/{2,}/g, '/');
+  }
+
+  private normalizeImportSpecifier(specifier: string): string {
+    const trimmed = specifier.trim();
+    if (trimmed.startsWith('@/')) {
+      return `src/${trimmed.slice(2)}`;
+    }
+    return trimmed;
+  }
+
+  private resolveImportPath(fromPath: string, importPath: string, filePaths: Set<string>): string | null {
+    const normalizedSpecifier = this.normalizeImportSpecifier(importPath);
+    if (normalizedSpecifier.startsWith('.')) {
+      const base = this.resolvePath(fromPath, normalizedSpecifier);
+      if (!base) return null;
+      return this.findExistingPath(base, filePaths);
+    }
+
+    if (normalizedSpecifier.startsWith('src/')) {
+      return this.findExistingPath(normalizedSpecifier, filePaths);
+    }
+
+    // Attempt to resolve bare specifiers to src/aliases
+    const candidate = this.findExistingPath(`src/${normalizedSpecifier}`, filePaths);
+    if (candidate) {
+      return candidate;
+    }
+
+    return null;
+  }
+
+  private findExistingPath(basePath: string, filePaths: Set<string>): string | null {
+    const normalizedBase = this.normalizePath(basePath);
+
+    if (filePaths.has(normalizedBase)) {
+      return normalizedBase;
+    }
+
+    for (const ext of this.extensionCandidates) {
+      if (!ext) continue;
+      const candidate = normalizedBase.endsWith(ext) ? normalizedBase : `${normalizedBase}${ext}`;
+      if (filePaths.has(candidate)) {
+        return candidate;
+      }
+    }
+
+    const lastSegment = normalizedBase.split('/').pop() ?? '';
+    const hasExtension = /\.[^/]+$/.test(lastSegment);
+    if (!hasExtension) {
+      for (const indexSuffix of this.indexCandidates) {
+        const candidate =
+          normalizedBase.endsWith('/')
+            ? this.normalizePath(`${normalizedBase}${indexSuffix.slice(1)}`)
+            : this.normalizePath(`${normalizedBase}${indexSuffix}`);
+        if (filePaths.has(candidate)) {
+          return candidate;
+        }
+      }
+    }
+
+    return null;
+  }
 
   /**
    * Analyze a project and build comprehensive context
@@ -31,6 +180,7 @@ class MultiFileContextService {
       projectId: project.id,
       files: new Map(),
       dependencyGraph: new Map(),
+      dependentsGraph: new Map(),
       filesByLanguage: new Map(),
       totalLines: 0,
       lastAnalyzed: new Date(),
@@ -40,18 +190,27 @@ class MultiFileContextService {
     const analyzeFile = (file: ProjectFile) => {
       if (!file.isDirectory && file.content) {
         const fileContext = this.analyzeFileContent(file);
-        context.files.set(file.path, fileContext);
-        context.totalLines += file.content.split('\n').length;
+        const normalizedPath = this.normalizePath(file.path);
+        fileContext.path = normalizedPath;
+        context.files.set(normalizedPath, fileContext);
+        context.totalLines += fileContext.lineCount;
 
         // Group by language
         if (!context.filesByLanguage.has(fileContext.language)) {
           context.filesByLanguage.set(fileContext.language, []);
         }
-        context.filesByLanguage.get(fileContext.language)!.push(file.path);
+        context.filesByLanguage.get(fileContext.language)!.push(normalizedPath);
 
         // Build dependency graph
-        if (fileContext.dependencies.length > 0) {
-          context.dependencyGraph.set(file.path, new Set(fileContext.dependencies));
+        if (fileContext.dependencies.length > 0 || fileContext.resolvedDependencies.length > 0) {
+          const deps = new Set<string>();
+          fileContext.resolvedDependencies.forEach(dep => deps.add(dep));
+          if (deps.size === 0) {
+            fileContext.dependencies.forEach(dep => deps.add(dep));
+          }
+          context.dependencyGraph.set(normalizedPath, deps);
+        } else {
+          context.dependencyGraph.set(normalizedPath, new Set());
         }
       }
 
@@ -62,7 +221,47 @@ class MultiFileContextService {
     };
 
     project.files.forEach(analyzeFile);
-    
+
+    const filePaths = new Set(context.files.keys());
+
+    context.files.forEach((fileContext, filePath) => {
+      const resolvedDeps = new Set<string>();
+      const externalDeps = new Set<string>();
+
+      // Make sure external deps collected earlier are unique
+      fileContext.externalDependencies.forEach((dep) => externalDeps.add(this.normalizeImportSpecifier(dep)));
+
+      fileContext.dependencies.forEach((dep) => {
+        const resolved = this.resolveImportPath(filePath, dep, filePaths);
+        if (resolved) {
+          resolvedDeps.add(resolved);
+        } else {
+          externalDeps.add(this.normalizeImportSpecifier(dep));
+        }
+      });
+
+      fileContext.resolvedDependencies = Array.from(resolvedDeps);
+      fileContext.externalDependencies = Array.from(externalDeps);
+
+      context.dependencyGraph.set(filePath, resolvedDeps);
+    });
+
+    // Build dependents graph
+    context.dependencyGraph.forEach((deps, source) => {
+      deps.forEach(dep => {
+        const normalizedDep = this.normalizePath(dep);
+        if (!context.dependentsGraph.has(normalizedDep)) {
+          context.dependentsGraph.set(normalizedDep, new Set());
+        }
+        context.dependentsGraph.get(normalizedDep)!.add(source);
+
+        // Ensure dependency node exists in graph
+        if (!context.dependencyGraph.has(normalizedDep)) {
+          context.dependencyGraph.set(normalizedDep, new Set());
+        }
+      });
+    });
+
     this.contexts.set(project.id, context);
     return context;
   }
@@ -72,8 +271,19 @@ class MultiFileContextService {
    */
   private analyzeFileContent(file: ProjectFile): FileContext {
     const content = file.content || '';
+    const normalizedPath = this.normalizePath(file.path);
+    const lines = content.split(/\r?\n/);
+    const todoMatches = content.match(/TODO|FIXME/gi)?.length ?? 0;
+    const isTestFile = /\.test\./.test(normalizedPath) ||
+      /\.spec\./.test(normalizedPath) ||
+      /__tests__/.test(normalizedPath) ||
+      normalizedPath.endsWith('.spec.tsx') ||
+      normalizedPath.endsWith('.spec.ts') ||
+      normalizedPath.endsWith('.test.tsx') ||
+      normalizedPath.endsWith('.test.ts');
+
     const fileContext: FileContext = {
-      path: file.path,
+      path: normalizedPath,
       content,
       language: file.language || 'plaintext',
       imports: [],
@@ -81,6 +291,11 @@ class MultiFileContextService {
       functions: [],
       classes: [],
       dependencies: [],
+      resolvedDependencies: [],
+      externalDependencies: [],
+      lineCount: lines.length,
+      todoCount: todoMatches,
+      isTestFile,
     };
 
     // Extract imports (TypeScript/JavaScript patterns)
@@ -96,6 +311,8 @@ class MultiFileContextService {
         fileContext.imports.push(source);
         if (source.startsWith('.')) {
           fileContext.dependencies.push(source);
+        } else {
+          fileContext.externalDependencies.push(source);
         }
       }
     }
@@ -104,6 +321,8 @@ class MultiFileContextService {
       fileContext.imports.push(match[1]);
       if (match[1].startsWith('.')) {
         fileContext.dependencies.push(match[1]);
+      } else {
+        fileContext.externalDependencies.push(match[1]);
       }
     }
 
@@ -112,8 +331,14 @@ class MultiFileContextService {
       fileContext.imports.push(module);
       if (module.startsWith('.')) {
         fileContext.dependencies.push(module);
+      } else {
+        fileContext.externalDependencies.push(module);
       }
     }
+
+    fileContext.imports = Array.from(new Set(fileContext.imports));
+    fileContext.dependencies = Array.from(new Set(fileContext.dependencies));
+    fileContext.externalDependencies = Array.from(new Set(fileContext.externalDependencies));
 
     // Extract exports
     const exportRegex = /^export\s+(?:default\s+)?(?:const|let|var|function|class)\s+(\w+)/gm;
@@ -150,9 +375,10 @@ class MultiFileContextService {
     const context = this.contexts.get(projectId);
     if (!context) return [];
 
+    const normalizedPath = this.normalizePath(filePath);
     const related = new Set<string>();
     const visited = new Set<string>();
-    
+
     const traverse = (path: string, currentDepth: number) => {
       if (currentDepth > depth || visited.has(path)) return;
       visited.add(path);
@@ -160,24 +386,20 @@ class MultiFileContextService {
 
       const dependencies = context.dependencyGraph.get(path);
       if (dependencies) {
-        dependencies.forEach(dep => {
-          // Resolve relative paths
-          const resolvedPath = this.resolvePath(path, dep);
-          if (resolvedPath) {
-            traverse(resolvedPath, currentDepth + 1);
+        dependencies.forEach((dep) => {
+          if (context.files.has(dep)) {
+            traverse(dep, currentDepth + 1);
           }
         });
       }
 
-      // Also find files that depend on this file
-      context.dependencyGraph.forEach((deps, depPath) => {
-        if (deps.has(path) || deps.has(this.getRelativePath(depPath, path))) {
-          traverse(depPath, currentDepth + 1);
-        }
-      });
+      const dependents = context.dependentsGraph.get(path);
+      if (dependents) {
+        dependents.forEach((dependent) => traverse(dependent, currentDepth + 1));
+      }
     };
 
-    traverse(filePath, 0);
+    traverse(normalizedPath, 0);
     return Array.from(related);
   }
 
@@ -250,7 +472,7 @@ class MultiFileContextService {
   private resolvePath(fromPath: string, relativePath: string): string | null {
     if (!relativePath.startsWith('.')) return null;
 
-    const fromParts = fromPath.split('/');
+    const fromParts = this.normalizePath(fromPath).split('/');
     fromParts.pop(); // Remove filename
     
     const relParts = relativePath.split('/');
@@ -262,36 +484,91 @@ class MultiFileContextService {
       }
     });
 
-    return fromParts.join('/');
+    return this.normalizePath(fromParts.join('/'));
   }
 
-  /**
-   * Get relative path from one file to another
-   */
-  private getRelativePath(from: string, to: string): string {
-    const fromParts = from.split('/');
-    const toParts = to.split('/');
-
-    // Find common base
-    let commonLength = 0;
-    while (commonLength < fromParts.length && commonLength < toParts.length && 
-           fromParts[commonLength] === toParts[commonLength]) {
-      commonLength++;
-    }
-
-    // Build relative path
-    const upCount = fromParts.length - commonLength - 1;
-    const upPath = '../'.repeat(upCount);
-    const downPath = toParts.slice(commonLength).join('/');
-
-    return upPath + downPath;
-  }
+  // Removed unused _getRelativePath method - kept for future use but currently unused
 
   /**
    * Clear context for a project
    */
   clearContext(projectId: string): void {
     this.contexts.delete(projectId);
+  }
+
+  getGraphInsights(projectId: string): ProjectGraphInsights | null {
+    const context = this.contexts.get(projectId);
+    if (!context) return null;
+
+    const cycles: string[][] = [];
+    const cycleKeys = new Set<string>();
+    const visited = new Set<string>();
+    const stack = new Set<string>();
+    const pathStack: string[] = [];
+
+    const dfs = (node: string) => {
+      if (!context.files.has(node)) return;
+      visited.add(node);
+      stack.add(node);
+      pathStack.push(node);
+
+      const neighbors = context.dependencyGraph.get(node);
+      neighbors?.forEach((neighbor) => {
+        if (!context.files.has(neighbor)) {
+          return;
+        }
+        if (!visited.has(neighbor)) {
+          dfs(neighbor);
+        } else if (stack.has(neighbor)) {
+          const startIndex = pathStack.indexOf(neighbor);
+          if (startIndex !== -1) {
+            const cycle = [...pathStack.slice(startIndex), neighbor];
+            const key = cycle.join('->');
+            if (!cycleKeys.has(key)) {
+              cycleKeys.add(key);
+              cycles.push(cycle);
+            }
+          }
+        }
+      });
+
+      stack.delete(node);
+      pathStack.pop();
+    };
+
+    context.dependencyGraph.forEach((_deps, node) => {
+      if (!context.files.has(node)) return;
+      if (!visited.has(node)) {
+        dfs(node);
+      }
+    });
+
+    const orphans = Array.from(context.files.keys()).filter((path) => {
+      const deps = context.dependencyGraph.get(path);
+      const dependents = context.dependentsGraph.get(path);
+      return (!deps || deps.size === 0) && (!dependents || dependents.size === 0);
+    });
+
+    const hotspots = Array.from(context.dependentsGraph.entries())
+      .map(([path, dependents]) => ({
+        path,
+        dependents: dependents.size,
+      }))
+      .filter((entry) => entry.dependents > 0)
+      .sort((a, b) => b.dependents - a.dependents)
+      .slice(0, 5);
+
+    const externalDependencies = new Set<string>();
+    context.files.forEach((file) => {
+      file.externalDependencies.forEach((dep) => externalDependencies.add(dep));
+    });
+
+    return {
+      cycles,
+      orphans,
+      hotspots,
+      externalDependencies: Array.from(externalDependencies).sort(),
+    };
   }
 
   /**
@@ -303,6 +580,9 @@ class MultiFileContextService {
     languageDistribution: Record<string, number>;
     avgFileSize: number;
     mostConnectedFiles: { path: string; connections: number }[];
+    todoCount: number;
+    testFileCount: number;
+    externalDependencyCount: number;
   } | null {
     const context = this.contexts.get(projectId);
     if (!context) return null;
@@ -312,17 +592,31 @@ class MultiFileContextService {
       languageDistribution[lang] = files.length;
     });
 
+    const filesArray = Array.from(context.files.values());
     const connectionCounts = Array.from(context.dependencyGraph.entries())
       .map(([path, deps]) => ({ path, connections: deps.size }))
       .sort((a, b) => b.connections - a.connections)
       .slice(0, 10);
 
+    let todoCount = 0;
+    let testFileCount = 0;
+    const externalDeps = new Set<string>();
+
+    filesArray.forEach((file) => {
+      todoCount += file.todoCount;
+      if (file.isTestFile) testFileCount += 1;
+      file.externalDependencies.forEach((dep) => externalDeps.add(dep));
+    });
+
     return {
       totalFiles: context.files.size,
       totalLines: context.totalLines,
       languageDistribution,
-      avgFileSize: Math.round(context.totalLines / context.files.size),
+      avgFileSize: context.files.size > 0 ? Math.round(context.totalLines / context.files.size) : 0,
       mostConnectedFiles: connectionCounts,
+      todoCount,
+      testFileCount,
+      externalDependencyCount: externalDeps.size,
     };
   }
 }

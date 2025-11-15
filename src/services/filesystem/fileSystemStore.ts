@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { fileSystemService } from './fileSystemService';
 import type { FileSystemEntry, FileStats } from '@/types/electron';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface FileSystemStore {
   // State
@@ -65,82 +66,100 @@ export const useFileSystemStore = create<FileSystemStore>((set, get) => ({
   },
 
   readFile: async (path: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await fileSystemService.readFile(path);
-      if (result.success && result.data) {
-        get().addRecentFile(path);
-        set({ isLoading: false });
-        return result.data;
-      }
-      set({ isLoading: false, error: result.error || 'Failed to read file' });
-      return null;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return null;
-    }
+    return await withAsyncOperation(
+      async () => {
+        const result = await fileSystemService.readFile(path);
+        if (result.success && result.data) {
+          get().addRecentFile(path);
+          return result.data;
+        }
+        throw new Error(result.error || 'Failed to read file');
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'fileSystemStore'
+    );
   },
 
   writeFile: async (path: string, content: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await fileSystemService.writeFile(path, content);
-      if (result.success) {
-        get().addRecentFile(path);
-        set({ isLoading: false });
-        return true;
-      }
-      set({ isLoading: false, error: result.error || 'Failed to write file' });
-      return false;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const writeResult = await fileSystemService.writeFile(path, content);
+        if (writeResult.success) {
+          get().addRecentFile(path);
+          return true;
+        }
+        throw new Error(writeResult.error || 'Failed to write file');
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'fileSystemStore'
+    );
+    return result ?? false;
   },
 
   createDirectory: async (path: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await fileSystemService.mkdir(path, true);
-      set({ isLoading: false });
-      return result.success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const mkdirResult = await fileSystemService.mkdir(path, true);
+        if (!mkdirResult.success) {
+          throw new Error(mkdirResult.error || 'Failed to create directory');
+        }
+        return mkdirResult.success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'fileSystemStore'
+    );
+    return result ?? false;
   },
 
   deleteFile: async (path: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await fileSystemService.rm(path, false);
-      if (result.success) {
-        get().closeFile(path);
-        set({ isLoading: false });
-        return true;
-      }
-      set({ isLoading: false, error: result.error || 'Failed to delete file' });
-      return false;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const rmResult = await fileSystemService.rm(path, false);
+        if (rmResult.success) {
+          get().closeFile(path);
+          return true;
+        }
+        throw new Error(rmResult.error || 'Failed to delete file');
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'fileSystemStore'
+    );
+    return result ?? false;
   },
 
   listDirectory: async (path: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await fileSystemService.readdir(path);
-      if (result.success && result.data) {
-        set({ isLoading: false, currentDirectory: path });
-        return result.data;
-      }
-      set({ isLoading: false, error: result.error || 'Failed to list directory' });
-      return null;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return null;
-    }
+    return await withAsyncOperation(
+      async () => {
+        const result = await fileSystemService.readdir(path);
+        if (result.success && result.data) {
+          set({ currentDirectory: path });
+          return result.data;
+        }
+        throw new Error(result.error || 'Failed to list directory');
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'fileSystemStore'
+    );
   },
 
   getFileStats: async (path: string) => {

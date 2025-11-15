@@ -1,4 +1,77 @@
+/**
+ * projectKnowledgeService.ts
+ * 
+ * PURPOSE:
+ * High-level project knowledge management service. Provides structured project information
+ * including languages, frameworks, dependencies, and structure insights. Acts as a bridge
+ * between project data and AI services, providing context-aware information.
+ * 
+ * ARCHITECTURE:
+ * Singleton service that:
+ * - Aggregates project information from projectService
+ * - Detects languages, frameworks, and dependencies
+ * - Identifies project structure (config files, tests, docs, entry points)
+ * - Provides full project context for AI prompts
+ * - Suggests workflow navigation based on user queries
+ * - Triggers deep analysis via multiFileContextService
+ * 
+ * CURRENT STATUS:
+ * ✅ Language detection (TypeScript, JavaScript, Python, etc.)
+ * ✅ Framework detection (React, Vue, Next.js, Vite, etc.)
+ * ✅ Dependency extraction (package.json, requirements.txt)
+ * ✅ Structure analysis (config, tests, docs, entry points)
+ * ✅ Navigation suggestions based on queries
+ * ✅ Deep context integration with multiFileContextService
+ * 
+ * DEPENDENCIES:
+ * - projectService: Project data access
+ * - multiFileContextService: Deep project analysis
+ * - @/types/project: Project type definitions
+ * 
+ * STATE MANAGEMENT:
+ * - Singleton pattern (no instance state)
+ * - Does not use Zustand (service pattern)
+ * - Relies on projectService for project data
+ * 
+ * PERFORMANCE:
+ * - Efficient file scanning
+ * - Cached knowledge (via multiFileContextService)
+ * - Lazy deep analysis (triggers async, doesn't block)
+ * - Pattern matching for fast detection
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { projectKnowledgeService } from '@/services/ai/projectKnowledgeService';
+ * 
+ * // Get project knowledge
+ * const knowledge = projectKnowledgeService.getProjectKnowledge(projectId);
+ * console.log(`Languages: ${knowledge?.languages.join(', ')}`);
+ * console.log(`Frameworks: ${knowledge?.frameworks.join(', ')}`);
+ * 
+ * // Get full context for AI
+ * const context = projectKnowledgeService.getFullProjectContext();
+ * 
+ * // Get navigation suggestion
+ * const suggestion = projectKnowledgeService.suggestNavigation('I want to deploy my app');
+ * if (suggestion) {
+ *   console.log(`Suggested workflow: ${suggestion.workflow}`);
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/project/projectService.ts: Project data source
+ * - src/services/ai/multiFileContextService.ts: Deep analysis integration
+ * - src/services/ai/aiServiceBridge.ts: Uses this for project context
+ * - src/components/AIAssistant/AIAssistant.tsx: Uses context for AI prompts
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - More sophisticated framework detection
+ * - Support for more package managers (npm, yarn, pnpm, etc.)
+ * - Project type classification (web app, library, CLI, etc.)
+ * - Technology stack recommendations
+ */
 import { projectService } from '../project/projectService';
+import { multiFileContextService } from './multiFileContextService';
 import type { Project, ProjectFile } from '@/types/project';
 
 export interface ProjectKnowledge {
@@ -49,6 +122,15 @@ class ProjectKnowledgeService {
     const frameworks = this.detectFrameworks(allFiles);
     const dependencies = this.extractDependencies(allFiles);
 
+    // Trigger deep analysis if not already done
+    const deepContext = multiFileContextService.getProjectContext(projectId);
+    if (!deepContext && allFiles.length > 0) {
+      // Analyze project asynchronously (don't block)
+      multiFileContextService.analyzeProject(project).catch(err => {
+        console.warn('Failed to analyze project deeply:', err);
+      });
+    }
+
     return {
       project,
       fileTree: project.files,
@@ -77,6 +159,9 @@ class ProjectKnowledgeService {
     const knowledge = this.getProjectKnowledge(project.id);
     if (!knowledge) return '';
 
+    // Get deep context from multiFileContextService if available
+    const deepContext = multiFileContextService.getProjectContext(project.id);
+    
     const context = [
       `Project: ${project.name}`,
       project.description ? `Description: ${project.description}` : '',
@@ -90,11 +175,24 @@ class ProjectKnowledgeService {
         ? `Entry points: ${knowledge.structure.entryPoints.join(', ')}`
         : '',
       knowledge.dependencies.length > 0 
-        ? `Dependencies: ${knowledge.dependencies.join(', ')}`
+        ? `Dependencies: ${knowledge.dependencies.slice(0, 10).join(', ')}${knowledge.dependencies.length > 10 ? '...' : ''}`
         : '',
-    ].filter(Boolean).join('\n');
+    ];
 
-    return context;
+    // Add deep context insights if available
+    if (deepContext) {
+      context.push(
+        `Total Lines of Code: ${deepContext.totalLines.toLocaleString()}`,
+        `Dependency Graph: ${deepContext.dependencyGraph.size} files with dependencies`,
+        deepContext.filesByLanguage.size > 0 
+          ? `Files by Language: ${Array.from(deepContext.filesByLanguage.entries())
+              .map(([lang, files]) => `${lang} (${files.length})`)
+              .join(', ')}`
+          : ''
+      );
+    }
+
+    return context.filter(Boolean).join('\n');
   }
 
   suggestNavigation(userQuery: string, projectId?: string): NavigationSuggestion | null {

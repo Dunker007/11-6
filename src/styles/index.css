@@ -1,3 +1,14 @@
+/* Core Design System */
+@import './design-tokens.css';
+@import './themes-clean.css';
+
+/* UI Components */
+@import './ui/Typography.css';
+@import './ui/Interactions.css';
+
+/* Animations - Clean & Subtle */
+@import './animations.css';
+
 * {
   margin: 0;
   padding: 0;
@@ -5,58 +16,40 @@
 }
 
 :root {
-  /* Primary Colors - Command Center Palette */
-  --violet-500: #8B5CF6;
-  --violet-600: #7C3AED;
-  --violet-400: #A78BFA;
-  --cyan-500: #06B6D4;
-  --cyan-600: #0891B2;
-  --cyan-400: #22D3EE;
-  --amber-500: #F59E0B;
-  --amber-400: #FCD34D;
-  --emerald-500: #10B981;
-  --emerald-400: #34D399;
-  --red-500: #EF4444;
-  --red-400: #F87171;
+  /* Additional legacy variables and overrides */
+  --bg-primary-gradient: var(--gradient-bg-primary);
   
-  /* Background - Deep Space Theme */
-  --bg-primary: #000000;
-  --bg-primary-gradient: radial-gradient(circle at 50% 50%, #0f0f23 0%, #000000 100%);
-  --bg-secondary: rgba(0, 0, 0, 0.6);
-  --bg-tertiary: rgba(30, 30, 50, 0.5);
-  --bg-glass: rgba(0, 0, 0, 0.8);
-  
-  /* Panel Effects - Glassmorphism */
-  --panel-bg: rgba(0, 0, 0, 0.6);
-  --panel-border: rgba(139, 92, 246, 0.3);
+  /* Panel Effects - Glassmorphism (legacy aliases) */
+  --panel-bg: var(--color-bg-secondary);
+  --panel-border: var(--color-border-primary);
   --panel-blur: blur(20px);
   
-  /* Text - High Contrast */
-  --text-primary: #F1F5F9;
-  --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
-  
-  /* Holographic Effects */
-  --glow-violet: 0 0 20px rgba(139, 92, 246, 0.5);
-  --glow-cyan: 0 0 20px rgba(6, 182, 212, 0.5);
-  --glow-amber: 0 0 20px rgba(245, 158, 11, 0.5);
+  /* Holographic Effects (legacy aliases) */
+  --glow-violet: var(--glow-primary);
+  --glow-cyan: var(--glow-accent-cyan);
+  --glow-amber: var(--glow-accent-amber);
 
-  /* New Glassmorphism & Soft UI Vars */
-  --glass-bg: rgba(26, 26, 58, 0.6);
+  /* Glassmorphism & Soft UI Vars (legacy aliases) */
+  --glass-bg: var(--color-bg-glass-light);
   --glass-blur: 10px;
-  --panel-border-glow: 1px solid rgba(0, 240, 255, 0.2);
-  --border-radius-global: 12px;
-  --glow-interactive: 0 0 15px var(--glow-cyan);
-  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --panel-border-glow: var(--color-border-glow);
+  --border-radius-global: var(--radius-lg);
+  --glow-interactive: var(--glow-interactive);
+  --shadow-soft: var(--shadow-soft);
   
-  /* Gradients */
-  --gradient-primary: linear-gradient(135deg, var(--violet-500), var(--cyan-500));
-  --gradient-accent: linear-gradient(135deg, var(--violet-500), var(--cyan-500), var(--amber-500));
+  /* Gradients (legacy) */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  --gradient-accent: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-amber-500));
   --gradient-glow: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
 
-  /* Layout Dimensions */
-  --left-panel-width: 280px;
-  --right-panel-width: 450px;
+html {
+  background: var(--bg-primary-gradient);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -64,31 +57,65 @@ body {
   background: var(--bg-primary-gradient);
   color: var(--text-primary);
   overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 #root {
   width: 100vw;
   height: 100vh;
   background: transparent;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - Enhanced */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
-  border-radius: 4px;
+  background: var(--color-border-primary);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-bg-secondary);
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--violet-500);
+  background: var(--color-primary-500);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced focus styles for better accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Better selection styling */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: var(--color-text-primary);
+}
+
+::-moz-selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: var(--color-text-primary);
 }
 
 /* OS Mode Toggle Button - Draggable Widget */
@@ -345,22 +372,4 @@ select:focus {
   opacity: 0.5;
 }
 
-/* App Shell Layout */
-.app-shell {
-  display: grid;
-  grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
-  grid-template-rows: 1fr;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  transition: grid-template-columns 0.3s ease-in-out;
-}
-
-.app-shell.monitor-mode {
-  grid-template-columns: var(--left-panel-width) 1fr 0; /* Set right panel width to 0 */
-}
-
-.app-shell.monitor-mode > .right-panel {
-  display: none; /* Hide the right panel completely */
-}
 

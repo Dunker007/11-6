@@ -1,0 +1,55 @@
+/* Tooltip Component Styles */
+.ui-tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.ui-tooltip-wrapper:hover .ui-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: var(--duration-fast);
+}
+
+.ui-tooltip {
+  position: absolute;
+  z-index: var(--z-tooltip);
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-overlay);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--duration-fast) var(--ease-out), visibility var(--duration-fast) var(--ease-out);
+  pointer-events: none;
+}
+
+.ui-tooltip--top {
+  bottom: calc(100% + var(--spacing-2));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ui-tooltip--bottom {
+  top: calc(100% + var(--spacing-2));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ui-tooltip--left {
+  right: calc(100% + var(--spacing-2));
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ui-tooltip--right {
+  left: calc(100% + var(--spacing-2));
+  top: 50%;
+  transform: translateY(-50%);
+}
+

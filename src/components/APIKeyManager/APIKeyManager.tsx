@@ -1,39 +1,66 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAPIKeyStore } from '../../services/apiKeys/apiKeyStore';
+import { useDebouncedCallback } from '@/utils/hooks/useDebounce';
 import { PROVIDER_CONFIGS, type LLMProvider } from '../../types/apiKeys';
+import { Crown, Zap } from 'lucide-react';
 import '../../styles/APIKeyManager.css';
 
 interface APIKeyManagerProps {
   onClose: () => void;
 }
 
+/**
+ * Modal wrapper for managing API credentials across supported LLM providers.
+ * Handles CRUD operations for keys, health checks, and provider-specific UI.
+ *
+ * @param props - Component props including close handler.
+ * @returns Overlay UI for viewing, adding, and removing API keys.
+ */
 function APIKeyManager({ onClose }: APIKeyManagerProps) {
   const { keys, loadKeys, addKey, deleteKey, healthCheck } = useAPIKeyStore();
-  const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(
+    null
+  );
   const [keyValue, setKeyValue] = useState('');
   const [keyName, setKeyName] = useState('');
   const [healthStatus, setHealthStatus] = useState<Record<string, boolean>>({});
   const [isValidating, setIsValidating] = useState(false);
 
-  useEffect(() => {
-    loadKeys();
-    checkAllHealth();
-  }, []);
-
-  const checkAllHealth = async () => {
+  /**
+   * Fetch the health status for every configured provider in sequence.
+   * Results are aggregated into a lookup keyed by provider id.
+   */
+  const checkAllHealth = useCallback(async () => {
     const status: Record<string, boolean> = {};
     for (const provider of PROVIDER_CONFIGS) {
       status[provider.provider] = await healthCheck(provider.provider);
     }
     setHealthStatus(status);
-  };
+  }, [healthCheck]);
 
+  // Debounced version for user-triggered checks (500ms delay)
+  const debouncedCheckHealth = useDebouncedCallback(checkAllHealth, 500);
+
+  useEffect(() => {
+    loadKeys();
+    checkAllHealth(); // Initial check without debounce
+  }, [loadKeys, checkAllHealth]);
+
+  /**
+   * Persist a new API key for the selected provider and refresh health status.
+   */
   const handleAddKey = async () => {
     if (!selectedProvider || !keyValue.trim()) return;
 
     setIsValidating(true);
     try {
-      await addKey(selectedProvider, keyValue.trim(), keyName || PROVIDER_CONFIGS.find(p => p.provider === selectedProvider)?.name || '');
+      await addKey(
+        selectedProvider,
+        keyValue.trim(),
+        keyName ||
+          PROVIDER_CONFIGS.find((p) => p.provider === selectedProvider)?.name ||
+          ''
+      );
       setKeyValue('');
       setKeyName('');
       setSelectedProvider(null);
@@ -45,19 +72,33 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
     }
   };
 
+  /**
+   * Remove an API key by id and refresh provider health indicators.
+   *
+   * @param id - Identifier of the key to delete.
+   */
   const handleDeleteKey = async (id: string) => {
     await deleteKey(id);
     await checkAllHealth();
   };
 
-  const providerKeys = (provider: LLMProvider) => keys.filter(k => k.provider === provider);
+  /**
+   * Return the collection of keys for a specific provider.
+   *
+   * @param provider - Provider identifier to match.
+   * @returns Keys scoped to the given provider.
+   */
+  const providerKeys = (provider: LLMProvider) =>
+    keys.filter((k) => k.provider === provider);
 
   return (
     <div className="api-key-manager-overlay" onClick={onClose}>
       <div className="api-key-manager" onClick={(e) => e.stopPropagation()}>
         <div className="manager-header">
           <h2>API Key Management</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <div className="manager-content">
@@ -71,9 +112,13 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
                   <div className="provider-header">
                     <div className="provider-info">
                       <h3>{config.name}</h3>
-                      <p className="provider-description">{config.description}</p>
+                      <p className="provider-description">
+                        {config.description}
+                      </p>
                     </div>
-                    <div className={`health-indicator ${isHealthy ? 'healthy' : 'unhealthy'}`}>
+                    <div
+                      className={`health-indicator ${isHealthy ? 'healthy' : 'unhealthy'}`}
+                    >
                       <span className="health-dot" />
                       {isHealthy ? 'Connected' : 'Disconnected'}
                     </div>
@@ -127,7 +172,9 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
                             </div>
                           ) : (
                             <button
-                              onClick={() => setSelectedProvider(config.provider)}
+                              onClick={() =>
+                                setSelectedProvider(config.provider)
+                              }
                               className="add-key-button"
                             >
                               + Add API Key
@@ -139,8 +186,27 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
                           {providerKeysList.map((key) => (
                             <div key={key.id} className="key-item">
                               <div className="key-info">
-                                <span className="key-name">{key.name || 'Unnamed'}</span>
-                                <span className={`key-status ${key.isValid ? 'valid' : 'invalid'}`}>
+                                <span className="key-name">
+                                  {key.name || 'Unnamed'}
+                                </span>
+                                {key.provider === 'gemini' && key.metadata?.tier && (
+                                  <span className={`key-tier key-tier-${key.metadata.tier}`}>
+                                    {key.metadata.tier === 'pro' ? (
+                                      <>
+                                        <Crown size={12} />
+                                        Pro
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Zap size={12} />
+                                        Free
+                                      </>
+                                    )}
+                                  </span>
+                                )}
+                                <span
+                                  className={`key-status ${key.isValid ? 'valid' : 'invalid'}`}
+                                >
                                   {key.isValid ? '✓ Valid' : '✗ Invalid'}
                                 </span>
                               </div>
@@ -202,8 +268,13 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
 
                   {!config.requiresKey && (
                     <div className="local-provider-info">
-                      <p>No API key required. Make sure {config.name} is running.</p>
-                      <button onClick={checkAllHealth} className="refresh-button">
+                      <p>
+                        No API key required. Make sure {config.name} is running.
+                      </p>
+                      <button
+                        onClick={debouncedCheckHealth}
+                        className="refresh-button"
+                      >
                         🔄 Check Connection
                       </button>
                     </div>
@@ -219,4 +290,3 @@ function APIKeyManager({ onClose }: APIKeyManagerProps) {
 }
 
 export default APIKeyManager;
-

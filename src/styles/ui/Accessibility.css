@@ -1,0 +1,146 @@
+/* Skip Links for Accessibility */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  z-index: var(--z-max);
+  padding: var(--spacing-3) var(--spacing-5);
+  background: var(--color-primary-500);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  transition: var(--transition-transform);
+  opacity: 0;
+  pointer-events: none;
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+}
+
+.skip-link:focus {
+  top: var(--spacing-2);
+  left: var(--spacing-2);
+  opacity: 1;
+  pointer-events: auto;
+  clip: auto;
+  overflow: visible;
+}
+
+/* Focus visible styles for better accessibility - Holographic Edition */
+*:focus-visible {
+  outline: 2px solid var(--color-accent-cyan-500);
+  outline-offset: 2px;
+  box-shadow: var(--glow-h-cyan);
+}
+
+/* Enhanced focus for interactive holographic elements */
+.holographic-panel:focus-visible,
+.ui-button--holographic:focus-visible,
+.ui-input-wrapper--holographic .ui-input:focus-visible,
+.ui-input-wrapper--holographic .ui-textarea:focus-visible,
+.hud-status-badge:focus-visible,
+.tab-btn-large:focus-visible {
+  outline: 2px solid var(--color-accent-cyan-500);
+  outline-offset: 3px;
+  box-shadow: var(--glow-h-cyan), 0 0 0 4px rgba(6, 182, 212, 0.2);
+}
+
+/* Focus indicator for cards */
+.holographic-stat-card:focus-visible,
+.holographic-chart-wrapper:focus-visible {
+  outline: 2px solid var(--color-accent-magenta-500);
+  outline-offset: 3px;
+  box-shadow: var(--glow-h-magenta), 0 0 0 4px rgba(236, 72, 153, 0.2);
+}
+
+/* High contrast mode support - Enhanced for Holographic UI */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border-primary: rgba(139, 92, 246, 1);
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #e0e0e0;
+    --color-accent-cyan-500: #00ffff;
+    --color-accent-magenta-500: #ff00ff;
+    --color-accent-amber-500: #ffaa00;
+  }
+
+  /* Stronger borders for holographic elements */
+  .holographic-panel,
+  .ui-button--holographic,
+  .holographic-stat-card,
+  .holographic-chart-wrapper,
+  .hud-status-badge {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+
+  /* Disable subtle animations that may interfere with readability */
+  .holographic-panel::before,
+  .holographic-panel::after,
+  .ui-button--holographic::before,
+  .ui-button--holographic::after,
+  .ui-toast::before,
+  .ui-toast::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Reduced motion support - Enhanced for Holographic UI */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Disable holographic animations specifically */
+  .holographic-panel,
+  .holographic-panel::before,
+  .holographic-panel::after,
+  .ui-button--holographic,
+  .ui-button--holographic::before,
+  .ui-button--holographic::after,
+  .holographic-stat-card::before,
+  .holographic-chart-wrapper::before,
+  .ui-toast,
+  .ui-toast::before,
+  .ui-toast::after,
+  .tab-btn-large,
+  .tab-btn-large::before,
+  .tab-btn-large::after {
+    animation: none !important;
+  }
+
+  /* Disable canvas animations */
+  canvas {
+    display: none !important;
+  }
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+

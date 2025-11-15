@@ -14,33 +14,43 @@ function BackOffice() {
 
   return (
     <div className="back-office command-center-layout">
-      <WorkflowHeader 
+      <WorkflowHeader
         title="BACK OFFICE"
         breadcrumbs={['Admin', 'Management']}
       />
 
       <div className="back-office-tab-nav">
-        <CommandCard 
+        <CommandCard
           variant="cyan"
           clickable
           onClick={() => setActiveTab('financial')}
           className={activeTab === 'financial' ? 'active' : ''}
         >
           <div className="tab-content">
-            <TechIcon icon={DollarSign} size={32} glow="emerald" animated={activeTab === 'financial'} />
+            <TechIcon
+              icon={DollarSign}
+              size={32}
+              glow="green"
+              animated={activeTab === 'financial'}
+            />
             <h3>Financial Dashboard</h3>
             <p>Revenue, expenses, and financial metrics</p>
           </div>
         </CommandCard>
 
-        <CommandCard 
+        <CommandCard
           variant="violet"
           clickable
           onClick={() => setActiveTab('profile')}
           className={activeTab === 'profile' ? 'active' : ''}
         >
           <div className="tab-content">
-            <TechIcon icon={User} size={32} glow="violet" animated={activeTab === 'profile'} />
+            <TechIcon
+              icon={User}
+              size={32}
+              glow="violet"
+              animated={activeTab === 'profile'}
+            />
             <h3>User Profile</h3>
             <p>Account settings and preferences</p>
           </div>
@@ -56,4 +66,3 @@ function BackOffice() {
 }
 
 export default BackOffice;
-

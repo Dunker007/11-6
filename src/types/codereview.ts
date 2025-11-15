@@ -9,6 +9,22 @@ export interface CodeIssue {
   code?: string;
   fix?: string;
   category: 'performance' | 'security' | 'style' | 'bug' | 'complexity' | 'best-practice';
+  securityType?: 'injection' | 'xss' | 'auth' | 'secrets' | 'dependencies' | 'crypto';
+}
+
+export interface SecuritySummary {
+  score: number; // 0-100, higher is better
+  criticalIssues: number;
+  highIssues: number;
+  mediumIssues: number;
+  lowIssues: number;
+  byType: Record<string, number>;
+  dependencyVulnerabilities: Array<{
+    package: string;
+    version: string;
+    vulnerability: string;
+    severity: 'critical' | 'high' | 'medium' | 'low';
+  }>;
 }
 
 export interface CodeReview {

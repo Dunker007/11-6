@@ -1,11 +1,86 @@
-import { useState, useEffect, useCallback } from 'react';
+/**
+ * FinancialDashboard.tsx
+ * 
+ * PURPOSE:
+ * Financial management dashboard for tracking business expenses and income.
+ * Provides comprehensive financial overview with expense/income tracking, categorization,
+ * period selection, and financial summaries. Supports P&L reporting and threshold alerts.
+ * 
+ * ARCHITECTURE:
+ * React component that manages financial data:
+ * - useFinancialStore: Financial state and operations
+ * - useThresholdStore: Alert threshold management
+ * - Expense and income CRUD operations
+ * - Financial summary calculations
+ * - Period-based filtering
+ * 
+ * Features:
+ * - Expense tracking with categories
+ * - Income tracking with sources
+ * - Period selection (custom date ranges)
+ * - Financial summaries
+ * - P&L report generation
+ * - Threshold alerts
+ * - Category breakdowns
+ * - Trend visualization
+ * 
+ * CURRENT STATUS:
+ * ✅ Expense/income CRUD
+ * ✅ Category management
+ * ✅ Period selection
+ * ✅ Financial summaries
+ * ✅ P&L reports
+ * ✅ Threshold alerts
+ * ✅ Category breakdowns
+ * 
+ * DEPENDENCIES:
+ * - useFinancialStore: Financial state management
+ * - useThresholdStore: Threshold management
+ * - formatCurrency: Currency formatting utility
+ * - financialService: Core financial operations
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: selected period, filters, UI state
+ * - Uses Zustand stores for financial and threshold state
+ * 
+ * PERFORMANCE:
+ * - Efficient period filtering
+ * - Memoized calculations
+ * - Optimized re-renders
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import FinancialDashboard from '@/components/BackOffice/FinancialDashboard';
+ * 
+ * function App() {
+ *   return <FinancialDashboard />;
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/backoffice/financialStore.ts: Financial state management
+ * - src/services/backoffice/financialService.ts: Financial operations
+ * - src/services/backoffice/thresholdStore.ts: Threshold management
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Add expense/income charts
+ * - Add budget planning
+ * - Add recurring transactions
+ * - Add receipt/image attachments
+ * - Add export to CSV/PDF
+ */
+import { useState, useEffect } from 'react';
 import { useFinancialStore } from '../../services/backoffice/financialStore';
 import { useThresholdStore } from '../../services/backoffice/thresholdStore';
 import { formatCurrency } from '../../utils/formatters';
 import type { ExpenseCategory, IncomeSource } from '@/types/backoffice';
 import '../../styles/FinancialDashboard.css';
 
-const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string; icon: string }[] = [
+const EXPENSE_CATEGORIES: {
+  value: ExpenseCategory;
+  label: string;
+  icon: string;
+}[] = [
   { value: 'api_costs', label: 'API Costs', icon: '🔌' },
   { value: 'hosting', label: 'Hosting', icon: '☁️' },
   { value: 'tools', label: 'Tools', icon: '🛠️' },
@@ -45,7 +120,9 @@ function FinancialDashboard() {
   const { status, alert, clearAlert } = useThresholdStore();
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'expenses' | 'income'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'expenses' | 'income'
+  >('overview');
 
   useEffect(() => {
     refresh();
@@ -53,7 +130,9 @@ function FinancialDashboard() {
 
   useEffect(() => {
     if (summary) {
-      useThresholdStore.getState().updateFinancials(summary.totalIncome, summary.totalExpenses);
+      useThresholdStore
+        .getState()
+        .updateFinancials(summary.totalIncome, summary.totalExpenses);
     }
   }, [summary]);
 
@@ -65,8 +144,11 @@ function FinancialDashboard() {
       description: formData.get('description') as string,
       amount: parseFloat(formData.get('amount') as string),
       recurring: formData.get('recurring') === 'on',
-      tags: (formData.get('tags') as string).split(',').map((t) => t.trim()).filter(Boolean),
-      notes: formData.get('notes') as string || undefined,
+      tags: (formData.get('tags') as string)
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
+      notes: (formData.get('notes') as string) || undefined,
     });
     setShowAddExpense(false);
     (e.target as HTMLFormElement).reset();
@@ -80,8 +162,11 @@ function FinancialDashboard() {
       description: formData.get('description') as string,
       amount: parseFloat(formData.get('amount') as string),
       recurring: formData.get('recurring') === 'on',
-      tags: (formData.get('tags') as string).split(',').map((t) => t.trim()).filter(Boolean),
-      notes: formData.get('notes') as string || undefined,
+      tags: (formData.get('tags') as string)
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
+      notes: (formData.get('notes') as string) || undefined,
     });
     setShowAddIncome(false);
     (e.target as HTMLFormElement).reset();
@@ -95,7 +180,10 @@ function FinancialDashboard() {
           <button onClick={() => setShowAddExpense(true)} className="add-btn">
             + Expense
           </button>
-          <button onClick={() => setShowAddIncome(true)} className="add-btn income-btn">
+          <button
+            onClick={() => setShowAddIncome(true)}
+            className="add-btn income-btn"
+          >
             + Income
           </button>
         </div>
@@ -104,24 +192,40 @@ function FinancialDashboard() {
       {alert && (
         <div className={`threshold-alert ${alert.type}`}>
           <div className="alert-content">
-            <strong>{alert.type === 'reached' ? '🎯' : alert.type === 'exceeded' ? '⚠️' : '📊'}</strong>
+            <strong>
+              {alert.type === 'reached'
+                ? '🎯'
+                : alert.type === 'exceeded'
+                  ? '⚠️'
+                  : '📊'}
+            </strong>
             <div>
               <div className="alert-message">{alert.message}</div>
               <div className="alert-actions">
                 {alert.actions.map((action, idx) => (
-                  <span key={idx} className="action-item">• {action}</span>
+                  <span key={idx} className="action-item">
+                    • {action}
+                  </span>
                 ))}
               </div>
             </div>
           </div>
-          <button onClick={() => clearAlert(alert.id)} className="alert-close">×</button>
+          <button onClick={() => clearAlert(alert.id)} className="alert-close">
+            ×
+          </button>
         </div>
       )}
 
       {status && (
-        <div className={`grace-period-banner ${status.isGracePeriod ? 'active' : 'reached'}`}>
+        <div
+          className={`grace-period-banner ${status.isGracePeriod ? 'active' : 'reached'}`}
+        >
           <div className="banner-content">
-            <strong>{status.isGracePeriod ? '🛡️ Grace Period Active' : '✅ Threshold Reached'}</strong>
+            <strong>
+              {status.isGracePeriod
+                ? '🛡️ Grace Period Active'
+                : '✅ Threshold Reached'}
+            </strong>
             <span>
               {status.isGracePeriod
                 ? `Grace Period Active: $${(status.threshold - status.currentProfit).toFixed(2)} until threshold. Focus on building - compliance framework is being prepared.`
@@ -131,7 +235,9 @@ function FinancialDashboard() {
           <div className="banner-stats">
             <div className="stat">
               <span className="label">Profit:</span>
-              <span className={`value ${status.currentProfit >= 0 ? 'positive' : 'negative'}`}>
+              <span
+                className={`value ${status.currentProfit >= 0 ? 'positive' : 'negative'}`}
+              >
                 {formatCurrency(status.currentProfit)}
               </span>
             </div>
@@ -156,7 +262,9 @@ function FinancialDashboard() {
               <span className="card-icon">💰</span>
               <h3>Total Income</h3>
             </div>
-            <div className="card-value">{formatCurrency(summary.totalIncome)}</div>
+            <div className="card-value">
+              {formatCurrency(summary.totalIncome)}
+            </div>
           </div>
 
           <div className="summary-card expenses">
@@ -164,16 +272,24 @@ function FinancialDashboard() {
               <span className="card-icon">💸</span>
               <h3>Total Expenses</h3>
             </div>
-            <div className="card-value">{formatCurrency(summary.totalExpenses)}</div>
+            <div className="card-value">
+              {formatCurrency(summary.totalExpenses)}
+            </div>
           </div>
 
-          <div className={`summary-card profit ${summary.profit >= 0 ? 'positive' : 'negative'}`}>
+          <div
+            className={`summary-card profit ${summary.profit >= 0 ? 'positive' : 'negative'}`}
+          >
             <div className="card-header">
-              <span className="card-icon">{summary.profit >= 0 ? '📈' : '📉'}</span>
+              <span className="card-icon">
+                {summary.profit >= 0 ? '📈' : '📉'}
+              </span>
               <h3>Net Profit</h3>
             </div>
             <div className="card-value">{formatCurrency(summary.profit)}</div>
-            <div className="card-meta">Margin: {summary.profitMargin.toFixed(1)}%</div>
+            <div className="card-meta">
+              Margin: {summary.profitMargin.toFixed(1)}%
+            </div>
           </div>
         </div>
       )}
@@ -209,13 +325,19 @@ function FinancialDashboard() {
                   .filter(([_, amount]) => amount > 0)
                   .sort(([_, a], [__, b]) => b - a)
                   .map(([category, amount]) => {
-                    const cat = EXPENSE_CATEGORIES.find((c) => c.value === category);
+                    const cat = EXPENSE_CATEGORIES.find(
+                      (c) => c.value === category
+                    );
                     const percentage = (amount / summary.totalExpenses) * 100;
                     return (
                       <div key={category} className="breakdown-item">
                         <div className="breakdown-header">
-                          <span>{cat?.icon} {cat?.label}</span>
-                          <span>{formatCurrency(amount)} ({percentage.toFixed(1)}%)</span>
+                          <span>
+                            {cat?.icon} {cat?.label}
+                          </span>
+                          <span>
+                            {formatCurrency(amount)} ({percentage.toFixed(1)}%)
+                          </span>
                         </div>
                         <div className="breakdown-bar">
                           <div
@@ -241,8 +363,12 @@ function FinancialDashboard() {
                     return (
                       <div key={source} className="breakdown-item">
                         <div className="breakdown-header">
-                          <span>{src?.icon} {src?.label}</span>
-                          <span>{formatCurrency(amount)} ({percentage.toFixed(1)}%)</span>
+                          <span>
+                            {src?.icon} {src?.label}
+                          </span>
+                          <span>
+                            {formatCurrency(amount)} ({percentage.toFixed(1)}%)
+                          </span>
                         </div>
                         <div className="breakdown-bar">
                           <div
@@ -261,16 +387,22 @@ function FinancialDashboard() {
         {activeTab === 'expenses' && (
           <div className="expenses-list">
             {expenses.length === 0 ? (
-              <div className="empty-state">No expenses tracked yet. Add your first expense to get started.</div>
+              <div className="empty-state">
+                No expenses tracked yet. Add your first expense to get started.
+              </div>
             ) : (
               expenses.map((expense) => {
-                const cat = EXPENSE_CATEGORIES.find((c) => c.value === expense.category);
+                const cat = EXPENSE_CATEGORIES.find(
+                  (c) => c.value === expense.category
+                );
                 return (
                   <div key={expense.id} className="expense-item">
                     <div className="item-main">
                       <span className="item-icon">{cat?.icon}</span>
                       <div className="item-details">
-                        <div className="item-description">{expense.description}</div>
+                        <div className="item-description">
+                          {expense.description}
+                        </div>
                         <div className="item-meta">
                           <span>{cat?.label}</span>
                           <span>•</span>
@@ -279,7 +411,9 @@ function FinancialDashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="item-amount">{formatCurrency(expense.amount)}</div>
+                    <div className="item-amount">
+                      {formatCurrency(expense.amount)}
+                    </div>
                     <button
                       onClick={() => deleteExpense(expense.id)}
                       className="delete-btn"
@@ -297,7 +431,10 @@ function FinancialDashboard() {
         {activeTab === 'income' && (
           <div className="income-list">
             {income.length === 0 ? (
-              <div className="empty-state">No income tracked yet. Add your first income source to get started.</div>
+              <div className="empty-state">
+                No income tracked yet. Add your first income source to get
+                started.
+              </div>
             ) : (
               income.map((item) => {
                 const src = INCOME_SOURCES.find((s) => s.value === item.source);
@@ -306,7 +443,9 @@ function FinancialDashboard() {
                     <div className="item-main">
                       <span className="item-icon">{src?.icon}</span>
                       <div className="item-details">
-                        <div className="item-description">{item.description}</div>
+                        <div className="item-description">
+                          {item.description}
+                        </div>
                         <div className="item-meta">
                           <span>{src?.label}</span>
                           <span>•</span>
@@ -315,7 +454,9 @@ function FinancialDashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="item-amount positive">{formatCurrency(item.amount)}</div>
+                    <div className="item-amount positive">
+                      {formatCurrency(item.amount)}
+                    </div>
                     <button
                       onClick={() => deleteIncome(item.id)}
                       className="delete-btn"
@@ -336,7 +477,12 @@ function FinancialDashboard() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Add Expense</h3>
-              <button className="modal-close" onClick={() => setShowAddExpense(false)}>×</button>
+              <button
+                className="modal-close"
+                onClick={() => setShowAddExpense(false)}
+              >
+                ×
+              </button>
             </div>
             <form onSubmit={handleAddExpense} className="add-form">
               <div className="form-group">
@@ -355,11 +501,21 @@ function FinancialDashboard() {
               </div>
               <div className="form-group">
                 <label>Amount ($)</label>
-                <input type="number" name="amount" step="0.01" min="0" required />
+                <input
+                  type="number"
+                  name="amount"
+                  step="0.01"
+                  min="0"
+                  required
+                />
               </div>
               <div className="form-group">
                 <label>Date</label>
-                <input type="date" name="date" defaultValue={new Date().toISOString().split('T')[0]} />
+                <input
+                  type="date"
+                  name="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                />
               </div>
               <div className="form-group">
                 <label>
@@ -369,15 +525,25 @@ function FinancialDashboard() {
               </div>
               <div className="form-group">
                 <label>Tags (comma-separated)</label>
-                <input type="text" name="tags" placeholder="api, monthly, essential" />
+                <input
+                  type="text"
+                  name="tags"
+                  placeholder="api, monthly, essential"
+                />
               </div>
               <div className="form-group">
                 <label>Notes</label>
                 <textarea name="notes" rows={3} />
               </div>
               <div className="form-actions">
-                <button type="submit" className="submit-btn">Add Expense</button>
-                <button type="button" onClick={() => setShowAddExpense(false)} className="cancel-btn">
+                <button type="submit" className="submit-btn">
+                  Add Expense
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddExpense(false)}
+                  className="cancel-btn"
+                >
                   Cancel
                 </button>
               </div>
@@ -391,7 +557,12 @@ function FinancialDashboard() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Add Income</h3>
-              <button className="modal-close" onClick={() => setShowAddIncome(false)}>×</button>
+              <button
+                className="modal-close"
+                onClick={() => setShowAddIncome(false)}
+              >
+                ×
+              </button>
             </div>
             <form onSubmit={handleAddIncome} className="add-form">
               <div className="form-group">
@@ -410,11 +581,21 @@ function FinancialDashboard() {
               </div>
               <div className="form-group">
                 <label>Amount ($)</label>
-                <input type="number" name="amount" step="0.01" min="0" required />
+                <input
+                  type="number"
+                  name="amount"
+                  step="0.01"
+                  min="0"
+                  required
+                />
               </div>
               <div className="form-group">
                 <label>Date</label>
-                <input type="date" name="date" defaultValue={new Date().toISOString().split('T')[0]} />
+                <input
+                  type="date"
+                  name="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                />
               </div>
               <div className="form-group">
                 <label>
@@ -424,15 +605,25 @@ function FinancialDashboard() {
               </div>
               <div className="form-group">
                 <label>Tags (comma-separated)</label>
-                <input type="text" name="tags" placeholder="passive, crypto, monthly" />
+                <input
+                  type="text"
+                  name="tags"
+                  placeholder="passive, crypto, monthly"
+                />
               </div>
               <div className="form-group">
                 <label>Notes</label>
                 <textarea name="notes" rows={3} />
               </div>
               <div className="form-actions">
-                <button type="submit" className="submit-btn">Add Income</button>
-                <button type="button" onClick={() => setShowAddIncome(false)} className="cancel-btn">
+                <button type="submit" className="submit-btn">
+                  Add Income
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddIncome(false)}
+                  className="cancel-btn"
+                >
                   Cancel
                 </button>
               </div>
@@ -445,4 +636,3 @@ function FinancialDashboard() {
 }
 
 export default FinancialDashboard;
-

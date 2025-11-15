@@ -44,19 +44,48 @@ import {
   Target,
   AlertTriangle,
   Hand,
-  LucideIcon
+  GaugeCircle,
+  LucideIcon,
 } from 'lucide-react';
 
 // Icon type definitions for export
-export type IconName = 
-  | 'create' | 'build' | 'deploy' | 'monitor' | 'monetize'
-  | 'mindmap' | 'codereview' | 'agentforge' | 'creator'
-  | 'apikeys' | 'devtools' | 'github' | 'monitors' | 'bytebot'
-  | 'backoffice' | 'layoutPlayground' | 'programRunner'
-  | 'vibedEd' | 'osMode' | 'commandPalette'
-  | 'plus' | 'search' | 'settings' | 'layers' | 'play'
-  | 'package' | 'gitbranch' | 'eye' | 'file' | 'folder'
-  | 'bell' | 'shield' | 'target' | 'alert' | 'hand';
+export type IconName =
+  | 'create'
+  | 'build'
+  | 'deploy'
+  | 'monitor'
+  | 'monetize'
+  | 'mindmap'
+  | 'codereview'
+  | 'agentforge'
+  | 'creator'
+  | 'apikeys'
+  | 'devtools'
+  | 'github'
+  | 'monitors'
+  | 'bytebot'
+  | 'backoffice'
+  | 'layoutPlayground'
+  | 'programRunner'
+  | 'vibedEd'
+  | 'osMode'
+  | 'commandPalette'
+  | 'plus'
+  | 'search'
+  | 'settings'
+  | 'layers'
+  | 'play'
+  | 'package'
+  | 'gitbranch'
+  | 'eye'
+  | 'file'
+  | 'folder'
+  | 'bell'
+  | 'shield'
+  | 'target'
+  | 'alert'
+  | 'hand'
+  | 'optimizer';
 
 // Complete icon mapping for the command center
 export const ICON_MAP: Record<IconName, LucideIcon> = {
@@ -66,13 +95,13 @@ export const ICON_MAP: Record<IconName, LucideIcon> = {
   deploy: Rocket,
   monitor: Activity,
   monetize: TrendingUp,
-  
+
   // Quick Labs
   mindmap: Network,
   codereview: ScanEye,
   agentforge: Cpu,
   creator: FileCode,
-  
+
   // Settings & Tools
   apikeys: Key,
   devtools: Wrench,
@@ -82,12 +111,12 @@ export const ICON_MAP: Record<IconName, LucideIcon> = {
   backoffice: Database,
   layoutPlayground: LayoutGrid,
   programRunner: Terminal,
-  
+
   // Special
   vibedEd: Sparkles,
   osMode: Orbit,
   commandPalette: Command,
-  
+
   // Utility
   plus: Plus,
   search: Search,
@@ -104,6 +133,7 @@ export const ICON_MAP: Record<IconName, LucideIcon> = {
   target: Target,
   alert: AlertTriangle,
   hand: Hand,
+  optimizer: GaugeCircle,
 };
 
 // Alternate icons for variety
@@ -175,4 +205,3 @@ export {
 export function getIcon(name: IconName): LucideIcon {
   return ICON_MAP[name];
 }
-

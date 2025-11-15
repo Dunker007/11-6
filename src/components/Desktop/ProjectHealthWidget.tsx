@@ -1,15 +1,16 @@
 // src/components/Desktop/ProjectHealthWidget.tsx
-import React from 'react';
+import { memo } from 'react';
 import { useProjectStore } from '../../services/project/projectStore';
 import { errorLogger } from '../../services/errors/errorLogger';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
 import '../../styles/DesktopWidgets.css';
 
-const ProjectHealthWidget = () => {
-  const activeProject = useProjectStore(state => state.activeProject);
+const ProjectHealthWidget = memo(function ProjectHealthWidget() {
+  const activeProject = useProjectStore((state) => state.activeProject);
   const errorStats = errorLogger.getStats();
-  const criticalErrors = errorStats.bySeverity.critical + errorStats.bySeverity.error;
+  const criticalErrors =
+    errorStats.bySeverity.critical + errorStats.bySeverity.error;
 
   if (!activeProject) {
     return (
@@ -42,6 +43,6 @@ const ProjectHealthWidget = () => {
       </div>
     </div>
   );
-};
+});
 
 export default ProjectHealthWidget;

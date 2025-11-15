@@ -1,0 +1,36 @@
+{
+  "appId": "com.dlxstudios.llmoptimizer",
+  "productName": "LLM Optimizer",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "package.json"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "build/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  },
+  "mac": {
+    "target": "dmg",
+    "icon": "build/icon.icns"
+  },
+  "linux": {
+    "target": "AppImage",
+    "icon": "build/icon.png"
+  }
+}
+

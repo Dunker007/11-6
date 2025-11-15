@@ -10,6 +10,7 @@ class ConsoleInterceptor {
   private originalError: typeof console.error;
   private originalWarn: typeof console.warn;
   private isActive = false;
+  private isProcessing = false; // Recursion guard
 
   // Patterns to ignore (noisy errors that don't need logging)
   private ignorePatterns: RegExp[] = [
@@ -20,6 +21,10 @@ class ConsoleInterceptor {
   private constructor() {
     this.originalError = console.error.bind(console);
     this.originalWarn = console.warn.bind(console);
+    
+    // Expose original methods globally for emergency use (prevent infinite loops)
+    (console as any).__originalError = this.originalError;
+    (console as any).__originalWarn = this.originalWarn;
   }
 
   static getInstance(): ConsoleInterceptor {
@@ -75,28 +80,48 @@ class ConsoleInterceptor {
   }
 
   private handleConsoleError(args: any[]): void {
-    const message = this.formatMessage(args);
-    
-    // Check if should be ignored
-    if (this.shouldIgnore(message)) return;
-
-    // Extract stack trace if Error object is passed
-    let stack: string | undefined;
-    const errorObj = args.find(arg => arg instanceof Error);
-    if (errorObj) {
-      stack = errorObj.stack;
+    // Prevent infinite recursion - if already processing, bail out
+    if (this.isProcessing) {
+      return;
     }
 
-    errorLogger.logError('console', message, 'error', { stack });
+    this.isProcessing = true;
+    try {
+      const message = this.formatMessage(args);
+      
+      // Check if should be ignored
+      if (this.shouldIgnore(message)) return;
+
+      // Extract stack trace if Error object is passed
+      let stack: string | undefined;
+      const errorObj = args.find(arg => arg instanceof Error);
+      if (errorObj) {
+        stack = errorObj.stack;
+      }
+
+      errorLogger.logError('console', message, 'error', { stack });
+    } finally {
+      this.isProcessing = false;
+    }
   }
 
   private handleConsoleWarn(args: any[]): void {
-    const message = this.formatMessage(args);
-    
-    // Check if should be ignored
-    if (this.shouldIgnore(message)) return;
+    // Prevent infinite recursion - if already processing, bail out
+    if (this.isProcessing) {
+      return;
+    }
 
-    errorLogger.logError('console', message, 'warning');
+    this.isProcessing = true;
+    try {
+      const message = this.formatMessage(args);
+      
+      // Check if should be ignored
+      if (this.shouldIgnore(message)) return;
+
+      errorLogger.logError('console', message, 'warning');
+    } finally {
+      this.isProcessing = false;
+    }
   }
 
   private formatMessage(args: any[]): string {

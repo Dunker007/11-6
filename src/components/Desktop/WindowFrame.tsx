@@ -6,15 +6,15 @@ interface WindowFrameProps {
   children: React.ReactNode;
 }
 
-const WindowFrame = React.forwardRef<HTMLDivElement, WindowFrameProps>(({ title, children }, ref) => {
-  return (
-    <div ref={ref} className="desktop-window">
-      <div className="window-header">{title}</div>
-      <div className="window-content">
-        {children}
+const WindowFrame = React.forwardRef<HTMLDivElement, WindowFrameProps>(
+  ({ title, children }, ref) => {
+    return (
+      <div ref={ref} className="desktop-window">
+        <div className="window-header">{title}</div>
+        <div className="window-content">{children}</div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 export default WindowFrame;

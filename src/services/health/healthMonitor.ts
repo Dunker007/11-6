@@ -1,15 +1,17 @@
 // Only import systeminformation in Electron context
 // In browser, this will be null and we'll use mock data
-let si: any = null;
+let si: typeof import('systeminformation') | null = null;
 if (typeof process !== 'undefined' && process.versions?.electron) {
-  try {
-    // Only require in Electron context
-    si = require('systeminformation');
-  } catch {
-    // systeminformation not available
+  import('systeminformation').then(systeminformation => {
+    si = systeminformation;
+  }).catch(() => {
     si = null;
-  }
+  });
 }
+
+import { logSlowOperation } from '@/utils/performance';
+import { logger } from '../logging/loggerService';
+import type { Systeminformation } from 'systeminformation';
 
 export interface SystemStats {
   cpu: {
@@ -43,6 +45,15 @@ export interface SystemStats {
   };
   uptime: number;
   timestamp: Date;
+  hostname?: string; // PC/Computer name
+  gpu?: {
+    name: string | null;
+    memoryGB: number | null;
+    utilization?: number; // GPU utilization percentage (0-100)
+    memoryUsedGB?: number; // VRAM used in GB
+    memoryTotalGB?: number; // Total VRAM in GB
+    temperature?: number; // GPU temperature in Celsius
+  };
 }
 
 export interface HealthMetric {
@@ -65,6 +76,7 @@ export interface HealthAlert {
   severity: 'warning' | 'critical';
   timestamp: Date;
   acknowledged: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 export class HealthMonitor {
@@ -72,6 +84,8 @@ export class HealthMonitor {
   private metrics: Map<string, HealthMetric> = new Map();
   private alerts: HealthAlert[] = [];
   private monitoringInterval: NodeJS.Timeout | null = null;
+  private webglCanvas: HTMLCanvasElement | null = null;
+  private webglContext: WebGLRenderingContext | null = null;
 
   private constructor() {}
 
@@ -83,9 +97,56 @@ export class HealthMonitor {
   }
 
   async getSystemStats(): Promise<SystemStats> {
+    const start = performance.now();
+
     // Return mock data if systeminformation is not available (browser context)
     if (!si) {
-      return {
+      // Try to detect GPU via WebGL in browser (cached)
+      let browserGPU: SystemStats['gpu'] | undefined;
+      
+      // If we already have a cached GPU context, use it immediately
+      if (this.webglContext) {
+        try {
+          const debugInfo = this.webglContext.getExtension('WEBGL_debug_renderer_info');
+          if (debugInfo) {
+            const vendor = this.webglContext.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            const renderer = this.webglContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            browserGPU = {
+              name: renderer || vendor || 'Unknown GPU (Browser)',
+              memoryGB: null,
+              utilization: undefined,
+              memoryUsedGB: undefined,
+              memoryTotalGB: undefined,
+              temperature: undefined,
+            };
+          }
+        } catch (error) {
+          logger.warn('Failed to get GPU info from cached context:', { error });
+        }
+      } else {
+        // Initialize WebGL context in background (non-blocking for first call)
+        setTimeout(() => {
+          try {
+            if (!this.webglCanvas) {
+              this.webglCanvas = document.createElement('canvas');
+              this.webglCanvas.width = 1;
+              this.webglCanvas.height = 1;
+              const gl = this.webglCanvas.getContext('webgl', { 
+                failIfMajorPerformanceCaveat: true 
+              }) || this.webglCanvas.getContext('experimental-webgl', {
+                failIfMajorPerformanceCaveat: true
+              });
+              if (gl) {
+                this.webglContext = gl as WebGLRenderingContext;
+              }
+            }
+          } catch (error) {
+            logger.warn('Failed to initialize WebGL context:', { error });
+          }
+        }, 0);
+      }
+
+      const fallbackStats: SystemStats = {
         cpu: {
           usage: 0,
           cores: 4,
@@ -107,9 +168,20 @@ export class HealthMonitor {
         },
         uptime: 0,
         timestamp: new Date(),
+        gpu: browserGPU,
       };
+
+      logSlowOperation(
+        'healthMonitor.getSystemStats',
+        performance.now() - start,
+        300,
+        { systemInformationAvailable: false }
+      );
+
+      return fallbackStats;
     }
 
+    // Gather hardware metrics concurrently to minimize collection latency.
     const [cpu, cpuInfo, mem, fsSize, networkStats, processes, time] = await Promise.all([
       si.currentLoad(),
       si.cpu(),
@@ -121,8 +193,48 @@ export class HealthMonitor {
     ]);
 
     const cpuTemp = await si.cpuTemperature().catch(() => ({ main: null }));
+    const osInfo = await si.osInfo().catch(() => ({ hostname: null }));
+    
+    // Get GPU stats
+    let gpuStats: SystemStats['gpu'] | undefined;
+    try {
+      const graphics = await si.graphics();
+      if (graphics && graphics.controllers && graphics.controllers.length > 0) {
+        // Find discrete GPU (prefer NVIDIA, AMD, or non-Intel)
+        // Prefer discrete GPUs so we surface the most meaningful VRAM stats.
+        let discreteGPU = graphics.controllers.find((gpu: Systeminformation.GraphicsControllerData) => {
+          const vendor = (gpu.vendor || '').toLowerCase();
+          const model = (gpu.model || '').toLowerCase();
+          return vendor.includes('nvidia') || 
+                 vendor.includes('amd') || 
+                 vendor.includes('ati') ||
+                 (!vendor.includes('intel') && !model.includes('integrated'));
+        });
+        
+          const gpu = discreteGPU || graphics.controllers[0];
+        if (gpu) {
+          const gpuName = gpu.model || gpu.vendor || 'Unknown GPU';
+          const memoryTotalGB = gpu.memoryTotal ? Math.round(gpu.memoryTotal / 1024) : null;
+          const memoryUsedGB = gpu.memoryUsed ? Math.round(gpu.memoryUsed / 1024) : null;
+          const utilization = (gpu as any).utilizationGPU || gpu.utilizationGpu || null;
+          const temperature = gpu.temperatureGpu || (gpu as any).temperature || null;
+          
+          gpuStats = {
+            name: gpuName,
+            memoryGB: memoryTotalGB,
+            utilization: utilization !== null && utilization !== undefined ? utilization : undefined,
+            memoryUsedGB: memoryUsedGB !== null && memoryUsedGB !== undefined ? memoryUsedGB : undefined,
+            memoryTotalGB: memoryTotalGB !== null && memoryTotalGB !== undefined ? memoryTotalGB : undefined,
+            temperature: temperature !== null && temperature !== undefined ? temperature : undefined,
+          };
+        }
+      }
+    } catch (error) {
+      // GPU stats not available, continue without them
+      logger.warn('Failed to get GPU stats:', { error });
+    }
 
-    return {
+    const stats: SystemStats = {
       cpu: {
         usage: cpu.currentLoad,
         cores: cpu.cpus.length,
@@ -135,14 +247,14 @@ export class HealthMonitor {
         free: mem.free,
         usage: (mem.used / mem.total) * 100,
       },
-      disk: fsSize.map((disk: any) => ({
+      disk: fsSize.map((disk: Systeminformation.FsSizeData) => ({
         total: disk.size,
         used: disk.used,
         free: disk.available,
         usage: (disk.used / disk.size) * 100,
       })),
       network: {
-        interfaces: networkStats.map((iface: any) => ({
+        interfaces: networkStats.map((iface: Systeminformation.NetworkStatsData) => ({
           name: iface.iface,
           bytesReceived: iface.rx_bytes,
           bytesSent: iface.tx_bytes,
@@ -154,10 +266,22 @@ export class HealthMonitor {
       },
       uptime: time.uptime,
       timestamp: new Date(),
+      hostname: osInfo.hostname || undefined,
+      gpu: gpuStats,
     };
+
+    logSlowOperation(
+      'healthMonitor.getSystemStats',
+      performance.now() - start,
+      300,
+      { systemInformationAvailable: true, hasGpu: Boolean(gpuStats) }
+    );
+
+    return stats;
   }
 
   async checkHealth(stats: SystemStats): Promise<HealthMetric[]> {
+    const start = performance.now();
     const metrics: HealthMetric[] = [];
 
     // CPU Usage
@@ -209,6 +333,77 @@ export class HealthMonitor {
       });
     }
 
+    // GPU Metrics
+    if (stats.gpu) {
+      // GPU Utilization
+      if (stats.gpu.utilization !== undefined) {
+        metrics.push({
+          id: 'gpu-utilization',
+          name: 'GPU Utilization',
+          value: stats.gpu.utilization,
+          unit: '%',
+          threshold: { warning: 90, critical: 95 },
+          status: this.getStatus(stats.gpu.utilization, 90, 95),
+          timestamp: stats.timestamp,
+        });
+      }
+
+      // GPU Temperature
+      if (stats.gpu.temperature !== undefined) {
+        metrics.push({
+          id: 'gpu-temperature',
+          name: 'GPU Temperature',
+          value: stats.gpu.temperature,
+          unit: '°C',
+          threshold: { warning: 80, critical: 90 },
+          status: this.getStatus(stats.gpu.temperature, 80, 90),
+          timestamp: stats.timestamp,
+        });
+      }
+
+      // VRAM Usage (Critical for LLM workloads)
+      if (stats.gpu.memoryUsedGB !== undefined && stats.gpu.memoryTotalGB !== undefined) {
+        const vramUsagePercent = (stats.gpu.memoryUsedGB / stats.gpu.memoryTotalGB) * 100;
+        metrics.push({
+          id: 'vram-usage',
+          name: 'VRAM Usage',
+          value: vramUsagePercent,
+          unit: '%',
+          threshold: { warning: 85, critical: 95 },
+          status: this.getStatus(vramUsagePercent, 85, 95),
+          timestamp: stats.timestamp,
+        });
+
+        // Proactive VRAM alert: warn when approaching critical threshold
+        if (vramUsagePercent >= 90 && vramUsagePercent < 95) {
+          this.createProactiveAlert(
+            'vram-usage',
+            `VRAM usage is high: ${stats.gpu.memoryUsedGB.toFixed(1)}GB / ${stats.gpu.memoryTotalGB}GB (${vramUsagePercent.toFixed(1)}%)`,
+            'warning',
+            {
+              vramUsed: stats.gpu.memoryUsedGB,
+              vramTotal: stats.gpu.memoryTotalGB,
+              vramUsagePercent,
+            }
+          );
+        }
+
+        // Critical VRAM alert
+        if (vramUsagePercent >= 95) {
+          this.createProactiveAlert(
+            'vram-usage-critical',
+            `CRITICAL: VRAM nearly full! ${stats.gpu.memoryUsedGB.toFixed(1)}GB / ${stats.gpu.memoryTotalGB}GB (${vramUsagePercent.toFixed(1)}%)`,
+            'critical',
+            {
+              vramUsed: stats.gpu.memoryUsedGB,
+              vramTotal: stats.gpu.memoryTotalGB,
+              vramUsagePercent,
+            }
+          );
+        }
+      }
+    }
+
     // Update metrics map
     metrics.forEach((metric) => {
       this.metrics.set(metric.id, metric);
@@ -216,6 +411,13 @@ export class HealthMonitor {
 
     // Check for alerts
     this.checkAlerts(metrics);
+
+    logSlowOperation(
+      'healthMonitor.checkHealth',
+      performance.now() - start,
+      75,
+      { metricCount: metrics.length, hasGpu: Boolean(stats.gpu) }
+    );
 
     return metrics;
   }
@@ -229,21 +431,69 @@ export class HealthMonitor {
   private checkAlerts(metrics: HealthMetric[]): void {
     metrics.forEach((metric) => {
       if (metric.status === 'critical' || metric.status === 'warning') {
+        // Persist at most one active alert per metric so we don't spam the UI each sample.
         const existingAlert = this.alerts.find(
           (a) => a.metric === metric.id && !a.acknowledged
         );
 
         if (!existingAlert) {
-          this.alerts.push({
-            id: crypto.randomUUID(),
-            metric: metric.id,
-            message: `${metric.name} is ${metric.status}: ${metric.value}${metric.unit}`,
-            severity: metric.status === 'critical' ? 'critical' : 'warning',
-            timestamp: new Date(),
-            acknowledged: false,
-          });
+          this.createAlert(
+            metric.id,
+            `${metric.name} is ${metric.status}: ${metric.value}${metric.unit}`,
+            metric.status === 'critical' ? 'critical' : 'warning'
+          );
+        } else {
+          // Update existing alert message with current value
+          // (prevents stale percentages while keeping acknowledgement state).
+          existingAlert.message = `${metric.name} is ${metric.status}: ${metric.value}${metric.unit}`;
+          existingAlert.timestamp = new Date();
         }
       }
+    });
+  }
+
+  /**
+   * Create a proactive alert (for VRAM and other critical metrics)
+   */
+  private createProactiveAlert(
+    metric: string,
+    message: string,
+    severity: 'warning' | 'critical',
+    metadata?: Record<string, unknown>
+  ): void {
+    const existingAlert = this.alerts.find(
+      (a) => a.metric === metric && !a.acknowledged
+    );
+
+    if (!existingAlert) {
+      this.createAlert(metric, message, severity, metadata);
+    } else {
+      // Update existing alert
+      existingAlert.message = message;
+      existingAlert.timestamp = new Date();
+      if (metadata) {
+        existingAlert.metadata = metadata;
+      }
+    }
+  }
+
+  /**
+   * Create a new alert
+   */
+  private createAlert(
+    metric: string,
+    message: string,
+    severity: 'warning' | 'critical',
+    metadata?: Record<string, unknown>
+  ): void {
+    this.alerts.push({
+      id: crypto.randomUUID(),
+      metric,
+      message,
+      severity,
+      timestamp: new Date(),
+      acknowledged: false,
+      metadata,
     });
   }
 
@@ -268,12 +518,36 @@ export class HealthMonitor {
         const stats = await this.getSystemStats();
         await this.checkHealth(stats);
       } catch (error) {
-        console.error('Health monitoring error:', error);
+        logger.error('Health monitoring error:', { error });
       }
     }, intervalMs);
   }
 
   stopMonitoring(): void {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = null;
+    }
+  }
+
+  /**
+   * Clean up resources (WebGL context, intervals)
+   */
+  cleanup(): void {
+    // Clean up WebGL context
+    if (this.webglContext) {
+      const loseContext = this.webglContext.getExtension('WEBGL_lose_context');
+      if (loseContext) {
+        loseContext.loseContext();
+      }
+      this.webglContext = null;
+    }
+    if (this.webglCanvas) {
+      this.webglCanvas.remove();
+      this.webglCanvas = null;
+    }
+
+    // Stop monitoring interval
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
@@ -289,5 +563,7 @@ export class HealthMonitor {
   }
 }
 
-export const healthMonitor = HealthMonitor.getInstance();
+// Export singleton instance
+const healthMonitorInstance = HealthMonitor.getInstance();
+export { healthMonitorInstance as healthMonitor };
 

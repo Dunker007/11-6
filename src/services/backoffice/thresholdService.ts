@@ -44,6 +44,7 @@ export class ThresholdService {
       const monthlyIncome = income; // This would be calculated from time period
       const monthlyProfit = monthlyIncome - expenses;
       if (monthlyProfit > 0) {
+        // Determine how much profit is still needed and convert that to days at the current run rate.
         const remainingProfit = this.threshold - profit;
         const daysNeeded = (remainingProfit / monthlyProfit) * 30;
         daysUntilThreshold = Math.ceil(daysNeeded);

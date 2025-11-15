@@ -1,16 +1,13 @@
-/* ============================================
-   REUSABLE COMMAND CARD
-   ============================================ */
+/* Command Card Styles */
 
 .command-card {
   position: relative;
-  padding: 2rem;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--panel-border);
-  border-radius: 1rem;
-  transition: all 0.3s ease;
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: 0;
   overflow: hidden;
+  transition: var(--transition-base);
 }
 
 .command-card.clickable {
@@ -18,162 +15,222 @@
 }
 
 .command-card.clickable:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+  border-color: currentColor;
 }
 
-.command-card.cyan.clickable:hover {
+/* Variants */
+.command-card.cyan {
   border-color: var(--cyan-500);
-  box-shadow: 0 10px 40px rgba(6, 182, 212, 0.4);
+  color: var(--cyan-500);
 }
 
-.command-card.violet.clickable:hover {
+.command-card.violet {
   border-color: var(--violet-500);
-  box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4);
+  color: var(--violet-500);
 }
 
-.command-card.emerald.clickable:hover {
+.command-card.emerald {
   border-color: var(--emerald-500);
-  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+  color: var(--emerald-500);
 }
 
-.command-card.amber.clickable:hover {
+.command-card.amber {
   border-color: var(--amber-500);
-  box-shadow: 0 10px 40px rgba(245, 158, 11, 0.4);
+  color: var(--amber-500);
 }
 
-/* Card Content */
+.command-card.clickable.cyan:hover {
+  box-shadow: var(--shadow-glow-secondary);
+}
+
+.command-card.clickable.violet:hover {
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.command-card.clickable.emerald:hover {
+  box-shadow: var(--shadow-glow-success);
+}
+
+.command-card.clickable.amber:hover {
+  box-shadow: var(--shadow-glow-warning);
+}
+
 .card-content {
   position: relative;
   z-index: 2;
+  padding: 1.5rem;
 }
 
-/* Glow effect */
+/* Glow Effect */
 .card-glow {
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   opacity: 0;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.3s ease;
   pointer-events: none;
 }
 
 .command-card:hover .card-glow {
-  opacity: 0.2;
+  opacity: 0.3;
 }
 
-.cyan-glow {
-  --glow-color: var(--cyan-500);
+.card-glow.cyan-glow {
+  background: radial-gradient(
+    circle at center,
+    rgba(6, 182, 212, 0.3) 0%,
+    transparent 70%
+  );
 }
 
-.violet-glow {
-  --glow-color: var(--violet-500);
+.card-glow.violet-glow {
+  background: radial-gradient(
+    circle at center,
+    rgba(139, 92, 246, 0.3) 0%,
+    transparent 70%
+  );
 }
 
-.emerald-glow {
-  --glow-color: var(--emerald-500);
+.card-glow.emerald-glow {
+  background: radial-gradient(
+    circle at center,
+    rgba(16, 185, 129, 0.3) 0%,
+    transparent 70%
+  );
 }
 
-.amber-glow {
-  --glow-color: var(--amber-500);
+.card-glow.amber-glow {
+  background: radial-gradient(
+    circle at center,
+    rgba(245, 158, 11, 0.3) 0%,
+    transparent 70%
+  );
 }
 
-/* Scan line animation */
+/* Scan Line Effect */
 .card-scan-line {
   position: absolute;
   top: 0;
-  left: 0;
+  left: -100%;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    var(--cyan-500) 50%, 
-    transparent 100%
+  background: linear-gradient(
+    90deg,
+    transparent,
+    currentColor,
+    transparent
   );
   opacity: 0;
-  animation: scan-move 3s ease-in-out infinite;
+  transition: left 0.5s ease, opacity 0.3s ease;
+  z-index: 3;
 }
 
 .command-card:hover .card-scan-line {
-  opacity: 0.5;
+  left: 100%;
+  opacity: 1;
+  animation: scanLine 1.5s ease-in-out infinite;
 }
 
-@keyframes scan-move {
-  0%, 100% {
-    transform: translateY(0);
+@keyframes scanLine {
+  0% {
+    left: -100%;
     opacity: 0;
   }
   50% {
-    transform: translateY(400px);
-    opacity: 0.5;
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
   }
 }
 
-/* Corner accents */
+/* Corner Decorations */
 .card-corners {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
+  z-index: 1;
 }
 
 .corner {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  border-color: var(--cyan-500);
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
   opacity: 0.5;
-  transition: all 0.3s ease;
-}
-
-.command-card.cyan .corner { border-color: var(--cyan-500); }
-.command-card.violet .corner { border-color: var(--violet-500); }
-.command-card.emerald .corner { border-color: var(--emerald-500); }
-.command-card.amber .corner { border-color: var(--amber-500); }
-
-.corner.c-tl {
-  top: 0.5rem;
-  left: 0.5rem;
-  border-top: 2px solid;
-  border-left: 2px solid;
-}
-
-.corner.c-tr {
-  top: 0.5rem;
-  right: 0.5rem;
-  border-top: 2px solid;
-  border-right: 2px solid;
-}
-
-.corner.c-bl {
-  bottom: 0.5rem;
-  left: 0.5rem;
-  border-bottom: 2px solid;
-  border-left: 2px solid;
-}
-
-.corner.c-br {
-  bottom: 0.5rem;
-  right: 0.5rem;
-  border-bottom: 2px solid;
-  border-right: 2px solid;
+  transition: opacity 0.3s ease;
 }
 
 .command-card:hover .corner {
   opacity: 1;
-  width: 30px;
-  height: 30px;
+}
+
+.corner.c-tl {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: var(--radius-md);
+}
+
+.corner.c-tr {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+  border-top-right-radius: var(--radius-md);
+}
+
+.corner.c-bl {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.corner.c-br {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: var(--radius-md);
+}
+
+/* Active State */
+.command-card.active {
+  border-color: currentColor;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+}
+
+.command-card.active.cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+.command-card.active.emerald {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.command-card.active.amber {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .command-card {
-    padding: 1.5rem;
+  .card-content {
+    padding: 1rem;
+  }
+
+  .corner {
+    width: 8px;
+    height: 8px;
   }
 }
 

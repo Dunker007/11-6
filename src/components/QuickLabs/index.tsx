@@ -10,6 +10,5 @@ export const CodeReview = lazy(() => import('./CodeReview'));
 export const AgentForge = lazy(() => import('./AgentForge'));
 export const Creator = lazy(() => import('./Creator'));
 
-// Re-export types if needed
-export type { Node, Connection } from './MindMap';
+// Re-export types if needed - types are defined in @/types/mindmap
 

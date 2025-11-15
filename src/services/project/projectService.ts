@@ -1,5 +1,27 @@
 import type { Project, ProjectFile } from '@/types/project';
 import { fileSystemService } from '../filesystem/fileSystemService';
+import type { FileSystemEntry } from '@/types/electron';
+import { logger } from '../logging/loggerService';
+
+// Type guards for validation
+function isProject(obj: unknown): obj is Project {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj &&
+    'name' in obj &&
+    'rootPath' in obj &&
+    'files' in obj &&
+    'status' in obj &&
+    'createdAt' in obj &&
+    'updatedAt' in obj
+  );
+}
+
+function isProjectArray(obj: unknown): obj is Project[] {
+  return Array.isArray(obj) && obj.every(isProject);
+}
+
 
 const STORAGE_KEY = 'dlx_projects';
 const ACTIVE_PROJECT_KEY = 'dlx_active_project';
@@ -19,15 +41,6 @@ export class ProjectService {
       ProjectService.instance = new ProjectService();
     }
     return ProjectService.instance;
-  }
-
-  private useFileSystem(): boolean {
-    try {
-      const stored = localStorage.getItem(USE_FILE_SYSTEM_KEY);
-      return stored === 'true';
-    } catch {
-      return false;
-    }
   }
 
   setUseFileSystem(use: boolean): void {
@@ -54,8 +67,14 @@ export class ProjectService {
       if (projectJsonExists.data) {
         const projectJson = await fileSystemService.readFile(projectJsonPath);
         if (projectJson.success && projectJson.data) {
-          project = JSON.parse(projectJson.data);
-          project.rootPath = path;
+          const parsedProject = JSON.parse(projectJson.data);
+          if (isProject(parsedProject)) {
+            project = parsedProject;
+            project.rootPath = path;
+          } else {
+            logger.error('Invalid project.json format', { path });
+            return null;
+          }
         } else {
           return null;
         }
@@ -76,7 +95,7 @@ export class ProjectService {
       // Load files from disk
       const entries = await fileSystemService.readdir(path);
       if (entries.success && entries.data) {
-        project.files = await this.buildFileTree(path, entries.data);
+        project.files = await this.buildFileTree(entries.data);
       }
 
       this.projects.set(project.id, project);
@@ -84,19 +103,19 @@ export class ProjectService {
       this.saveProjects();
       return project;
     } catch (error) {
-      console.error('Failed to open project from disk:', error);
+      logger.error('Failed to open project from disk', { path, error });
       return null;
     }
   }
 
-  private async buildFileTree(_rootPath: string, entries: any[]): Promise<ProjectFile[]> {
+  private async buildFileTree(entries: FileSystemEntry[]): Promise<ProjectFile[]> {
     const files: ProjectFile[] = [];
 
     for (const entry of entries) {
       if (entry.isDirectory) {
         const subEntries = await fileSystemService.readdir(entry.path);
         const children = subEntries.success && subEntries.data
-          ? await this.buildFileTree(entry.path, subEntries.data)
+          ? await this.buildFileTree(subEntries.data)
           : [];
 
         files.push({
@@ -147,7 +166,7 @@ export class ProjectService {
       this.saveProjects();
       return true;
     } catch (error) {
-      console.error('Failed to save project to disk:', error);
+      logger.error('Failed to save project to disk', { projectId, path, error });
       return false;
     }
   }
@@ -171,12 +190,17 @@ export class ProjectService {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const projectsArray: Project[] = JSON.parse(stored);
-        projectsArray.forEach((project) => {
-          project.createdAt = new Date(project.createdAt);
-          project.updatedAt = new Date(project.updatedAt);
-          this.projects.set(project.id, project);
-        });
+        const parsedProjects = JSON.parse(stored);
+        if (isProjectArray(parsedProjects)) {
+          parsedProjects.forEach((project) => {
+            project.createdAt = new Date(project.createdAt);
+            project.updatedAt = new Date(project.updatedAt);
+            this.projects.set(project.id, project);
+          });
+        } else {
+          logger.warn('Invalid project data in localStorage. Clearing.');
+          localStorage.removeItem(STORAGE_KEY);
+        }
       }
 
       const activeId = localStorage.getItem(ACTIVE_PROJECT_KEY);
@@ -184,7 +208,7 @@ export class ProjectService {
         this.activeProjectId = activeId;
       }
     } catch (error) {
-      console.error('Failed to load projects:', error);
+      logger.error('Failed to load projects', { error });
     }
   }
 
@@ -196,7 +220,7 @@ export class ProjectService {
         localStorage.setItem(ACTIVE_PROJECT_KEY, this.activeProjectId);
       }
     } catch (error) {
-      console.error('Failed to save projects:', error);
+      logger.error('Failed to save projects', { error });
     }
   }
 
@@ -302,6 +326,18 @@ export class ProjectService {
     this.insertFileIntoTree(project.files[0], file, dirPath);
     project.updatedAt = new Date();
     this.saveProjects();
+
+    // Create file on disk if project has a real rootPath (drive-based project)
+    if (project.rootPath && this.isDriveBasedProject(project.rootPath)) {
+      const fullPath = this.resolveFilePath(project.rootPath, path);
+      // Ensure parent directory exists
+      const parentDir = fullPath.split(/[/\\]/).slice(0, -1).join('/');
+      fileSystemService.mkdir(parentDir, true).then(() => {
+        return fileSystemService.writeFile(fullPath, content);
+      }).catch((error) => {
+        logger.error('Failed to create file on disk', { fullPath, error });
+      });
+    }
   }
 
   updateFile(projectId: string, path: string, content: string): void {
@@ -314,11 +350,11 @@ export class ProjectService {
       project.updatedAt = new Date();
       this.saveProjects();
 
-      // If using file system, also save to disk
-      if (this.useFileSystem() && project.rootPath) {
-        const fullPath = `${project.rootPath}${path}`;
+      // Save to disk if project has a real rootPath (drive-based project)
+      if (project.rootPath && this.isDriveBasedProject(project.rootPath)) {
+        const fullPath = this.resolveFilePath(project.rootPath, path);
         fileSystemService.writeFile(fullPath, content).catch((error) => {
-          console.error('Failed to save file to disk:', error);
+          logger.error('Failed to save file to disk', { fullPath, error });
         });
       }
     }
@@ -331,6 +367,14 @@ export class ProjectService {
     this.removeFileFromTree(project.files[0], path);
     project.updatedAt = new Date();
     this.saveProjects();
+
+    // Delete from disk if project has a real rootPath (drive-based project)
+    if (project.rootPath && this.isDriveBasedProject(project.rootPath)) {
+      const fullPath = this.resolveFilePath(project.rootPath, path);
+      fileSystemService.rm(fullPath, false).catch((error) => {
+        logger.error('Failed to delete file from disk', { fullPath, error });
+      });
+    }
   }
 
   private insertFileIntoTree(root: ProjectFile, file: ProjectFile, dirPath: string): void {
@@ -398,6 +442,26 @@ export class ProjectService {
 
     const file = this.findFileInTree(project.files[0], path);
     return file && !file.isDirectory ? file.content : null;
+  }
+
+  private isDriveBasedProject(rootPath: string): boolean {
+    // Check if it's a Windows path (contains drive letter) or Unix absolute path
+    // Virtual paths typically start with '/' but don't have drive letters or are relative
+    return /^[A-Za-z]:/.test(rootPath) || // Windows: C:\ or C:/
+           (rootPath.startsWith('/') && rootPath.length > 1 && !rootPath.startsWith('/tmp')); // Unix absolute path
+  }
+
+  private resolveFilePath(rootPath: string, filePath: string): string {
+    // Remove leading slash from filePath if present
+    const normalizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
+    
+    // Handle Windows vs Unix path separators
+    const separator = rootPath.includes('\\') ? '\\' : '/';
+    
+    // Ensure rootPath doesn't end with separator
+    const normalizedRoot = rootPath.endsWith(separator) ? rootPath.slice(0, -1) : rootPath;
+    
+    return `${normalizedRoot}${separator}${normalizedPath}`;
   }
 }
 

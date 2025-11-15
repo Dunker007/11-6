@@ -1,5 +1,5 @@
 // src/components/RightPanel/ProjectSelector.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useProjectStore } from '../../services/project/projectStore';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';
@@ -10,12 +10,14 @@ const ProjectSelector = () => {
   const { projects, activeProject, setActiveProject } = useProjectStore();
   const [isOpen, setIsOpen] = useState(false);
 
-  const getStatusColor = (status: 'idea' | 'backlog' | 'in-progress' | 'completed') => {
+  const getStatusColor = (status: 'idea' | 'backlog' | 'in-progress' | 'completed' | 'deployed' | 'archived') => {
     switch (status) {
       case 'idea': return 'bg-purple-500';
       case 'backlog': return 'bg-gray-500';
       case 'in-progress': return 'bg-blue-500';
       case 'completed': return 'bg-green-500';
+      case 'deployed': return 'bg-emerald-500';
+      case 'archived': return 'bg-gray-700';
       default: return 'bg-gray-700';
     }
   };

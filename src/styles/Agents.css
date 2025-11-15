@@ -1,0 +1,751 @@
+/**
+ * Agent Avatar Styles
+ * Ed: Warm amber/orange colors, smooth flowing animations (Boomhauer-style)
+ * Itor: Cool cyan/blue colors, sharp precise animations (cartoon hawk)
+ */
+
+/* ===== ED AVATAR ===== */
+.ed-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: visible;
+}
+
+.ed-avatar-sm { width: 32px; height: 32px; }
+.ed-avatar-md { width: 64px; height: 64px; }
+.ed-avatar-lg { width: 96px; height: 96px; }
+.ed-avatar-xl { width: 128px; height: 128px; }
+
+.ed-placeholder {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  border-radius: 50%;
+  border: 2px solid rgba(251, 146, 60, 0.5);
+}
+
+/* Ed Head */
+.ed-head {
+  position: absolute;
+  width: 60%;
+  height: 50%;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ed-hair {
+  position: absolute;
+  width: 100%;
+  height: 40%;
+  top: -10%;
+  background: #92400e;
+  border-radius: 50% 50% 0 0;
+  animation: edHairFlow 3s ease-in-out infinite;
+}
+
+.ed-face {
+  position: absolute;
+  width: 100%;
+  height: 60%;
+  top: 30%;
+  background: #fbbf24;
+  border-radius: 50%;
+  border: 1px solid #f59e0b;
+}
+
+.ed-eye {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #1f2937;
+  border-radius: 50%;
+  top: 35%;
+}
+
+.ed-eye-left { left: 30%; }
+.ed-eye-right { right: 30%; }
+
+.ed-mouth {
+  position: absolute;
+  width: 20px;
+  height: 8px;
+  bottom: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 2px solid #92400e;
+  border-top: none;
+  border-radius: 0 0 50% 50%;
+}
+
+/* Ed Body */
+.ed-body {
+  position: absolute;
+  width: 70%;
+  height: 50%;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ed-jacket {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  border-radius: 20% 20% 0 0;
+  border: 2px solid #3b82f6;
+}
+
+.ed-arm {
+  position: absolute;
+  width: 20%;
+  height: 60%;
+  background: #fbbf24;
+  border-radius: 50%;
+}
+
+.ed-arm-left {
+  left: -10%;
+  top: 20%;
+  transform-origin: top center;
+}
+
+.ed-arm-right {
+  right: -10%;
+  top: 20%;
+  transform-origin: top center;
+}
+
+/* Ed Status Animations */
+.ed-avatar-idle .ed-arm-left,
+.ed-avatar-idle .ed-arm-right {
+  animation: edIdleArms 4s ease-in-out infinite;
+}
+
+.ed-avatar-thinking .ed-head {
+  animation: edThinking 2s ease-in-out infinite;
+}
+
+.ed-thought-bubble {
+  position: absolute;
+  top: -20px;
+  right: -10px;
+  font-size: 20px;
+  animation: edBubbleFloat 2s ease-in-out infinite;
+}
+
+.ed-avatar-coding .ed-arm-left,
+.ed-avatar-coding .ed-arm-right {
+  animation: edTyping 0.5s ease-in-out infinite;
+}
+
+.ed-code-lines {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 20px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.3) 0px,
+    rgba(255, 255, 255, 0.3) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  animation: edCodeFlow 1s linear infinite;
+}
+
+.ed-avatar-success .ed-thumbs-up {
+  position: absolute;
+  top: -15px;
+  right: -10px;
+  font-size: 24px;
+  animation: edSuccessBounce 0.6s ease-out;
+}
+
+.ed-avatar-error .ed-concern {
+  position: absolute;
+  top: -10px;
+  font-size: 20px;
+  animation: edErrorShake 0.5s ease-in-out infinite;
+}
+
+/* Ed Glow */
+.ed-glow {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  top: -10%;
+  left: -10%;
+  background: radial-gradient(circle, rgba(251, 146, 60, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: edGlowPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.ed-avatar-animated .ed-glow {
+  animation: edGlowPulse 2s ease-in-out infinite;
+}
+
+/* Ed Keyframes */
+@keyframes edHairFlow {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(5deg); }
+}
+
+@keyframes edIdleArms {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+@keyframes edThinking {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(-5deg); }
+}
+
+@keyframes edBubbleFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes edTyping {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(15deg); }
+}
+
+@keyframes edCodeFlow {
+  0% { opacity: 0.3; transform: translateX(-50%) translateY(0px); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(10px); }
+}
+
+@keyframes edSuccessBounce {
+  0% { transform: scale(0) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+@keyframes edErrorShake {
+  0%, 100% { transform: translateX(0px); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+@keyframes edGlowPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+/* ===== ITOR AVATAR ===== */
+.itor-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: visible;
+}
+
+.itor-avatar-sm { width: 32px; height: 32px; }
+.itor-avatar-md { width: 64px; height: 64px; }
+.itor-avatar-lg { width: 96px; height: 96px; }
+.itor-avatar-xl { width: 128px; height: 128px; }
+
+.itor-placeholder {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border-radius: 50%;
+  border: 2px solid rgba(34, 211, 238, 0.5);
+}
+
+/* Itor Body */
+.itor-body {
+  position: relative;
+  width: 80%;
+  height: 80%;
+}
+
+.itor-head {
+  position: absolute;
+  width: 50%;
+  height: 40%;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.itor-beak {
+  position: absolute;
+  width: 15px;
+  height: 8px;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f59e0b;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.itor-eye {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #1f2937;
+  border-radius: 50%;
+  top: 30%;
+  border: 1px solid #ffffff;
+}
+
+.itor-eye-left { left: 25%; }
+.itor-eye-right { right: 25%; }
+
+.itor-crest {
+  position: absolute;
+  width: 20px;
+  height: 15px;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0e7490;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.itor-wing {
+  position: absolute;
+  width: 35%;
+  height: 50%;
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  border-radius: 50% 0 50% 50%;
+  border: 1px solid #22d3ee;
+}
+
+.itor-wing-left {
+  left: 5%;
+  top: 30%;
+  transform: rotate(-20deg);
+}
+
+.itor-wing-right {
+  right: 5%;
+  top: 30%;
+  transform: rotate(20deg) scaleX(-1);
+}
+
+.itor-tail {
+  position: absolute;
+  width: 20px;
+  height: 30px;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0e7490;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.itor-talon {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  bottom: -8px;
+  background: #f59e0b;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.itor-talon-left { left: 35%; }
+.itor-talon-right { right: 35%; }
+
+/* Itor Status Animations */
+.itor-avatar-idle .itor-head {
+  animation: itorIdleHead 3s ease-in-out infinite;
+}
+
+.itor-avatar-scanning .itor-eye-left,
+.itor-avatar-scanning .itor-eye-right {
+  animation: itorScanEyes 1s ease-in-out infinite;
+}
+
+.itor-scan-lines {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    rgba(34, 211, 238, 0.3) 1px,
+    transparent 2px
+  );
+  animation: itorScanMove 1s linear infinite;
+}
+
+.itor-avatar-reviewing .itor-head {
+  animation: itorReviewHead 2s ease-in-out infinite;
+}
+
+.itor-review-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.itor-review-particles::before,
+.itor-review-particles::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #22d3ee;
+  border-radius: 50%;
+  animation: itorParticleFloat 2s ease-in-out infinite;
+}
+
+.itor-review-particles::before {
+  top: 20%;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.itor-review-particles::after {
+  top: 60%;
+  right: 20%;
+  animation-delay: 1s;
+}
+
+.itor-avatar-alert .itor-wing-left,
+.itor-avatar-alert .itor-wing-right {
+  animation: itorAlertWings 0.5s ease-in-out infinite;
+}
+
+.itor-alert-wings {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  top: -10%;
+  left: -10%;
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  border-radius: 50%;
+  animation: itorAlertPulse 0.5s ease-in-out infinite;
+}
+
+.itor-avatar-approved .itor-checkmark {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  background: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  animation: itorApprovedPop 0.4s ease-out;
+}
+
+.itor-avatar-error .itor-error-x {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  background: #ef4444;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  animation: itorErrorShake 0.5s ease-in-out infinite;
+}
+
+/* Itor Glow */
+.itor-glow {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  top: -10%;
+  left: -10%;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: itorGlowPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.itor-avatar-animated .itor-glow {
+  animation: itorGlowPulse 2s ease-in-out infinite;
+}
+
+/* Itor Keyframes */
+@keyframes itorIdleHead {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(5deg); }
+}
+
+@keyframes itorScanEyes {
+  0%, 100% { transform: translateX(0px); }
+  50% { transform: translateX(2px); }
+}
+
+@keyframes itorScanMove {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes itorReviewHead {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  25% { transform: translateX(-50%) rotate(-10deg); }
+  75% { transform: translateX(-50%) rotate(10deg); }
+}
+
+@keyframes itorParticleFloat {
+  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.7; }
+  50% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+}
+
+@keyframes itorAlertWings {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(15deg); }
+}
+
+@keyframes itorAlertPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes itorApprovedPop {
+  0% { transform: scale(0) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+@keyframes itorErrorShake {
+  0%, 100% { transform: translateX(0px) rotate(0deg); }
+  25% { transform: translateX(-3px) rotate(-5deg); }
+  75% { transform: translateX(3px) rotate(5deg); }
+}
+
+@keyframes itorGlowPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+/* Asset Images */
+.ed-asset-image,
+.itor-asset-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* ===== ITOR TOOLBAR WIDGET ===== */
+.itor-toolbar-widget {
+  position: relative;
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+
+/* Floating Itor Widget */
+.itor-floating {
+  cursor: move;
+  user-select: none;
+  transition: transform 0.1s ease-out, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-2);
+  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.itor-floating:hover {
+  transform: scale(1.05);
+  border-color: rgba(34, 211, 238, 0.4);
+  box-shadow: 0 6px 24px rgba(34, 211, 238, 0.3);
+}
+
+.itor-floating.dragging {
+  cursor: grabbing;
+  transform: scale(1.1);
+  box-shadow: 0 8px 32px rgba(34, 211, 238, 0.5);
+  z-index: 10003 !important;
+  border-color: rgba(34, 211, 238, 0.6);
+}
+
+.itor-floating.dragging .itor-toolbar-btn {
+  pointer-events: none;
+}
+
+.itor-toolbar-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.itor-toolbar-btn:hover {
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.itor-toolbar-btn::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  background: radial-gradient(circle, var(--itor-glow-color, var(--cyan-500)) 0%, transparent 70%);
+  opacity: 0.3;
+  animation: itorToolbarGlow 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.itor-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--red-500);
+  color: white;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--bg-primary);
+  animation: itorBadgePulse 1s ease-in-out infinite;
+}
+
+.itor-popover-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 10001;
+}
+
+.itor-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 240px;
+  background: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  z-index: 10002;
+  animation: itorPopoverSlide 0.2s ease-out;
+}
+
+.itor-popover-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.itor-popover-info h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.itor-status-text {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.itor-popover-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.itor-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itor-stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.itor-stat-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--cyan-400);
+}
+
+.itor-popover-alert {
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 4px;
+  color: var(--red-400);
+  font-size: 12px;
+  animation: itorAlertFlash 1s ease-in-out infinite;
+}
+
+@keyframes itorToolbarGlow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+@keyframes itorBadgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes itorPopoverSlide {
+  0% { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes itorAlertFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+

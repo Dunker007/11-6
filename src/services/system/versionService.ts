@@ -1,7 +1,17 @@
 import type { AppVersion, ComponentVersion, VersionHistory, FeatureVersion } from '@/types/version';
 
-// Read package.json version at build time
-const APP_VERSION = '1.0.0'; // This will be replaced by build script
+// Version info injected at build time via vite.config.ts
+// These will be replaced by the build process
+declare const __APP_VERSION__: string;
+declare const __BUILD_DATE__: string;
+declare const __GIT_COMMIT__: string | undefined;
+declare const __GIT_BRANCH__: string | undefined;
+
+// Fallback values for development
+const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0-dev';
+const BUILD_DATE = typeof __BUILD_DATE__ !== 'undefined' ? __BUILD_DATE__ : new Date().toISOString();
+const GIT_COMMIT = typeof __GIT_COMMIT__ !== 'undefined' ? __GIT_COMMIT__ : undefined;
+const GIT_BRANCH = typeof __GIT_BRANCH__ !== 'undefined' ? __GIT_BRANCH__ : undefined;
 
 const COMPONENT_VERSIONS_KEY = 'dlx_component_versions';
 const VERSION_HISTORY_KEY = 'dlx_version_history';
@@ -72,9 +82,9 @@ export class VersionService {
   getAppVersion(): AppVersion {
     return {
       version: APP_VERSION,
-      buildDate: new Date(), // In production, this would be set at build time
-      gitCommit: undefined, // Would be set by build script
-      gitBranch: undefined, // Would be set by build script
+      buildDate: new Date(BUILD_DATE),
+      gitCommit: GIT_COMMIT,
+      gitBranch: GIT_BRANCH,
     };
   }
 

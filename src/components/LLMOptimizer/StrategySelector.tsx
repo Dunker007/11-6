@@ -52,10 +52,23 @@ const strategies: StrategyOption[] = [
 const StrategySelector = () => {
   const [selectedStrategy, setSelectedStrategy] = useState<ProviderStrategy>('cloud-fallback');
 
-  // Load strategy from router on mount
+  // Load strategy from localStorage first, then sync with router
   useEffect(() => {
-    const currentStrategy = llmRouter.getStrategy();
-    setSelectedStrategy(currentStrategy);
+    try {
+      const savedStrategy = localStorage.getItem('llm-strategy') as ProviderStrategy;
+      if (savedStrategy && strategies.some(s => s.id === savedStrategy)) {
+        setSelectedStrategy(savedStrategy);
+        llmRouter.setStrategy(savedStrategy);
+      } else {
+        const currentStrategy = llmRouter.getStrategy();
+        setSelectedStrategy(currentStrategy);
+      }
+    } catch (error) {
+      console.warn('Failed to load strategy from localStorage:', error);
+      // Fallback to router's current strategy
+      const currentStrategy = llmRouter.getStrategy();
+      setSelectedStrategy(currentStrategy);
+    }
   }, []);
 
   const handleStrategyChange = (strategy: ProviderStrategy) => {
@@ -63,7 +76,12 @@ const StrategySelector = () => {
     llmRouter.setStrategy(strategy);
     
     // Save to localStorage for persistence
-    localStorage.setItem('llm-strategy', strategy);
+    try {
+      localStorage.setItem('llm-strategy', strategy);
+    } catch (error) {
+      console.warn('Failed to save strategy to localStorage:', error);
+      // Continue anyway - router has the strategy
+    }
   };
 
   return (

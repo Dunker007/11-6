@@ -32,15 +32,15 @@ class AutoRepair {
     // Strategy: Clear old activities from localStorage
     this.fixStrategies.set('clearOldActivities', async () => {
       try {
-        const removed = activityService.clearOldActivities(7); // 7 days
+        activityService.clearActivities();
         return {
           success: true,
-          message: `Cleared ${removed} old activities from storage`,
+          message: 'Cleared all activities from storage',
         };
       } catch (error) {
         return {
           success: false,
-          message: `Failed to clear old activities: ${error}`,
+          message: `Failed to clear activities: ${error}`,
         };
       }
     });
@@ -117,7 +117,7 @@ class AutoRepair {
 
       // Log the fix attempt
       errorLogger.logError(
-        'system',
+        'unknown',
         `Auto-fix ${result.success ? 'succeeded' : 'failed'}: ${result.message}`,
         result.success ? 'info' : 'warning'
       );

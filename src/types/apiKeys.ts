@@ -5,18 +5,22 @@ export type LLMProvider =
   | 'anthropic'
   | 'lmstudio'
   | 'ollama'
+  | 'ollama-cloud'
   | 'openrouter'
   | 'github';
 
+export type APIProvider = LLMProvider | 'googlecloud' | 'coinbase' | 'schwab' | 'plaid' | 'yodlee';
+
 export interface APIKey {
   id: string;
-  provider: LLMProvider;
+  provider: APIProvider;
   key: string; // encrypted
   name: string;
   createdAt: Date;
   lastUsed: Date | null;
   isValid: boolean;
   usage: UsageStats;
+  metadata?: Record<string, any>; // For additional provider-specific data (e.g., Coinbase secret, passphrase)
 }
 
 export interface UsageStats {
@@ -79,6 +83,14 @@ export const PROVIDER_CONFIGS: ProviderConfig[] = [
     requiresKey: false,
     endpoint: 'http://localhost:11434',
     description: 'Local LLM runtime',
+  },
+  {
+    provider: 'ollama-cloud',
+    name: 'Ollama Cloud',
+    type: 'cloud',
+    requiresKey: false, // May be optional, check Ollama Cloud docs
+    endpoint: 'https://ollama.com/api',
+    description: 'Cloud-hosted Ollama API',
   },
   {
     provider: 'openrouter',

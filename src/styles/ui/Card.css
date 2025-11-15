@@ -1,0 +1,120 @@
+/**
+ * Card Component Styles - Clean Modern Design
+ * Updated: 2025-11-14
+ */
+
+.ui-card {
+  background: var(--clean-glass-bg, var(--color-bg-glass-light));
+  backdrop-filter: var(--clean-glass-blur, blur(20px));
+  -webkit-backdrop-filter: var(--clean-glass-blur, blur(20px));
+  border-radius: var(--clean-card-radius, var(--radius-lg));
+  transition: all var(--clean-transition-base, var(--transition-base));
+  position: relative;
+  overflow: hidden;
+}
+
+/* Variants */
+.ui-card--elevated {
+  box-shadow: var(--clean-shadow-md, var(--shadow-md));
+  border: 1px solid var(--clean-glass-border, rgba(255, 255, 255, 0.08));
+}
+
+.ui-card--elevated:hover {
+  box-shadow: var(--clean-shadow-lg, var(--shadow-lg));
+  border-color: var(--clean-glass-border-strong, rgba(255, 255, 255, 0.12));
+}
+
+.ui-card--flat {
+  box-shadow: none;
+  border: 1px solid var(--clean-border-subtle, rgba(255, 255, 255, 0.06));
+  background: var(--clean-bg-elevated, var(--bg-secondary));
+}
+
+.ui-card--outlined {
+  box-shadow: none;
+  border: 1px solid var(--clean-border-default, rgba(255, 255, 255, 0.10));
+  background: transparent;
+}
+
+/* Hover Effect */
+.ui-card--hover {
+  cursor: pointer;
+}
+
+.ui-card--hover:hover {
+  transform: translateY(-2px);
+  border-color: var(--clean-accent-primary, var(--accent-primary));
+}
+
+/* Padding Variants */
+.ui-card--padding-none {
+  padding: 0;
+}
+
+.ui-card--padding-sm {
+  padding: var(--clean-card-padding-sm, var(--spacing-3));
+}
+
+.ui-card--padding-md {
+  padding: var(--clean-card-padding-md, var(--spacing-5));
+}
+
+.ui-card--padding-lg {
+  padding: var(--clean-card-padding-lg, var(--spacing-6));
+}
+
+/* Card Sections */
+.ui-card__header {
+  padding: var(--spacing-5);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--clean-border-subtle, rgba(255, 255, 255, 0.06));
+}
+
+.ui-card__body {
+  padding: var(--spacing-5);
+}
+
+.ui-card__footer {
+  padding: var(--spacing-5);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--clean-border-subtle, rgba(255, 255, 255, 0.06));
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+/* Nested padding handling */
+.ui-card--padding-none .ui-card__header,
+.ui-card--padding-none .ui-card__body,
+.ui-card--padding-none .ui-card__footer {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.ui-card--padding-sm .ui-card__header,
+.ui-card--padding-sm .ui-card__body,
+.ui-card--padding-sm .ui-card__footer {
+  padding: var(--spacing-3);
+}
+
+.ui-card--padding-lg .ui-card__header,
+.ui-card--padding-lg .ui-card__body,
+.ui-card--padding-lg .ui-card__footer {
+  padding: var(--spacing-6);
+}
+
+/* Legacy holographic support (deprecated - kept for backwards compatibility) */
+.ui-card--holographic {
+  /* Use standard card styles instead */
+}
+
+/* Accessibility: Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ui-card {
+    transition: none;
+  }
+  
+  .ui-card--hover:hover {
+    transform: none;
+  }
+}

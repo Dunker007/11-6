@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { githubService, type Repository, type Branch, type PullRequest, type GitStatus } from './githubService';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface GitHubStore {
   // State
@@ -18,7 +19,7 @@ interface GitHubStore {
   setCurrentRepository: (repo: Repository | null) => void;
   cloneRepository: (url: string, path: string) => Promise<boolean>;
   initRepository: (path: string) => Promise<boolean>;
-  getStatus: (path: string) => Promise<void>;
+  getStatus: (path: string) => Promise<GitStatus | null>;
   commit: (path: string, message: string, files?: string[]) => Promise<boolean>;
   push: (path: string, remote?: string, branch?: string) => Promise<boolean>;
   pull: (path: string, remote?: string, branch?: string) => Promise<boolean>;
@@ -40,28 +41,38 @@ export const useGitHubStore = create<GitHubStore>((set, get) => ({
   error: null,
 
   authenticate: async (token: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const success = await githubService.authenticate(token);
-      set({ isAuthenticated: success, isLoading: false });
-      if (success) {
-        await get().loadRepositories();
-      }
-      return success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const success = await githubService.authenticate(token);
+        set({ isAuthenticated: success });
+        if (success) {
+          await get().loadRepositories();
+        }
+        return success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
+    return result ?? false;
   },
 
   loadRepositories: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const repos = await githubService.getRepositories();
-      set({ repositories: repos, isLoading: false });
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-    }
+    await withAsyncOperation(
+      async () => {
+        const repos = await githubService.getRepositories();
+        set({ repositories: repos });
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
   },
 
   setCurrentRepository: (repo: Repository | null) => {
@@ -69,173 +80,220 @@ export const useGitHubStore = create<GitHubStore>((set, get) => ({
   },
 
   cloneRepository: async (url: string, path: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await githubService.cloneRepository(url, path);
-      set({ isLoading: false });
-      if (!result.success) {
-        set({ error: result.error });
-      }
-      return result.success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const cloneResult = await githubService.cloneRepository(url, path);
+        if (!cloneResult.success) {
+          throw new Error(cloneResult.error || 'Failed to clone repository');
+        }
+        return cloneResult.success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
+    return result ?? false;
   },
 
   initRepository: async (path: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await githubService.initRepository(path);
-      set({ isLoading: false });
-      if (!result.success) {
-        set({ error: result.error });
-      }
-      return result.success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const initResult = await githubService.initRepository(path);
+        if (!initResult.success) {
+          throw new Error(initResult.error || 'Failed to initialize repository');
+        }
+        return initResult.success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
+    return result ?? false;
   },
 
-  getStatus: async (path: string) => {
-    try {
-      const status = await githubService.getStatus(path);
-      set({ status });
-    } catch (error) {
-      set({ error: (error as Error).message });
-    }
+  getStatus: async (path: string): Promise<GitStatus | null> => {
+    return await withAsyncOperation(
+      async () => {
+        const status = await githubService.getStatus(path);
+        set({ status });
+        return status;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      undefined,
+      undefined,
+      false, // Don't set loading state for status checks
+      'runtime',
+      'githubStore'
+    );
   },
 
   commit: async (path: string, message: string, files?: string[]) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await githubService.commit(path, message, files);
-      set({ isLoading: false });
-      if (result.success) {
-        await get().getStatus(path);
-      } else {
-        set({ error: result.error });
-      }
-      return result.success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const commitResult = await githubService.commit(path, message, files);
+        if (commitResult.success) {
+          await get().getStatus(path);
+        } else {
+          throw new Error(commitResult.error || 'Failed to commit');
+        }
+        return commitResult.success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
+    return result ?? false;
   },
 
   push: async (path: string, remote = 'origin', branch?: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await githubService.push(path, remote, branch);
-      set({ isLoading: false });
-      if (!result.success) {
-        set({ error: result.error });
-      }
-      return result.success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const pushResult = await githubService.push(path, remote, branch);
+        if (!pushResult.success) {
+          throw new Error(pushResult.error || 'Failed to push');
+        }
+        return pushResult.success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
+    return result ?? false;
   },
 
   pull: async (path: string, remote = 'origin', branch?: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await githubService.pull(path, remote, branch);
-      set({ isLoading: false });
-      if (!result.success) {
-        set({ error: result.error });
-      }
-      return result.success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const pullResult = await githubService.pull(path, remote, branch);
+        if (!pullResult.success) {
+          throw new Error(pullResult.error || 'Failed to pull');
+        }
+        return pullResult.success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
+    return result ?? false;
   },
 
   createBranch: async (path: string, name: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await githubService.createBranch(path, name);
-      set({ isLoading: false });
-      if (result.success) {
-        await get().loadBranches(path);
-      } else {
-        set({ error: result.error });
-      }
-      return result.success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const branchResult = await githubService.createBranch(path, name);
+        if (branchResult.success) {
+          await get().loadBranches(path);
+        } else {
+          throw new Error(branchResult.error || 'Failed to create branch');
+        }
+        return branchResult.success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
+    return result ?? false;
   },
 
   checkoutBranch: async (path: string, name: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await githubService.checkoutBranch(path, name);
-      set({ isLoading: false });
-      if (result.success) {
-        await get().getStatus(path);
-        await get().loadBranches(path);
-      } else {
-        set({ error: result.error });
-      }
-      return result.success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const checkoutResult = await githubService.checkoutBranch(path, name);
+        if (checkoutResult.success) {
+          await get().getStatus(path);
+          await get().loadBranches(path);
+        } else {
+          throw new Error(checkoutResult.error || 'Failed to checkout branch');
+        }
+        return checkoutResult.success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
+    return result ?? false;
   },
 
   loadBranches: async (path: string) => {
-    try {
-      const branches = await githubService.getBranches(path);
-      set({ branches });
-    } catch (error) {
-      set({ error: (error as Error).message });
-    }
+    await withAsyncOperation(
+      async () => {
+        const branches = await githubService.getBranches(path);
+        set({ branches });
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      undefined,
+      undefined,
+      false, // Don't set loading state for branch loading
+      'runtime',
+      'githubStore'
+    );
   },
 
   createPullRequest: async (owner: string, repo: string, title: string, body: string, base: string, head: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await githubService.createPullRequest(owner, repo, title, body, base, head);
-      set({ isLoading: false });
-      if (result.success && result.pr) {
-        set((state) => ({
-          pullRequests: [...state.pullRequests, result.pr!],
-        }));
-        return result.pr;
-      }
-      set({ error: result.error });
-      return null;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return null;
-    }
+    return await withAsyncOperation(
+      async () => {
+        const prResult = await githubService.createPullRequest(owner, repo, title, body, base, head);
+        if (prResult.success && prResult.pr) {
+          set((state) => ({
+            pullRequests: [...state.pullRequests, prResult.pr!],
+          }));
+          return prResult.pr;
+        }
+        throw new Error(prResult.error || 'Failed to create pull request');
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
   },
 
   mergePullRequest: async (owner: string, repo: string, prNumber: number, method: 'merge' | 'squash' | 'rebase' = 'merge') => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await githubService.mergePullRequest(owner, repo, prNumber, method);
-      set({ isLoading: false });
-      if (result.success) {
-        set((state) => ({
-          pullRequests: state.pullRequests.map((pr) =>
-            pr.number === prNumber ? { ...pr, state: 'merged' as const } : pr
-          ),
-        }));
-      } else {
-        set({ error: result.error });
-      }
-      return result.success;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+    const result = await withAsyncOperation(
+      async () => {
+        const mergeResult = await githubService.mergePullRequest(owner, repo, prNumber, method);
+        if (mergeResult.success) {
+          set((state) => ({
+            pullRequests: state.pullRequests.map((pr) =>
+              pr.number === prNumber ? { ...pr, state: 'merged' as const } : pr
+            ),
+          }));
+        } else {
+          throw new Error(mergeResult.error || 'Failed to merge pull request');
+        }
+        return mergeResult.success;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'githubStore'
+    );
+    return result ?? false;
   },
 }));
 

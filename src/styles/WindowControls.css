@@ -1,0 +1,74 @@
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 40px;
+  -webkit-app-region: no-drag; /* Allow clicking buttons */
+  z-index: 10000;
+}
+
+.window-control-btn {
+  width: 46px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.window-control-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.minimize-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.maximize-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--red-400);
+}
+
+.window-control-btn:active {
+  opacity: 0.7;
+}
+
+/* Title bar draggable region */
+.title-bar-draggable {
+  -webkit-app-region: drag;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 138px; /* Only cover window controls + Itor toolbar width */
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 12px;
+  z-index: 9999;
+  background: transparent;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.title-bar-draggable > * {
+  -webkit-app-region: no-drag;
+  pointer-events: auto;
+}
+
+.window-controls {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+

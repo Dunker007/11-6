@@ -1,6 +1,13 @@
 import type { LLMModel, GenerateOptions, GenerateResponse, StreamChunk } from '@/types/llm';
 import type { LLMProvider } from './localLLM';
 
+interface OpenRouterModel {
+  id: string;
+  name: string;
+  context_length: number;
+  description: string;
+}
+
 export class OpenRouterProvider implements LLMProvider {
   name = 'OpenRouter';
   type: 'cloud' = 'cloud';
@@ -42,7 +49,7 @@ export class OpenRouterProvider implements LLMProvider {
       const models = Array.isArray(data.data) ? data.data : [];
 
       // Return a curated list of popular models
-      const curatedModels = models.filter((model: any) => 
+      const curatedModels = models.filter((model: OpenRouterModel) => 
         model.id.includes('gpt-4') ||
         model.id.includes('claude') ||
         model.id.includes('llama') ||
@@ -50,7 +57,7 @@ export class OpenRouterProvider implements LLMProvider {
         model.id.includes('qwen')
       ).slice(0, 20); // Limit to 20 most relevant
 
-      return curatedModels.map((model: any) => ({
+      return curatedModels.map((model: OpenRouterModel) => ({
         id: model.id,
         name: model.name || model.id,
         provider: this.determineProvider(model.id),

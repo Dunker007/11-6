@@ -100,6 +100,79 @@
 - [ ] Memory usage is reasonable
 - [ ] Smooth animations
 
+## Phase 4: Polish & Optimization Testing
+
+### Performance Optimizations
+- [ ] React.memo prevents unnecessary re-renders (check ActivityFeed, CommandHub, MetricCard)
+- [ ] useCallback optimizes event handlers (no function recreation on each render)
+- [ ] Zustand selectors use shallow equality (check store subscriptions)
+- [ ] Debouncing works on search inputs (ModelCatalog, IdeaList)
+- [ ] Debouncing works on API calls (LLMStatus refresh, APIKeyManager health checks)
+- [ ] Lazy loading works correctly (IdeaLab, CryptoLab, WealthLab, VibedEd, QuickLabs, Workflows)
+- [ ] Virtual scrolling works for long lists (if implemented)
+
+### Responsive Design
+- [ ] **Desktop (> 1024px)**: Full layout with sidebar and Command Hub visible
+- [ ] **Tablet (768px - 1024px)**:
+  - [ ] Sidebar width reduced to 160px
+  - [ ] Command Hub width adjusts to 280px (expanded) or 70px (collapsed)
+  - [ ] Tab buttons show labels with reduced padding
+  - [ ] Layout remains functional
+- [ ] **Mobile (< 768px)**:
+  - [ ] Sidebar hidden on mobile
+  - [ ] Single column layout
+  - [ ] Tab selector shows icons only (no labels)
+  - [ ] Tab selector scrolls horizontally
+  - [ ] Command Hub width adjusts to 240px (expanded) or 60px (collapsed)
+  - [ ] Container width adjusts dynamically based on Command Hub state
+- [ ] **Small Mobile (< 480px)**:
+  - [ ] Command Hub width adjusts to 200px (expanded) or 50px (collapsed)
+  - [ ] Container takes full width (margin-right: 0)
+  - [ ] All UI elements remain accessible
+- [ ] **Responsive Transitions**: Smooth width/margin transitions when resizing window
+- [ ] **Command Hub Collapse**: Works correctly at all breakpoints
+
+### Error Handling & Recovery
+- [ ] **Main Error Boundary (App.tsx)**:
+  - [ ] Displays user-friendly error message
+  - [ ] Shows recovery suggestions based on error type
+  - [ ] "Try Again" button resets error state
+  - [ ] "Reload Application" button refreshes page
+  - [ ] "Reset Application" button clears localStorage and reloads
+  - [ ] "Report Error" button copies error details to clipboard
+  - [ ] Error details expandable section shows stack trace
+- [ ] **Granular Error Boundaries**:
+  - [ ] Idea Lab error boundary catches and displays errors
+  - [ ] Vibed Ed error boundary catches and displays errors
+  - [ ] Crypto Lab error boundary catches and displays errors
+  - [ ] Wealth Lab error boundary catches and displays errors
+  - [ ] Workflows error boundary catches and displays errors
+  - [ ] Quick Labs error boundary catches and displays errors
+  - [ ] Studio error boundary catches and displays errors
+  - [ ] Each boundary shows section-specific error message
+  - [ ] "Try Again" button in granular boundaries resets that section
+- [ ] **Error Logging**: Errors are logged to errorLogger with proper context
+- [ ] **Error Recovery**: App continues functioning when one section fails
+
+### Animations & Transitions
+- [ ] Tab switching has smooth fade-in animation
+- [ ] Active tab has subtle scale animation
+- [ ] Loading states show spinner with slide-up-fade animation
+- [ ] Hover effects have smooth transitions
+- [ ] Command Hub collapse/expand is smooth
+- [ ] Container width transitions smoothly when Command Hub state changes
+- [ ] No janky animations or layout shifts
+
+### Code Quality
+- [ ] **JSDoc Documentation**:
+  - [ ] workflowEngine.ts has comprehensive JSDoc for all public methods
+  - [ ] aiServiceBridge.ts has comprehensive JSDoc for all methods
+  - [ ] agentPairService.ts has comprehensive JSDoc for workflow methods
+  - [ ] eventBus.ts has enhanced JSDoc with examples
+  - [ ] All methods have @param, @returns, @throws tags where applicable
+- [ ] **TypeScript**: No type errors (`npm run typecheck` passes)
+- [ ] **Linting**: No linting errors
+
 ## Next Steps After Testing
 
 1. Fix any bugs found
