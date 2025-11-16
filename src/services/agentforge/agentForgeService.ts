@@ -1,4 +1,5 @@
 import type { Agent, AgentConfig, AgentTemplate } from '@/types/agentforge';
+import { logger } from '@/services/logging/loggerService';
 
 const AGENTS_STORAGE_KEY = 'dlx_agents';
 const AGENT_TEMPLATES: AgentTemplate[] = [
@@ -10,8 +11,8 @@ const AGENT_TEMPLATES: AgentTemplate[] = [
     category: 'coding',
     config: {
       name: 'Code Assistant',
-      provider: 'lmstudio',
-      model: 'lmstudio-community/gemma-2b-it-GGUF', // Default model
+      provider: 'gemini',
+      model: 'gemini-2.0-flash-exp', // Default to Gemini Flash 2.5
       temperature: 0.7,
       systemPrompt: 'You are a helpful coding assistant.',
       capabilities: [],
@@ -26,8 +27,8 @@ const AGENT_TEMPLATES: AgentTemplate[] = [
     config: {
       name: 'Content Writer',
       provider: 'gemini',
-      model: 'gemini-pro', // Default model
-      temperature: 0.9,
+      model: 'gemini-2.0-flash-exp', // Default to Gemini Flash 2.5
+      temperature: 0.91, // Creative temperature for content writing
       systemPrompt: 'You are a creative content writer.',
       capabilities: [],
     },
@@ -40,8 +41,8 @@ const AGENT_TEMPLATES: AgentTemplate[] = [
     category: 'analysis',
     config: {
       name: 'Code Reviewer',
-      provider: 'ollama',
-      model: 'llama3', // Default model
+      provider: 'gemini',
+      model: 'gemini-2.0-flash-exp', // Default to Gemini Flash 2.5
       temperature: 0.3,
       systemPrompt: 'You are a thorough code reviewer.',
       capabilities: [],
@@ -79,7 +80,7 @@ export class AgentForgeService {
         });
       }
     } catch (error) {
-      console.error('Failed to load agents:', error);
+      logger.error('Failed to load agents:', { error });
     }
   }
 
@@ -87,7 +88,7 @@ export class AgentForgeService {
     try {
       localStorage.setItem(AGENTS_STORAGE_KEY, JSON.stringify(Array.from(this.agents.values())));
     } catch (error) {
-      console.error('Failed to save agents:', error);
+      logger.error('Failed to save agents:', { error });
     }
   }
 

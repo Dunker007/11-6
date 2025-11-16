@@ -1,10 +1,19 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { multiFileContextService } from '../../services/ai/multiFileContextService';
 import { useProjectStore } from '../../services/project/projectStore';
 import { useActivityStore } from '../../services/activity/activityStore';
 import TechIcon from '../Icons/TechIcon';
-import { Code, Sparkles, Copy, Check, FileText, Brain, Zap } from 'lucide-react';
+import {
+  Code,
+  Sparkles,
+  Copy,
+  Check,
+  FileText,
+  Brain,
+  Zap,
+  LucideIcon,
+} from 'lucide-react';
 import '../../styles/CodeGenerator.css';
 
 interface GenerationTemplate {
@@ -12,7 +21,7 @@ interface GenerationTemplate {
   name: string;
   description: string;
   category: 'component' | 'function' | 'class' | 'api' | 'test' | 'config';
-  icon: any;
+  icon: LucideIcon;
   prompt: string;
 }
 
@@ -67,18 +76,22 @@ const GENERATION_TEMPLATES: GenerationTemplate[] = [
   },
 ];
 
-function CodeGenerator() {
-  const { streamGenerate, isLoading } = useLLMStore();
+const CodeGenerator = memo(function CodeGenerator() {
+  const streamGenerate = useLLMStore((state) => state.streamGenerate);
+  const isLoading = useLLMStore((state) => state.isLoading);
   const { activeProject } = useProjectStore();
   const { addActivity } = useActivityStore();
-  
-  const [selectedTemplate, setSelectedTemplate] = useState<GenerationTemplate | null>(null);
+
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<GenerationTemplate | null>(null);
   const [userPrompt, setUserPrompt] = useState('');
   const [additionalContext, setAdditionalContext] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<'typescript' | 'javascript' | 'python'>('typescript');
+  const [selectedLanguage, setSelectedLanguage] = useState<
+    'typescript' | 'javascript' | 'python'
+  >('typescript');
 
   const handleGenerate = async () => {
     if (!selectedTemplate || !userPrompt.trim()) return;
@@ -90,19 +103,26 @@ function CodeGenerator() {
       // Build comprehensive prompt with project context
       let fullPrompt = `${selectedTemplate.prompt} ${userPrompt.trim()}.\n\n`;
       fullPrompt += `Language: ${selectedLanguage}\n`;
-      
+
       if (additionalContext.trim()) {
         fullPrompt += `Additional requirements: ${additionalContext.trim()}\n`;
       }
 
       // Add project context if available
       if (activeProject) {
-        const context = multiFileContextService.getProjectContext(activeProject.id);
+        const context = multiFileContextService.getProjectContext(
+          activeProject.id
+        );
         if (context) {
           const stats = multiFileContextService.getStats(activeProject.id);
-          fullPrompt += `\nProject context:\n`;
-          fullPrompt += `- Total files: ${stats?.totalFiles}\n`;
-          fullPrompt += `- Languages: ${Object.keys(stats?.languageDistribution || {}).join(', ')}\n`;
+          if (stats) {
+            fullPrompt += `\nProject context:\n`;
+            fullPrompt += `- Total files: ${stats.totalFiles}\n`;
+            const languages = Object.keys(stats.languageDistribution || {});
+            if (languages.length > 0) {
+              fullPrompt += `- Languages: ${languages.join(', ')}\n`;
+            }
+          }
         }
       }
 
@@ -116,12 +136,18 @@ function CodeGenerator() {
       // Stream generation
       let code = '';
       for await (const chunk of streamGenerate(fullPrompt)) {
-        code += chunk;
-        setGeneratedCode(code);
+        if (chunk.text) {
+          code += chunk.text;
+          setGeneratedCode(code);
+        }
       }
 
       // Track activity
-      addActivity('code', 'generated', `Generated ${selectedTemplate.name}: ${userPrompt.substring(0, 50)}`);
+      addActivity(
+        'code',
+        'generated',
+        `Generated ${selectedTemplate.name}: ${userPrompt.substring(0, 50)}`
+      );
     } catch (error) {
       console.error('Generation failed:', error);
       setGeneratedCode(`// Error: ${(error as Error).message}`);
@@ -220,16 +246,18 @@ function CodeGenerator() {
             <div className="form-group">
               <label>Target Language</label>
               <div className="language-selector">
-                {(['typescript', 'javascript', 'python'] as const).map((lang) => (
-                  <button
-                    key={lang}
-                    className={`lang-btn ${selectedLanguage === lang ? 'active' : ''}`}
-                    onClick={() => setSelectedLanguage(lang)}
-                    disabled={isGenerating}
-                  >
-                    {lang}
-                  </button>
-                ))}
+                {(['typescript', 'javascript', 'python'] as const).map(
+                  (lang) => (
+                    <button
+                      key={lang}
+                      className={`lang-btn ${selectedLanguage === lang ? 'active' : ''}`}
+                      onClick={() => setSelectedLanguage(lang)}
+                      disabled={isGenerating}
+                    >
+                      {lang}
+                    </button>
+                  )
+                )}
               </div>
             </div>
 
@@ -238,11 +266,11 @@ function CodeGenerator() {
               onClick={handleGenerate}
               disabled={!userPrompt.trim() || isGenerating || isLoading}
             >
-              <TechIcon 
-                icon={Sparkles} 
-                size={20} 
-                glow="cyan" 
-                animated={isGenerating || isLoading} 
+              <TechIcon
+                icon={Sparkles}
+                size={20}
+                glow="cyan"
+                animated={isGenerating || isLoading}
               />
               <span>{isGenerating ? 'Generating...' : 'Generate Code'}</span>
             </button>
@@ -257,10 +285,10 @@ function CodeGenerator() {
                   onClick={handleCopy}
                   title="Copy to clipboard"
                 >
-                  <TechIcon 
-                    icon={copied ? Check : Copy} 
-                    size={18} 
-                    glow={copied ? 'cyan' : 'none'} 
+                  <TechIcon
+                    icon={copied ? Check : Copy}
+                    size={18}
+                    glow={copied ? 'cyan' : 'none'}
                   />
                 </button>
               </div>
@@ -277,7 +305,6 @@ function CodeGenerator() {
       )}
     </div>
   );
-}
+});
 
 export default CodeGenerator;
-

@@ -1,0 +1,44 @@
+.codeflow-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+}
+
+.codeflow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-secondary, #1a1f2e);
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+}
+
+.codeflow-header h3 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary, #ffffff);
+}
+
+.codeflow-close {
+  border: none;
+  background: transparent;
+  color: var(--text-primary, #ffffff);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.codeflow-canvas {
+  flex: 1;
+  background: var(--bg-primary, #0a0e1a);
+}
+
+.codeflow-node:hover circle {
+  filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.4));
+}
+
+

@@ -1,0 +1,228 @@
+/* Insights Stream Styles */
+
+.insights-stream {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.insights-stream-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-light);
+}
+
+.insights-stream-header h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.insights-stream-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.clear-btn,
+.close-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-btn:hover,
+.close-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.insights-stream-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.insights-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.insights-empty svg {
+  opacity: 0.5;
+  margin-bottom: 0.5rem;
+}
+
+.insights-empty p {
+  margin: 0.5rem 0 0.25rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.insights-empty span {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.insights-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.insight-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-light);
+  border-left: 3px solid;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.insight-item:hover {
+  background: var(--bg-primary);
+  transform: translateX(2px);
+}
+
+.insight-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.125rem;
+}
+
+.insight-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.insight-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.insight-agent {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.insight-timestamp {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.insight-message {
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.insight-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.detail-item {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 0.125rem 0.375rem;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.detail-item.status-running {
+  color: var(--accent-cyan);
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.detail-item.status-completed {
+  color: var(--accent-green);
+  background: rgba(52, 211, 153, 0.1);
+}
+
+.detail-item.status-error,
+.detail-item.error {
+  color: var(--accent-red);
+  background: rgba(255, 64, 64, 0.1);
+}
+
+/* Type-specific styling */
+.insight-agent-activity {
+  border-left-color: var(--accent-cyan);
+}
+
+.insight-code-vibe {
+  border-left-color: var(--accent-violet);
+}
+
+.insight-plan-event {
+  border-left-color: var(--accent-blue);
+}
+
+.insight-code-review {
+  border-left-color: var(--accent-blue);
+}
+
+.insight-file-change {
+  border-left-color: var(--accent-green);
+}
+
+.insight-command-output {
+  border-left-color: var(--text-secondary);
+}
+
+.insight-system-alert {
+  border-left-color: var(--accent-red);
+}
+
+/* Scrollbar styling */
+.insights-stream-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.insights-stream-content::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.insights-stream-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.insights-stream-content::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+

@@ -3,10 +3,11 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { errorLogger } from './services/errors/errorLogger';
 import { consoleInterceptor } from './services/errors/consoleInterceptor';
+import { logger } from './services/logging/loggerService';
 import './styles/index.css';
 
 // Initialize error capture system
-console.log('🔍 Error Capture System: Initializing...');
+logger.info('🔍 Error Capture System: Initializing...');
 
 // Activate console interceptor
 consoleInterceptor.activate();
@@ -63,7 +64,7 @@ window.addEventListener('error', (event) => {
   }
 }, true);
 
-console.log('✅ Error Capture System: Active');
+logger.info('✅ Error Capture System: Active');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

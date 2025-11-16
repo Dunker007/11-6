@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import type { ThemeColors } from '@/types/theme';
-import '../../styles/ColorCustomizer.css';
+import { Save, X, RotateCcw } from 'lucide-react';
 
 interface ColorCustomizerProps {
   colors: ThemeColors;
@@ -9,82 +10,72 @@ interface ColorCustomizerProps {
   onCancel: () => void;
 }
 
-function ColorCustomizer({ colors, onChange, onSave, onReset, onCancel }: ColorCustomizerProps) {
-  const colorGroups = [
-    {
-      label: 'Primary Colors',
-      colors: [
-        { key: 'violet500' as const, label: 'Violet 500' },
-        { key: 'violet600' as const, label: 'Violet 600' },
-        { key: 'cyan500' as const, label: 'Cyan 500' },
-        { key: 'cyan600' as const, label: 'Cyan 600' },
-        { key: 'amber500' as const, label: 'Amber 500' },
-      ],
-    },
-    {
-      label: 'Background',
-      colors: [
-        { key: 'bgPrimary' as const, label: 'Primary' },
-        { key: 'bgSecondary' as const, label: 'Secondary' },
-        { key: 'bgTertiary' as const, label: 'Tertiary' },
-      ],
-    },
-    {
-      label: 'Text',
-      colors: [
-        { key: 'textPrimary' as const, label: 'Primary' },
-        { key: 'textSecondary' as const, label: 'Secondary' },
-        { key: 'textMuted' as const, label: 'Muted' },
-      ],
-    },
+function ColorCustomizer({
+  colors,
+  onChange,
+  onSave,
+  onReset,
+  onCancel,
+}: ColorCustomizerProps) {
+  const [localColors, setLocalColors] = useState<ThemeColors>(colors);
+
+  const handleColorChange = (key: keyof ThemeColors, value: string) => {
+    setLocalColors((prev) => ({ ...prev, [key]: value }));
+    onChange(key, value);
+  };
+
+  const colorKeys: Array<keyof ThemeColors> = [
+    'violet500',
+    'cyan500',
+    'amber500',
+    'bgPrimary',
+    'bgSecondary',
+    'textPrimary',
+    'textSecondary',
   ];
 
   return (
     <div className="color-customizer">
       <div className="customizer-header">
         <h3>Customize Colors</h3>
-        <p>Adjust colors to create your perfect theme</p>
+        <p>Adjust theme colors to match your preferences</p>
       </div>
 
-      <div className="customizer-content">
-        {colorGroups.map((group) => (
-          <div key={group.label} className="color-group">
-            <h4>{group.label}</h4>
-            <div className="color-inputs">
-              {group.colors.map(({ key, label }) => (
-                <div key={key} className="color-input">
-                  <label>{label}</label>
-                  <div className="color-picker-wrapper">
-                    <input
-                      type="color"
-                      value={colors[key]}
-                      onChange={(e) => onChange(key, e.target.value)}
-                      className="color-picker"
-                    />
-                    <input
-                      type="text"
-                      value={colors[key]}
-                      onChange={(e) => onChange(key, e.target.value)}
-                      className="color-text"
-                    />
-                  </div>
-                </div>
-              ))}
+      <div className="color-inputs">
+        {colorKeys.map((key) => (
+          <div key={key} className="color-input-group">
+            <label htmlFor={key}>{key}</label>
+            <div className="color-input-wrapper">
+              <input
+                type="color"
+                id={key}
+                value={localColors[key]}
+                onChange={(e) => handleColorChange(key, e.target.value)}
+              />
+              <input
+                type="text"
+                value={localColors[key]}
+                onChange={(e) => handleColorChange(key, e.target.value)}
+                className="color-text-input"
+              />
             </div>
           </div>
         ))}
+      </div>
 
-        <div className="customizer-actions">
-          <button className="action-btn save" onClick={onSave}>
-            Save Custom Theme
-          </button>
-          <button className="action-btn reset" onClick={onReset}>
-            Reset Changes
-          </button>
-          <button className="action-btn cancel" onClick={onCancel}>
-            Cancel
-          </button>
-        </div>
+      <div className="customizer-actions">
+        <button className="action-btn save" onClick={onSave}>
+          <Save size={16} />
+          Save Theme
+        </button>
+        <button className="action-btn reset" onClick={onReset}>
+          <RotateCcw size={16} />
+          Reset
+        </button>
+        <button className="action-btn cancel" onClick={onCancel}>
+          <X size={16} />
+          Cancel
+        </button>
       </div>
     </div>
   );

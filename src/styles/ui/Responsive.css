@@ -1,0 +1,200 @@
+/* Responsive Design Enhancements */
+
+/* Screen size data attribute based styles */
+.mockup-container[data-screen-size="mobile"] {
+  --left-panel-width: 0px;
+  --right-panel-width: 0px;
+}
+
+.mockup-container[data-screen-size="mobile"] .mockup-main-layout {
+  grid-template-columns: 1fr !important;
+}
+
+.mockup-container[data-screen-size="mobile"] .mockup-sidebar {
+  display: none;
+}
+
+.mockup-container[data-screen-size="mobile"] .tab-btn-large span:not(.tab-shortcut-hint) {
+  display: none;
+}
+
+.mockup-container[data-screen-size="mobile"] .tab-btn-large {
+  min-width: 48px;
+  padding: var(--spacing-2);
+  justify-content: center;
+}
+
+.mockup-container[data-screen-size="tablet"] {
+  --left-panel-width: 240px;
+  --right-panel-width: 0px;
+}
+
+.mockup-container[data-screen-size="tablet"] .mockup-main-layout {
+  grid-template-columns: var(--left-panel-width) 1fr;
+}
+
+.mockup-container[data-screen-size="tablet"] .mockup-sidebar.right {
+  display: none;
+}
+
+.mockup-container[data-screen-size="desktop"] {
+  --left-panel-width: 280px;
+  --right-panel-width: 450px;
+}
+
+.mockup-container[data-screen-size="large-desktop"] {
+  --left-panel-width: 320px;
+  --right-panel-width: 500px;
+  max-width: 100%;
+  margin: 0;
+  width: 100%;
+}
+
+/* Mobile First Approach */
+@media (max-width: 480px) {
+  /* Mobile - Extra Small Screens */
+  :root {
+    --left-panel-width: 0px;
+    --right-panel-width: 0px;
+  }
+
+  .mockup-container {
+    padding: var(--spacing-2);
+  }
+
+  .mockup-main-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mockup-sidebar {
+    display: none;
+  }
+
+  .mockup-center {
+    padding: var(--spacing-3);
+  }
+
+  /* Hide text labels on mobile, show icons only */
+  .tab-btn-large span:not(.tab-shortcut-hint) {
+    display: none;
+  }
+
+  .tab-btn-large {
+    min-width: 48px;
+    padding: var(--spacing-2);
+    justify-content: center;
+  }
+
+  .tab-shortcut-hint {
+    display: none;
+  }
+
+  /* Stack cards vertically */
+  .card-grid,
+  .grid-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce font sizes */
+  h1 { font-size: var(--font-size-2xl); }
+  h2 { font-size: var(--font-size-xl); }
+  h3 { font-size: var(--font-size-lg); }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* Tablet - Small Screens */
+  :root {
+    --left-panel-width: 200px;
+    --right-panel-width: 0px;
+  }
+
+  .mockup-main-layout {
+    grid-template-columns: var(--left-panel-width) 1fr;
+  }
+
+  .mockup-sidebar.right {
+    display: none;
+  }
+
+  .tab-btn-large {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+
+  .tab-btn-large span:not(.tab-shortcut-hint) {
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet - Medium Screens */
+  :root {
+    --left-panel-width: 240px;
+    --right-panel-width: 300px;
+  }
+
+  .mockup-main-layout {
+    grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop - Large Screens */
+  :root {
+    --left-panel-width: 280px;
+    --right-panel-width: 450px;
+  }
+
+  .mockup-main-layout {
+    grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
+  }
+}
+
+@media (min-width: 1440px) {
+  /* Large Desktop - Extra Large Screens */
+  .mockup-container {
+    max-width: 100%;
+    margin: 0;
+    width: 100%;
+  }
+}
+
+/* Touch-friendly targets on mobile */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  .clickable,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .tab-btn-large {
+    min-height: 48px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mockup-top-bar {
+    padding: var(--spacing-2);
+  }
+
+  .tab-selector {
+    gap: var(--spacing-1);
+  }
+}
+
+/* Print styles */
+@media print {
+  .mockup-sidebar,
+  .tab-selector,
+  .skip-link {
+    display: none !important;
+  }
+
+  .mockup-center {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+

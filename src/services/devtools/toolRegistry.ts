@@ -7,6 +7,8 @@ export interface DevTool {
   installCommand?: string; // Command to install
   versionCommand?: string; // Command to get version
   website?: string;
+  updateCheckUrl?: string; // URL or API endpoint to check for latest version
+  updateCheckType?: 'api' | 'github' | 'npm' | 'pypi' | 'docker'; // Type of update check
   isInstalled: boolean;
   version?: string;
   autoInstall: boolean; // Should auto-install on first run
@@ -23,6 +25,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'winget install Git.Git',
     versionCommand: 'git --version',
     website: 'https://git-scm.com',
+    updateCheckUrl: 'https://api.github.com/repos/git/git/releases/latest',
+    updateCheckType: 'github',
     isInstalled: false,
     autoInstall: true,
   },
@@ -35,6 +39,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'winget install GitHub.cli',
     versionCommand: 'gh --version',
     website: 'https://cli.github.com',
+    updateCheckUrl: 'https://api.github.com/repos/cli/cli/releases/latest',
+    updateCheckType: 'github',
     isInstalled: false,
     autoInstall: true,
   },
@@ -48,6 +54,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'winget install OpenJS.NodeJS.LTS',
     versionCommand: 'node --version',
     website: 'https://nodejs.org',
+    updateCheckUrl: 'https://nodejs.org/dist/index.json',
+    updateCheckType: 'api',
     isInstalled: false,
     autoInstall: true,
   },
@@ -60,6 +68,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'winget install Python.Python.3.12',
     versionCommand: 'python --version',
     website: 'https://python.org',
+    updateCheckUrl: 'https://api.github.com/repos/python/cpython/releases/latest',
+    updateCheckType: 'github',
     isInstalled: false,
     autoInstall: true,
   },
@@ -72,6 +82,8 @@ export const DEV_TOOLS: DevTool[] = [
     command: 'npm --version',
     versionCommand: 'npm --version',
     website: 'https://npmjs.com',
+    updateCheckUrl: 'https://registry.npmjs.org/npm/latest',
+    updateCheckType: 'npm',
     isInstalled: false,
     autoInstall: false, // Comes with Node.js
   },
@@ -84,6 +96,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'npm install -g yarn',
     versionCommand: 'yarn --version',
     website: 'https://yarnpkg.com',
+    updateCheckUrl: 'https://registry.npmjs.org/yarn/latest',
+    updateCheckType: 'npm',
     isInstalled: false,
     autoInstall: true,
   },
@@ -96,6 +110,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'npm install -g pnpm',
     versionCommand: 'pnpm --version',
     website: 'https://pnpm.io',
+    updateCheckUrl: 'https://registry.npmjs.org/pnpm/latest',
+    updateCheckType: 'npm',
     isInstalled: false,
     autoInstall: true,
   },
@@ -109,6 +125,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'winget install Docker.DockerDesktop',
     versionCommand: 'docker --version',
     website: 'https://docker.com',
+    updateCheckUrl: 'https://api.github.com/repos/docker/docker-ce/releases/latest',
+    updateCheckType: 'github',
     isInstalled: false,
     autoInstall: true,
   },
@@ -122,6 +140,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'npm install -g vite',
     versionCommand: 'vite --version',
     website: 'https://vitejs.dev',
+    updateCheckUrl: 'https://registry.npmjs.org/vite/latest',
+    updateCheckType: 'npm',
     isInstalled: false,
     autoInstall: false,
   },
@@ -135,6 +155,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'npm install -g vitest',
     versionCommand: 'vitest --version',
     website: 'https://vitest.dev',
+    updateCheckUrl: 'https://registry.npmjs.org/vitest/latest',
+    updateCheckType: 'npm',
     isInstalled: false,
     autoInstall: false,
   },
@@ -147,6 +169,8 @@ export const DEV_TOOLS: DevTool[] = [
     installCommand: 'npm install -g playwright',
     versionCommand: 'playwright --version',
     website: 'https://playwright.dev',
+    updateCheckUrl: 'https://registry.npmjs.org/playwright/latest',
+    updateCheckType: 'npm',
     isInstalled: false,
     autoInstall: false,
   },

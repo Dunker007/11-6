@@ -1,5 +1,5 @@
 // src/components/RightPanel/AddIdeaModal.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useProjectStore } from '../../services/project/projectStore';
 import TechIcon from '../Icons/TechIcon';
 import { ICON_MAP } from '../Icons/IconSet';

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useCreatorStore } from '../../services/creator/creatorStore';
 import { useActivityStore } from '../../services/activity/activityStore';
 import TechIcon from '../Icons/TechIcon';
-import { PenTool, Plus, FileText, Book, Library, Save, Download, Eye } from 'lucide-react';
+import { PenTool, Plus, FileText, Book, Library } from 'lucide-react';
 import '../../styles/Creator.css';
 
 function Creator() {

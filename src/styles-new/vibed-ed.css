@@ -1,0 +1,429 @@
+/* ===============================================
+   VIBED ED - Personality Overlay Layer
+   Meme Coin + Laid-Back Styling
+   =============================================== */
+
+/* Laid-Back Color Palette */
+:root {
+  --vibed-orange: #ff8c42;
+  --crypto-gold: #ffd700;
+  --neon-cyan: #00ffff;
+  --neon-pink: #ff00ff;
+  --meme-purple: #9333ea;
+  --meme-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+  --meme-gradient: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+}
+
+/* ===============================================
+   VIBED ED AVATAR - The Sleeper Mascot
+   =============================================== */
+
+.vibed-ed-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.avatar-tiny {
+  width: 20px;
+  height: 20px;
+}
+
+.avatar-small {
+  width: 32px;
+  height: 32px;
+}
+
+.avatar-medium {
+  width: 48px;
+  height: 48px;
+}
+
+.avatar-large {
+  width: 64px;
+  height: 64px;
+}
+
+.avatar-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--meme-gradient);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--meme-shadow);
+}
+
+.avatar-head {
+  position: relative;
+  width: 70%;
+  height: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 40% 40% 50% 50%;
+}
+
+.avatar-eye {
+  width: 4px;
+  height: 4px;
+  background: var(--crypto-gold);
+  border-radius: 50%;
+  margin: 1px;
+  box-shadow: 0 0 4px var(--crypto-gold);
+}
+
+.left-eye {
+  position: absolute;
+  left: 30%;
+  top: 35%;
+}
+
+.right-eye {
+  position: absolute;
+  right: 30%;
+  top: 35%;
+}
+
+.avatar-mouth {
+  position: absolute;
+  bottom: 25%;
+  font-size: 6px;
+  color: var(--text-primary);
+  opacity: 0.8;
+}
+
+.avatar-body-shape {
+  position: absolute;
+  bottom: 15%;
+  width: 80%;
+  height: 35%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.avatar-circuit-top,
+.avatar-circuit-middle,
+.avatar-circuit-bottom {
+  height: 2px;
+  background: var(--neon-cyan);
+  border-radius: 1px;
+  box-shadow: 0 0 3px var(--neon-cyan);
+}
+
+.avatar-circuit-top {
+  width: 60%;
+  align-self: flex-start;
+}
+
+.avatar-circuit-middle {
+  width: 70%;
+  align-self: center;
+}
+
+.avatar-circuit-bottom {
+  width: 50%;
+  align-self: flex-end;
+}
+
+.avatar-glow {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  right: -10%;
+  bottom: -10%;
+  border-radius: 50%;
+  background: var(--meme-gradient);
+  opacity: 0.3;
+  filter: blur(8px);
+  z-index: -1;
+}
+
+.animated .avatar-glow {
+  animation: avatar-pulse 2s ease-in-out infinite;
+}
+
+@keyframes avatar-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+.vibed-ed-avatar:hover {
+  transform: scale(1.05);
+}
+
+/* ===============================================
+   VIBED ED CHAT - Laid-Back Personality
+   =============================================== */
+
+.vibed-ed-chat {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 380px;
+  height: 500px;
+  background: var(--bg-secondary);
+  border: 2px solid;
+  border-image: var(--meme-gradient) 1;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl), var(--meme-shadow);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: linear-gradient(135deg,
+    rgba(255, 107, 107, 0.1),
+    rgba(78, 205, 196, 0.1)
+  );
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-title {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-title .name {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.chat-title .status {
+  font-size: var(--font-size-xs);
+  color: var(--accent-success);
+}
+
+.minimize-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+}
+
+.minimize-button:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Messages */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.message {
+  display: flex;
+  gap: var(--spacing-sm);
+  max-width: 80%;
+}
+
+.user-message {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.ed-message {
+  align-self: flex-start;
+}
+
+.message-content {
+  background: var(--bg-tertiary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  position: relative;
+}
+
+.user-message .message-content {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+}
+
+.ed-message .message-content {
+  background: linear-gradient(135deg,
+    rgba(255, 107, 107, 0.1),
+    rgba(78, 205, 196, 0.1)
+  );
+  border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+.message-text {
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+.message-time {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: var(--spacing-xs);
+  opacity: 0.7;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.typing-indicator span {
+  width: 4px;
+  height: 4px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  animation: typing-dot 1.4s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+  30% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Chat Input */
+.chat-input {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-input input {
+  flex: 1;
+  background: var(--bg-tertiary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.chat-input input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+}
+
+.send-button {
+  background: var(--meme-gradient);
+  border: none;
+  border-radius: var(--radius-md);
+  width: 40px;
+  height: 40px;
+  color: white;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: var(--meme-shadow);
+}
+
+.send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===============================================
+   MINIMIZED CHAT - Floating Ed
+   =============================================== */
+
+.vibed-ed-minimized {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: var(--meme-gradient);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-xl), var(--meme-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-normal);
+  z-index: 1000;
+}
+
+.vibed-ed-minimized:hover {
+  transform: scale(1.1);
+}
+
+.minimized-indicator {
+  position: relative;
+}
+
+.notification-dot {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 12px;
+  height: 12px;
+  background: var(--accent-error);
+  border-radius: 50%;
+  border: 2px solid var(--bg-primary);
+  animation: notification-pulse 2s ease-in-out infinite;
+}
+
+@keyframes notification-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+/* ===============================================
+   RESPONSIVE ADJUSTMENTS
+   =============================================== */
+
+@media (max-width: 768px) {
+  .vibed-ed-chat {
+    width: calc(100vw - 40px);
+    height: 400px;
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .vibed-ed-minimized {
+    bottom: 10px;
+    right: 10px;
+  }
+}

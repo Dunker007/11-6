@@ -24,7 +24,8 @@ function UserProfile() {
 
     if (profile) {
       const updated = userProfileService.updateProfile({
-        legalInitials: (formData.get('legalInitials') as string) || profile.legalInitials,
+        legalInitials:
+          (formData.get('legalInitials') as string) || profile.legalInitials,
         zipCode: (formData.get('zipCode') as string) || profile.zipCode,
         fullName: (formData.get('fullName') as string) || undefined,
         email: (formData.get('email') as string) || undefined,
@@ -112,8 +113,14 @@ function UserProfile() {
           </div>
 
           <div className="form-actions">
-            <button type="submit" className="save-btn">Save</button>
-            <button type="button" onClick={() => setIsEditing(false)} className="cancel-btn">
+            <button type="submit" className="save-btn">
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="cancel-btn"
+            >
               Cancel
             </button>
           </div>
@@ -148,11 +155,15 @@ function UserProfile() {
           )}
           <div className="profile-meta">
             <span className="meta-label">Profile Created:</span>
-            <span className="meta-value">{profile.createdAt.toLocaleDateString()}</span>
+            <span className="meta-value">
+              {profile.createdAt.toLocaleDateString()}
+            </span>
           </div>
           <div className="profile-meta">
             <span className="meta-label">Last Updated:</span>
-            <span className="meta-value">{profile.updatedAt.toLocaleDateString()}</span>
+            <span className="meta-value">
+              {profile.updatedAt.toLocaleDateString()}
+            </span>
           </div>
         </div>
       )}
@@ -161,4 +172,3 @@ function UserProfile() {
 }
 
 export default UserProfile;
-

@@ -1,0 +1,7 @@
+/* AI Tab Completion Ghost Text */
+.ai-tab-completion-ghost {
+  color: var(--text-secondary, #888);
+  opacity: 0.6;
+  font-style: italic;
+}
+

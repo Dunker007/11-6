@@ -1,6 +1,8 @@
 import type * as Monaco from 'monaco-editor';
 import { multiFileContextService } from '../ai/multiFileContextService';
 import { useLLMStore } from '../ai/llmStore';
+import { llmRouter } from '../ai/router';
+import { logger } from '../logging/loggerService';
 
 export interface CompletionContext {
   projectId: string;
@@ -19,7 +21,7 @@ export interface SmartCompletion {
   insertText: string;
   sortText?: string;
   filterText?: string;
-  range?: any;
+  range?: Monaco.IRange | Monaco.languages.CompletionItemRanges;
 }
 
 class MonacoCompletionsProvider {
@@ -134,7 +136,7 @@ class MonacoCompletionsProvider {
    */
   private async getImportCompletions(
     context: CompletionContext,
-    range: any
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Promise<Monaco.languages.CompletionItem[]> {
     if (!this.monaco || !context.projectId) return [];
 
@@ -178,7 +180,7 @@ class MonacoCompletionsProvider {
    */
   private async getMemberCompletions(
     context: CompletionContext,
-    range: any
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Promise<Monaco.languages.CompletionItem[]> {
     if (!this.monaco) return [];
 
@@ -217,7 +219,7 @@ class MonacoCompletionsProvider {
    */
   private async getSymbolCompletions(
     context: CompletionContext,
-    range: any
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Promise<Monaco.languages.CompletionItem[]> {
     if (!this.monaco || !context.projectId) return [];
 
@@ -268,12 +270,16 @@ class MonacoCompletionsProvider {
    */
   private getSnippetCompletions(
     language: string,
-    context: CompletionContext,
-    range: any
+    _context: CompletionContext,
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Monaco.languages.CompletionItem[] {
     if (!this.monaco) return [];
 
-    const snippets: Record<string, any[]> = {
+    const snippets: Record<string, Array<{
+      label: string;
+      insertText: string;
+      detail: string;
+    }>> = {
       typescript: [
         {
           label: 'function',
@@ -297,7 +303,7 @@ class MonacoCompletionsProvider {
         },
         {
           label: 'try',
-          insertText: 'try {\n\t$0\n} catch (error) {\n\tconsole.error(error);\n}',
+          insertText: 'try {\n\t$0\n} catch (error) {\n\tlogger.error(error);\n}',
           detail: 'Try-catch block',
         },
       ],
@@ -341,7 +347,7 @@ class MonacoCompletionsProvider {
    */
   private async getAICompletions(
     context: CompletionContext,
-    range: any
+    range: Monaco.IRange | Monaco.languages.CompletionItemRanges
   ): Promise<Monaco.languages.CompletionItem[]> {
     if (!this.monaco) return [];
 
@@ -351,46 +357,121 @@ class MonacoCompletionsProvider {
       return [];
     }
 
-    // Only trigger AI completions in specific contexts
+    // Only trigger AI completions in specific contexts to avoid excessive API calls
     const shouldTriggerAI = 
-      context.currentLine.includes('function') ||
-      context.currentLine.includes('const') ||
-      context.currentLine.includes('//') ||
-      context.previousLines.some(line => line.includes('TODO'));
+      context.currentLine.trim().length > 3 && // At least some context
+      (context.currentLine.includes('function') ||
+       context.currentLine.includes('const') ||
+       context.currentLine.includes('let') ||
+       context.currentLine.includes('var') ||
+       context.currentLine.includes('if') ||
+       context.currentLine.includes('for') ||
+       context.currentLine.includes('while') ||
+       context.previousLines.length > 2); // Has some context
 
     if (!shouldTriggerAI) {
       return [];
     }
 
-    // Build prompt for AI completion
-    const prompt = this.buildAIPrompt(context);
-    
     try {
-      // In real implementation, would call LLM for suggestions
-      // For now, return placeholder
+      // Build prompt for AI completion
+      const prompt = this.buildAIPrompt(context);
+      
+      // Get AI suggestion with low temperature for more deterministic completions
+      const response = await llmRouter.generate(prompt, {
+        temperature: 0.3, // Lower temperature for code completion
+        maxTokens: 100, // Limit token count for completions
+      });
+
+      if (!response.success || !response.text) {
+        return [];
+      }
+
+      // Parse the completion
+      const completion = this.parseAICompletion(response.text, context);
+      
+      if (!completion || completion.trim().length === 0) {
+        return [];
+      }
+
+      // Return AI completion suggestion
       return [{
-        label: '✨ AI Suggestion',
-        kind: this.monaco!.languages.CompletionItemKind.Text,
-        detail: 'AI-powered completion',
-        insertText: '// AI completion would appear here',
-        documentation: 'Press Tab to accept',
+        label: '✨ AI: ' + completion.substring(0, 30) + (completion.length > 30 ? '...' : ''),
+        kind: this.monaco!.languages.CompletionItemKind.Snippet,
+        detail: 'AI-powered code completion',
+        insertText: completion,
+        documentation: 'AI-generated code suggestion based on context',
         range,
+        sortText: '0', // Prioritize AI suggestions
+        preselect: false,
       }];
     } catch (error) {
-      console.error('AI completion failed:', error);
+      // Silently fail - don't block editor if AI is unavailable
+      logger.debug('AI completion failed:', { error });
       return [];
     }
   }
 
   /**
-   * Build prompt for AI completions
+   * Build prompt for AI completion
    */
   private buildAIPrompt(context: CompletionContext): string {
-    let prompt = `Language: ${context.fileLanguage}\n\n`;
-    prompt += `Context:\n${context.previousLines.join('\n')}\n\n`;
-    prompt += `Current line: ${context.currentLine}\n\n`;
-    prompt += `Complete the code naturally and concisely.`;
+    const previousContext = context.previousLines.slice(-10).join('\n');
+    const currentLinePrefix = context.currentLine.trim();
+    
+    // Build context-aware prompt
+    let prompt = `You are a code completion assistant. Complete the next line of code based on the context.\n\n`;
+    
+    if (previousContext) {
+      prompt += `Previous code:\n${previousContext}\n\n`;
+    }
+    
+    prompt += `Current line (incomplete): ${currentLinePrefix}\n\n`;
+    prompt += `Provide only the completion for the current line. Do not repeat the existing code. Return only the code that should be inserted, without explanations.`;
+    
     return prompt;
+  }
+
+  /**
+   * Parse AI completion response
+   */
+  private parseAICompletion(response: string, context: CompletionContext): string {
+    // Clean up the response
+    let completion = response.trim();
+    
+    // Remove code block markers if present
+    completion = completion.replace(/^```[\w]*\n?/g, '').replace(/\n?```$/g, '');
+    
+    // Remove explanations or comments that might be in the response
+    const lines = completion.split('\n');
+    const codeLines = lines.filter(line => {
+      const trimmed = line.trim();
+      // Filter out lines that look like explanations
+      return !trimmed.startsWith('//') && 
+             !trimmed.startsWith('#') && 
+             !trimmed.toLowerCase().startsWith('here') &&
+             !trimmed.toLowerCase().startsWith('this') &&
+             trimmed.length > 0;
+    });
+    
+    completion = codeLines.join('\n').trim();
+    
+    // If we have multiple lines, take the first meaningful one
+    if (completion.includes('\n')) {
+      const firstLine = completion.split('\n')[0].trim();
+      // Only use first line if it's a complete statement
+      if (firstLine.endsWith(';') || firstLine.endsWith('{') || firstLine.endsWith('}')) {
+        completion = firstLine;
+      }
+    }
+    
+    // Remove the prefix that's already in the current line
+    const currentPrefix = context.currentLine.trim();
+    if (completion.startsWith(currentPrefix)) {
+      completion = completion.substring(currentPrefix.length).trim();
+    }
+    
+    return completion;
   }
 
   /**

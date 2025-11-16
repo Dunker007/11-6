@@ -5,9 +5,9 @@ import ThemeSelector from './ThemeSelector';
 import ColorCustomizer from './ColorCustomizer';
 import LayoutMockupSelector, { type MockupType } from './LayoutMockupSelector';
 import MockupPreviewModal from './Mockups/MockupPreviewModal';
-import CommandCenterMockup from './Mockups/CommandCenterMockup';
-import DesktopExperienceMockup from './Mockups/DesktopExperienceMockup';
-import AIOSModeMockup from './Mockups/AIOSModeMockup';
+import StudioHubMockup from './Mockups/StudioHubMockup';
+import LLMRevenueCommandCenter from '../LLMOptimizer/LLMRevenueCommandCenter';
+import BoltAIWorkspaceMockup from './Mockups/BoltAIWorkspaceMockup';
 import '../../styles/LayoutPlayground.css';
 
 type PlaygroundTab = 'themes' | 'layouts';
@@ -199,9 +199,9 @@ function LayoutPlayground() {
           onClose={handleCloseMockup}
           onNavigate={handlePreviewMockup}
         >
-          {previewMockup === 'command-center' && <CommandCenterMockup />}
-          {previewMockup === 'desktop-experience' && <DesktopExperienceMockup />}
-          {previewMockup === 'ai-os' && <AIOSModeMockup />}
+          {previewMockup === 'studio-hub' && <StudioHubMockup />}
+          {previewMockup === 'llm-revenue-command-center' && <LLMRevenueCommandCenter />}
+          {previewMockup === 'bolt-ai-workspace' && <BoltAIWorkspaceMockup />}
         </MockupPreviewModal>
       )}
     </div>

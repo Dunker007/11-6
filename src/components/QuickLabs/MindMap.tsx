@@ -3,7 +3,7 @@ import { useMindMapStore } from '../../services/mindmap/mindMapStore';
 import { useActivityStore } from '../../services/activity/activityStore';
 import type { MindMapNode } from '@/types/mindmap';
 import TechIcon from '../Icons/TechIcon';
-import { Network, Plus, Brain, Lightbulb, Target, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
+import { Network, Plus, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
 import '../../styles/MindMap.css';
 
 function MindMap() {

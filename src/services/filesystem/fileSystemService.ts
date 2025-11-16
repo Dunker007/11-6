@@ -123,6 +123,21 @@ export class FileSystemService {
     }
   }
 
+  async findLargeFiles(dirPath: string, minSizeMB: number = 100): Promise<FileSystemResult<Array<{ path: string; size: number; lastModified: string }>>> {
+    try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
+      const result = await window.fileSystem.findLargeFiles(dirPath, minSizeMB);
+      if (result.success && result.files) {
+        return { success: true, data: result.files };
+      }
+      return { success: false, error: result.error || 'Failed to find large files' };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
   async openFileDialog(options?: { filters?: { name: string; extensions: string[] }[] }): Promise<FileSystemResult<string[]>> {
     try {
       if (!window.dialogs) {
@@ -163,6 +178,36 @@ export class FileSystemService {
         return { success: true, data: result.filePaths };
       }
       return { success: false, error: 'Directory dialog cancelled' };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  async listDrives(): Promise<FileSystemResult<Array<{ name: string; path: string; type?: string }>>> {
+    try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
+      const result = await window.fileSystem.listDrives();
+      if (result.success && result.drives) {
+        return { success: true, data: result.drives };
+      }
+      return { success: false, error: result.error || 'Failed to list drives' };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  async getDirectorySize(dirPath: string): Promise<FileSystemResult<number>> {
+    try {
+      if (!window.fileSystem) {
+        return { success: false, error: 'File system API not available' };
+      }
+      const result = await window.fileSystem.getDirectorySize(dirPath);
+      if (result.success && result.size !== undefined) {
+        return { success: true, data: result.size };
+      }
+      return { success: false, error: result.error || 'Failed to get directory size' };
     } catch (error) {
       return { success: false, error: (error as Error).message };
     }

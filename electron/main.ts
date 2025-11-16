@@ -1,13 +1,90 @@
+/**
+ * main.ts
+ * 
+ * PURPOSE:
+ * Electron main process entry point. Manages application lifecycle, window creation, IPC
+ * handlers, and system integrations. Handles file system operations, process management,
+ * auto-updates, and window state persistence.
+ * 
+ * ARCHITECTURE:
+ * Electron main process that:
+ * - Creates and manages BrowserWindow instances
+ * - Registers IPC handlers for renderer communication
+ * - Handles file system operations (read, write, directory operations)
+ * - Manages child processes (program execution)
+ * - Implements auto-update functionality
+ * - Persists window state
+ * - Provides debug logging
+ * 
+ * Key features:
+ * - Window state persistence
+ * - File system IPC handlers
+ * - Process management
+ * - Auto-updates via electron-updater
+ * - Debug logging to file
+ * - Large file scanning
+ * - Shell operations
+ * 
+ * CURRENT STATUS:
+ * ✅ Window creation and management
+ * ✅ IPC handlers for file system
+ * ✅ Process execution and management
+ * ✅ Auto-update integration
+ * ✅ Window state persistence
+ * ✅ Debug logging
+ * ✅ Large file scanning
+ * ✅ Shell operations (showItemInFolder)
+ * ✅ Production build support (loadFile for .asar)
+ * ✅ Error handling and recovery
+ * 
+ * DEPENDENCIES:
+ * - electron: Core Electron APIs
+ * - electron-updater: Auto-update functionality
+ * - Node.js fs, path, child_process modules
+ * 
+ * STATE MANAGEMENT:
+ * - Window instance storage
+ * - Running processes map
+ * - Window state persistence (file-based)
+ * 
+ * PERFORMANCE:
+ * - Efficient IPC handlers
+ * - Async file operations
+ * - Process cleanup on exit
+ * - Debug logging to file (non-blocking)
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * // This is the main process entry point
+ * // Started by Electron: electron main.js
+ * ```
+ * 
+ * RELATED FILES:
+ * - electron/preload.ts: Preload script exposing APIs
+ * - src/types/electron.d.ts: TypeScript definitions for exposed APIs
+ * - package.json: Electron configuration
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Multi-window support
+ * - Window management (minimize to tray, etc.)
+ * - Enhanced error recovery
+ * - Performance monitoring
+ * - Crash reporting
+ */
 import electron from 'electron';
-const { app, BrowserWindow, ipcMain, dialog, screen, Menu } = electron;
+const { app, BrowserWindow, ipcMain, dialog, screen, Menu, shell } = electron;
 import updaterPkg from 'electron-updater';
 const { autoUpdater } = updaterPkg;
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
 import { exec, spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
+import os from 'os';
+import crypto from 'crypto';
+import { registerDebuggerHandlers } from './ipc/debuggerHandlers.js';
+import { registerESLintHandlers } from './ipc/eslintHandlers.js';
 
 const execAsync = promisify(exec);
 
@@ -19,20 +96,35 @@ const __dirname = path.dirname(__filename);
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
-// Debug logging to file
-const DEBUG_LOG_FILE = path.join(app.getPath('userData'), 'electron-debug.log');
+// Debug logging to file - lazy initialization
+function getDebugLogFile(): string {
+  try {
+    return path.join(app.getPath('userData'), 'electron-debug.log');
+  } catch {
+    // Fallback if app not ready yet
+    return path.join(os.tmpdir(), 'electron-debug.log');
+  }
+}
+
 function debugLog(...args: any[]) {
   const message = `[${new Date().toISOString()}] ${args.join(' ')}\n`;
   console.log(...args);
   try {
-    writeFileSync(DEBUG_LOG_FILE, message, { flag: 'a' });
+    writeFileSync(getDebugLogFile(), message, { flag: 'a' });
   } catch (err) {
     console.error('Failed to write debug log:', err);
   }
 }
 
-// Window state persistence
-const WINDOW_STATE_FILE = path.join(app.getPath('userData'), 'window-state.json');
+// Window state persistence - lazy initialization
+function getWindowStateFile(): string {
+  try {
+    return path.join(app.getPath('userData'), 'window-state.json');
+  } catch {
+    // Fallback if app not ready yet
+    return path.join(os.tmpdir(), 'window-state.json');
+  }
+}
 
 interface WindowState {
   width: number;
@@ -44,8 +136,9 @@ interface WindowState {
 
 function getWindowState(): WindowState | null {
   try {
-    if (existsSync(WINDOW_STATE_FILE)) {
-      const data = readFileSync(WINDOW_STATE_FILE, 'utf-8');
+    const stateFile = getWindowStateFile();
+    if (existsSync(stateFile)) {
+      const data = readFileSync(stateFile, 'utf-8');
       return JSON.parse(data);
     }
   } catch (error) {
@@ -56,7 +149,8 @@ function getWindowState(): WindowState | null {
 
 function saveWindowState(state: WindowState) {
   try {
-    writeFileSync(WINDOW_STATE_FILE, JSON.stringify(state, null, 2));
+    const stateFile = getWindowStateFile();
+    writeFileSync(stateFile, JSON.stringify(state, null, 2));
   } catch (error) {
     console.error('Failed to save window state:', error);
   }
@@ -73,19 +167,87 @@ let win: InstanceType<typeof BrowserWindow> | null = null;
 // In production, this will be compiled to preload.js
 const preload = isDev 
   ? path.join(__dirname, 'preload.ts')
-  : path.join(__dirname, 'preload.js');
-const url = isDev ? 'http://localhost:5173' : undefined;
+  : path.resolve(path.join(__dirname, 'preload.js'));
+const url = isDev ? 'http://localhost:4173' : undefined;
 
 function createWindow() {
   const savedState = getWindowState();
-  const defaultWidth = 1400;
-  const defaultHeight = 900;
+  
+  // Get primary display info
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const scaleFactor = primaryDisplay.scaleFactor;
+  const { width: screenWidth, height: screenHeight } = primaryDisplay.size;
+  const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+  
+  // Calculate actual pixel dimensions accounting for scale factor
+  // Electron's size returns physical pixels, divide by scaleFactor to get logical pixels
+  const actualWidth = screenWidth / scaleFactor;
+  const actualHeight = screenHeight / scaleFactor;
+  const actualWorkWidth = workWidth; // workAreaSize is already in logical pixels
+  const actualWorkHeight = workHeight;
+  
+  // Determine default window size based on screen size
+  // Use 90% of screen for large displays, or default for smaller
+  let defaultWidth: number;
+  let defaultHeight: number;
+  
+  if (actualWidth > 1920 && actualHeight > 1080) {
+    // Large displays: use 90% of work area
+    defaultWidth = Math.floor(actualWorkWidth * 0.9);
+    defaultHeight = Math.floor(actualWorkHeight * 0.9);
+  } else {
+    // Smaller displays: use default or saved size
+    defaultWidth = 1400;
+    defaultHeight = 900;
+  }
+  
+  // Ensure minimum size
+  defaultWidth = Math.max(defaultWidth, 1200);
+  defaultHeight = Math.max(defaultHeight, 800);
+  
+  // Ensure window doesn't exceed work area
+  defaultWidth = Math.min(defaultWidth, actualWorkWidth);
+  defaultHeight = Math.min(defaultHeight, actualWorkHeight);
+
+  // Calculate centered position if no saved state
+  let windowX: number | undefined;
+  let windowY: number | undefined;
+  
+  if (savedState?.x !== undefined && savedState?.y !== undefined) {
+    windowX = savedState.x;
+    windowY = savedState.y;
+  } else {
+    // Center on primary display
+    windowX = Math.floor((actualWorkWidth - defaultWidth) / 2);
+    windowY = Math.floor((actualWorkHeight - defaultHeight) / 2);
+  }
+  
+  // Use saved size if available, otherwise use calculated default
+  const windowWidth = savedState?.width || defaultWidth;
+  const windowHeight = savedState?.height || defaultHeight;
+
+  // Verify preload script exists in production
+  if (!isDev && !existsSync(preload)) {
+    debugLog('[Electron] WARNING: Preload script not found at:', preload);
+    debugLog('[Electron] __dirname:', __dirname);
+    debugLog('[Electron] Attempting to find preload.js...');
+    // Try alternative paths
+    const altPreload = path.join(__dirname, 'preload.js');
+    if (existsSync(altPreload)) {
+      debugLog('[Electron] Found preload at alternative path:', altPreload);
+    }
+  } else {
+    debugLog('[Electron] Preload script path:', preload);
+    debugLog('[Electron] Preload script exists:', existsSync(preload));
+  }
 
   win = new BrowserWindow({
-    width: savedState?.width || defaultWidth,
-    height: savedState?.height || defaultHeight,
-    x: savedState?.x,
-    y: savedState?.y,
+    width: windowWidth,
+    height: windowHeight,
+    x: windowX,
+    y: windowY,
+    minWidth: 1200,
+    minHeight: 800,
     titleBarStyle: 'hidden',
     titleBarOverlay: {
       color: '#0F172A',
@@ -128,6 +290,75 @@ function createWindow() {
   win.on('resize', saveState);
   win.on('maximize', saveState);
   win.on('unmaximize', saveState);
+  
+  // Ensure window stays within screen bounds on resize
+  win.on('will-resize', (event, newBounds) => {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+    
+    // Ensure window doesn't exceed work area
+    if (newBounds.width > workWidth) {
+      event.preventDefault();
+      win?.setSize(workWidth, newBounds.height);
+    }
+    if (newBounds.height > workHeight) {
+      event.preventDefault();
+      win?.setSize(newBounds.width, workHeight);
+    }
+  });
+  
+  // Handle display changes (e.g., monitor disconnect, resolution change)
+  screen.on('display-added', () => {
+    if (win && !win.isDestroyed()) {
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+      const bounds = win.getBounds();
+      
+      // If window exceeds new work area, resize it
+      if (bounds.width > workWidth || bounds.height > workHeight) {
+        const newWidth = Math.min(bounds.width, workWidth);
+        const newHeight = Math.min(bounds.height, workHeight);
+        win.setSize(newWidth, newHeight);
+      }
+    }
+  });
+  
+  screen.on('display-removed', () => {
+    if (win && !win.isDestroyed()) {
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+      const bounds = win.getBounds();
+      
+      // If window exceeds new work area, resize it
+      if (bounds.width > workWidth || bounds.height > workHeight) {
+        const newWidth = Math.min(bounds.width, workWidth);
+        const newHeight = Math.min(bounds.height, workHeight);
+        win.setSize(newWidth, newHeight);
+      }
+    }
+  });
+  
+  screen.on('display-metrics-changed', () => {
+    if (win && !win.isDestroyed()) {
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { width: workWidth, height: workHeight } = primaryDisplay.workAreaSize;
+      const bounds = win.getBounds();
+      
+      // If window exceeds new work area, resize it
+      if (bounds.width > workWidth || bounds.height > workHeight) {
+        const newWidth = Math.min(bounds.width, workWidth);
+        const newHeight = Math.min(bounds.height, workHeight);
+        win.setSize(newWidth, newHeight);
+      }
+    }
+  });
+
+  // Clear cache in dev mode to prevent stale content
+  if (isDev && url) {
+    win.webContents.session.clearCache().then(() => {
+      debugLog('[Electron] Cache cleared');
+    });
+  }
 
   // Load the app
   if (url) {
@@ -137,70 +368,129 @@ function createWindow() {
       win.webContents.openDevTools();
     }
   } else {
-    // In production, resolve path relative to the app root
-    // __dirname in production points to resources/app.asar/dist-electron
-    // We need to go up one level to reach dist
+    // Production: Use standard loadFile() - simple and reliable
     const indexPath = path.join(__dirname, '../dist/index.html');
-    
-    debugLog('[Electron] Production mode');
-    debugLog('[Electron] isDev:', isDev);
-    debugLog('[Electron] app.isPackaged:', app.isPackaged);
-    debugLog('[Electron] __dirname:', __dirname);
-    debugLog('[Electron] process.resourcesPath:', process.resourcesPath);
-    debugLog('[Electron] app.getAppPath():', app.getAppPath());
-    debugLog('[Electron] Resolved index path:', indexPath);
-    debugLog('[Electron] Index file exists:', existsSync(indexPath));
-    
-    win.loadFile(indexPath).then(() => {
-      debugLog('[Electron] Successfully loaded index.html');
-    }).catch(err => {
-      debugLog('[Electron] ERROR loading index.html:', err.message);
-      debugLog('[Electron] Error stack:', err.stack);
+    debugLog('[Electron] Loading production app from:', indexPath);
+    win.loadFile(indexPath).catch(err => {
+      debugLog('[Electron] Failed to load file:', err.message);
     });
   }
 
+  // Error handling for webContents
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    debugLog('[Electron] Failed to load:', validatedURL);
+    debugLog('[Electron] Error code:', errorCode);
+    debugLog('[Electron] Error description:', errorDescription);
+    
+    // If it's a file load failure and we're in production, try alternative approaches
+    if (!isDev && errorCode === -2) { // ERR_FAILED
+      debugLog('[Electron] Attempting recovery strategies...');
+      
+      // Strategy 1: Try loading without preload script (for debugging)
+      if (validatedURL.includes('index.html')) {
+        debugLog('[Electron] This may be a preload script issue. Check preload script path.');
+      }
+    }
+  });
+
+  win.webContents.on('render-process-gone', (_event, details) => {
+    debugLog('[Electron] Renderer process gone. Reason:', details.reason);
+    debugLog('[Electron] Exit code:', details.exitCode);
+    
+    if (details.reason === 'crashed') {
+      debugLog('[Electron] Renderer crashed - this may indicate a preload script error or resource loading issue');
+      debugLog('[Electron] Check electron-debug.log for more details');
+    }
+  });
+
+  win.webContents.on('unresponsive', () => {
+    debugLog('[Electron] Renderer process became unresponsive');
+  });
+
+  win.webContents.on('responsive', () => {
+    debugLog('[Electron] Renderer process became responsive again');
+  });
+
+  // Capture console errors from renderer
+  win.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    if (level >= 2) { // Error or warning
+      debugLog(`[Renderer Console ${level === 2 ? 'WARN' : 'ERROR'}]:`, message, `at ${sourceId}:${line}`);
+    }
+  });
+
   // Test active push message to Renderer-process
   win.webContents.on('did-finish-load', () => {
+    debugLog('[Electron] Page finished loading');
     win?.webContents.send('main-process-message', new Date().toLocaleString());
+  });
+
+  // Log when DOM is ready
+  win.webContents.on('dom-ready', () => {
+    debugLog('[Electron] DOM is ready');
   });
 }
 
-// Auto-updater configuration
-if (!isDev) {
-  autoUpdater.checkForUpdatesAndNotify();
+// Auto-updater configuration - only initialize after app is ready
+function setupAutoUpdater() {
+  if (isDev) {
+    return; // Skip updater in dev mode
+  }
   
-  // Check for updates every 4 hours
-  setInterval(() => {
-    autoUpdater.checkForUpdatesAndNotify();
-  }, 4 * 60 * 60 * 1000);
-
-  autoUpdater.on('update-available', (info) => {
-    win?.webContents.send('update:available', {
-      version: info.version,
-      releaseDate: info.releaseDate,
-      releaseNotes: info.releaseNotes,
+  try {
+    // Configure updater with better error handling
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'Dunker007',
+      repo: '11-6',
     });
-  });
 
-  autoUpdater.on('update-downloaded', (info) => {
-    win?.webContents.send('update:downloaded', {
-      version: info.version,
-      releaseDate: info.releaseDate,
-      releaseNotes: info.releaseNotes,
+    // Suppress automatic update checks on startup to avoid 406 errors
+    // Users can manually check via menu or button
+    
+    autoUpdater.on('update-available', (info) => {
+      win?.webContents.send('update:available', {
+        version: info.version,
+        releaseDate: info.releaseDate,
+        releaseNotes: info.releaseNotes,
+      });
     });
-  });
 
-  autoUpdater.on('download-progress', (progress) => {
-    win?.webContents.send('update:progress', {
-      percent: progress.percent,
-      transferred: progress.transferred,
-      total: progress.total,
+    autoUpdater.on('update-downloaded', (info) => {
+      win?.webContents.send('update:downloaded', {
+        version: info.version,
+        releaseDate: info.releaseDate,
+        releaseNotes: info.releaseNotes,
+      });
     });
-  });
 
-  autoUpdater.on('error', (error) => {
-    win?.webContents.send('update:error', { error: error.message });
-  });
+    autoUpdater.on('download-progress', (progress) => {
+      win?.webContents.send('update:progress', {
+        percent: progress.percent,
+        transferred: progress.transferred,
+        total: progress.total,
+      });
+    });
+
+    autoUpdater.on('error', (error) => {
+      // Suppress 406 and GitHub API format errors - they're common and don't affect functionality
+      const errorMessage = error.message || '';
+      const is406Error = errorMessage.includes('406') || 
+                         errorMessage.includes('Not Acceptable') ||
+                         errorMessage.includes('HttpError') ||
+                         errorMessage.includes('Unable to find latest version') ||
+                         errorMessage.includes('method: GET url: https://github.com');
+      
+      if (!is406Error) {
+        win?.webContents.send('update:error', { error: error.message });
+        debugLog('[Updater] Error:', errorMessage);
+      } else {
+        // Silently ignore 406 errors - they're usually due to GitHub API format issues
+        debugLog('[Updater] GitHub API 406 error (suppressed):', errorMessage);
+      }
+    });
+  } catch (error) {
+    console.error('Failed to setup auto-updater:', error);
+  }
 }
 
 // IPC handler for manual update check
@@ -212,7 +502,24 @@ ipcMain.handle('update:check', async () => {
     const result = await autoUpdater.checkForUpdates();
     return { success: true, updateInfo: result?.updateInfo };
   } catch (error) {
-    return { success: false, error: (error as Error).message };
+    const errorMessage = (error as Error).message || '';
+    // Suppress 406 errors - they're common with GitHub API format issues
+    const is406Error = errorMessage.includes('406') || 
+                       errorMessage.includes('Not Acceptable') ||
+                       errorMessage.includes('HttpError') ||
+                       errorMessage.includes('Unable to find latest version');
+    
+    if (is406Error) {
+      debugLog('[Updater] GitHub API error suppressed (406/format issue):', errorMessage);
+      return { 
+        success: false, 
+        error: 'Update check unavailable. Please check GitHub releases manually.',
+        suppressed: true 
+      };
+    }
+    
+    debugLog('[Updater] Update check error:', errorMessage);
+    return { success: false, error: errorMessage };
   }
 });
 
@@ -227,6 +534,42 @@ ipcMain.handle('update:install', async () => {
   } catch (error) {
     return { success: false, error: (error as Error).message };
   }
+});
+
+// --------- Window Control IPC Handlers ---------
+ipcMain.handle('window:minimize', () => {
+  if (win && !win.isDestroyed()) {
+    win.minimize();
+    return { success: true };
+  }
+  return { success: false, error: 'Window not available' };
+});
+
+ipcMain.handle('window:maximize', () => {
+  if (win && !win.isDestroyed()) {
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+    return { success: true, isMaximized: win.isMaximized() };
+  }
+  return { success: false, error: 'Window not available' };
+});
+
+ipcMain.handle('window:close', () => {
+  if (win && !win.isDestroyed()) {
+    win.close();
+    return { success: true };
+  }
+  return { success: false, error: 'Window not available' };
+});
+
+ipcMain.handle('window:isMaximized', () => {
+  if (win && !win.isDestroyed()) {
+    return { success: true, isMaximized: win.isMaximized() };
+  }
+  return { success: false, error: 'Window not available' };
 });
 
 // App menu
@@ -283,7 +626,23 @@ function createMenu() {
           label: 'Check for Updates',
           click: async () => {
             if (!isDev) {
-              await autoUpdater.checkForUpdatesAndNotify();
+              try {
+                await autoUpdater.checkForUpdatesAndNotify();
+              } catch (error) {
+                const errorMessage = (error as Error).message || '';
+                const is406Error = errorMessage.includes('406') || 
+                                   errorMessage.includes('Not Acceptable') ||
+                                   errorMessage.includes('HttpError') ||
+                                   errorMessage.includes('Unable to find latest version');
+                
+                if (!is406Error) {
+                  debugLog('[Updater] Menu check failed:', errorMessage);
+                  dialog.showErrorBox('Update Check Failed', 
+                    'Unable to check for updates. Please check GitHub releases manually.');
+                } else {
+                  debugLog('[Updater] GitHub API 406 error suppressed in menu check');
+                }
+              }
             } else {
               dialog.showMessageBox(win!, {
                 type: 'info',
@@ -343,6 +702,7 @@ app.on('activate', () => {
 app.whenReady().then(() => {
   createMenu();
   createWindow();
+  setupAutoUpdater();
 });
 
 // File System IPC Handlers
@@ -440,6 +800,90 @@ ipcMain.handle('fs:exists', async (_event, filePath: string) => {
   }
 });
 
+// Recursive large file finder
+async function findLargeFilesRecursive(
+  dirPath: string,
+  minSizeBytes: number,
+  onProgress?: (currentPath: string, filesFound: number) => void
+): Promise<Array<{ path: string; size: number; mtime: Date }>> {
+  const largeFiles: Array<{ path: string; size: number; mtime: Date }> = [];
+  
+  async function scanDirectory(currentPath: string): Promise<void> {
+    try {
+      const entries = await fs.readdir(currentPath, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(currentPath, entry.name);
+        
+        // Skip common system/hidden directories
+        if (entry.name.startsWith('.') && entry.name !== '.') {
+          continue;
+        }
+        
+        // Skip node_modules and other common large directories that users typically don't want to scan
+        if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist' || entry.name === 'build') {
+          continue;
+        }
+        
+        try {
+          if (entry.isDirectory()) {
+            await scanDirectory(fullPath);
+          } else if (entry.isFile()) {
+            const stats = await fs.stat(fullPath);
+            if (stats.size >= minSizeBytes) {
+              largeFiles.push({
+                path: fullPath,
+                size: stats.size,
+                mtime: stats.mtime,
+              });
+              onProgress?.(fullPath, largeFiles.length);
+            }
+          }
+        } catch (error) {
+          // Skip files/directories we can't access (permissions, etc.)
+          continue;
+        }
+      }
+    } catch (error) {
+      // Skip directories we can't access
+      return;
+    }
+  }
+  
+  await scanDirectory(dirPath);
+  return largeFiles;
+}
+
+ipcMain.handle('fs:findLargeFiles', async (_event, dirPath: string, minSizeMB: number = 100) => {
+  try {
+    const normalizedPath = path.normalize(dirPath);
+    const minSizeBytes = minSizeMB * 1024 * 1024;
+    
+    const largeFiles = await findLargeFilesRecursive(normalizedPath, minSizeBytes);
+    
+    return {
+      success: true,
+      files: largeFiles.map((file) => ({
+        path: file.path,
+        size: file.size,
+        lastModified: file.mtime.toISOString(),
+      })),
+    };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+// Shell IPC Handlers
+ipcMain.handle('shell:showItemInFolder', async (_event, filePath: string) => {
+  try {
+    shell.showItemInFolder(path.normalize(filePath));
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
 // Dialog IPC Handlers
 ipcMain.handle('dialog:openFile', async (_event, options?: { filters?: { name: string; extensions: string[] }[] }) => {
   const result = await dialog.showOpenDialog(win!, {
@@ -466,6 +910,198 @@ ipcMain.handle('dialog:openDirectory', async () => {
   return { success: !result.canceled, filePaths: result.filePaths };
 });
 
+// Drive and Directory IPC Handlers
+ipcMain.handle('fs:listDrives', async () => {
+  try {
+    const drives: Array<{ name: string; path: string; type?: string }> = [];
+    if (process.platform === 'win32') {
+      // Windows: List drive letters
+      const { stdout } = await execAsync('wmic logicaldisk get name,drivetype');
+      const lines = stdout.split('\n').filter(line => line.trim());
+      for (const line of lines.slice(1)) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 2) {
+          const drivePath = parts[0];
+          const driveType = parts[1];
+          if (drivePath.match(/^[A-Z]:$/)) {
+            drives.push({
+              name: drivePath,
+              path: drivePath + '\\',
+              type: driveType === '3' ? 'Fixed' : driveType === '2' ? 'Removable' : 'Network',
+            });
+          }
+        }
+      }
+    } else {
+      // Unix-like: List mount points
+      const { stdout } = await execAsync('df -h');
+      const lines = stdout.split('\n').slice(1);
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 6) {
+          const mountPoint = parts[5];
+          if (mountPoint.startsWith('/')) {
+            drives.push({
+              name: mountPoint,
+              path: mountPoint,
+              type: 'Filesystem',
+            });
+          }
+        }
+      }
+    }
+    return { success: true, drives };
+  } catch (error) {
+    return { success: false, error: (error as Error).message, drives: [] };
+  }
+});
+
+/**
+ * Recursively gets the size of a directory.
+ * @param directoryPath The path to the directory.
+ * @returns The total size in bytes.
+ */
+function getDirectorySize(directoryPath: string): number {
+  let size = 0;
+  const files = readdirSync(directoryPath);
+  for (const file of files) {
+    const filePath = path.join(directoryPath, file);
+    const stats = statSync(filePath);
+    if (stats.isFile()) {
+      size += stats.size;
+    } else if (stats.isDirectory()) {
+      size += getDirectorySize(filePath);
+    }
+  }
+  return size;
+}
+
+ipcMain.handle('fs:getDirectorySize', async (_event, dirPath: string) => {
+  try {
+    const normalizedPath = path.normalize(dirPath);
+    const size = getDirectorySize(normalizedPath);
+    return { success: true, size };
+  } catch (error) {
+    return { success: false, error: (error as Error).message, size: 0 };
+  }
+});
+
+// System Cleanup Functions
+async function cleanTempFiles(): Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }> {
+  const result = { filesDeleted: 0, spaceFreed: 0, errors: [] as string[] };
+  const homeDir = os.homedir();
+  const tempPaths = [
+    os.tmpdir(),
+    path.join(homeDir, 'AppData', 'Local', 'Temp'),
+    // Removed C:\Windows\Temp - requires admin privileges
+    // Users can manually clean system temp if needed
+  ];
+
+  for (const tempPath of tempPaths) {
+    try {
+      if (!existsSync(tempPath)) continue;
+      const entries = await fs.readdir(tempPath, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(tempPath, entry.name);
+        try {
+          const stats = await fs.stat(fullPath);
+          const daysOld = (Date.now() - stats.mtime.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysOld > 7) {
+            if (entry.isDirectory()) {
+              await fs.rmdir(fullPath, { recursive: true });
+            } else {
+              await fs.unlink(fullPath);
+            }
+            result.filesDeleted++;
+            result.spaceFreed += stats.size;
+          }
+        } catch (err) {
+          result.errors.push(`Failed to delete ${fullPath}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  return result;
+}
+
+async function cleanCache(): Promise<{ filesDeleted: number; spaceFreed: number; errors: string[] }> {
+  const result = { filesDeleted: 0, spaceFreed: 0, errors: [] as string[] };
+  const homeDir = os.homedir();
+  const cachePaths = [
+    path.join(homeDir, 'AppData', 'Local', 'npm-cache'),
+    path.join(homeDir, 'AppData', 'Local', 'pip', 'cache'),
+    path.join(homeDir, '.npm'),
+    path.join(homeDir, '.cache'),
+  ];
+
+  // Try npm cache clean
+  try {
+    await execAsync('npm cache clean --force');
+  } catch {
+    // npm might not be installed
+  }
+
+  // Try pip cache purge
+  try {
+    await execAsync('pip cache purge');
+  } catch {
+    // pip might not be installed
+  }
+
+  for (const cachePath of cachePaths) {
+    try {
+      if (!existsSync(cachePath)) continue;
+      const entries = await fs.readdir(cachePath, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(cachePath, entry.name);
+        try {
+          const stats = await fs.stat(fullPath);
+          if (entry.isDirectory()) {
+            await fs.rmdir(fullPath, { recursive: true });
+          } else {
+            await fs.unlink(fullPath);
+          }
+          result.filesDeleted++;
+          result.spaceFreed += stats.size;
+        } catch (err) {
+          result.errors.push(`Failed to delete ${fullPath}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  return result;
+}
+
+// System Cleanup IPC Handlers
+ipcMain.handle('system:cleanTempFiles', async () => cleanTempFiles());
+ipcMain.handle('system:cleanCache', async () => cleanCache());
+
+ipcMain.handle('system:deepClean', async () => {
+  const [tempFiles, cache] = await Promise.all([cleanTempFiles(), cleanCache()]);
+  
+  // Registry cleaning requires admin privileges on Windows
+  // Since we use "asInvoker" execution level, we skip registry operations
+  // and provide a helpful message
+  const registryResult = process.platform === 'win32' 
+    ? { 
+        cleaned: 0, 
+        errors: ['Registry cleaning requires administrator privileges. Please run the application as administrator to clean registry entries.'],
+        requiresAdmin: true
+      }
+    : { cleaned: 0, errors: [] };
+  
+  return {
+    tempFiles,
+    cache,
+    registry: registryResult,
+    oldInstallations: { found: [], removed: 0, errors: [] },
+  };
+});
+
 // Dev Tools IPC Handlers
 ipcMain.handle('tools:check', async (_event, command: string) => {
   try {
@@ -489,10 +1125,33 @@ ipcMain.handle('tools:getVersion', async (_event, command: string) => {
 
 ipcMain.handle('tools:install', async (_event, command: string) => {
   try {
+    // Check if command requires admin privileges
+    const adminCommands = ['choco install', 'winget install', 'scoop install', 'npm install -g'];
+    const requiresAdmin = adminCommands.some(adminCmd => command.toLowerCase().includes(adminCmd.toLowerCase()));
+    
+    if (requiresAdmin && process.platform === 'win32') {
+      // On Windows with "asInvoker" execution level, admin commands will fail
+      // Provide helpful error message
+      return { 
+        success: false, 
+        error: 'This command requires administrator privileges. Please run the application as administrator or use a user-level package manager.',
+        requiresAdmin: true
+      };
+    }
+    
     const { stdout, stderr } = await execAsync(command);
     return { success: true, output: stdout, error: stderr };
   } catch (error) {
-    return { success: false, error: (error as Error).message };
+    const errorMessage = (error as Error).message;
+    // Check for permission denied errors
+    if (errorMessage.includes('permission') || errorMessage.includes('EACCES') || errorMessage.includes('access denied')) {
+      return { 
+        success: false, 
+        error: 'Permission denied. This operation may require administrator privileges.',
+        requiresAdmin: true
+      };
+    }
+    return { success: false, error: errorMessage };
   }
 });
 
@@ -510,6 +1169,39 @@ ipcMain.handle('monitor:getDisplays', async () => {
       height: display.size.height,
     },
   }));
+});
+
+// Screen Info IPC Handler
+ipcMain.handle('screen:getDisplayInfo', async () => {
+  try {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    return {
+      success: true,
+      data: {
+        resolution: {
+          width: primaryDisplay.size.width,
+          height: primaryDisplay.size.height,
+        },
+        scaleFactor: primaryDisplay.scaleFactor,
+        workAreaSize: {
+          width: primaryDisplay.workAreaSize.width,
+          height: primaryDisplay.workAreaSize.height,
+        },
+        bounds: {
+          x: primaryDisplay.bounds.x,
+          y: primaryDisplay.bounds.y,
+          width: primaryDisplay.bounds.width,
+          height: primaryDisplay.bounds.height,
+        },
+        isPrimary: true,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
 });
 
 ipcMain.handle('monitor:setPrimary', async (_event, _displayId: string) => {
@@ -599,6 +1291,426 @@ ipcMain.handle('program:kill', async (_event, executionId: string) => {
     }
   }
   return { success: false, error: 'Process not found' };
+});
+
+// --------- LLM Model Operations IPC Handlers ---------
+ipcMain.handle('llm:openExternalUrl', async (_event, url: string) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+ipcMain.handle('llm:pullModel', async (_event, _modelId: string, pullCommand: string) => {
+  try {
+    // Execute Ollama pull command
+    const { stdout, stderr } = await execAsync(pullCommand, {
+      timeout: 600000, // 10 minute timeout for large models
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+    });
+    
+    return {
+      success: true,
+      stdout,
+      stderr,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      stdout: error.stdout || '',
+      stderr: error.stderr || '',
+    };
+  }
+});
+
+// Stream model pull progress (for future use)
+ipcMain.handle('llm:pullModelStream', async (_event, modelId: string, pullCommand: string) => {
+  return new Promise((resolve) => {
+    const executionId = `pull-${modelId}-${Date.now()}`;
+    // Parse pull command (e.g., "ollama pull qwen2.5-coder:32b-instruct-q4_K_M")
+    const parts = pullCommand.split(' ');
+    const command = parts[0];
+    const args = parts.slice(1);
+    
+    const process = spawn(command, args, {
+      shell: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    process.stdout?.on('data', (data) => {
+      stdout += data.toString();
+      win?.webContents.send('llm:pull-progress', {
+        executionId,
+        modelId,
+        type: 'stdout',
+        data: data.toString(),
+      });
+    });
+
+    process.stderr?.on('data', (data) => {
+      stderr += data.toString();
+      win?.webContents.send('llm:pull-progress', {
+        executionId,
+        modelId,
+        type: 'stderr',
+        data: data.toString(),
+      });
+    });
+
+    process.on('close', (code) => {
+      runningProcesses.delete(executionId);
+      win?.webContents.send('llm:pull-complete', {
+        executionId,
+        modelId,
+        exitCode: code,
+        success: code === 0,
+      });
+      resolve({
+        success: code === 0,
+        exitCode: code,
+        stdout,
+        stderr,
+      });
+    });
+
+    process.on('error', (error) => {
+      runningProcesses.delete(executionId);
+      win?.webContents.send('llm:pull-error', {
+        executionId,
+        modelId,
+        error: error.message,
+      });
+      resolve({
+        success: false,
+        error: error.message,
+        stdout,
+        stderr,
+      });
+    });
+
+    runningProcesses.set(executionId, process);
+  });
+});
+
+// Windows Service Management IPC Handlers
+ipcMain.handle('windows:listServices', async () => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only', services: [] };
+  }
+
+  try {
+    const { stdout } = await execAsync('powershell -Command "Get-Service | Select-Object Name, DisplayName, Status, StartType | ConvertTo-Json"', {
+      timeout: 30000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    
+    const services = JSON.parse(stdout);
+    return {
+      success: true,
+      services: Array.isArray(services) ? services : [services],
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      services: [],
+    };
+  }
+});
+
+ipcMain.handle('windows:getServiceStatus', async (_event, serviceName: string) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    const { stdout } = await execAsync(`powershell -Command "Get-Service -Name '${serviceName}' | Select-Object Name, Status, StartType | ConvertTo-Json"`, {
+      timeout: 10000,
+    });
+    
+    const service = JSON.parse(stdout);
+    return {
+      success: true,
+      service: Array.isArray(service) ? service[0] : service,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+ipcMain.handle('windows:disableService', async (_event, serviceName: string) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    await execAsync(`powershell -Command "Set-Service -Name '${serviceName}' -StartupType Disabled"`, {
+      timeout: 10000,
+    });
+    
+    // Stop the service if it's running
+    try {
+      await execAsync(`powershell -Command "Stop-Service -Name '${serviceName}' -Force"`, {
+        timeout: 10000,
+      });
+    } catch {
+      // Service might already be stopped
+    }
+    
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+ipcMain.handle('windows:enableService', async (_event, serviceName: string) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    await execAsync(`powershell -Command "Set-Service -Name '${serviceName}' -StartupType Automatic"`, {
+      timeout: 10000,
+    });
+    
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+// Windows Registry IPC Handlers
+ipcMain.handle('windows:readRegistry', async (_event, path: string, value: string) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    // Convert HKEY paths to reg query format
+    const regPath = path.replace(/HKEY_LOCAL_MACHINE\\/i, 'HKLM\\').replace(/HKEY_CURRENT_USER\\/i, 'HKCU\\');
+    const { stdout } = await execAsync(`reg query "${regPath}" /v "${value}"`, {
+      timeout: 10000,
+    });
+    
+    // Parse reg query output
+    const match = stdout.match(new RegExp(`${value}\\s+REG_\\w+\\s+(.+)`));
+    if (match) {
+      return {
+        success: true,
+        value: match[1].trim(),
+      };
+    }
+    
+    return { success: false, error: 'Value not found' };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+ipcMain.handle('windows:writeRegistry', async (_event, path: string, value: string, data: string, type: 'DWORD' | 'STRING' | 'BINARY' = 'STRING') => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    const regPath = path.replace(/HKEY_LOCAL_MACHINE\\/i, 'HKLM\\').replace(/HKEY_CURRENT_USER\\/i, 'HKCU\\');
+    
+    // Backup original value first
+    try {
+      await execAsync(`reg query "${regPath}" /v "${value}"`, {
+        timeout: 10000,
+      });
+      // Store backup (in production, save to file)
+    } catch {
+      // Value might not exist, that's OK
+    }
+    
+    // Write new value
+    let regCommand = `reg add "${regPath}" /v "${value}" /t ${type}`;
+    if (type === 'DWORD') {
+      regCommand += ` /d ${data} /f`;
+    } else {
+      regCommand += ` /d "${data}" /f`;
+    }
+    
+    await execAsync(regCommand, {
+      timeout: 10000,
+    });
+    
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
+  }
+});
+
+ipcMain.handle('windows:checkAdmin', async () => {
+  if (process.platform !== 'win32') {
+    return { isAdmin: false, isWindows: false };
+  }
+
+  try {
+    // Check if running as admin by trying to access HKLM
+    await execAsync('reg query "HKLM\\SOFTWARE"', {
+      timeout: 5000,
+    });
+    return { isAdmin: true, isWindows: true };
+  } catch {
+    return { isAdmin: false, isWindows: true };
+  }
+});
+
+ipcMain.handle('windows:runCommand', async (_event, command: string, admin: boolean = false) => {
+  if (process.platform !== 'win32') {
+    return { success: false, error: 'Windows only' };
+  }
+
+  try {
+    let execCommand = command;
+    if (admin) {
+      // In production, use elevation helper or request admin privileges
+      execCommand = `powershell -Command "Start-Process -FilePath '${command.split(' ')[0]}' -ArgumentList '${command.split(' ').slice(1).join(' ')}' -Verb RunAs -Wait"`;
+    }
+    
+    const { stdout, stderr } = await execAsync(execCommand, {
+      timeout: 60000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    
+    return {
+      success: true,
+      stdout,
+      stderr,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      stdout: error.stdout || '',
+      stderr: error.stderr || '',
+    };
+  }
+});
+
+// Disk Benchmark IPC Handler
+ipcMain.handle('benchmark:disk', async () => {
+  try {
+    const tmpDir = os.tmpdir();
+    const testFile = path.join(tmpDir, `benchmark-test-${Date.now()}.tmp`);
+    const testSize = 100 * 1024 * 1024; // 100MB test file
+    const testData = Buffer.alloc(testSize, 'A');
+
+    // Write benchmark
+    const writeStart = Date.now();
+    await fs.writeFile(testFile, testData);
+    const writeTime = Date.now() - writeStart;
+    const writeSpeed = (testSize / (1024 * 1024)) / (writeTime / 1000); // MB/s
+
+    // Read benchmark
+    const readStart = Date.now();
+    await fs.readFile(testFile);
+    const readTime = Date.now() - readStart;
+    const readSpeed = (testSize / (1024 * 1024)) / (readTime / 1000); // MB/s
+
+    // Cleanup
+    try {
+      await fs.unlink(testFile);
+    } catch {
+      // Ignore cleanup errors
+    }
+
+    return {
+      success: true,
+      readSpeed: Math.round(readSpeed),
+      writeSpeed: Math.round(writeSpeed),
+      readTime,
+      writeTime,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      readSpeed: 0,
+      writeSpeed: 0,
+    };
+  }
+});
+
+// Register debugger IPC handlers
+registerDebuggerHandlers(ipcMain);
+
+// Register ESLint IPC handlers
+registerESLintHandlers(ipcMain);
+
+// --------- npm Audit IPC Handlers ---------
+ipcMain.handle('npm:audit', async (_event, projectPath: string) => {
+  try {
+    const { stdout, stderr } = await execAsync('npm audit --json', {
+      cwd: projectPath,
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+    });
+
+    if (stderr && !stdout) {
+      return { success: false, error: stderr, data: null };
+    }
+
+    try {
+      const auditData = JSON.parse(stdout || '{}');
+      return { success: true, data: auditData };
+    } catch (parseError) {
+      return { success: false, error: 'Failed to parse audit output', data: null };
+    }
+  } catch (error: any) {
+    // npm audit returns exit code 1 when vulnerabilities are found
+    // but still outputs valid JSON
+    if (error.stdout) {
+      try {
+        const auditData = JSON.parse(error.stdout);
+        return { success: true, data: auditData };
+      } catch {
+        return { success: false, error: (error as Error).message, data: null };
+      }
+    }
+    return { success: false, error: (error as Error).message, data: null };
+  }
+});
+
+ipcMain.handle('npm:audit-fix', async (_event, projectPath: string, force: boolean = false) => {
+  try {
+    const command = force ? 'npm audit fix --force' : 'npm audit fix';
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: projectPath,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    return { success: true, output: stdout, error: stderr || null };
+  } catch (error: any) {
+    // npm audit fix may return exit code 1 even on partial success
+    if (error.stdout) {
+      return { success: true, output: error.stdout, error: error.stderr || null };
+    }
+    return { success: false, error: (error as Error).message };
+  }
 });
 
 

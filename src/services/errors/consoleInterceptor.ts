@@ -10,6 +10,7 @@ class ConsoleInterceptor {
   private originalError: typeof console.error;
   private originalWarn: typeof console.warn;
   private isActive = false;
+  private isProcessing = false; // Recursion guard
 
   // Patterns to ignore (noisy errors that don't need logging)
   private ignorePatterns: RegExp[] = [
@@ -20,6 +21,14 @@ class ConsoleInterceptor {
   private constructor() {
     this.originalError = console.error.bind(console);
     this.originalWarn = console.warn.bind(console);
+    
+    // Expose original methods globally for emergency use (prevent infinite loops)
+    if (console.__originalError === undefined) {
+      console.__originalError = this.originalError;
+    }
+    if (console.__originalWarn === undefined) {
+      console.__originalWarn = this.originalWarn;
+    }
   }
 
   static getInstance(): ConsoleInterceptor {
@@ -35,12 +44,12 @@ class ConsoleInterceptor {
   activate(): void {
     if (this.isActive) return;
 
-    console.error = (...args: any[]) => {
+    console.error = (...args: unknown[]) => {
       this.handleConsoleError(args);
       this.originalError(...args);
     };
 
-    console.warn = (...args: any[]) => {
+    console.warn = (...args: unknown[]) => {
       this.handleConsoleWarn(args);
       this.originalWarn(...args);
     };
@@ -74,32 +83,52 @@ class ConsoleInterceptor {
     this.ignorePatterns = this.ignorePatterns.filter(p => p.source !== pattern.source);
   }
 
-  private handleConsoleError(args: any[]): void {
-    const message = this.formatMessage(args);
-    
-    // Check if should be ignored
-    if (this.shouldIgnore(message)) return;
-
-    // Extract stack trace if Error object is passed
-    let stack: string | undefined;
-    const errorObj = args.find(arg => arg instanceof Error);
-    if (errorObj) {
-      stack = errorObj.stack;
+  private handleConsoleError(args: unknown[]): void {
+    // Prevent infinite recursion - if already processing, bail out
+    if (this.isProcessing) {
+      return;
     }
 
-    errorLogger.logError('console', message, 'error', { stack });
+    this.isProcessing = true;
+    try {
+      const message = this.formatMessage(args);
+      
+      // Check if should be ignored
+      if (this.shouldIgnore(message)) return;
+
+      // Extract stack trace if Error object is passed
+      let stack: string | undefined;
+      const errorObj = args.find((arg): arg is Error => arg instanceof Error);
+      if (errorObj) {
+        stack = errorObj.stack;
+      }
+
+      errorLogger.logError('console', message, 'error', { stack });
+    } finally {
+      this.isProcessing = false;
+    }
   }
 
-  private handleConsoleWarn(args: any[]): void {
-    const message = this.formatMessage(args);
-    
-    // Check if should be ignored
-    if (this.shouldIgnore(message)) return;
+  private handleConsoleWarn(args: unknown[]): void {
+    // Prevent infinite recursion - if already processing, bail out
+    if (this.isProcessing) {
+      return;
+    }
 
-    errorLogger.logError('console', message, 'warning');
+    this.isProcessing = true;
+    try {
+      const message = this.formatMessage(args);
+      
+      // Check if should be ignored
+      if (this.shouldIgnore(message)) return;
+
+      errorLogger.logError('console', message, 'warning');
+    } finally {
+      this.isProcessing = false;
+    }
   }
 
-  private formatMessage(args: any[]): string {
+  private formatMessage(args: unknown[]): string {
     return args
       .map(arg => {
         if (typeof arg === 'string') return arg;

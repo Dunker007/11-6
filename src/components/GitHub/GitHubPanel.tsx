@@ -1,6 +1,81 @@
+/**
+ * GitHubPanel.tsx
+ * 
+ * PURPOSE:
+ * Main GitHub integration panel component. Provides UI for Git operations including
+ * authentication, repository management, branch operations, commits, pushes, pulls, and
+ * pull request management. Integrates with GitHub API and local Git operations.
+ * 
+ * ARCHITECTURE:
+ * React component that orchestrates GitHub operations:
+ * - useGitHubStore: Git operations and repository state
+ * - useFileSystemStore: File system operations for repository paths
+ * - githubService: Core GitHub API and Git operations
+ * - GitWizard: Guided workflow for Git operations
+ * 
+ * Features:
+ * - GitHub authentication (token-based)
+ * - Repository listing and selection
+ * - Branch management (create, checkout, list)
+ * - Commit, push, pull operations
+ * - Pull request creation and merging
+ * - Git status display
+ * - Clone repository functionality
+ * 
+ * CURRENT STATUS:
+ * ✅ Full GitHub authentication
+ * ✅ Repository management
+ * ✅ Branch operations
+ * ✅ Commit/push/pull
+ * ✅ Pull request management
+ * ✅ Git status display
+ * ✅ Clone functionality
+ * 
+ * DEPENDENCIES:
+ * - useGitHubStore: GitHub state and operations
+ * - useFileSystemStore: File system operations
+ * - githubService: Core GitHub API service
+ * - GitWizard: Guided Git workflows
+ * 
+ * STATE MANAGEMENT:
+ * - Local state: token, commit message, branch name, UI state
+ * - Uses Zustand stores for GitHub and file system state
+ * 
+ * PERFORMANCE:
+ * - Efficient repository loading
+ * - Debounced status checks
+ * - Lazy loading of branches
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import GitHubPanel from '@/components/GitHub/GitHubPanel';
+ * 
+ * function App() {
+ *   return <GitHubPanel />;
+ * }
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/services/github/githubStore.ts: GitHub state management
+ * - src/services/github/githubService.ts: GitHub API operations
+ * - src/components/GitHub/GitWizard.tsx: Git workflow wizard
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Add merge conflict resolution UI
+ * - Add diff viewer
+ * - Add commit history visualization
+ * - Add branch comparison
+ * - Add issue/PR linking
+ */
 import { useState, useEffect } from 'react';
 import { useGitHubStore } from '../../services/github/githubStore';
 import { useFileSystemStore } from '../../services/filesystem/fileSystemStore';
+import { githubService } from '../../services/github/githubService';
+import { Zap, RefreshCw, ArrowRight, GitCommit, GitMerge, FileDiff } from 'lucide-react';
+import GitWizard from './GitWizard';
+import GitDiffViewer from './GitDiffViewer';
+import CommitHistoryViewer from './CommitHistoryViewer';
+import MergeConflictResolver from './MergeConflictResolver';
 import '../../styles/GitHubPanel.css';
 
 function GitHubPanel() {
@@ -21,6 +96,7 @@ function GitHubPanel() {
     createBranch,
     checkoutBranch,
     loadBranches,
+    getStatus,
   } = useGitHubStore();
 
   const { currentDirectory } = useFileSystemStore();
@@ -28,6 +104,12 @@ function GitHubPanel() {
   const [showAuth, setShowAuth] = useState(!isAuthenticated);
   const [commitMessage, setCommitMessage] = useState('');
   const [newBranchName, setNewBranchName] = useState('');
+
+  const [showWizard, setShowWizard] = useState(false);
+  const [showDiffViewer, setShowDiffViewer] = useState(false);
+  const [selectedDiffFile, setSelectedDiffFile] = useState<string | undefined>();
+  const [showCommitHistory, setShowCommitHistory] = useState(false);
+  const [showConflictResolver, setShowConflictResolver] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -38,6 +120,7 @@ function GitHubPanel() {
   useEffect(() => {
     if (currentDirectory && isAuthenticated) {
       loadBranches(currentDirectory);
+      getStatus(currentDirectory);
     }
   }, [currentDirectory, isAuthenticated]);
 
@@ -86,6 +169,18 @@ function GitHubPanel() {
     }
   };
 
+  const handleAutoCommit = async () => {
+    if (!currentDirectory) return;
+    await githubService.autoCommit(currentDirectory);
+    await getStatus(currentDirectory);
+  };
+
+  const handleSmartSync = async () => {
+    if (!currentDirectory) return;
+    await githubService.smartSync(currentDirectory);
+    await getStatus(currentDirectory);
+  };
+
   if (showAuth || !isAuthenticated) {
     return (
       <div className="github-panel">
@@ -99,7 +194,11 @@ function GitHubPanel() {
             placeholder="ghp_xxxxxxxxxxxx"
             className="token-input"
           />
-          <button onClick={handleAuth} className="auth-btn" disabled={!token.trim() || isLoading}>
+          <button
+            onClick={handleAuth}
+            className="auth-btn"
+            disabled={!token.trim() || isLoading}
+          >
             {isLoading ? 'Authenticating...' : 'Authenticate'}
           </button>
           <a
@@ -150,9 +249,84 @@ function GitHubPanel() {
       </div>
 
       {currentDirectory && (
-        <div className="git-operations">
+        <>
+          <div className="quick-actions-section">
+            <h4>Quick Actions</h4>
+            <div className="quick-actions-grid">
+              <button onClick={handleAutoCommit} className="quick-action-btn" title="Auto-commit all changes">
+                <Zap size={20} />
+                <span>Save & Commit All</span>
+              </button>
+              <button onClick={handleSmartSync} className="quick-action-btn" title="Pull then push">
+                <RefreshCw size={20} />
+                <span>Sync with GitHub</span>
+              </button>
+              <button onClick={() => setShowWizard(true)} className="quick-action-btn" title="Guided workflows">
+                <ArrowRight size={20} />
+                <span>Git Wizard</span>
+              </button>
+              <button onClick={() => setShowCommitHistory(true)} className="quick-action-btn" title="View commit history">
+                <GitCommit size={20} />
+                <span>Commit History</span>
+              </button>
+            </div>
+          </div>
+
+          {showWizard && (
+            <div className="wizard-overlay">
+              <div className="wizard-container">
+                <button onClick={() => setShowWizard(false)} className="wizard-close">×</button>
+                <GitWizard />
+              </div>
+            </div>
+          )}
+
+          {showDiffViewer && currentDirectory && (
+            <div className="diff-viewer-overlay">
+              <div className="diff-viewer-container">
+                <GitDiffViewer
+                  repoPath={currentDirectory}
+                  filePath={selectedDiffFile}
+                  base="HEAD"
+                  onClose={() => {
+                    setShowDiffViewer(false);
+                    setSelectedDiffFile(undefined);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {showCommitHistory && currentDirectory && (
+            <div className="diff-viewer-overlay">
+              <div className="diff-viewer-container">
+                <CommitHistoryViewer
+                  repoPath={currentDirectory}
+                  initialBranch={status?.branch}
+                  onClose={() => setShowCommitHistory(false)}
+                />
+              </div>
+            </div>
+          )}
+
+          {showConflictResolver && currentDirectory && (
+            <div className="diff-viewer-overlay">
+              <div className="diff-viewer-container">
+                <MergeConflictResolver
+                  repoPath={currentDirectory}
+                  onResolved={() => {
+                    setShowConflictResolver(false);
+                    getStatus(currentDirectory);
+                  }}
+                  onClose={() => setShowConflictResolver(false)}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="git-operations">
           <h4>Git Operations</h4>
-          
+
           {status && (
             <>
               <div className="git-status">
@@ -164,19 +338,55 @@ function GitHubPanel() {
                   <span>Changes:</span>
                   <strong>{status.files.length} file(s)</strong>
                 </div>
+                {status.hasConflicts && (
+                  <div className="status-item conflict-warning">
+                    <span>Conflicts:</span>
+                    <strong>{status.conflictedFiles.length} file(s)</strong>
+                    <button
+                      onClick={() => setShowConflictResolver(true)}
+                      className="resolve-conflicts-btn"
+                      title="Resolve merge conflicts"
+                    >
+                      <GitMerge size={14} />
+                      Resolve
+                    </button>
+                  </div>
+                )}
               </div>
 
               {status.files.length > 0 && (
                 <div className="changed-files">
-                  <h5>Changed Files</h5>
+                  <div className="changed-files-header">
+                    <h5>Changed Files</h5>
+                    <button
+                      onClick={() => {
+                        setSelectedDiffFile(undefined);
+                        setShowDiffViewer(true);
+                      }}
+                      className="view-diff-btn"
+                      title="View all diffs"
+                    >
+                      <FileDiff size={16} />
+                      View Diffs
+                    </button>
+                  </div>
                   <div className="file-list">
                     {status.files.map((file, index) => (
-                      <div key={index} className="file-change-item">
+                      <div
+                        key={index}
+                        className="file-change-item"
+                        onClick={() => {
+                          setSelectedDiffFile(file.path);
+                          setShowDiffViewer(true);
+                        }}
+                        title={`Click to view diff for ${file.path}`}
+                      >
                         <span className={`file-status ${file.status}`}>
-                          {file.status === 'M' && '●'}
-                          {file.status === 'A' && '+'}
-                          {file.status === 'D' && '−'}
-                          {file.status === '??' && '?'}
+                          {file.status === 'modified' && '●'}
+                          {file.status === 'added' && '+'}
+                          {file.status === 'deleted' && '−'}
+                          {file.status === 'untracked' && '?'}
+                          {file.status === 'renamed' && '↻'}
                         </span>
                         <span className="file-path" title={file.path}>
                           {file.path}
@@ -199,7 +409,11 @@ function GitHubPanel() {
               rows={3}
             />
             <div className="action-buttons">
-              <button onClick={handleCommit} className="action-btn" disabled={!commitMessage.trim()}>
+              <button
+                onClick={handleCommit}
+                className="action-btn"
+                disabled={!commitMessage.trim()}
+              >
                 💾 Commit
               </button>
               <button onClick={handlePush} className="action-btn">
@@ -218,7 +432,9 @@ function GitHubPanel() {
                 <div key={branch.name} className="branch-item">
                   <span>{branch.name}</span>
                   <button
-                    onClick={() => checkoutBranch(currentDirectory, branch.name)}
+                    onClick={() =>
+                      checkoutBranch(currentDirectory, branch.name)
+                    }
                     className="checkout-btn"
                   >
                     Checkout
@@ -234,16 +450,20 @@ function GitHubPanel() {
                 placeholder="New branch name..."
                 className="branch-input"
               />
-              <button onClick={handleCreateBranch} className="create-btn" disabled={!newBranchName.trim()}>
+              <button
+                onClick={handleCreateBranch}
+                className="create-btn"
+                disabled={!newBranchName.trim()}
+              >
                 Create Branch
               </button>
             </div>
           </div>
         </div>
+        </>
       )}
     </div>
   );
 }
 
 export default GitHubPanel;
-

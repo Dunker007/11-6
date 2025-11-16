@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 import '../../styles/CommandCard.css';
 
 interface CommandCardProps {
@@ -12,7 +12,7 @@ interface CommandCardProps {
   showGlow?: boolean;
 }
 
-function CommandCard({ 
+const CommandCard = memo(function CommandCard({ 
   children, 
   variant = 'cyan',
   clickable = false,
@@ -44,7 +44,7 @@ function CommandCard({
       )}
     </div>
   );
-}
+});
 
 export default CommandCard;
 

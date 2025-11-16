@@ -1,39 +1,70 @@
+/* User Profile Styles */
+
 .user-profile {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.user-profile-loading,
+.user-profile-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: var(--font-size-base);
+}
+
+.user-profile-error {
+  color: var(--red-500);
 }
 
 .profile-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--bg-tertiary);
 }
 
 .profile-header h3 {
   margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  font-size: 1.25rem;
 }
 
 .edit-btn {
-  padding: 0.5rem 1rem;
-  background: var(--accent-primary);
-  border: none;
-  border-radius: 0.5rem;
-  color: white;
+  padding: 0.625rem 1.25rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
+  transition: var(--transition-base);
 }
 
 .edit-btn:hover {
-  background: var(--accent-secondary);
+  background: var(--bg-tertiary);
+  border-color: var(--violet-500);
+  transform: translateY(-1px);
 }
 
+/* Profile Form */
 .profile-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  max-width: 600px;
 }
 
 .form-group {
@@ -43,111 +74,157 @@
 }
 
 .form-group label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--text-primary);
-  font-size: 0.875rem;
-  font-weight: 600;
 }
 
-.form-group input {
-  padding: 0.75rem;
-  background: var(--bg-secondary);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 0.5rem;
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"] {
+  padding: 0.625rem 0.75rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius-base);
   color: var(--text-primary);
-  font-size: 0.875rem;
-  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  transition: var(--transition-base);
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--accent-primary);
+  border-color: var(--violet-500);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.form-group input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 .form-actions {
   display: flex;
   gap: 0.75rem;
   justify-content: flex-end;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .save-btn {
-  padding: 0.75rem 1.5rem;
-  background: var(--accent-primary);
+  padding: 0.625rem 1.5rem;
+  background: var(--violet-500);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-base);
   color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
+  transition: var(--transition-base);
 }
 
 .save-btn:hover {
-  background: var(--accent-secondary);
+  background: var(--violet-600);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow-primary);
 }
 
 .cancel-btn {
-  padding: 0.75rem 1.5rem;
+  padding: 0.625rem 1.5rem;
   background: transparent;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 0.5rem;
-  color: var(--text-muted);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
+  transition: var(--transition-base);
 }
 
 .cancel-btn:hover {
-  background: rgba(139, 92, 246, 0.1);
-  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border-color: var(--violet-500);
 }
 
+/* Profile Display */
 .profile-display {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  max-width: 600px;
 }
 
 .profile-item {
   display: flex;
   justify-content: space-between;
-  padding: 0.75rem;
-  background: rgba(139, 92, 246, 0.05);
-  border-radius: 0.5rem;
+  align-items: center;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--radius-base);
+  transition: var(--transition-base);
+}
+
+.profile-item:hover {
+  border-color: var(--violet-500);
+  transform: translateX(4px);
 }
 
 .profile-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--text-muted);
-  font-size: 0.875rem;
-  font-weight: 600;
 }
 
 .profile-value {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   color: var(--text-primary);
-  font-size: 0.875rem;
-  font-weight: 600;
 }
 
 .profile-meta {
   display: flex;
-  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  border-top: 1px solid var(--bg-tertiary);
   margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(139, 92, 246, 0.2);
-  font-size: 0.75rem;
 }
 
 .meta-label {
-  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .meta-value {
   color: var(--text-secondary);
 }
 
-.user-profile-loading,
-.user-profile-error {
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-muted);
+/* Responsive */
+@media (max-width: 768px) {
+  .user-profile {
+    padding: 1rem;
+  }
+
+  .profile-form,
+  .profile-display {
+    max-width: 100%;
+  }
+
+  .profile-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .save-btn,
+  .cancel-btn {
+    width: 100%;
+  }
 }
 

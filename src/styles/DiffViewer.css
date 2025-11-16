@@ -1,0 +1,34 @@
+.diff-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.diff-toolbar button {
+  background: var(--bg-tertiary,#242936);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-primary,#fff);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.diff-toolbar button.active {
+  background: rgba(0,212,255,0.12);
+  border-color: var(--accent-primary,#00d4ff);
+}
+.diff-pre {
+  background: var(--bg-primary,#0a0e1a);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  padding: 8px;
+  max-height: 300px;
+  overflow: auto;
+}
+.diff-line {
+  white-space: pre-wrap;
+}
+.diff-add { color: #7CFC9A; }
+.diff-del { color: #ff6b6b; }
+.diff-eq  { color: #b0b7c3; }
+
+

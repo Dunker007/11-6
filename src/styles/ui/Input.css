@@ -1,0 +1,173 @@
+/**
+ * Input Component Styles - Clean Modern Design
+ * Updated: 2025-11-14
+ */
+
+.ui-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.ui-input-wrapper--full-width {
+  width: 100%;
+}
+
+.ui-input-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--clean-text-secondary, var(--color-text-secondary));
+  margin-bottom: var(--spacing-1);
+}
+
+.ui-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ui-input,
+.ui-textarea {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--clean-text-primary, var(--color-text-primary));
+  background: var(--clean-bg-elevated, var(--color-bg-tertiary));
+  border: 1px solid var(--clean-border-default, var(--color-border-primary));
+  border-radius: var(--radius-base);
+  transition: all var(--clean-transition-base, var(--transition-base));
+  outline: none;
+}
+
+.ui-input::placeholder,
+.ui-textarea::placeholder {
+  color: var(--clean-text-tertiary, var(--color-text-muted));
+  opacity: 0.7;
+}
+
+.ui-input:focus,
+.ui-textarea:focus {
+  border-color: var(--clean-accent-primary, var(--color-border-focus));
+  box-shadow: var(--clean-glow-focus, 0 0 0 3px rgba(139, 124, 232, 0.2));
+  background: var(--clean-bg-secondary, var(--color-bg-elevated));
+}
+
+.ui-input:hover:not(:disabled):not(:focus),
+.ui-textarea:hover:not(:disabled):not(:focus) {
+  border-color: var(--clean-border-strong, var(--color-border-primary));
+  background: var(--clean-bg-hover, var(--color-bg-secondary));
+}
+
+.ui-input:disabled,
+.ui-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--clean-bg-secondary, var(--color-bg-secondary));
+}
+
+.ui-input--has-left-icon {
+  padding-left: calc(var(--spacing-4) + 20px + var(--spacing-2));
+}
+
+.ui-input--has-right-icon {
+  padding-right: calc(var(--spacing-4) + 20px + var(--spacing-2));
+}
+
+.ui-textarea {
+  min-height: 100px;
+  resize: vertical;
+  padding: var(--spacing-3);
+}
+
+.ui-textarea--resize-none {
+  resize: none;
+}
+
+.ui-textarea--resize-vertical {
+  resize: vertical;
+}
+
+.ui-textarea--resize-horizontal {
+  resize: horizontal;
+}
+
+.ui-textarea--resize-both {
+  resize: both;
+}
+
+/* Icons */
+.ui-input-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clean-text-tertiary, var(--color-text-muted));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ui-input-icon--left {
+  left: var(--spacing-3);
+}
+
+.ui-input-icon--right {
+  right: var(--spacing-3);
+}
+
+.ui-input-error-icon {
+  position: absolute;
+  right: var(--spacing-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clean-error, var(--color-error));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Error State */
+.ui-input-wrapper--error .ui-input,
+.ui-input-wrapper--error .ui-textarea {
+  border-color: var(--clean-error, var(--color-error));
+  background: var(--clean-error-bg, rgba(239, 68, 68, 0.05));
+}
+
+.ui-input-wrapper--error .ui-input:focus,
+.ui-input-wrapper--error .ui-textarea:focus {
+  border-color: var(--clean-error, var(--color-error));
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.ui-input-error {
+  font-size: var(--font-size-sm);
+  color: var(--clean-error, var(--color-error));
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
+}
+
+.ui-input-helper {
+  font-size: var(--font-size-xs);
+  color: var(--clean-text-tertiary, var(--color-text-muted));
+  line-height: 1.4;
+}
+
+/* Legacy holographic support (deprecated - kept for backwards compatibility) */
+.ui-input-wrapper--holographic,
+.ui-input-wrapper--holographic-cyan,
+.ui-input-wrapper--holographic-magenta,
+.ui-input-wrapper--holographic-amber,
+.ui-input-wrapper--holographic-violet {
+  /* Use standard input styles instead */
+}
+
+/* Accessibility: Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ui-input,
+  .ui-textarea {
+    transition: none;
+  }
+}

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import '../../styles/StatusWidget.css';
 
 interface StatusWidgetProps {
@@ -8,7 +9,7 @@ interface StatusWidgetProps {
   compact?: boolean;
 }
 
-function StatusWidget({ 
+const StatusWidget = memo(function StatusWidget({ 
   label, 
   status, 
   value, 
@@ -35,7 +36,7 @@ function StatusWidget({
       <div className="widget-pulse"></div>
     </div>
   );
-}
+});
 
 export default StatusWidget;
 

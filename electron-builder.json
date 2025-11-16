@@ -1,9 +1,12 @@
 {
   "appId": "com.dlxstudios.ultimate",
   "productName": "DLX Studios Ultimate",
-  "copyright": "Copyright © 2024 DLX Studios",
+  "copyright": "Copyright © 2025 DLXStudios.a1",
+  "npmRebuild": false,
+  "afterPack": "./scripts/afterPack.cjs",
   "extraMetadata": {
-    "description": "AI-Native Development Platform with VibeEditor"
+    "description": "AI-Native Development Platform with VibeEditor",
+    "version": "1.0.1"
   },
   "directories": {
     "output": "release",
@@ -13,6 +16,13 @@
     "dist/**/*",
     "dist-electron/**/*",
     "package.json",
+    "!**/node_modules/@lancedb/lancedb-darwin-*",
+    "!**/node_modules/@lancedb/lancedb-linux-*",
+    "!**/node_modules/@lancedb/lancedb-darwin-arm64",
+    "!**/node_modules/@lancedb/lancedb-darwin-x64",
+    "!**/node_modules/@lancedb/lancedb-linux-x64",
+    "!**/node_modules/@lancedb/lancedb-linux-arm64",
+    "!**/node_modules/@types/**",
     "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
     "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
     "!**/node_modules/*.d.ts",
@@ -32,9 +42,10 @@
         "arch": ["x64"]
       }
     ],
-    "icon": "build/icon.ico",
     "forceCodeSigning": false,
-    "verifyUpdateCodeSignature": false
+    "verifyUpdateCodeSignature": false,
+    "requestedExecutionLevel": "asInvoker",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
   },
   "mac": {
     "target": [
@@ -47,8 +58,9 @@
         "arch": ["x64", "arm64"]
       }
     ],
-    "icon": "build/icon.icns",
-    "category": "public.app-category.developer-tools"
+    "category": "public.app-category.developer-tools",
+    "hardenedRuntime": false,
+    "gatekeeperAssess": false
   },
   "linux": {
     "target": [
@@ -65,24 +77,22 @@
         "arch": ["x64"]
       }
     ],
-    "icon": "build/icon.png",
     "category": "Development"
   },
   "nsis": {
     "oneClick": false,
     "allowToChangeInstallationDirectory": true,
     "allowElevation": true,
-    "installerIcon": "build/icon.ico",
-    "uninstallerIcon": "build/icon.ico",
-    "installerHeaderIcon": "build/icon.ico",
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "DLX Studios Ultimate"
+    "shortcutName": "DLX Studios Ultimate",
+    "installerLanguages": ["en_US"],
+    "multiLanguageInstaller": false
   },
   "publish": {
     "provider": "github",
     "owner": "Dunker007",
-    "repo": "11-6"
+    "repo": "11-6",
+    "releaseType": "release"
   }
 }
-

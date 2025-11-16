@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { healthMonitor, type SystemStats, type HealthMetric, type HealthAlert } from './healthMonitor';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface HealthStore {
   // State
@@ -17,6 +18,7 @@ interface HealthStore {
   acknowledgeAlert: (id: string) => void;
   startMonitoring: (intervalMs?: number) => void;
   stopMonitoring: () => void;
+  cleanup: () => void;
   clearAlerts: () => void;
 }
 
@@ -29,25 +31,37 @@ export const useHealthStore = create<HealthStore>((set) => ({
   error: null,
 
   getSystemStats: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const stats = await healthMonitor.getSystemStats();
-      set({ stats, isLoading: false });
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-    }
+    await withAsyncOperation(
+      async () => {
+        const stats = await healthMonitor.getSystemStats();
+        set({ stats });
+        return stats;
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'healthStore'
+    );
   },
 
   checkHealth: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const stats = await healthMonitor.getSystemStats();
-      const metrics = await healthMonitor.checkHealth(stats);
-      const alerts = healthMonitor.getAlerts();
-      set({ stats, metrics, alerts, isLoading: false });
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-    }
+    await withAsyncOperation(
+      async () => {
+        const stats = await healthMonitor.getSystemStats();
+        const metrics = await healthMonitor.checkHealth(stats);
+        const alerts = healthMonitor.getAlerts();
+        set({ stats, metrics, alerts });
+        return { stats, metrics, alerts };
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'healthStore'
+    );
   },
 
   getAlerts: () => {
@@ -67,6 +81,14 @@ export const useHealthStore = create<HealthStore>((set) => ({
   stopMonitoring: () => {
     healthMonitor.stopMonitoring();
     set({ isMonitoring: false });
+  },
+
+  cleanup: () => {
+    healthMonitor.cleanup();
+    set({ 
+      isMonitoring: false,
+      stats: null,
+    });
   },
 
   clearAlerts: () => {

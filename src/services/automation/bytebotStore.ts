@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { byteBotService, type ByteBotTask, type ByteBotConfig } from './bytebotService';
+import { withAsyncOperation } from '@/utils/storeHelpers';
 
 interface ByteBotStore {
   // State
@@ -24,35 +25,43 @@ export const useByteBotStore = create<ByteBotStore>((set) => ({
   error: null,
 
   connect: async (endpoint: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await byteBotService.connect(endpoint);
-      if (result.success) {
-        set({ config: byteBotService.getConfig(), isLoading: false });
+    const result = await withAsyncOperation(
+      async () => {
+        const connectResult = await byteBotService.connect(endpoint);
+        if (!connectResult.success) {
+          throw new Error(connectResult.error || 'Failed to connect');
+        }
+        set({ config: byteBotService.getConfig() });
         return true;
-      }
-      set({ isLoading: false, error: result.error });
-      return false;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'bytebotStore'
+    );
+    return result ?? false;
   },
 
   executeTask: async (command: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await byteBotService.executeTask(command);
-      if (result.success) {
-        set({ tasks: byteBotService.getTasks(), isLoading: false });
+    const result = await withAsyncOperation(
+      async () => {
+        const taskResult = await byteBotService.executeTask(command);
+        if (!taskResult.success) {
+          throw new Error(taskResult.error || 'Failed to execute task');
+        }
+        set({ tasks: byteBotService.getTasks() });
         return true;
-      }
-      set({ isLoading: false, error: result.error });
-      return false;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'bytebotStore'
+    );
+    return result ?? false;
   },
 
   getTasks: () => {
@@ -64,19 +73,23 @@ export const useByteBotStore = create<ByteBotStore>((set) => ({
   },
 
   cancelTask: async (taskId: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const result = await byteBotService.cancelTask(taskId);
-      if (result.success) {
-        set({ tasks: byteBotService.getTasks(), isLoading: false });
+    const result = await withAsyncOperation(
+      async () => {
+        const cancelResult = await byteBotService.cancelTask(taskId);
+        if (!cancelResult.success) {
+          throw new Error(cancelResult.error || 'Failed to cancel task');
+        }
+        set({ tasks: byteBotService.getTasks() });
         return true;
-      }
-      set({ isLoading: false, error: result.error });
-      return false;
-    } catch (error) {
-      set({ isLoading: false, error: (error as Error).message });
-      return false;
-    }
+      },
+      (errorMessage) => set({ error: errorMessage }),
+      () => set({ isLoading: true, error: null }),
+      () => set({ isLoading: false }),
+      true,
+      'runtime',
+      'bytebotStore'
+    );
+    return result ?? false;
   },
 
   setConfig: (config: Partial<ByteBotConfig>) => {

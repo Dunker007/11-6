@@ -1,0 +1,222 @@
+/**
+ * Button Component Styles - Clean Modern Design
+ * Updated: 2025-11-14
+ */
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid transparent;
+  border-radius: var(--radius-base);
+  cursor: pointer;
+  transition: all var(--clean-transition-base, var(--transition-base));
+  outline: none;
+  position: relative;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Focus States */
+.ui-button:focus-visible {
+  outline: 2px solid var(--clean-accent-primary, var(--accent-primary));
+  outline-offset: 2px;
+  box-shadow: var(--clean-glow-focus, 0 0 0 3px rgba(139, 124, 232, 0.2));
+}
+
+/* Variant: Primary */
+.ui-button--primary {
+  background: var(--clean-accent-primary, var(--accent-primary));
+  color: white;
+  border-color: transparent;
+  box-shadow: var(--clean-shadow-sm, var(--shadow-sm));
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  background: var(--clean-accent-primary-hover, var(--accent-primary));
+  box-shadow: var(--clean-shadow-md, var(--shadow-md));
+  transform: translateY(-1px);
+}
+
+.ui-button--primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--clean-shadow-sm, var(--shadow-sm));
+}
+
+/* Variant: Secondary */
+.ui-button--secondary {
+  background: var(--clean-bg-elevated, var(--bg-secondary));
+  color: var(--clean-text-primary, var(--text-primary));
+  border-color: var(--clean-border-default, var(--panel-border));
+}
+
+.ui-button--secondary:hover:not(:disabled) {
+  background: var(--clean-bg-hover, var(--bg-tertiary));
+  border-color: var(--clean-accent-primary, var(--accent-primary));
+  transform: translateY(-1px);
+}
+
+.ui-button--secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Variant: Ghost */
+.ui-button--ghost {
+  background: transparent;
+  color: var(--clean-text-primary, var(--text-primary));
+  border-color: transparent;
+}
+
+.ui-button--ghost:hover:not(:disabled) {
+  background: var(--clean-bg-elevated, var(--bg-secondary));
+}
+
+.ui-button--ghost:active:not(:disabled) {
+  background: var(--clean-bg-hover, var(--bg-tertiary));
+}
+
+/* Variant: Danger */
+.ui-button--danger {
+  background: var(--clean-error, var(--color-error));
+  color: white;
+  border-color: transparent;
+}
+
+.ui-button--danger:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.ui-button--danger:active:not(:disabled) {
+  filter: brightness(0.95);
+  transform: translateY(0);
+}
+
+/* Variant: Success */
+.ui-button--success {
+  background: var(--clean-success, var(--color-success));
+  color: white;
+  border-color: transparent;
+}
+
+.ui-button--success:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.ui-button--success:active:not(:disabled) {
+  filter: brightness(0.95);
+  transform: translateY(0);
+}
+
+/* Sizes */
+.ui-button--sm {
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  min-height: var(--clean-button-height-sm, 32px);
+}
+
+.ui-button--md {
+  padding: var(--spacing-3) var(--spacing-5);
+  font-size: var(--font-size-base);
+  min-height: var(--clean-button-height-md, 40px);
+}
+
+.ui-button--lg {
+  padding: var(--spacing-4) var(--spacing-6);
+  font-size: var(--font-size-lg);
+  min-height: var(--clean-button-height-lg, 48px);
+}
+
+/* States */
+.ui-button--disabled,
+.ui-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.ui-button--loading {
+  cursor: wait;
+}
+
+.ui-button--full-width {
+  width: 100%;
+}
+
+/* Icon Styles */
+.ui-button__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.ui-button__icon--left {
+  margin-right: calc(var(--spacing-1) * -1);
+}
+
+.ui-button__icon--right {
+  margin-left: calc(var(--spacing-1) * -1);
+}
+
+/* Spinner */
+.ui-button__spinner {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-button__spinner-svg {
+  width: 18px;
+  height: 18px;
+  animation: spin-smooth 0.8s linear infinite;
+}
+
+.ui-button__spinner-circle {
+  opacity: 0.75;
+}
+
+@keyframes spin-smooth {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Content */
+.ui-button__content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* Legacy Holographic Support (Deprecated - kept for backwards compatibility) */
+.ui-button--holographic,
+.ui-button--hexagonal {
+  /* Remove holographic effects - use standard button styles */
+}
+
+.ui-button--glow-cyan,
+.ui-button--glow-magenta,
+.ui-button--glow-amber,
+.ui-button--glow-violet {
+  /* Remove glow effects - use standard button styles */
+}
+
+/* Accessibility: Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ui-button {
+    transition: none;
+  }
+  
+  .ui-button:hover:not(:disabled),
+  .ui-button:active:not(:disabled) {
+    transform: none;
+  }
+}

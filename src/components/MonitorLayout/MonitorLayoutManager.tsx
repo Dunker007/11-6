@@ -47,7 +47,7 @@ const DesktopEnvironment = () => {
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
         rowHeight={30}
-        onLayoutChange={(currentLayout, allLayouts) => handleLayoutChange(allLayouts.lg)}
+        onLayoutChange={(_currentLayout, allLayouts) => handleLayoutChange(allLayouts.lg)}
       >
         <div key="editor">
           <WindowFrame title="Vibe Editor">

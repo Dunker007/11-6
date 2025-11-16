@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * Debounces a value, delaying updates until after a specified delay
@@ -26,24 +26,44 @@ export function useDebounce<T>(value: T, delay: number = 300): T {
  * Debounces a callback function
  * @param callback The function to debounce
  * @param delay Delay in milliseconds (default: 300ms)
- * @returns The debounced function
+ * @returns The debounced function (stable reference)
  */
 export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
   delay: number = 300
 ): (...args: Parameters<T>) => void {
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  // Use ref to store the latest callback without causing re-renders
+  const callbackRef = useRef<T>(callback);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  return (...args: Parameters<T>) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
+  // Update the ref whenever callback changes
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
 
-    const newTimeoutId = setTimeout(() => {
-      callback(...args);
-    }, delay);
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
-    setTimeoutId(newTimeoutId);
-  };
+  // Return a stable function reference using useCallback
+  return useCallback(
+    (...args: Parameters<T>) => {
+      // Clear existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      // Set new timeout
+      timeoutRef.current = setTimeout(() => {
+        callbackRef.current(...args);
+      }, delay);
+    },
+    [delay] // Only recreate if delay changes
+  );
 }
 

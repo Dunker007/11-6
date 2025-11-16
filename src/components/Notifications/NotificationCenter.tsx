@@ -1,5 +1,4 @@
 // src/components/Notifications/NotificationCenter.tsx
-import React from 'react';
 import { useNotificationStore } from '../../services/notification/notificationStore';
 import { notificationService } from '../../services/notification/notificationService';
 import TechIcon from '../Icons/TechIcon';
@@ -37,7 +36,7 @@ const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
             notifications.map((notif) => (
               <div key={notif.id} className={`nc-item ${notif.type} ${notif.read ? 'read' : ''}`} onClick={() => notificationService.markAsRead(notif.id)}>
                 <div className="nc-item-icon">
-                  <TechIcon icon={notif.icon || ICON_MAP.info} />
+                  <TechIcon icon={notif.icon || ICON_MAP.bell} />
                 </div>
                 <div className="nc-item-content">
                   <h4>{notif.title}</h4>

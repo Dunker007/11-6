@@ -183,9 +183,14 @@ npm run typecheck  # Must pass before commit
 ## Git Workflow
 
 ### Branches
-- `main` - Production releases
-- `develop` - Active development
-- Feature branches: `feature/[name]`
+- `main` - Production releases (protected, only merges from develop)
+- `develop` - Active development branch (default working branch)
+- Feature branches: `feature/[name]` - Short-lived branches merged into develop
+
+### Branch Cleanup
+- Delete merged feature branches regularly
+- Keep only active branches: main, develop, and current feature branches
+- If conflicts occur during merge, prefer the more recent work from develop
 
 ### Commit Messages
 ```

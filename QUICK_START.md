@@ -4,122 +4,219 @@
 
 ### Prerequisites
 - Node.js 18+ installed
-- npm or yarn package manager
+- npm package manager
+- Git for version control
 
 ### Installation
-All dependencies are already installed! Just run:
 
 ```bash
+# Clone the repository
+git clone <your-repo-url>
+cd dlx-studios-ultimate
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# In a separate terminal, start Electron
 npm run electron:dev
 ```
 
-This will:
-1. Start Vite dev server on http://localhost:5173
-2. Launch Electron app window
-3. Open DevTools automatically (for debugging)
+The application will open automatically in a new Electron window.
 
-## 🎯 What to Test
+---
 
-### 1. App Shell & UI
-- ✅ 3-panel layout (Left: Navigation, Center: Content, Right: Activity)
-- ✅ Neural Core animation (top center)
-- ✅ Workflow navigation (5 workflows)
-- ✅ Holographic design theme
+## 🎯 Core Features
 
-### 2. VibeEditor
-- ✅ Create a new project (click "New Project" on welcome screen)
-- ✅ Add files (right-click in File Explorer or use + button)
-- ✅ Edit code in Monaco Editor
-- ✅ Syntax highlighting works
-- ✅ Files save automatically
+### Testing (NEW)
+**What it does**: Run unit tests and view coverage reports.
 
-### 3. AI Assistant
-- ✅ Click 🧠 button in sidebar to toggle AI Assistant
-- ✅ Type a message and press Enter
-- ✅ Try quick actions: Explain, Refactor, Fix Bugs, Generate Tests
-- ✅ See streaming responses (if LLM available)
+**Available Commands:**
+- `npm test` - Run Vitest unit tests in watch mode
+- `npm run test:ui` - Open Vitest UI for visual test debugging
+- `npm run test:coverage` - Generate coverage reports
+- `npm run test:e2e` - Run Playwright end-to-end tests
 
-### 4. LLM Integration
-- ✅ Check LLM Status in right panel
-- ✅ If LM Studio/Ollama running: Should show "Online"
-- ✅ If API keys configured: Cloud providers show "Online"
-- ✅ Click refresh to check status
+**See:** `TESTING.md` for comprehensive testing guide
 
-### 5. API Key Management
-- ✅ Click ⚙️ API Keys button in left panel
-- ✅ Add Gemini API key (optional)
-- ✅ See provider status indicators
-- ✅ Health checks work
+---
+
+### 1. LLM Optimization (Alt+1)
+
+**What it does**: Manage and optimize your local and cloud LLM providers.
+
+**Key Features**:
+- **Provider Detection**: Automatically discovers Ollama, LM Studio, Gemini, etc.
+- **Model Catalog**: Browse and favorite models
+- **Benchmarking**: Test model performance (latency, throughput)
+- **Token Tracking**: Monitor usage and costs
+
+**Quick Actions**:
+- Click ⭐ to favorite models (they appear at the top)
+- Click "Pull Model" to download from Ollama
+- Run benchmarks to compare models
+- Check token usage in the right panel
+
+### 2. Google AI Hub (Alt+4)
+
+**What it does**: Powerful Gemini-powered AI features in one place.
+
+#### Visual-to-Code (Tab 2)
+1. Drag & drop a screenshot of UI
+2. Enter a prompt (e.g., "Generate React component")
+3. Click "Generate Code"
+4. Copy the generated code
+
+#### Smart Comments (Tab 3)
+1. Open a file in your project
+2. Click "Analyze Active File"
+3. View sentiment analysis and entities from code comments
+
+#### Project Q&A (Tab 4)
+1. Open/create a project
+2. Ask questions about your codebase
+3. Get AI-powered answers with source citations
+
+#### AI Studio Projects (Tab 1)
+1. Export a project from [Gemini AI Studio](https://aistudio.google.com/)
+2. Import the `.zip` file
+3. Run it locally with your own API key
+
+### 3. Workflows (Alt+8)
+
+**What it does**: Automate project tasks with AI-powered workflows.
+
+**Available Workflows**:
+- **Project**: Create, analyze, and initialize projects
+- **Build**: Configure and run build commands
+- **Deploy**: Deployment configurations
+- **Monitor**: System health and metrics
+- **Monetize**: Revenue stream setup
+
+**How to Use**:
+1. Select a workflow type from the sidebar
+2. Fill in configuration (project name, build command, etc.)
+3. Click "Create Workflow"
+4. Watch progress in real-time
+5. Cancel anytime if needed
+
+---
+
+## ⚙️ Configuration
+
+### API Keys (Settings → API Keys)
+
+Required for cloud features:
+
+1. **Gemini API Key**: 
+   - Get from [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Required for: Google AI Hub, cloud generation
+   
+2. **NotebookLM** (optional):
+   - Uses Gemini key if not provided
+   - Enhanced project Q&A
+
+3. **OpenRouter** (optional):
+   - Fallback for cloud models
+
+4. **Local LLMs** (no API key needed):
+   - Install [Ollama](https://ollama.com/) or [LM Studio](https://lmstudio.ai/)
+   - Start the server
+   - DLX Studios will auto-detect it
+
+### Storage Management (Settings → Storage)
+
+Monitor and manage local storage:
+- View usage statistics
+- Export diagnostics
+- Clear all data (emergency reset)
+
+---
+
+## 🎨 Keyboard Shortcuts
+
+### Navigation
+- `Alt+1` → LLM Optimization
+- `Alt+2` → Revenue Dashboard
+- `Alt+3` → Vibed Ed (Code Editor)
+- `Alt+4` → Google AI Hub ⭐
+- `Alt+5` → Crypto Lab
+- `Alt+6` → Wealth Lab
+- `Alt+7` → Idea Lab
+- `Alt+8` → Workflows
+- `Alt+9` → Quick Labs
+- `Alt+0` → Settings
+
+### Google AI Hub Sub-tabs
+- `1` → AI Studio Projects
+- `2` → Visual-to-Code
+- `3` → Smart Comments
+- `4` → Project Q&A
+
+### Other
+- `Ctrl+Shift+I` → Toggle Insights Stream
+- `Ctrl+Enter` → Submit (in text areas)
+
+---
 
 ## 🔧 Troubleshooting
 
-### App won't start?
-- Check if port 5173 is available
-- Make sure Node.js is installed
-- Try: `npm install` to reinstall dependencies
+### App Not Loading
+1. Check console for errors (F12)
+2. Clear storage: Settings → Storage → Clear All
+3. Restart the app
 
-### AI Assistant not responding?
-- Check LLM Status panel
-- Make sure LM Studio or Ollama is running (for local LLMs)
-- Or configure Gemini API key (for cloud LLM)
+### localStorage Quota Errors
+**Fixed!** The app now uses intelligent storage management:
+- Low-priority data auto-clears when needed
+- IndexedDB fallback for large data
+- One-time migration on first launch
 
-### Monaco Editor not loading?
-- Check browser console for errors
-- Make sure @monaco-editor/react is installed
+### LLM Providers Not Detected
+1. Ensure Ollama/LM Studio is running
+2. Check provider status in left panel
+3. Manually trigger discovery: Click refresh icon
 
-### TypeScript errors?
-- Run `npm run typecheck` to see errors
-- All files should compile without errors
+### API Errors
+1. Verify API key in Settings
+2. Check network connection
+3. View detailed errors in Settings → Storage → Export Diagnostics
 
-## 📝 Testing Checklist
+---
 
-See `TESTING.md` for detailed testing scenarios.
+## 📚 Next Steps
 
-## 🎨 Features to Try
+1. **Set up your first local LLM**:
+   - Install Ollama
+   - Pull a model: `ollama pull llama2`
+   - DLX will auto-detect it!
 
-1. **Create a Project**
-   - Welcome screen → New Project
-   - Name it "test-project"
+2. **Try Google AI Hub**:
+   - Add Gemini API key
+   - Take a screenshot of UI
+   - Generate code in seconds
 
-2. **Add a File**
-   - Right-click in File Explorer
-   - Create "app.ts"
-   - Write some TypeScript code
+3. **Create a project**:
+   - Go to Workflows → Project
+   - Create a new project
+   - Let AI analyze and generate structure
 
-3. **Use AI Assistant**
-   - Open AI Assistant panel
-   - Select the file you created
-   - Click "Explain" quick action
-   - Or type: "Explain this code"
+4. **Benchmark your models**:
+   - LLM Optimization → BenchmarkRunner
+   - Select models to test
+   - Compare performance
 
-4. **Test LLM Providers**
-   - Start LM Studio (localhost:1234) or Ollama (localhost:11434)
-   - Check LLM Status - should show Online
-   - Try asking VibDee a question
+---
 
-5. **Configure API Keys**
-   - Open API Key Manager
-   - Add Gemini API key (if you have one)
-   - See it appear in LLM Status
+## 🆘 Need Help?
 
-## 🐛 Known Issues
+- Check the console (F12) for detailed logs
+- Export diagnostics: Settings → Storage → Export Diagnostics
+- Review `AI_SERVICES_CONSOLIDATION.md` for architecture details
+- See `PRODUCTION_PLAN.md` for feature status
 
-- Preload script uses TypeScript - may need compilation for production
-- File system integration uses LocalStorage (Electron file system pending)
-- Some features are stubs (marked for future implementation)
+---
 
-## ✨ What's Working
-
-- ✅ Full IDE with Monaco Editor
-- ✅ Project management
-- ✅ File operations
-- ✅ AI Assistant with streaming
-- ✅ Multi-LLM support (local + cloud)
-- ✅ API key management
-- ✅ Beautiful holographic UI
-- ✅ Context-aware AI coding
-
-## 🎉 Enjoy Testing!
-
-The MVP is fully functional. Test all features and let me know what you find!
-
+**Happy building! 🚀**

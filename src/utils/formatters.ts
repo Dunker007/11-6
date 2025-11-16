@@ -1,6 +1,65 @@
 /**
- * Centralized formatting utilities
- * Single source of truth for all data formatting across the application
+ * formatters.ts
+ * 
+ * PURPOSE:
+ * Centralized formatting utilities for the entire application. Single source of truth for
+ * currency, percentage, date, bytes, and relative time formatting. Ensures consistent
+ * formatting across all components and prevents duplicate formatting code.
+ * 
+ * ARCHITECTURE:
+ * Pure utility functions with no dependencies on application state:
+ * - Currency formatting (USD, compact notation)
+ * - Percentage formatting (with sign options)
+ * - Date formatting (short, medium, long, relative, datetime)
+ * - Bytes formatting (human-readable)
+ * - Relative time formatting (time ago)
+ * 
+ * CURRENT STATUS:
+ * ✅ Currency formatting (standard and compact)
+ * ✅ Percentage formatting with sign option
+ * ✅ Date formatting (multiple styles)
+ * ✅ Bytes formatting
+ * ✅ Relative time formatting
+ * ✅ All formatters used across 15+ components
+ * 
+ * DEPENDENCIES:
+ * - None (pure utility functions)
+ * 
+ * STATE MANAGEMENT:
+ * - Stateless utilities (no state)
+ * - No Zustand or React dependencies
+ * 
+ * PERFORMANCE:
+ * - Efficient Intl API usage
+ * - No side effects
+ * - Fast execution
+ * 
+ * USAGE EXAMPLE:
+ * ```typescript
+ * import { formatCurrency, formatPercent, formatDate } from '@/utils/formatters';
+ * 
+ * // Currency
+ * formatCurrency(1234.56); // "$1,234.56"
+ * formatCurrency(1234.56, { minimumFractionDigits: 0 }); // "$1,235"
+ * 
+ * // Percentage
+ * formatPercent(0.15, 2, false, true); // "+15.00%"
+ * 
+ * // Date
+ * formatDate(new Date(), 'medium'); // "Jan 15, 2025"
+ * formatDate(new Date(), 'relative'); // "2 hours ago"
+ * ```
+ * 
+ * RELATED FILES:
+ * - src/components/LLMOptimizer/WealthLab/components/AnalyticsDashboard.tsx: Uses all formatters
+ * - src/components/LLMOptimizer/WealthLab/components/*: Multiple components use formatters
+ * - src/components/VibeEditor/FileExplorer.tsx: Uses formatBytes
+ * 
+ * TODO / FUTURE ENHANCEMENTS:
+ * - Support for more currencies
+ * - Localization support
+ * - Custom date formats
+ * - Number formatting utilities
  */
 
 /**
@@ -39,26 +98,29 @@ export function formatCompactCurrency(amount: number): string {
  * @param value The value to format (0-1 for percentage, or 0-100 if already percentage)
  * @param decimals Number of decimal places (default: 1)
  * @param isAlreadyPercent Whether the input is already a percentage (0-100)
+ * @param showSign Whether to show '+' sign for positive values (default: false)
  * @returns Formatted percentage string
  */
 export function formatPercent(
   value: number,
   decimals: number = 1,
-  isAlreadyPercent: boolean = false
+  isAlreadyPercent: boolean = false,
+  showSign: boolean = false
 ): string {
   const percentage = isAlreadyPercent ? value : value * 100;
-  return `${percentage.toFixed(decimals)}%`;
+  const sign = showSign && percentage >= 0 ? '+' : '';
+  return `${sign}${percentage.toFixed(decimals)}%`;
 }
 
 /**
  * Format a date as a human-readable string
  * @param date The date to format
- * @param style Style of date formatting
+ * @param style Style of date formatting ('short' | 'medium' | 'long' | 'relative' | 'datetime')
  * @returns Formatted date string
  */
 export function formatDate(
   date: Date | number | string,
-  style: 'short' | 'medium' | 'long' | 'relative' = 'medium'
+  style: 'short' | 'medium' | 'long' | 'relative' | 'datetime' = 'medium'
 ): string {
   const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
 
@@ -70,8 +132,9 @@ export function formatDate(
     short: { month: 'numeric', day: 'numeric', year: '2-digit' },
     medium: { month: 'short', day: 'numeric', year: 'numeric' },
     long: { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric' },
+    datetime: { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' },
   };
-  const options = optionsMap[style];
+  const options = optionsMap[style] || optionsMap.medium;
 
   return new Intl.DateTimeFormat('en-US', options).format(dateObj);
 }

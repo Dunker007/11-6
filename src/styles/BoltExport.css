@@ -1,0 +1,180 @@
+/* BoltExport Component Styles */
+.bolt-export {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.bolt-export-card {
+  background: var(--color-bg-glass-light);
+  backdrop-filter: blur(var(--glass-blur-lg));
+}
+
+.bolt-export-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.bolt-export-icon {
+  color: var(--color-primary-500);
+  flex-shrink: 0;
+}
+
+.bolt-export-subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-1);
+}
+
+.bolt-export-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-12);
+  text-align: center;
+}
+
+.bolt-export-empty-icon {
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-4);
+}
+
+.bolt-export-section {
+  margin-bottom: var(--spacing-6);
+}
+
+.bolt-export-section:last-child {
+  margin-bottom: 0;
+}
+
+.bolt-export-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.bolt-export-actions {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.bolt-export-api-key {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.bolt-export-api-key-input {
+  flex: 1;
+}
+
+.bolt-export-api-key-saved {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.bolt-export-package-info {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-4);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-primary);
+}
+
+.bolt-export-package-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.bolt-export-package-details > div {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+}
+
+.bolt-export-validation {
+  display: flex;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  border: 1px solid;
+}
+
+.bolt-export-validation--valid {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--color-success);
+}
+
+.bolt-export-validation--invalid {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--color-error);
+}
+
+.bolt-export-validation-icon {
+  flex-shrink: 0;
+}
+
+.bolt-export-validation--valid .bolt-export-validation-icon {
+  color: var(--color-success);
+}
+
+.bolt-export-validation--invalid .bolt-export-validation-icon {
+  color: var(--color-error);
+}
+
+.bolt-export-validation-status {
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-2);
+}
+
+.bolt-export-validation-errors,
+.bolt-export-validation-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+}
+
+.bolt-export-validation-error,
+.bolt-export-validation-warning {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
+}
+
+.bolt-export-validation-error {
+  color: var(--color-error);
+}
+
+.bolt-export-validation-warning {
+  color: var(--color-warning);
+}
+
+.bolt-export-build-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.bolt-export-progress {
+  margin-top: var(--spacing-2);
+}
+
+.bolt-export-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  width: 100%;
+}
+

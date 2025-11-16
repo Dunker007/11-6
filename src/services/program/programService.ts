@@ -1,21 +1,10 @@
 import type { ProgramExecution } from '@/types/program';
 
-declare global {
-  interface Window {
-    program: {
-      execute: (command: string, workingDirectory?: string) => Promise<{ success: boolean; executionId?: string; error?: string }>;
-      kill: (executionId: string) => Promise<{ success: boolean; error?: string }>;
-      onOutput: (callback: (executionId: string, data: { type: 'stdout' | 'stderr'; data: string }) => void) => void;
-      onComplete: (callback: (executionId: string, result: { exitCode: number; stdout: string; stderr: string }) => void) => void;
-      onError: (callback: (executionId: string, error: { error: string }) => void) => void;
-    };
-  }
-}
-
 class ProgramService {
   private static instance: ProgramService;
   private executions: Map<string, ProgramExecution> = new Map();
   private listeners: Set<(executions: ProgramExecution[]) => void> = new Set();
+  private unsubscribeFunctions: Array<() => void> = [];
 
   static getInstance(): ProgramService {
     if (!ProgramService.instance) {
@@ -28,15 +17,17 @@ class ProgramService {
   private setupListeners(): void {
     if (typeof window === 'undefined' || !window.program) return;
 
-    window.program.onOutput((executionId, data) => {
+    // Store unsubscribe functions for cleanup
+    const unsubscribeOutput = window.program.onOutput((executionId, data) => {
       const execution = this.executions.get(executionId);
       if (execution) {
         execution.output.push(data.data);
         this.notifyListeners();
       }
     });
+    this.unsubscribeFunctions.push(unsubscribeOutput);
 
-    window.program.onComplete((executionId, result) => {
+    const unsubscribeComplete = window.program.onComplete((executionId, result) => {
       const execution = this.executions.get(executionId);
       if (execution) {
         execution.status = result.exitCode === 0 ? 'completed' : 'failed';
@@ -48,8 +39,9 @@ class ProgramService {
         this.notifyListeners();
       }
     });
+    this.unsubscribeFunctions.push(unsubscribeComplete);
 
-    window.program.onError((executionId, error) => {
+    const unsubscribeError = window.program.onError((executionId, error) => {
       const execution = this.executions.get(executionId);
       if (execution) {
         execution.status = 'failed';
@@ -58,6 +50,16 @@ class ProgramService {
         this.notifyListeners();
       }
     });
+    this.unsubscribeFunctions.push(unsubscribeError);
+  }
+
+  /**
+   * Clean up all IPC listeners
+   * Call this when the service is no longer needed (e.g., app shutdown)
+   */
+  cleanup(): void {
+    this.unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+    this.unsubscribeFunctions = [];
   }
 
   async execute(command: string, workingDirectory?: string): Promise<ProgramExecution | null> {
