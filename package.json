@@ -5,10 +5,11 @@
   "main": "dist-electron/main.js",
   "type": "module",
   "scripts": {
+    "predev": "npx --yes kill-port 5173 || exit 0",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development tsx electron/main.ts\"",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on tcp:localhost:5173 && cross-env NODE_ENV=development tsx electron/main.ts\"",
     "electron:build:main": "tsc -p tsconfig.electron.json",
     "electron:build:all": "npm run build && npm run electron:build:main && electron-builder",
     "electron:build": "npm run build && npm run electron:build:main && electron-builder",
