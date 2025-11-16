@@ -1,0 +1,152 @@
+/* TabBar.css */
+.tab-bar {
+  display: flex;
+  background: var(--bg-secondary, #1a1f2e);
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+}
+
+.tab-bar-scroll {
+  display: flex;
+  min-width: 100%;
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg-secondary, #1a1f2e);
+  border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  position: relative;
+  transition: background 0.2s ease;
+  min-width: 120px;
+  max-width: 250px;
+}
+
+.editor-tab:hover {
+  background: var(--bg-tertiary, #242936);
+}
+
+.editor-tab.active {
+  background: var(--bg-primary, #0a0e1a);
+  border-bottom: 2px solid var(--accent-primary, #00d4ff);
+}
+
+.editor-tab.unsaved::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-warning, #ffa500);
+  transform: translateY(-50%);
+}
+
+.editor-tab.pinned .tab-pin-icon {
+  opacity: 1;
+  color: var(--accent-primary, #00d4ff);
+}
+
+.tab-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.tab-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: var(--text-primary, #ffffff);
+}
+
+.tab-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.editor-tab:hover .tab-actions {
+  opacity: 1;
+}
+
+.tab-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.tab-action-btn:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.1));
+}
+
+.tab-context-menu {
+  position: fixed;
+  background: var(--bg-secondary, #1a1f2e);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  border-radius: 6px;
+  padding: 4px;
+  z-index: 1000;
+  min-width: 150px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary, #ffffff);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: background 0.2s ease;
+}
+
+.context-menu-item:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.1));
+}
+
+.context-menu-item.danger {
+  color: var(--accent-error, #ff4444);
+}
+
+.context-menu-item.danger:hover {
+  background: var(--accent-error, #ff4444);
+  color: white;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: var(--border-color, rgba(255, 255, 255, 0.1));
+  margin: 4px 0;
+}
+
+.context-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
