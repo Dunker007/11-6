@@ -4,6 +4,7 @@ import type { editor } from 'monaco-editor';
 import { useProjectStore } from '@/services/project/projectStore';
 import { useActivityStore } from '@/services/activity/activityStore';
 import { errorContext } from '@/services/errors/errorContext';
+import { InputModal } from '@/components/ui';
 import FileExplorer from '@/components/VibeEditor/FileExplorer';
 import TurboEdit from '@/components/VibeEditor/TurboEdit';
 import AIAssistant from '@/components/AIAssistant/AIAssistant';
@@ -19,6 +20,7 @@ function VibedEd() {
   const [language, setLanguage] = useState<string>('typescript');
   const [showAIAssistant, setShowAIAssistant] = useState(true);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
+  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [showProjectSearch, setShowProjectSearch] = useState(false);
@@ -167,11 +169,13 @@ function VibedEd() {
   }, []);
 
   const handleNewProject = useCallback(() => {
-    const name = prompt('Project name:');
-    if (name) {
-      createProject(name);
-      setShowProjectMenu(false);
-    }
+    setShowNewProjectModal(true);
+    setShowProjectMenu(false);
+  }, []);
+
+  const handleCreateProject = useCallback((name: string) => {
+    createProject(name);
+    setShowNewProjectModal(false);
   }, [createProject]);
 
   const files = useMemo(() => {
@@ -376,6 +380,15 @@ function VibedEd() {
           onCancel={() => setShowTurboEdit(false)}
         />
       )}
+
+      {/* New Project Modal */}
+      <InputModal
+        isOpen={showNewProjectModal}
+        title="Create New Project"
+        placeholder="Enter project name..."
+        onSubmit={handleCreateProject}
+        onCancel={() => setShowNewProjectModal(false)}
+      />
     </div>
   );
 }

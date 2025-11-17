@@ -53,4 +53,7 @@ export type { HolographicChartWrapperProps } from './HolographicChartWrapper';
 
 export { default as DraggablePanel } from './DraggablePanel';
 
+export { InputModal } from './InputModal';
+
+
 
