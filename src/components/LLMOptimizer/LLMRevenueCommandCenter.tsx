@@ -53,6 +53,9 @@ const QuickLabs = lazy(() => import('../QuickLabs/QuickLabs'));
 // Lazy load Settings
 const Settings = lazy(() => import('../Settings/Settings'));
 
+// Lazy load Passive Income Dashboard
+const PassiveIncomeDashboard = lazy(() => import('../PassiveIncome/PassiveIncomeDashboard'));
+
 type TabType = 'llm' | 'revenue' | 'vibed-ed' | 'google-ai-hub' | 'crypto-lab' | 'wealth-lab' | 'idea-lab' | 'workflows' | 'quick-labs' | 'settings';
 type WorkflowType = 'project' | 'build' | 'deploy' | 'monitor' | 'monetize' | null;
 
@@ -326,6 +329,14 @@ function LLMRevenueCommandCenter() {
                 <span>Loading Revenue Dashboard...</span>
               </div>}>
                 <div className="revenue-tab-content">
+                  <ErrorBoundary sectionName="Passive Income Automation">
+                    <Suspense fallback={<div className="loading-state slide-up-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', gap: '0.75rem' }}>
+                      <div className="loading-spinner" style={{ width: '20px', height: '20px', border: '2px solid rgba(139, 92, 246, 0.3)', borderTopColor: 'var(--violet-500)', borderRadius: '50%' }}></div>
+                      <span>Loading Passive Income...</span>
+                    </div>}>
+                      <PassiveIncomeDashboard />
+                    </Suspense>
+                  </ErrorBoundary>
                   <FinancialDashboard />
                   <ErrorBoundary sectionName="Back Office">
                     <Suspense fallback={<div className="loading-state" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', gap: '0.75rem' }}>
