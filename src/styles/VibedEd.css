@@ -335,3 +335,48 @@
   }
 }
 
+
+/* File System Mode Toggle */
+.file-system-mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-tertiary, #0f1729);
+  border-bottom: 1px solid var(--border-color, rgba(139, 92, 246, 0.2));
+  margin-bottom: 0.5rem;
+}
+
+.mode-toggle-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border-color, rgba(139, 92, 246, 0.3));
+  border-radius: 6px;
+  color: var(--text-muted, #9ca3af);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-toggle-btn:hover {
+  border-color: var(--accent-color, #8b5cf6);
+  color: var(--text-primary, #e5e7eb);
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.mode-toggle-btn.active {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+}
+
+.mode-toggle-btn.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.5);
+}

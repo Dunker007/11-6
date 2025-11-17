@@ -5,11 +5,14 @@ import { useProjectStore } from '@/services/project/projectStore';
 import { useActivityStore } from '@/services/activity/activityStore';
 import { errorContext } from '@/services/errors/errorContext';
 import FileExplorer from '@/components/VibeEditor/FileExplorer';
+import WorkspaceBrowser from '@/components/VibeEditor/WorkspaceBrowser';
 import TurboEdit from '@/components/VibeEditor/TurboEdit';
 import AIAssistant from '@/components/AIAssistant/AIAssistant';
 import ProjectSearch from '@/components/ProjectSearch/ProjectSearch';
-import { Search, Code, Brain, FolderOpen, Plus, X } from 'lucide-react';
+import { realFileSystemService } from '@/services/filesystem/realFileSystemService';
+import { Search, Code, Brain, FolderOpen, Plus, X, HardDrive, Folder } from 'lucide-react';
 import '@/styles/VibedEd.css';
+import '@/styles/WorkspaceBrowser.css';
 
 function VibedEd() {
   const { activeProject, projects, loadProjects, createProject, setActiveProject, updateFile, getFileContent, setActiveFile } = useProjectStore();
@@ -24,6 +27,8 @@ function VibedEd() {
   const [showProjectSearch, setShowProjectSearch] = useState(false);
   const [showTurboEdit, setShowTurboEdit] = useState(false);
   const [selectedCode, setSelectedCode] = useState('');
+  const [fileSystemMode, setFileSystemMode] = useState<'sandbox' | 'real'>('real'); // Default to real file system
+  const [realFileContent, setRealFileContent] = useState<string>('');
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -128,28 +133,41 @@ function VibedEd() {
       setFileContent(value);
       setUnsavedChanges(true);
       setSaveStatus('saving');
-      
+
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
       if (statusTimeoutRef.current) {
         clearTimeout(statusTimeoutRef.current);
       }
-      
-      saveTimeoutRef.current = setTimeout(() => {
-        updateFile(activeFilePath, value);
+
+      saveTimeoutRef.current = setTimeout(async () => {
+        // Save to appropriate storage based on mode
+        if (fileSystemMode === 'real') {
+          try {
+            await realFileSystemService.writeFile(activeFilePath, value);
+            setRealFileContent(value);
+          } catch (error) {
+            console.error('Failed to save file:', error);
+            addActivity('file', 'error', `Failed to save ${activeFilePath}`);
+            return;
+          }
+        } else {
+          updateFile(activeFilePath, value);
+        }
+
         setUnsavedChanges(false);
         setSaveStatus('saved');
-        
-        const fileName = activeFilePath.split('/').pop() || activeFilePath;
+
+        const fileName = activeFilePath.split(/[/\\]/).pop() || activeFilePath;
         addActivity('file', 'saved', `Saved ${fileName}`);
-        
+
         statusTimeoutRef.current = setTimeout(() => {
           setSaveStatus('saved');
         }, 2000);
       }, 500);
     }
-  }, [activeFilePath, updateFile, addActivity]);
+  }, [activeFilePath, fileSystemMode, updateFile, addActivity]);
 
   useEffect(() => {
     return () => {
@@ -162,9 +180,44 @@ function VibedEd() {
     };
   }, []);
 
-  const handleFileSelect = useCallback((path: string) => {
+  const handleFileSelect = useCallback(async (path: string) => {
     setActiveFilePath(path);
-  }, []);
+
+    // If in real file system mode, load the actual file from disk
+    if (fileSystemMode === 'real') {
+      try {
+        const content = await realFileSystemService.readFile(path);
+        setRealFileContent(content);
+        setFileContent(content);
+        setUnsavedChanges(false);
+        setSaveStatus('saved');
+
+        // Detect language from extension
+        const ext = path.split('.').pop()?.toLowerCase();
+        const langMap: Record<string, string> = {
+          ts: 'typescript',
+          tsx: 'typescript',
+          js: 'javascript',
+          jsx: 'javascript',
+          py: 'python',
+          html: 'html',
+          css: 'css',
+          json: 'json',
+          md: 'markdown',
+          sql: 'sql',
+          go: 'go',
+          rs: 'rust',
+          java: 'java',
+          cpp: 'cpp',
+          c: 'c',
+        };
+        setLanguage(langMap[ext || ''] || 'plaintext');
+      } catch (error) {
+        console.error('Failed to load file:', error);
+        addActivity('file', 'error', `Failed to load ${path}`);
+      }
+    }
+  }, [fileSystemMode, addActivity]);
 
   const handleNewProject = useCallback(() => {
     const name = prompt('Project name:');
@@ -276,13 +329,39 @@ function VibedEd() {
 
       {/* Main Layout */}
       <div className="vibed-ed-layout">
-        {/* Sidebar - File Explorer */}
+        {/* Sidebar - File Explorer with Mode Toggle */}
         <div className="vibed-ed-sidebar">
-          <FileExplorer
-            files={files}
-            activeFile={activeFilePath}
-            onFileSelect={handleFileSelect}
-          />
+          <div className="file-system-mode-toggle">
+            <button
+              className={`mode-toggle-btn ${fileSystemMode === 'sandbox' ? 'active' : ''}`}
+              onClick={() => setFileSystemMode('sandbox')}
+              title="Sandbox Mode (Browser Storage)"
+            >
+              <Folder size={16} />
+              Sandbox
+            </button>
+            <button
+              className={`mode-toggle-btn ${fileSystemMode === 'real' ? 'active' : ''}`}
+              onClick={() => setFileSystemMode('real')}
+              title="Real File System Mode"
+            >
+              <HardDrive size={16} />
+              Real FS
+            </button>
+          </div>
+
+          {fileSystemMode === 'sandbox' ? (
+            <FileExplorer
+              files={files}
+              activeFile={activeFilePath}
+              onFileSelect={handleFileSelect}
+            />
+          ) : (
+            <WorkspaceBrowser
+              activeFile={activeFilePath}
+              onFileSelect={handleFileSelect}
+            />
+          )}
         </div>
 
         {/* Editor Area */}
