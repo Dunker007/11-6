@@ -1,0 +1,100 @@
+/* DraggablePanel.css */
+
+.draggable-panel {
+  background: var(--bg-secondary, #1a1f2e);
+  border: 1px solid var(--border-primary, rgba(0, 212, 255, 0.2));
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+              0 0 0 1px rgba(0, 212, 255, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease;
+}
+
+.draggable-panel.dragging {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6),
+              0 0 0 2px rgba(0, 212, 255, 0.4);
+}
+
+.draggable-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, 
+    rgba(0, 212, 255, 0.1) 0%, 
+    rgba(138, 43, 226, 0.1) 100%
+  );
+  border-bottom: 1px solid var(--border-primary, rgba(0, 212, 255, 0.2));
+  user-select: none;
+}
+
+.draggable-panel-grip {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  opacity: 0.5;
+}
+
+.draggable-panel-header:hover .draggable-panel-grip {
+  opacity: 1;
+  color: var(--accent-primary, #00d4ff);
+}
+
+.draggable-panel-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+  margin: 0;
+}
+
+.draggable-panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draggable-panel-close:hover {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+}
+
+.draggable-panel-close:active {
+  transform: scale(0.95);
+}
+
+.draggable-panel-content {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+/* Scrollbar styling */
+.draggable-panel-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.draggable-panel-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.draggable-panel-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.3);
+  border-radius: 4px;
+}
+
+.draggable-panel-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.5);
+}

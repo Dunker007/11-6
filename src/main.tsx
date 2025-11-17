@@ -67,8 +67,6 @@ window.addEventListener('error', (event) => {
 logger.info('✅ Error Capture System: Active');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  <App />
 );
 

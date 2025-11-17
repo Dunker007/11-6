@@ -51,3 +51,6 @@ export type { HolographicStatCardProps } from './HolographicStatCard';
 export { HolographicChartWrapper } from './HolographicChartWrapper';
 export type { HolographicChartWrapperProps } from './HolographicChartWrapper';
 
+export { default as DraggablePanel } from './DraggablePanel';
+
+

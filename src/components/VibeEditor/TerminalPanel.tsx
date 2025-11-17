@@ -12,6 +12,7 @@ import { useTerminalStore } from '@/services/terminal/terminalStore';
 import { terminalService, type TerminalOutput } from '@/services/terminal/terminalService';
 import { useProjectStore } from '@/services/project/projectStore';
 import TechIcon from '../Icons/TechIcon';
+import DraggablePanel from '../ui/DraggablePanel';
 import { Terminal as TerminalIcon, X, Plus, Trash2, ChevronDown } from 'lucide-react';
 import '@xterm/xterm/css/xterm.css';
 import '@/styles/TerminalPanel.css';
@@ -227,8 +228,15 @@ function TerminalPanel({ isVisible, onToggle }: TerminalPanelProps) {
   if (!isVisible) return null;
 
   return (
-    <div className="terminal-panel">
-      <div className="terminal-header">
+    <DraggablePanel
+      title="Terminal"
+      onClose={onToggle}
+      defaultPosition={{ x: 50, y: window.innerHeight - 450 }}
+      defaultSize={{ width: 800, height: 400 }}
+      storageKey="terminal-panel"
+      className="terminal-draggable-panel"
+    >
+      <div className="terminal-panel-inner">
         <div className="terminal-tabs">
           {sessions.map((session) => (
             <div
@@ -251,8 +259,6 @@ function TerminalPanel({ isVisible, onToggle }: TerminalPanelProps) {
               )}
             </div>
           ))}
-        </div>
-        <div className="terminal-actions">
           <button
             className="terminal-action-btn"
             onClick={handleNewSession}
@@ -260,22 +266,13 @@ function TerminalPanel({ isVisible, onToggle }: TerminalPanelProps) {
           >
             <TechIcon icon={Plus} size={16} glow="cyan" />
           </button>
-          {onToggle && (
-            <button
-              className="terminal-action-btn"
-              onClick={onToggle}
-              title="Toggle Terminal"
-            >
-              <TechIcon icon={ChevronDown} size={16} glow="none" />
-            </button>
-          )}
+        </div>
+        
+        <div className="terminal-content">
+          <div ref={terminalRef} className="terminal-container" />
         </div>
       </div>
-      
-      <div className="terminal-content">
-        <div ref={terminalRef} className="terminal-container" />
-      </div>
-    </div>
+    </DraggablePanel>
   );
 }
 

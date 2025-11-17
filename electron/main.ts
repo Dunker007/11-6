@@ -1,5 +1,7 @@
 /**
- * main.ts - MINIMAL CLEAN VERSION
+ * main.ts - CLEAN VERSION WITH FILE SYSTEM
+ * 
+ * Phase 2: File System Integration
  * 
  * Proper Electron initialization order:
  * 1. Imports & setup
@@ -8,9 +10,11 @@
  * 4. App lifecycle handlers
  */
 
-import { app, BrowserWindow, ipcMain, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, screen, dialog, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs/promises';
+import { existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,8 +50,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
     },
-    frame: false, // Custom title bar
-    titleBarStyle: 'hidden',
+    frame: false, // Frameless window for custom title bar
     backgroundColor: '#0a0e1a',
     show: false, // Show after ready-to-show
   });
@@ -69,6 +72,62 @@ function createWindow() {
   win.on('closed', () => {
     win = null;
   });
+}
+
+/**
+ * Recursive large file finder
+ */
+async function findLargeFilesRecursive(
+  dirPath: string,
+  minSizeBytes: number,
+  onProgress?: (currentPath: string, filesFound: number) => void
+): Promise<Array<{ path: string; size: number; mtime: Date }>> {
+  const largeFiles: Array<{ path: string; size: number; mtime: Date }> = [];
+  
+  async function scanDirectory(currentPath: string): Promise<void> {
+    try {
+      const entries = await fs.readdir(currentPath, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(currentPath, entry.name);
+        
+        // Skip common system/hidden directories
+        if (entry.name.startsWith('.') && entry.name !== '.') {
+          continue;
+        }
+        
+        // Skip node_modules and other common large directories
+        if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist' || entry.name === 'build') {
+          continue;
+        }
+        
+        try {
+          if (entry.isDirectory()) {
+            await scanDirectory(fullPath);
+          } else if (entry.isFile()) {
+            const stats = await fs.stat(fullPath);
+            if (stats.size >= minSizeBytes) {
+              largeFiles.push({
+                path: fullPath,
+                size: stats.size,
+                mtime: stats.mtime,
+              });
+              onProgress?.(fullPath, largeFiles.length);
+            }
+          }
+        } catch (error) {
+          // Skip files/directories we can't access
+          continue;
+        }
+      }
+    } catch (error) {
+      // Skip directories we can't access
+      return;
+    }
+  }
+  
+  await scanDirectory(dirPath);
+  return largeFiles;
 }
 
 /**
@@ -111,7 +170,157 @@ function registerIPCHandlers() {
     return { success: false, error: 'Window not available' };
   });
 
-  console.log('✅ IPC handlers registered');
+  // File System handlers
+  ipcMain.handle('fs:readFile', async (_event, filePath: string) => {
+    try {
+      const normalizedPath = path.normalize(filePath);
+      const content = await fs.readFile(normalizedPath, 'utf-8');
+      return { success: true, content };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle('fs:writeFile', async (_event, filePath: string, content: string) => {
+    try {
+      const normalizedPath = path.normalize(filePath);
+      // Ensure directory exists
+      const dir = path.dirname(normalizedPath);
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(normalizedPath, content, 'utf-8');
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle('fs:mkdir', async (_event, dirPath: string, recursive = true) => {
+    try {
+      const normalizedPath = path.normalize(dirPath);
+      await fs.mkdir(normalizedPath, { recursive });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle('fs:rm', async (_event, targetPath: string, recursive = false) => {
+    try {
+      const normalizedPath = path.normalize(targetPath);
+      const stats = await fs.stat(normalizedPath);
+      if (stats.isDirectory()) {
+        await fs.rmdir(normalizedPath, { recursive });
+      } else {
+        await fs.unlink(normalizedPath);
+      }
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle('fs:readdir', async (_event, dirPath: string) => {
+    try {
+      const normalizedPath = path.normalize(dirPath);
+      const entries = await fs.readdir(normalizedPath, { withFileTypes: true });
+      return {
+        success: true,
+        entries: entries.map((entry) => ({
+          name: entry.name,
+          isDirectory: entry.isDirectory(),
+          path: path.join(normalizedPath, entry.name),
+        })),
+      };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle('fs:stat', async (_event, filePath: string) => {
+    try {
+      const normalizedPath = path.normalize(filePath);
+      const stats = await fs.stat(normalizedPath);
+      return {
+        success: true,
+        stats: {
+          isFile: stats.isFile(),
+          isDirectory: stats.isDirectory(),
+          size: stats.size,
+          mtime: stats.mtime.toISOString(),
+          ctime: stats.ctime.toISOString(),
+        },
+      };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle('fs:exists', async (_event, filePath: string) => {
+    try {
+      const normalizedPath = path.normalize(filePath);
+      return { success: true, exists: existsSync(normalizedPath) };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle('fs:findLargeFiles', async (_event, dirPath: string, minSizeMB: number = 100) => {
+    try {
+      const normalizedPath = path.normalize(dirPath);
+      const minSizeBytes = minSizeMB * 1024 * 1024;
+      
+      const largeFiles = await findLargeFilesRecursive(normalizedPath, minSizeBytes);
+      
+      return {
+        success: true,
+        files: largeFiles.map((file) => ({
+          path: file.path,
+          size: file.size,
+          lastModified: file.mtime.toISOString(),
+        })),
+      };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Shell handlers
+  ipcMain.handle('shell:showItemInFolder', async (_event, filePath: string) => {
+    try {
+      shell.showItemInFolder(path.normalize(filePath));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // Dialog handlers
+  ipcMain.handle('dialog:openFile', async (_event, options?: { filters?: { name: string; extensions: string[] }[] }) => {
+    const result = await dialog.showOpenDialog(win!, {
+      properties: ['openFile'],
+      filters: options?.filters,
+    });
+    return { success: !result.canceled, filePaths: result.filePaths };
+  });
+
+  ipcMain.handle('dialog:saveFile', async (_event, options?: { defaultPath?: string; filters?: { name: string; extensions: string[] }[] }) => {
+    const result = await dialog.showSaveDialog(win!, {
+      defaultPath: options?.defaultPath,
+      filters: options?.filters,
+    });
+    return { success: !result.canceled, filePath: result.filePath };
+  });
+
+  ipcMain.handle('dialog:openDirectory', async () => {
+    const result = await dialog.showOpenDialog(win!, {
+      properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
+      title: 'Select Project Folder',
+      buttonLabel: 'Open Project',
+    });
+    return { success: !result.canceled, filePaths: result.filePaths };
+  });
+
+  console.log('✅ IPC handlers registered (window + file system + dialogs)');
 }
 
 /**
@@ -123,7 +332,7 @@ app.whenReady().then(() => {
   createWindow();
   registerIPCHandlers();
   
-  console.log('✅ DLX Studios Ultimate initialized');
+  console.log('✅ DLX Studios Ultimate initialized with file system support');
 });
 
 /**
@@ -141,4 +350,4 @@ app.on('activate', () => {
   }
 });
 
-console.log('📦 Electron main process loaded');
+console.log('📦 Electron main process loaded with file system capabilities');

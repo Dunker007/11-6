@@ -1,10 +1,37 @@
+/* Title bar draggable region - FULL WIDTH - MAXIMUM Z-INDEX */
+.title-bar-draggable {
+  -webkit-app-region: drag;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0;
+  z-index: 999999; /* WAY above everything else */
+  background: rgba(255, 0, 0, 0.1); /* DEBUG: Red tint */
+  pointer-events: auto;
+  cursor: move; /* Show drag cursor */
+}
+
+/* Buttons inside drag region should NOT be draggable */
+.title-bar-draggable > * {
+  -webkit-app-region: no-drag;
+  pointer-events: auto;
+}
+
+/* Window controls container - HIGHEST Z-INDEX */
 .window-controls {
   display: flex;
   align-items: center;
   gap: 0;
   height: 40px;
-  -webkit-app-region: no-drag; /* Allow clicking buttons */
-  z-index: 10000;
+  -webkit-app-region: no-drag; /* CRITICAL: Buttons must NOT be draggable */
+  z-index: 9999999; /* Even higher than drag region */
+  pointer-events: auto;
+  cursor: default; /* Normal cursor for buttons */
 }
 
 .window-control-btn {
@@ -19,6 +46,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 0;
+  -webkit-app-region: no-drag; /* CRITICAL: Prevent drag on buttons */
+  pointer-events: auto; /* Must be clickable */
 }
 
 .window-control-btn:hover {
@@ -42,33 +71,3 @@
 .window-control-btn:active {
   opacity: 0.7;
 }
-
-/* Title bar draggable region */
-.title-bar-draggable {
-  -webkit-app-region: drag;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 138px; /* Only cover window controls + Itor toolbar width */
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0 12px;
-  z-index: 9999;
-  background: transparent;
-  gap: 0.5rem;
-  pointer-events: none;
-}
-
-.title-bar-draggable > * {
-  -webkit-app-region: no-drag;
-  pointer-events: auto;
-}
-
-.window-controls {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
