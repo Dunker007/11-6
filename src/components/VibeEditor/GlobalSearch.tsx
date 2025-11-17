@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useProjectStore } from '@/services/project/projectStore';
+import DraggablePanel from '../ui/DraggablePanel';
 import TechIcon from '../Icons/TechIcon';
 import { Search, Eye, SplitSquareHorizontal } from 'lucide-react';
 import '@/styles/GlobalSearch.css';
@@ -88,19 +89,26 @@ export default function GlobalSearch({ isOpen, onClose, onOpenFile, onRevealInSi
 
   return (
     <div className="global-search-overlay" onClick={onClose}>
-      <div className="global-search" onClick={(e) => e.stopPropagation()}>
-        <div className="gs-header">
-          <TechIcon icon={Search} size={18} glow="none" />
-          <input
-            ref={inputRef}
-            className="gs-input"
-            placeholder="Search files and content…"
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setSelected(0); }}
-          />
-          <button className="gs-close" onClick={onClose}>×</button>
-        </div>
-        <div className="gs-results" ref={listRef}>
+      <DraggablePanel
+        title="Global Search"
+        onClose={onClose}
+        defaultPosition={{ x: window.innerWidth / 2 - 300, y: 80 }}
+        defaultSize={{ width: 600, height: 500 }}
+        storageKey="global-search"
+        className="global-search-draggable-panel"
+      >
+        <div className="gs-search-wrapper" onClick={(e) => e.stopPropagation()}>
+          <div className="gs-input-wrapper">
+            <TechIcon icon={Search} size={18} glow="none" />
+            <input
+              ref={inputRef}
+              className="gs-input"
+              placeholder="Search files and content…"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setSelected(0); }}
+            />
+          </div>
+          <div className="gs-results" ref={listRef}>
           {results.length === 0 && (
             <div className="gs-empty">Type to search across filenames and content…</div>
           )}
@@ -127,7 +135,8 @@ export default function GlobalSearch({ isOpen, onClose, onOpenFile, onRevealInSi
             </div>
           ))}
         </div>
-      </div>
+        </div>
+      </DraggablePanel>
     </div>
   );
 }

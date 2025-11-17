@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import DraggablePanel from '../ui/DraggablePanel';
 import '@/styles/CodeFlowOverlay.css';
 
 export interface CodeFlowNode {
@@ -65,14 +66,20 @@ function CodeFlowOverlay({ visible, data, onClose, onNodeClick, onOpenInSplit }:
   if (!visible) return null;
 
   return (
-    <div className="codeflow-overlay">
-      <div className="codeflow-header">
-        <h3>Code Flow</h3>
+    <DraggablePanel
+      title="Code Flow"
+      onClose={onClose}
+      defaultPosition={{ x: 100, y: 100 }}
+      defaultSize={{ width: 700, height: 600 }}
+      storageKey="codeflow-overlay"
+      className="codeflow-draggable-panel"
+    >
+      <div className="codeflow-controls">
         <input
           placeholder="Filter files…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          style={{ flex: 1, margin: '0 8px', padding: '4px 8px', background: 'var(--bg-tertiary,#242936)', color: 'white', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6 }}
+          style={{ flex: 1, padding: '6px 10px', background: 'var(--bg-tertiary,#242936)', color: 'white', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6 }}
         />
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <button className={`loader-item ${filter==='all'?'active':''}`} onClick={() => setFilter('all')}>All</button>
@@ -80,7 +87,6 @@ function CodeFlowOverlay({ visible, data, onClose, onNodeClick, onOpenInSplit }:
           <button className={`loader-item ${filter==='dependents'?'active':''}`} onClick={() => setFilter('dependents')}>Dependents</button>
           <button className="loader-item" onClick={() => { setScale(1); setOffset({x:0,y:0}); }}>Reset</button>
         </div>
-        <button className="codeflow-close" onClick={onClose} title="Close">×</button>
       </div>
       <div
         className="codeflow-canvas"
@@ -173,7 +179,7 @@ function CodeFlowOverlay({ visible, data, onClose, onNodeClick, onOpenInSplit }:
           </div>
         )}
       </div>
-    </div>
+    </DraggablePanel>
   );
 }
 

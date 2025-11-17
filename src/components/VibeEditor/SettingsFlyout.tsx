@@ -1,4 +1,5 @@
 import { useSettingsStore } from '@/services/settings/settingsStore';
+import DraggablePanel from '../ui/DraggablePanel';
 import '@/styles/SettingsFlyout.css';
 
 interface SettingsFlyoutProps {
@@ -11,11 +12,14 @@ export default function SettingsFlyout({ visible, onClose }: SettingsFlyoutProps
   if (!visible) return null;
   return (
     <div className="settings-flyout-overlay" onClick={onClose}>
-      <div className="settings-flyout" onClick={(e) => e.stopPropagation()}>
-        <div className="sf-header">
-          <h3>Editor Settings</h3>
-          <button className="sf-close" onClick={onClose}>×</button>
-        </div>
+      <DraggablePanel
+        title="Editor Settings"
+        onClose={onClose}
+        defaultPosition={{ x: window.innerWidth - 420, y: 100 }}
+        defaultSize={{ width: 400, height: 300 }}
+        storageKey="settings-flyout"
+        className="settings-draggable-panel"
+      >
         <div className="sf-body">
           <div className="sf-item">
             <label>
@@ -43,7 +47,7 @@ export default function SettingsFlyout({ visible, onClose }: SettingsFlyoutProps
             </div>
           </div>
         </div>
-      </div>
+      </DraggablePanel>
     </div>
   );
 }

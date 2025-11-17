@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import DraggablePanel from '../ui/DraggablePanel';
 import '@/styles/AIInsightsPanel.css';
 
 interface TabDef {
@@ -27,12 +28,15 @@ function AIInsightsPanel({ visible, onClose, insights, callGraph, coverage, deps
   if (!visible) return null;
 
   return (
-    <div className="aiinsights-overlay">
-      <div className="aiinsights-panel">
-        <div className="aiinsights-header">
-          <h3>AI Context</h3>
-          <button className="aiinsights-close" onClick={onClose} title="Close">×</button>
-        </div>
+    <DraggablePanel
+      title="AI Context & Insights"
+      onClose={onClose}
+      defaultPosition={{ x: window.innerWidth - 520, y: 100 }}
+      defaultSize={{ width: 500, height: 600 }}
+      storageKey="ai-insights-panel"
+      className="aiinsights-draggable-panel"
+    >
+      <div className="aiinsights-inner">
         <div className="aiinsights-tabs">
           {TABS.map(tab => (
             <button
@@ -87,7 +91,7 @@ function AIInsightsPanel({ visible, onClose, insights, callGraph, coverage, deps
           )}
         </div>
       </div>
-    </div>
+    </DraggablePanel>
   );
 }
 
