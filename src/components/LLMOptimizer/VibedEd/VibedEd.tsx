@@ -10,7 +10,9 @@ import TurboEdit from '@/components/VibeEditor/TurboEdit';
 import AIAssistant from '@/components/AIAssistant/AIAssistant';
 import ProjectSearch from '@/components/ProjectSearch/ProjectSearch';
 import { realFileSystemService } from '@/services/filesystem/realFileSystemService';
-import { Search, Code, Brain, FolderOpen, Plus, X, HardDrive, Folder } from 'lucide-react';
+import { registerLLMProviders, registerLLMCommands, configureLLMSettings } from '@/services/monaco/monacoProviders';
+import { monacoLLMService } from '@/services/monaco/monacoLLMService';
+import { Search, Code, Brain, FolderOpen, Plus, X, HardDrive, Folder, Sparkles } from 'lucide-react';
 import '@/styles/VibedEd.css';
 import '@/styles/WorkspaceBrowser.css';
 
@@ -29,7 +31,9 @@ function VibedEd() {
   const [selectedCode, setSelectedCode] = useState('');
   const [fileSystemMode, setFileSystemMode] = useState<'sandbox' | 'real'>('real'); // Default to real file system
   const [realFileContent, setRealFileContent] = useState<string>('');
+  const [llmFeaturesEnabled, setLlmFeaturesEnabled] = useState(true);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<typeof import('monaco-editor') | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -318,6 +322,22 @@ function VibedEd() {
             <Search size={16} />
           </button>
           <button
+            onClick={() => {
+              const newState = !llmFeaturesEnabled;
+              setLlmFeaturesEnabled(newState);
+              if (newState && monacoRef.current && editorRef.current) {
+                // Re-register providers when enabling
+                registerLLMProviders(monacoRef.current);
+                registerLLMCommands(monacoRef.current, editorRef.current);
+                configureLLMSettings(editorRef.current);
+              }
+            }}
+            className={`toolbar-btn ${llmFeaturesEnabled ? 'active' : ''}`}
+            title="Toggle LLM Autocomplete (Ctrl+Space)"
+          >
+            <Sparkles size={16} />
+          </button>
+          <button
             onClick={() => setShowAIAssistant(!showAIAssistant)}
             className={`toolbar-btn ${showAIAssistant ? 'active' : ''}`}
             title="Toggle AI Assistant (Ctrl+\\)"
@@ -372,8 +392,16 @@ function VibedEd() {
               language={language}
               value={fileContent}
               onChange={handleEditorChange}
-              onMount={(editor) => {
+              onMount={(editor, monaco) => {
                 editorRef.current = editor;
+                monacoRef.current = monaco;
+
+                // Register LLM providers for AI-powered features
+                if (llmFeaturesEnabled) {
+                  registerLLMProviders(monaco);
+                  registerLLMCommands(monaco, editor);
+                  configureLLMSettings(editor);
+                }
               }}
               theme="vs-dark"
               options={{
