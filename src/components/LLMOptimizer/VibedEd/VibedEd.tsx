@@ -170,6 +170,7 @@ function VibedEd() {
 
   const handleNewProject = useCallback(() => {
     console.log('🚀 handleNewProject clicked!');
+    console.log('📝 Setting showNewProjectModal to TRUE');
     setShowNewProjectModal(true);
     setShowProjectMenu(false);
   }, []);
