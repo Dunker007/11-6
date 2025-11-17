@@ -169,6 +169,7 @@ function VibedEd() {
   }, []);
 
   const handleNewProject = useCallback(() => {
+    console.log('🚀 handleNewProject clicked!');
     setShowNewProjectModal(true);
     setShowProjectMenu(false);
   }, []);

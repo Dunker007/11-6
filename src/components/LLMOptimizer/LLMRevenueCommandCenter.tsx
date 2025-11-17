@@ -79,16 +79,24 @@ function LLMRevenueCommandCenter() {
   const { refresh: refreshFinancials } = useFinancialStore();
   
   useEffect(() => {
+    // Prioritize critical UI rendering - defer heavy operations
     detectHardware();
     loadCatalog();
-    discoverProviders(true); // Force fresh check on initial load
-    discoverLocalProviders(); // Initial discovery
-    refreshFinancials();
+    
+    // Defer provider discovery to improve initial render performance
+    const timeoutId = setTimeout(() => {
+      discoverProviders(true); // Force fresh check on initial load
+      discoverLocalProviders(); // Initial discovery
+      refreshFinancials();
+    }, 150); // Small delay to let UI render first
 
     // Set up polling for local provider discovery
     const intervalId = setInterval(discoverLocalProviders, 10000); // every 10 seconds
 
-    return () => clearInterval(intervalId); // Cleanup on unmount
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount - functions are stable Zustand actions
 

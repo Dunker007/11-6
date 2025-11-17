@@ -88,15 +88,22 @@ const ConnectionStatusBar = () => {
 
   // Auto-refresh every 30 seconds (matches LLMStatus interval)
   useEffect(() => {
-    // Initial load - use cache if available
-    discoverProviders(false);
+    // Defer initial provider discovery to improve initial render performance
+    // Let the UI render first, then discover providers
+    const timeoutId = setTimeout(() => {
+      discoverProviders(false);
+    }, 100); // Small delay to let UI render
+
     const interval = setInterval(async () => {
       // Periodic checks - use cache when available (respects 30s cache TTL)
       await discoverProviders(false);
       setLastRefresh(new Date());
     }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(interval);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Zustand actions are stable, don't need to be in deps
 
