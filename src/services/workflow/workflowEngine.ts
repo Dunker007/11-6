@@ -245,12 +245,43 @@ class WorkflowEngine {
    * @param step - The step to execute (supports actions: 'create', 'analyze', 'generate')
    */
   private async executeProjectStep(workflow: Workflow, step: WorkflowStep): Promise<void> {
-    const config = workflow.metadata as ProjectWorkflowConfig['metadata'] & { actions?: string[] };
+    const config = workflow.metadata as ProjectWorkflowConfig['metadata'] & { actions?: string[]; projectName?: string; projectDescription?: string };
     const action = step.metadata?.action as string;
 
     switch (action) {
       case 'create':
-        // Project creation is handled by projectStore
+        // CREATE ACTUAL FILES - FAST BUILD MODE
+        const projectName = config?.projectName || step.metadata?.projectName || 'new-project';
+        const projectDesc = config?.projectDescription || 'A new project created by DLX Studios';
+
+        // Create README.md
+        const readmeContent = `# ${projectName}\n\n${projectDesc}\n\n## Getting Started\n\nCreated with DLX Studios Ultimate 🚀\n\n## Features\n\n- Fast build mode enabled\n- Ready for development\n`;
+
+        // Create package.json
+        const packageJson = {
+          name: projectName.toLowerCase().replace(/\s+/g, '-'),
+          version: '1.0.0',
+          description: projectDesc,
+          main: 'index.js',
+          scripts: {
+            start: 'node index.js',
+            test: 'echo "Tests not implemented yet"'
+          },
+          keywords: [],
+          author: 'DLX Studios',
+          license: 'MIT'
+        };
+
+        // Write files using fileSystem API
+        if ((window as any).fileSystem) {
+          try {
+            await (window as any).fileSystem.writeFile('README.md', readmeContent);
+            await (window as any).fileSystem.writeFile('package.json', JSON.stringify(packageJson, null, 2));
+            logger.info(`Project files created: README.md, package.json for ${projectName}`);
+          } catch (error) {
+            logger.warn('File creation skipped (browser mode or error)', { error });
+          }
+        }
         break;
       case 'analyze':
         // Use AI service bridge to analyze project
