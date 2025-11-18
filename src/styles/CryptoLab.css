@@ -17,7 +17,7 @@
 .market-info-bar {
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
   padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
@@ -42,7 +42,7 @@
   padding: 0.5rem 1rem;
   background: rgba(15, 23, 42, 0.8);
   border-radius: 0.5rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
 }
 
 .mode-indicator {
@@ -97,11 +97,11 @@
 
 .mode-btn:hover {
   color: var(--text-primary);
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(168, 85, 247, 0.1);
 }
 
 .mode-btn.active {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(168, 85, 247, 0.2);
   color: var(--text-primary);
   font-weight: 600;
 }
@@ -177,12 +177,12 @@
 }
 
 .warning-btn.cancel {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(168, 85, 247, 0.2);
   color: var(--text-primary);
 }
 
 .warning-btn.cancel:hover {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(168, 85, 247, 0.3);
 }
 
 .warning-btn.confirm {
@@ -203,7 +203,7 @@
 .product-select {
   padding: 0.5rem 1rem;
   background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.5rem;
   color: var(--text-primary);
   font-size: 1rem;
@@ -213,13 +213,13 @@
 }
 
 .product-select:hover {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: rgba(168, 85, 247, 0.5);
   background: rgba(15, 23, 42, 0.8);
 }
 
 .product-select:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.6);
+  border-color: rgba(168, 85, 247, 0.6);
 }
 
 .market-stats {
@@ -263,7 +263,7 @@
   display: flex;
   flex-direction: column;
   background: rgba(15, 23, 42, 0.6);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
   position: relative;
   z-index: 5;
   overflow: hidden;
@@ -278,7 +278,7 @@
 
 .chart-header {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -303,7 +303,7 @@
 .timeframe-btn,
 .chart-type-btn {
   padding: 0.375rem 0.75rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.375rem;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(4px);
@@ -318,17 +318,17 @@
 
 .timeframe-btn:hover,
 .chart-type-btn:hover {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.5);
   transform: translateY(-1px);
 }
 
 .timeframe-btn.active,
 .chart-type-btn.active {
-  background: rgba(139, 92, 246, 0.25);
-  border-color: rgba(139, 92, 246, 0.7);
+  background: rgba(168, 85, 247, 0.25);
+  border-color: rgba(168, 85, 247, 0.7);
   color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
 }
 
 .chart-container {
@@ -374,8 +374,8 @@
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: rgba(15, 23, 42, 0.6);
-  border-top: 1px solid rgba(139, 92, 246, 0.3);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-top: 1px solid rgba(168, 85, 247, 0.3);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
   flex-shrink: 0;
   position: relative;
   z-index: 5;
@@ -399,7 +399,7 @@
 
 .bottom-tab.active {
   color: var(--text-primary);
-  border-bottom-color: var(--violet-500);
+  border-bottom-color: var(--secondary-500);
 }
 
 /* Trading Bottom Section */
@@ -416,7 +416,7 @@
   flex-shrink: 0;
   position: relative;
   z-index: 5;
-  border-top: 1px solid rgba(139, 92, 246, 0.3);
+  border-top: 1px solid rgba(168, 85, 247, 0.3);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -426,7 +426,7 @@
   flex-direction: column;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.75rem;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -443,7 +443,7 @@
 
 .order-book-header {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -471,7 +471,7 @@
 }
 
 .order-book-section.asks {
-  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
 }
 
 .order-book-header-row {
@@ -482,7 +482,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   font-weight: 600;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.1);
 }
 
 .order-book-entries {
@@ -503,12 +503,12 @@
 }
 
 .order-book-entries::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(168, 85, 247, 0.4);
   border-radius: 3px;
 }
 
 .order-book-entries::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
+  background: rgba(168, 85, 247, 0.6);
 }
 
 .order-book-entry {
@@ -518,13 +518,13 @@
   font-size: 0.8125rem;
   cursor: pointer;
   transition: all 0.15s;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.08);
   position: relative;
   z-index: 1;
 }
 
 .order-book-entry:hover {
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(168, 85, 247, 0.1);
 }
 
 .order-book-entry.ask {
@@ -558,10 +558,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  background: rgba(139, 92, 246, 0.15);
+  background: rgba(168, 85, 247, 0.15);
   backdrop-filter: blur(4px);
-  border-top: 1px solid rgba(139, 92, 246, 0.3);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-top: 1px solid rgba(168, 85, 247, 0.3);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
   font-size: 0.8125rem;
   font-weight: 600;
   position: relative;
@@ -588,7 +588,7 @@
   flex-direction: column;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.75rem;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -615,12 +615,12 @@
 }
 
 .trading-panel-compact::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(168, 85, 247, 0.4);
   border-radius: 3px;
 }
 
 .trading-panel-compact::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
+  background: rgba(168, 85, 247, 0.6);
 }
 
 .trading-panel-header {
@@ -629,7 +629,7 @@
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
   position: relative;
   z-index: 2;
 }
@@ -684,7 +684,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
-  border: 2px solid rgba(139, 92, 246, 0.3);
+  border: 2px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.5rem;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(4px);
@@ -736,7 +736,7 @@
 
 .order-type-btn {
   padding: 0.625rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.375rem;
   background: rgba(15, 23, 42, 0.6);
   color: var(--text-secondary);
@@ -747,13 +747,13 @@
 }
 
 .order-type-btn:hover {
-  background: rgba(139, 92, 246, 0.1);
-  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.5);
 }
 
 .order-type-btn.active {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.6);
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.6);
   color: var(--text-primary);
 }
 
@@ -778,7 +778,7 @@
 
 .percentage-buttons button {
   padding: 0.5rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.375rem;
   background: rgba(15, 23, 42, 0.6);
   color: var(--text-secondary);
@@ -789,15 +789,15 @@
 }
 
 .percentage-buttons button:hover {
-  background: rgba(139, 92, 246, 0.1);
-  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.5);
 }
 
 .size-input-large,
 .price-input-large {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.5rem;
   background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(4px);
@@ -809,9 +809,9 @@
 .size-input-large:focus,
 .price-input-large:focus {
   outline: none;
-  border-color: rgba(139, 92, 246, 0.7);
+  border-color: rgba(168, 85, 247, 0.7);
   background: rgba(15, 23, 42, 1);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
 }
 
 .price-input-group {
@@ -822,7 +822,7 @@
 
 .price-adjust-btn {
   padding: 0.5rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.375rem;
   background: rgba(15, 23, 42, 0.6);
   color: var(--text-secondary);
@@ -834,8 +834,8 @@
 }
 
 .price-adjust-btn:hover {
-  background: rgba(139, 92, 246, 0.1);
-  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.5);
 }
 
 .price-input-large {
@@ -846,7 +846,7 @@
   padding: 0.75rem;
   background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.5rem;
   margin-bottom: 1rem;
   position: relative;
@@ -919,7 +919,7 @@
 
 .quick-market-btn {
   padding: 0.625rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.375rem;
   background: rgba(15, 23, 42, 0.6);
   color: var(--text-secondary);
@@ -947,7 +947,7 @@
   flex-direction: column;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.75rem;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -964,7 +964,7 @@
 
 .trade-history-header {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1003,12 +1003,12 @@
 }
 
 .trade-history-table::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(168, 85, 247, 0.4);
   border-radius: 3px;
 }
 
 .trade-history-table::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
+  background: rgba(168, 85, 247, 0.6);
 }
 
 .trade-history-header-row {
@@ -1019,7 +1019,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   font-weight: 600;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.1);
   flex-shrink: 0;
 }
 
@@ -1034,14 +1034,14 @@
   grid-template-columns: 0.8fr 0.6fr 1fr 1fr 1fr;
   padding: 0.5rem 1rem;
   font-size: 0.8125rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.08);
   transition: background 0.15s;
   position: relative;
   z-index: 1;
 }
 
 .trade-history-entry:hover {
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(168, 85, 247, 0.05);
 }
 
 .trade-history-entry.buy {
@@ -1098,7 +1098,7 @@
   overflow: hidden;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.75rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
@@ -1107,7 +1107,7 @@
 
 .panel-header {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1131,7 +1131,7 @@
 
 .filter-select {
   padding: 0.25rem 0.5rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.375rem;
   background: rgba(15, 23, 42, 0.8);
   color: var(--text-primary);
@@ -1165,12 +1165,12 @@
 }
 
 .orders-table::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(168, 85, 247, 0.4);
   border-radius: 3px;
 }
 
 .orders-table::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
+  background: rgba(168, 85, 247, 0.6);
 }
 
 .orders-header-row {
@@ -1181,7 +1181,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   font-weight: 600;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.1);
   flex-shrink: 0;
 }
 
@@ -1196,14 +1196,14 @@
   grid-template-columns: 0.8fr 0.6fr 1fr 1fr 1fr 0.8fr;
   padding: 0.5rem 1rem;
   font-size: 0.8125rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.08);
   transition: background 0.15s;
   position: relative;
   z-index: 1;
 }
 
 .order-row:hover {
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(168, 85, 247, 0.05);
 }
 
 .order-row.buy {
@@ -1269,7 +1269,7 @@
   overflow-y: auto;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.75rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
@@ -1285,12 +1285,12 @@
 }
 
 .positions-panel::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(168, 85, 247, 0.4);
   border-radius: 3px;
 }
 
 .positions-panel::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
+  background: rgba(168, 85, 247, 0.6);
 }
 
 .total-pnl {
@@ -1332,14 +1332,14 @@
 
 .position-card {
   background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.2);
   border-radius: 0.5rem;
   padding: 1rem;
   transition: all 0.2s;
 }
 
 .position-card:hover {
-  border-color: rgba(139, 92, 246, 0.4);
+  border-color: rgba(168, 85, 247, 0.4);
   background: rgba(15, 23, 42, 0.8);
 }
 
@@ -1381,7 +1381,7 @@
 }
 
 .position-side.spot {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(168, 85, 247, 0.2);
   color: var(--violet-400);
 }
 
@@ -1443,7 +1443,7 @@
 
 .pnl-row {
   padding-top: 0.5rem;
-  border-top: 1px solid rgba(139, 92, 246, 0.1);
+  border-top: 1px solid rgba(168, 85, 247, 0.1);
   margin-top: 0.25rem;
 }
 
