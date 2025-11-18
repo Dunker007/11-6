@@ -1,0 +1,80 @@
+.user-preferences {
+  padding: 2rem;
+  max-width: 800px;
+}
+
+.preferences-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.preferences-header h2 {
+  margin: 0;
+  color: var(--color-text, #fff);
+}
+
+.preferences-section {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-surface-elevated, #16213e);
+}
+
+.preferences-section h3 {
+  margin: 0 0 1.5rem;
+  font-size: 1.2rem;
+  color: var(--color-text, #fff);
+}
+
+.preference-item {
+  margin-bottom: 1.25rem;
+}
+
+.preference-item:last-child {
+  margin-bottom: 0;
+}
+
+.preference-item label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--color-text, #fff);
+}
+
+.preference-item select,
+.preference-item input[type="number"] {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--color-surface, #1a1a2e);
+  border: 1px solid var(--color-border, #2d2d44);
+  border-radius: 6px;
+  color: var(--color-text, #fff);
+  font-size: 0.95rem;
+}
+
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .user-preferences {
+    padding: 1rem;
+  }
+
+  .preferences-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

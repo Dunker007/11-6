@@ -1,0 +1,88 @@
+.data-management {
+  padding: 2rem;
+  max-width: 800px;
+}
+
+.data-management h2 {
+  margin: 0 0 2rem;
+  color: var(--color-text, #fff);
+}
+
+.data-section {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-surface-elevated, #16213e);
+}
+
+.data-section h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+  color: var(--color-text, #fff);
+}
+
+.data-section > p {
+  margin: 0 0 1.5rem;
+  color: var(--color-text-secondary, #aaa);
+}
+
+.export-options,
+.backup-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  color: var(--color-text, #fff);
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.export-actions,
+.import-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.import-warning {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 3px solid #ef4444;
+  border-radius: 4px;
+  color: var(--color-text, #fff);
+}
+
+.backup-options label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--color-text, #fff);
+}
+
+.backup-options select {
+  padding: 0.75rem;
+  background: var(--color-surface, #1a1a2e);
+  border: 1px solid var(--color-border, #2d2d44);
+  border-radius: 6px;
+  color: var(--color-text, #fff);
+}
+
+@media (max-width: 768px) {
+  .data-management {
+    padding: 1rem;
+  }
+
+  .export-actions,
+  .import-actions {
+    flex-direction: column;
+  }
+}

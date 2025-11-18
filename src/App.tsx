@@ -73,10 +73,20 @@ import { errorLogger } from './services/errors/errorLogger';
 import { logger } from './services/logging/loggerService';
 import { useProjectStore } from './services/project/projectStore';
 import './services/theme/themeService'; // Initialize theme on import
+
+// Production-ready features
+import { WelcomeWizard } from './components/Onboarding/WelcomeWizard';
+import { HelpPanel, HelpButton } from './components/Help/HelpPanel';
+import { ErrorRecoveryModal } from './components/Errors/ErrorRecoveryModal';
+import { FeedbackWidget } from './components/Feedback/FeedbackWidget';
+import { useOnboardingStore } from './services/onboarding/welcomeWizardService';
+import { useHelpSystemStore } from './services/help/helpSystemService';
+import { useSmartErrorHandlerStore } from './services/errors/smartErrorHandlerService';
 import './styles/index.css';
 import './styles/themes.css';
 import './styles/themes-clean.css'; // Clean modern theme
 import './styles/animations.css';
+import './styles/responsive.css'; // Mobile responsive styles
 import './styles/App.css'; // App-specific styles
 import './styles/WindowControls.css';
 import './styles/Agents.css';
@@ -257,6 +267,11 @@ function App() {
   const [showInsights, setShowInsights] = React.useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = React.useState(false);
 
+  // Production features state
+  const { shouldShowWizard, completeOnboarding } = useOnboardingStore();
+  const { openHelp } = useHelpSystemStore();
+  const { currentError } = useSmartErrorHandlerStore();
+
   React.useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in inputs
@@ -269,16 +284,22 @@ function App() {
         setShowInsights(prev => !prev);
       }
 
-      // ? to show keyboard shortcuts (only when not typing)
+      // ? to show keyboard shortcuts and help (only when not typing)
       if (!isTyping && e.key === '?' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        setShowKeyboardHelp(true);
+        openHelp(); // Open help panel instead of just keyboard shortcuts
+      }
+
+      // Ctrl+H to show help
+      if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+        e.preventDefault();
+        openHelp();
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [openHelp]);
 
   return (
     <ToastProvider>
@@ -290,6 +311,28 @@ function App() {
           <ItorToolbar />
           <LLMRevenueCommandCenter />
           <UpdateNotification />
+
+          {/* Production Features */}
+
+          {/* Onboarding Wizard - Show on first run */}
+          {shouldShowWizard() && (
+            <WelcomeWizard
+              onComplete={() => completeOnboarding()}
+              onSkip={() => completeOnboarding()}
+            />
+          )}
+
+          {/* Help System */}
+          <HelpPanel />
+          <HelpButton />
+
+          {/* Error Recovery */}
+          {currentError && <ErrorRecoveryModal />}
+
+          {/* Feedback Widget */}
+          <FeedbackWidget />
+
+          {/* Insights Stream */}
           {showInsights && (
             <div className="app-insights-overlay">
               <InsightsStream
@@ -299,6 +342,8 @@ function App() {
               />
             </div>
           )}
+
+          {/* Keyboard Shortcuts (legacy - now integrated in HelpPanel) */}
           <KeyboardShortcutsHelp
             isOpen={showKeyboardHelp}
             onClose={() => setShowKeyboardHelp(false)}

@@ -1,0 +1,10 @@
+/* Mobile bottom navigation (already defined in responsive.css but adding component-specific styles) */
+.mobile-bottom-nav {
+  display: none; /* Hidden by default, shown in responsive.css */
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex; /* Override */
+  }
+}

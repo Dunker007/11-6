@@ -1,0 +1,394 @@
+/**
+ * responsive.css
+ *
+ * PURPOSE:
+ * Mobile-responsive design system for DLX Studios
+ * Ensures the app works beautifully on all screen sizes
+ *
+ * BREAKPOINTS:
+ * - Mobile: < 768px
+ * - Tablet: 768px - 1199px
+ * - Desktop: 1200px+
+ */
+
+/* Root Variables for Responsive Sizing */
+:root {
+  --mobile-padding: 1rem;
+  --tablet-padding: 1.5rem;
+  --desktop-padding: 2rem;
+
+  --mobile-font-base: 14px;
+  --tablet-font-base: 15px;
+  --desktop-font-base: 16px;
+}
+
+/* Base Mobile-First Styles */
+html {
+  font-size: var(--mobile-font-base);
+}
+
+/* Tablet */
+@media (min-width: 768px) {
+  html {
+    font-size: var(--tablet-font-base);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1200px) {
+  html {
+    font-size: var(--desktop-font-base);
+  }
+}
+
+/* Mobile Navigation */
+@media (max-width: 768px) {
+  /* Hamburger Menu */
+  .mobile-nav-toggle {
+    display: block;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 9999;
+    background: var(--color-primary);
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+  }
+
+  /* Hide desktop sidebar */
+  .sidebar {
+    position: fixed;
+    left: -100%;
+    top: 0;
+    bottom: 0;
+    width: 80%;
+    max-width: 300px;
+    background: var(--color-surface);
+    z-index: 9998;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Overlay when menu is open */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9997;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  /* Bottom Navigation Bar */
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: var(--color-surface-elevated);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    padding: 0.5rem 0;
+  }
+
+  .mobile-bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    font-size: 0.7rem;
+    transition: color 0.2s;
+  }
+
+  .mobile-bottom-nav-item.active {
+    color: var(--color-primary);
+  }
+
+  .mobile-bottom-nav-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  /* Main content padding to account for bottom nav */
+  .app-content {
+    padding-bottom: 80px;
+  }
+
+  /* Stack cards vertically */
+  .dashboard-grid,
+  .card-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Touch-friendly buttons */
+  button,
+  .button,
+  a.button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1.5rem;
+  }
+
+  /* Mobile-optimized forms */
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 44px;
+  }
+
+  /* Simplified headers */
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  /* Full-width modals on mobile */
+  .modal,
+  .dialog {
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+
+  /* Horizontal scrolling for tables */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 600px;
+  }
+
+  /* Hide less important columns on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* Mobile-specific spacing */
+  .container {
+    padding: var(--mobile-padding);
+  }
+
+  /* Swipe gestures hint */
+  .swipeable {
+    touch-action: pan-x;
+  }
+}
+
+/* Tablet Optimizations */
+@media (min-width: 768px) and (max-width: 1199px) {
+  /* Two-column grids */
+  .dashboard-grid,
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+  }
+
+  /* Tablet-specific spacing */
+  .container {
+    padding: var(--tablet-padding);
+  }
+
+  /* Hide on tablet */
+  .hide-tablet {
+    display: none !important;
+  }
+}
+
+/* Desktop Optimizations */
+@media (min-width: 1200px) {
+  /* Multi-column grids */
+  .dashboard-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 280px;
+  }
+
+  /* Desktop-specific spacing */
+  .container {
+    padding: var(--desktop-padding);
+  }
+
+  /* Show on desktop only */
+  .desktop-only {
+    display: block !important;
+  }
+}
+
+/* Landscape Mobile (phones in landscape) */
+@media (max-width: 896px) and (orientation: landscape) {
+  /* Reduce header heights */
+  .header {
+    padding: 0.5rem 1rem;
+  }
+
+  /* Smaller fonts */
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  /* Hide bottom nav in landscape */
+  .mobile-bottom-nav {
+    display: none;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .button,
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects */
+  *:hover {
+    /* Disable hover states on touch devices */
+  }
+
+  /* Add active states instead */
+  .button:active,
+  button:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+
+  /* Prevent text selection on buttons */
+  button,
+  .button {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* High DPI Displays (Retina) */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Crisper borders */
+  border,
+  .border {
+    border-width: 0.5px;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode is the default, but can override here */
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print,
+  .sidebar,
+  .mobile-bottom-nav,
+  button,
+  .button {
+    display: none !important;
+  }
+
+  * {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Utility Classes */
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* Responsive Flex & Grid Helpers */
+.flex-mobile-column {
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .flex-mobile-column {
+    flex-direction: column;
+  }
+}
+
+.grid-responsive {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .grid-responsive {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
