@@ -110,16 +110,19 @@
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(var(--blur-xl));
+  -webkit-backdrop-filter: blur(var(--blur-xl));
+  border: 1px solid rgba(6, 182, 212, 0.15);
   border-radius: 8px;
   transition: all 0.2s ease;
   box-sizing: border-box;
+  box-shadow: var(--shadow-lg), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
 }
 
 .tool-card:hover {
   border-color: var(--secondary-500);
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
+  box-shadow: var(--shadow-cyber);
   transform: translateY(-2px);
 }
 
