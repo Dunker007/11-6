@@ -2,7 +2,7 @@
 # This script safely manages dev servers WITHOUT killing Desktop Commander or other essential processes
 
 Write-Host "🚀 DLX Studios Ultimate - Starting Dev Server" -ForegroundColor Cyan
-Write-Host "=" * 60
+Write-Host ("=" * 60)
 
 # Step 1: Kill ONLY dev servers (not Desktop Commander!)
 Write-Host "`n📍 Step 1: Checking for existing dev servers..." -ForegroundColor Yellow
@@ -49,32 +49,13 @@ if (-not (Test-Path "node_modules")) {
     # Try normal install first
     Write-Host "`n  Attempting: npm install --legacy-peer-deps --ignore-scripts" -ForegroundColor Cyan
 
-    $installResult = npm install --legacy-peer-deps --ignore-scripts 2>&1
+    npm install --legacy-peer-deps --ignore-scripts
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "  ⚠️  Standard install had issues. Trying alternative..." -ForegroundColor Yellow
-
-        # Fallback: Remove problematic packages temporarily
-        Write-Host "`n  Removing problematic packages from package.json temporarily..." -ForegroundColor Cyan
-
-        $packageJson = Get-Content "package.json" -Raw | ConvertFrom-Json
-        $originalDeps = $packageJson.dependencies.PSObject.Copy()
-
-        # Remove problematic packages
-        $packageJson.dependencies.PSObject.Properties.Remove("sharp")
-        $packageJson.dependencies.PSObject.Properties.Remove("@xenova/transformers")
-
-        $packageJson | ConvertTo-Json -Depth 100 | Set-Content "package.json.tmp"
-        Move-Item "package.json.tmp" "package.json" -Force
-
-        npm install --legacy-peer-deps --ignore-scripts
-
-        # Restore original package.json
-        $packageJson.dependencies = $originalDeps
-        $packageJson | ConvertTo-Json -Depth 100 | Set-Content "package.json"
+        Write-Host "  ⚠️  Standard install had issues. Check the error above." -ForegroundColor Yellow
+    } else {
+        Write-Host "  ✅ Dependencies installed" -ForegroundColor Green
     }
-
-    Write-Host "  ✅ Dependencies installed" -ForegroundColor Green
 } else {
     Write-Host "  ✅ Dependencies already installed" -ForegroundColor Green
 }
@@ -95,10 +76,12 @@ Write-Host "  ℹ️  Skipping full build, will start dev server directly" -Fore
 
 # Step 5: Start dev server
 Write-Host "`n📍 Step 5: Starting dev server..." -ForegroundColor Yellow
-Write-Host "`n" + ("=" * 60)
+Write-Host ""
+Write-Host ("=" * 60)
 Write-Host "🌐 Dev server will start on: http://localhost:5173" -ForegroundColor Green
 Write-Host "🔥 All 12 tabs should be accessible!" -ForegroundColor Green
-Write-Host ("=" * 60) + "`n"
+Write-Host ("=" * 60)
+Write-Host ""
 
 # Start the dev server
 npm run dev
