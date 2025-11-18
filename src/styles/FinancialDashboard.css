@@ -17,16 +17,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--bg-tertiary);
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid rgba(6, 182, 212, 0.2);
 }
 
 .dashboard-header h2 {
   margin: 0;
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .header-actions {
@@ -35,21 +38,23 @@
 }
 
 .add-btn {
-  padding: 0.625rem 1.25rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--bg-tertiary);
-  border-radius: var(--radius-base);
+  padding: var(--space-2) var(--space-4);
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: var(--radius-md);
   color: var(--text-primary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: all var(--transition-base);
+  box-shadow: 0 2px 4px rgba(6, 182, 212, 0.1);
 }
 
 .add-btn:hover {
-  background: var(--bg-tertiary);
-  border-color: var(--violet-500);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(168, 85, 247, 0.15) 100%);
+  border-color: var(--primary-500);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);
 }
 
 .add-btn.income-btn {
@@ -220,7 +225,7 @@
 }
 
 .summary-card:hover {
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
   transform: translateY(-2px);
   box-shadow: var(--shadow-glow-primary);
 }
@@ -306,8 +311,8 @@
 }
 
 .tab.active {
-  color: var(--violet-500);
-  border-bottom-color: var(--violet-500);
+  color: var(--secondary-500);
+  border-bottom-color: var(--secondary-500);
 }
 
 /* Tab Content */
@@ -373,7 +378,7 @@
 
 .breakdown-fill {
   height: 100%;
-  background: var(--violet-500);
+  background: var(--secondary-500);
   border-radius: var(--radius-full);
   transition: width 0.3s ease;
 }
@@ -404,7 +409,7 @@
 
 .expense-item:hover,
 .income-item:hover {
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
   transform: translateX(4px);
 }
 
@@ -568,7 +573,7 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
@@ -590,7 +595,7 @@
 
 .submit-btn {
   padding: 0.625rem 1.5rem;
-  background: var(--violet-500);
+  background: var(--secondary-500);
   border: none;
   border-radius: var(--radius-base);
   color: white;
@@ -620,6 +625,6 @@
 
 .cancel-btn:hover {
   background: var(--bg-tertiary);
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
 }
 
