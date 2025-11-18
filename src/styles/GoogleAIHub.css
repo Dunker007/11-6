@@ -4,11 +4,13 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--color-bg-secondary);
-  backdrop-filter: blur(10px);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-primary);
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(var(--blur-xl));
+  -webkit-backdrop-filter: blur(var(--blur-xl));
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(6, 182, 212, 0.15);
   overflow: hidden;
+  box-shadow: var(--shadow-lg), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Hub Header */
@@ -37,7 +39,7 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(6, 182, 212, 0.1));
   border-bottom: 1px solid var(--color-border-primary);
   animation: slideDown 0.3s ease-out;
 }
@@ -68,21 +70,21 @@
 }
 
 .welcome-dismiss {
-  padding: 0.5rem 1rem;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  background: var(--color-primary-500);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%);
   color: white;
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
 }
 
 .welcome-dismiss:hover {
-  background: var(--color-primary-600);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(6, 182, 212, 0.4);
 }
 
 @keyframes slideDown {
@@ -184,7 +186,7 @@
 
 .hub-tabs .button[data-variant="primary"]:hover {
   background: var(--color-primary-600);
-  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
 }
 
 .hub-tabs .button[data-variant="ghost"] {
