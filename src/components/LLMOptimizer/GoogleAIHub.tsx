@@ -10,14 +10,15 @@ import ProjectHost from '../GeminiStudio/ProjectHost';
 import SmartCommentsPanel from '../CodeAnalysis/SmartCommentsPanel';
 import VisualToCode from '../Vision/VisualToCode';
 import ProjectQA from '../GoogleAI/ProjectQA';
+import NotebookLMPanel from '../GoogleAI/NotebookLMPanel';
 import { Button } from '../ui';
 import TechIcon from '../Icons/TechIcon';
-import { BrainCircuit, Image, MessageSquare, HelpCircle, Info, AlertCircle, Settings } from 'lucide-react';
+import { BrainCircuit, Image, MessageSquare, HelpCircle, Info, AlertCircle, Settings, BookOpen } from 'lucide-react';
 import { apiKeyService } from '@/services/apiKeys/apiKeyService';
 import '../../styles/GeminiStudio.css';
 import '../../styles/GoogleAIHub.css';
 
-type HubTab = 'studio' | 'vision' | 'comments' | 'qa';
+type HubTab = 'studio' | 'vision' | 'comments' | 'qa' | 'notebooklm';
 
 const GoogleAIHub: React.FC = () => {
   const [activeTab, setActiveTab] = useState<HubTab>('studio');
@@ -37,7 +38,7 @@ const GoogleAIHub: React.FC = () => {
     checkApiKey();
   }, []);
 
-  // Keyboard shortcuts (1-4 to switch tabs)
+  // Keyboard shortcuts (1-5 to switch tabs)
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       // Only handle if no input is focused
@@ -58,6 +59,9 @@ const GoogleAIHub: React.FC = () => {
         case '4':
           setActiveTab('qa');
           break;
+        case '5':
+          setActiveTab('notebooklm');
+          break;
       }
     };
 
@@ -74,7 +78,8 @@ const GoogleAIHub: React.FC = () => {
     studio: 'Import and run Gemini AI Studio projects with function calling',
     vision: 'Convert UI screenshots to code using Gemini Vision',
     comments: 'AI-powered code analysis and smart comments',
-    qa: 'Ask questions about your project using natural language'
+    qa: 'Ask questions about your project using natural language',
+    notebooklm: 'Organize documents and query with AI using NotebookLM'
   };
 
   return (
@@ -84,7 +89,7 @@ const GoogleAIHub: React.FC = () => {
           <Info size={20} />
           <div className="welcome-content">
             <h4>Welcome to Google AI Hub!</h4>
-            <p>Explore powerful AI features powered by Gemini. Use keyboard shortcuts (1-4) to switch between tabs.</p>
+            <p>Explore powerful AI features powered by Gemini. Use keyboard shortcuts (1-5) to switch between tabs.</p>
           </div>
           <button onClick={handleDismissWelcome} className="welcome-dismiss">
             Got it
@@ -155,6 +160,17 @@ const GoogleAIHub: React.FC = () => {
           >
             Project Q&A
           </Button>
+          <Button
+            variant={activeTab === 'notebooklm' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('notebooklm')}
+            leftIcon={BookOpen}
+            title={`${tabDescriptions.notebooklm} (Press 5)`}
+            role="tab"
+            aria-selected={activeTab === 'notebooklm'}
+            aria-controls="hub-content-notebooklm"
+          >
+            NotebookLM
+          </Button>
         </div>
       </div>
       <div className="hub-content">
@@ -184,6 +200,11 @@ const GoogleAIHub: React.FC = () => {
             <TechIcon icon={HelpCircle} size={24} />
             <h4>Project Q&A</h4>
             <ProjectQA />
+          </div>
+        )}
+        {activeTab === 'notebooklm' && (
+          <div role="tabpanel" id="hub-content-notebooklm" aria-labelledby="tab-notebooklm">
+            <NotebookLMPanel />
           </div>
         )}
       </div>
