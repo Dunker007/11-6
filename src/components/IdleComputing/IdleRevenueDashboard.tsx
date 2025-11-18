@@ -102,7 +102,7 @@ export const IdleRevenueDashboard: React.FC = () => {
         <div style={{ padding: '20px', background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', borderRadius: '12px', color: 'white' }}>
           <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '5px' }}>Total Earned</div>
           <div style={{ fontSize: '32px', fontWeight: 'bold' }}>${totalEarnings.allTime.toFixed(2)}</div>
-          <div style={{ fontSize: '12px', opacity: 0.8', marginTop: '5px' }}>
+          <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '5px' }}>
             ${totalEarnings.today.toFixed(2)} today
           </div>
         </div>

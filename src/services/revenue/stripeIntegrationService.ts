@@ -66,7 +66,7 @@ export interface StripeCustomer {
   paymentCount: number;
   firstPurchase: Date;
   lastPurchase?: Date;
-  lifetime Value: number;
+  lifetimeValue: number;
 }
 
 export interface StripeSubscription {

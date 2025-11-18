@@ -17,10 +17,6 @@ interface Tab {
 export const UnifiedDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
-  const handleQuickAction = (tabId: TabId) => {
-    setActiveTab(tabId);
-  };
-
   const tabs: Tab[] = [
     { id: 'overview', name: 'Overview', icon: '📊' },
     { id: 'credentials', name: 'Credentials', icon: '🔐' },
@@ -45,7 +41,7 @@ export const UnifiedDashboard: React.FC = () => {
       case 'setup':
         return <SetupLauncher />;
       default:
-        return <OverviewTab />;
+        return <OverviewTab setActiveTab={setActiveTab} />;
     }
   };
 

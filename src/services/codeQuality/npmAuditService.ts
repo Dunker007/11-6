@@ -187,7 +187,7 @@ class NpmAuditService {
 
     // Parse vulnerabilities
     if (auditData.vulnerabilities) {
-      for (const [name, vulnData: any] of Object.entries(auditData.vulnerabilities)) {
+      for (const [name, vulnData] of Object.entries(auditData.vulnerabilities)) {
         const severity = (vulnData.severity || 'info').toLowerCase() as Vulnerability['severity'];
         
         const vulnerability: Vulnerability = {
