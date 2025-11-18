@@ -1,9 +1,10 @@
 /**
- * UNIFIED DASHBOARD - Cyberpunk Command Center
+ * UNIFIED DASHBOARD - ENTERPRISE COMMAND CENTER
+ * Professional, data-dense interface for enterprise deployments
  */
 
 /* ========================================
-   COMMAND CENTER CONTAINER
+   MAIN CONTAINER
    ======================================== */
 
 .cyber-command-center {
@@ -14,7 +15,7 @@
 }
 
 /* ========================================
-   ANIMATED BACKGROUND
+   BACKGROUND - Subtle and Professional
    ======================================== */
 
 .cyber-background {
@@ -22,101 +23,72 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  opacity: 0.4;
 }
 
-.cyber-background__stars {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(2px 2px at 20px 30px, rgba(0, 255, 229, 0.2), transparent),
-    radial-gradient(2px 2px at 60px 70px, rgba(255, 0, 255, 0.2), transparent),
-    radial-gradient(1px 1px at 50px 50px, rgba(0, 255, 229, 0.3), transparent),
-    radial-gradient(1px 1px at 130px 80px, rgba(255, 0, 255, 0.3), transparent),
-    radial-gradient(2px 2px at 90px 10px, rgba(0, 255, 229, 0.2), transparent);
-  background-size: 200px 200px;
-  background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 150px 50px;
-  animation: starsMove 120s linear infinite;
-}
-
-@keyframes starsMove {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-200px);
-  }
-}
-
+/* Subtle grid pattern */
 .cyber-background__grid {
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(rgba(0, 255, 229, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 229, 0.03) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(229, 231, 235, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229, 231, 235, 0.02) 1px, transparent 1px);
   background-size: 50px 50px;
-  opacity: 0.5;
 }
 
+/* Very subtle glow orbs - barely visible */
 .cyber-background__glow {
   position: absolute;
-  width: 800px;
-  height: 800px;
+  width: 600px;
+  height: 600px;
   border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.15;
-  animation: glowMove 20s ease-in-out infinite;
+  filter: blur(120px);
+  opacity: 0.05;
 }
 
 .cyber-background__glow--cyan {
-  background: radial-gradient(circle, var(--cyber-cyan-500) 0%, transparent 70%);
-  top: -200px;
-  left: -200px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+  top: -100px;
+  right: -100px;
 }
 
 .cyber-background__glow--purple {
-  background: radial-gradient(circle, var(--cyber-purple-500) 0%, transparent 70%);
-  bottom: -200px;
-  right: -200px;
-  animation-delay: -10s;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+  bottom: -100px;
+  left: -100px;
 }
 
-@keyframes glowMove {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(100px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-50px, 100px) scale(0.9);
-  }
+/* Remove stars animation - too distracting for enterprise */
+.cyber-background__stars {
+  display: none;
 }
 
 /* ========================================
-   HEADER
+   HEADER - Professional & Sticky
    ======================================== */
 
 .cyber-header {
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  background: rgba(10, 14, 39, 0.95);
-  backdrop-filter: blur(var(--blur-xl));
-  -webkit-backdrop-filter: blur(var(--blur-xl));
+  background: rgba(15, 17, 23, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-default);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-md);
 }
 
 .cyber-header__container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: var(--space-6) var(--space-6) 0;
+  padding: var(--space-4) var(--space-6) 0;
 }
 
 .cyber-header__top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
+  gap: var(--space-6);
 }
 
 /* Brand */
@@ -127,49 +99,52 @@
 }
 
 .cyber-header__logo {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .cyber-header__logo-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 0 20px rgba(0, 255, 229, 0.6));
+  /* Subtle shadow instead of excessive glow */
+  filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.2));
 }
 
 .cyber-header__title h1 {
   margin: 0;
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-black);
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
 }
 
 .cyber-header__subtitle {
   margin: var(--space-1) 0 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-weight: var(--weight-regular);
 }
 
 .cyber-header__actions {
   display: flex;
   gap: var(--space-3);
+  flex-shrink: 0;
 }
 
 /* ========================================
-   TABS NAVIGATION
+   TABS NAVIGATION - Professional
    ======================================== */
 
 .cyber-tabs {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  margin: 0 calc(var(--space-6) * -1);
+  padding: 0 var(--space-6);
 }
 
 .cyber-tabs::-webkit-scrollbar {
@@ -178,7 +153,7 @@
 
 .cyber-tabs__container {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-1);
   min-width: min-content;
 }
 
@@ -191,30 +166,28 @@
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   white-space: nowrap;
   cursor: pointer;
   transition: all var(--transition-base);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .cyber-tab:hover {
-  color: var(--cyber-cyan-500);
-  background: rgba(0, 255, 229, 0.05);
+  color: var(--text-secondary);
+  background: rgba(59, 130, 246, 0.05);
 }
 
 .cyber-tab--active {
-  color: var(--cyber-cyan-500);
-  background: rgba(0, 255, 229, 0.1);
-  border-bottom-color: var(--cyber-cyan-500);
-  box-shadow: 0 -2px 10px rgba(0, 255, 229, 0.3);
+  color: var(--primary-500);
+  background: rgba(59, 130, 246, 0.08);
+  border-bottom-color: var(--primary-500);
 }
 
 .cyber-tab__icon {
-  font-size: var(--font-size-lg);
+  font-size: var(--text-lg);
 }
 
 .cyber-tab__badge {
@@ -226,10 +199,9 @@
   padding: 0 var(--space-2);
   background: var(--status-error);
   color: white;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   border-radius: var(--radius-full);
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
 .cyber-tab__indicator {
@@ -238,18 +210,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--gradient-cyber);
-  box-shadow: 0 0 10px var(--cyber-cyan-500);
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
+  background: var(--primary-500);
 }
 
 /* ========================================
@@ -259,7 +220,7 @@
 .cyber-content {
   position: relative;
   z-index: 1;
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 180px);
 }
 
 .tab-loading-container {
@@ -289,114 +250,119 @@
 }
 
 .cyber-section__title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
   margin-bottom: var(--space-6);
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  letter-spacing: var(--tracking-tight);
 }
 
 /* ========================================
-   STATS GRID
+   STATS GRID - Data-Dense
    ======================================== */
 
 .cyber-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-5);
 }
 
 .cyber-stat-card__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .cyber-stat-card__icon {
-  font-size: 48px;
-  filter: drop-shadow(0 0 10px rgba(0, 255, 229, 0.3));
+  font-size: 40px;
+  opacity: 0.9;
 }
 
 .cyber-stat-card__change {
   padding: var(--space-1) var(--space-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   border-radius: var(--radius-full);
-  letter-spacing: 0.5px;
+  letter-spacing: var(--tracking-wide);
 }
 
 .cyber-stat-card__change--cyan {
-  background: rgba(0, 255, 229, 0.2);
-  color: var(--cyber-cyan-500);
-  box-shadow: 0 0 10px rgba(0, 255, 229, 0.3);
+  background: var(--status-info-bg);
+  color: var(--primary-500);
+  border: 1px solid var(--status-info-border);
 }
 
 .cyber-stat-card__change--purple {
-  background: rgba(255, 0, 255, 0.2);
-  color: var(--cyber-purple-500);
-  box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--secondary-500);
+  border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
 .cyber-stat-card__value {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-black);
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-bold);
   margin-bottom: var(--space-2);
-  line-height: 1;
+  line-height: var(--leading-tight);
 }
 
 .cyber-stat-card__label {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: var(--weight-medium);
 }
 
 /* ========================================
-   FEATURES GRID
+   FEATURES GRID - Enterprise Cards
    ======================================== */
 
 .cyber-features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-5);
+}
+
+.cyber-feature-card {
+  display: flex;
+  flex-direction: column;
 }
 
 .cyber-feature-card__icon {
-  font-size: 56px;
+  font-size: 48px;
   margin-bottom: var(--space-4);
-  filter: drop-shadow(0 0 15px rgba(0, 255, 229, 0.4));
+  opacity: 0.9;
 }
 
 .cyber-feature-card__title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
-  margin: 0 0 var(--space-3) 0;
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--leading-snug);
 }
 
 .cyber-feature-card__description {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: var(--leading-relaxed);
   margin: 0 0 var(--space-4) 0;
   flex: 1;
 }
 
 .cyber-feature-card__arrow {
-  font-size: var(--font-size-xl);
-  color: var(--cyber-cyan-500);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--text-xl);
+  color: var(--primary-500);
+  font-weight: var(--weight-bold);
   transition: transform var(--transition-base);
+  align-self: flex-end;
 }
 
 .cyber-feature-card:hover .cyber-feature-card__arrow {
-  transform: translateX(5px);
+  transform: translateX(4px);
 }
 
 /* ========================================
-   ACTIVITY LIST
+   ACTIVITY LIST - Clean Timeline
    ======================================== */
 
 .cyber-activity-list .cyber-card__content {
@@ -407,8 +373,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-5);
-  border-bottom: 1px solid var(--border-default);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
   transition: background var(--transition-fast);
 }
 
@@ -417,38 +383,38 @@
 }
 
 .cyber-activity-item:hover {
-  background: rgba(0, 255, 229, 0.05);
+  background: rgba(59, 130, 246, 0.04);
 }
 
 .cyber-activity-item__icon {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-2xl);
+  font-size: var(--text-xl);
   border-radius: var(--radius-lg);
   flex-shrink: 0;
 }
 
 .cyber-activity-item__icon--success {
-  background: rgba(16, 185, 129, 0.2);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  background: var(--status-success-bg);
+  border: 1px solid var(--status-success-border);
 }
 
 .cyber-activity-item__icon--info {
-  background: rgba(59, 130, 246, 0.2);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  background: var(--status-info-bg);
+  border: 1px solid var(--status-info-border);
 }
 
 .cyber-activity-item__icon--purple {
-  background: rgba(139, 92, 246, 0.2);
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
 .cyber-activity-item__icon--warning {
-  background: rgba(245, 158, 11, 0.2);
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  background: var(--status-warning-bg);
+  border: 1px solid var(--status-warning-border);
 }
 
 .cyber-activity-item__content {
@@ -457,112 +423,139 @@
 }
 
 .cyber-activity-item__title {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
   color: var(--text-primary);
   margin-bottom: var(--space-1);
 }
 
 .cyber-activity-item__description {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--text-secondary);
 }
 
 .cyber-activity-item__time {
-  font-size: var(--font-size-xs);
+  font-size: var(--text-xs);
   color: var(--text-tertiary);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ========================================
-   RESPONSIVE
+   RESPONSIVE - Enterprise First
    ======================================== */
 
-@media (max-width: 1024px) {
+@media (max-width: 1280px) {
   .cyber-header__container {
-    padding: var(--space-4) var(--space-4) 0;
+    padding: var(--space-4) var(--space-5) 0;
   }
 
-  .cyber-header__top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-4);
-  }
-
-  .cyber-header__actions {
-    width: 100%;
-  }
-
-  .cyber-header__actions button {
-    flex: 1;
+  .cyber-overview__container {
+    padding: 0 var(--space-5);
   }
 
   .cyber-stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 
   .cyber-features-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .cyber-header__top {
+    flex-wrap: wrap;
+    margin-bottom: var(--space-4);
+  }
+
+  .cyber-header__actions {
+    width: 100%;
+    order: 3;
+  }
+
+  .cyber-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--space-4);
   }
 
-  .cyber-overview__container {
-    padding: 0 var(--space-4);
+  .cyber-features-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-4);
   }
 }
 
 @media (max-width: 768px) {
+  .cyber-header__container {
+    padding: var(--space-3) var(--space-4) 0;
+  }
+
   .cyber-header__logo {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
   }
 
   .cyber-header__title h1 {
-    font-size: var(--font-size-xl);
+    font-size: var(--text-xl);
   }
 
   .cyber-header__subtitle {
-    font-size: var(--font-size-xs);
+    font-size: var(--text-xs);
   }
 
-  .cyber-tabs__container {
-    gap: var(--space-1);
+  .cyber-tabs {
+    margin: 0 calc(var(--space-4) * -1);
+    padding: 0 var(--space-4);
   }
 
   .cyber-tab {
     padding: var(--space-2) var(--space-3);
-    font-size: var(--font-size-xs);
-  }
-
-  .cyber-tab__icon {
-    font-size: var(--font-size-base);
+    font-size: var(--text-xs);
   }
 
   .cyber-tab__name {
     display: none;
   }
 
+  .cyber-tab__icon {
+    font-size: var(--text-base);
+  }
+
   .cyber-stats-grid {
     grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+
+  .cyber-stat-card__value {
+    font-size: var(--text-3xl);
   }
 
   .cyber-features-grid {
     grid-template-columns: 1fr;
+    gap: var(--space-3);
   }
 
-  .cyber-stat-card__value {
-    font-size: var(--font-size-3xl);
+  .cyber-overview {
+    padding: var(--space-6) 0;
+  }
+
+  .cyber-overview__container {
+    padding: 0 var(--space-4);
+  }
+
+  .cyber-section {
+    margin-bottom: var(--space-8);
   }
 
   .cyber-activity-item {
     padding: var(--space-3);
+    gap: var(--space-3);
   }
 
   .cyber-activity-item__icon {
-    width: 40px;
-    height: 40px;
-    font-size: var(--font-size-xl);
+    width: 36px;
+    height: 36px;
+    font-size: var(--text-lg);
   }
 }
 
@@ -576,27 +569,65 @@
   }
 
   .cyber-section__title {
-    font-size: var(--font-size-lg);
+    font-size: var(--text-lg);
+  }
+
+  .cyber-activity-item__time {
+    display: block;
+    margin-top: var(--space-1);
+    width: 100%;
   }
 }
 
 /* ========================================
-   ACCESSIBILITY
+   ACCESSIBILITY - Professional Standards
    ======================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .cyber-background__stars,
   .cyber-background__glow,
   .cyber-tab,
   .cyber-feature-card,
-  .animate-glow-pulse-cyan,
   .animate-fade-in-up,
   .animate-pulse,
-  .animate-float {
+  .cyber-feature-card__arrow {
     animation: none !important;
+    transition: none !important;
   }
 
-  .cyber-tab__indicator {
-    animation: none;
+  .cyber-feature-card:hover .cyber-feature-card__arrow {
+    transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .cyber-tab--active {
+    outline: 2px solid var(--primary-500);
+  }
+
+  .cyber-stat-card__change {
+    border-width: 2px;
+  }
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+  .cyber-background,
+  .cyber-header__actions,
+  .cyber-tabs {
+    display: none !important;
+  }
+
+  .cyber-header {
+    position: relative;
+    background: white;
+    border-bottom: 2px solid black;
+  }
+
+  .cyber-section {
+    page-break-inside: avoid;
   }
 }

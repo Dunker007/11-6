@@ -1,13 +1,13 @@
 /**
- * DLX COMMAND CENTER - ANIMATIONS
- * Smooth, performant, 60fps animations
+ * DLX COMMAND CENTER - PROFESSIONAL ANIMATIONS
+ * Subtle, purposeful animations that enhance UX without distraction
+ * Enterprise-grade: smooth, performant, accessible
  */
 
 /* ========================================
-   KEYFRAME ANIMATIONS
+   ENTRANCE ANIMATIONS - Subtle & Professional
    ======================================== */
 
-/* Fade In */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -20,7 +20,7 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -31,7 +31,7 @@
 @keyframes fadeInDown {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
@@ -39,81 +39,21 @@
   }
 }
 
-/* Slide */
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Scale */
 @keyframes scaleIn {
   from {
-    transform: scale(0.9);
     opacity: 0;
+    transform: scale(0.95);
   }
   to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
     opacity: 1;
     transform: scale(1);
   }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
 }
 
-/* Glow Pulse */
-@keyframes glowPulse {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(0, 255, 229, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(0, 255, 229, 0.8), 0 0 80px rgba(255, 0, 255, 0.4);
-  }
-}
+/* ========================================
+   UTILITY ANIMATIONS
+   ======================================== */
 
-@keyframes glowPulseCyan {
-  0%, 100% {
-    box-shadow: 0 0 10px rgba(0, 255, 229, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(0, 255, 229, 0.8);
-  }
-}
-
-@keyframes glowPulsePurple {
-  0%, 100% {
-    box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
-  }
-}
-
-/* Spin */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -123,165 +63,148 @@
   }
 }
 
-@keyframes spinSlow {
-  from {
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Subtle float - for icons/decorative elements only */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ========================================
+   LOADING STATES - Professional
+   ======================================== */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes spinnerRotate {
+  0% {
     transform: rotate(0deg);
   }
-  to {
+  100% {
     transform: rotate(360deg);
   }
 }
 
-/* Hexagon Spin (for loaders) */
-@keyframes hexagonSpin {
-  0% {
-    transform: rotate(0deg) scale(1);
-  }
-  50% {
-    transform: rotate(180deg) scale(1.1);
-  }
-  100% {
-    transform: rotate(360deg) scale(1);
-  }
-}
-
-/* Border Glow */
-@keyframes borderGlow {
+/* Dot pulse for loading indicators */
+@keyframes dotPulse {
   0%, 100% {
-    border-color: rgba(0, 255, 229, 0.3);
-    box-shadow: 0 0 10px rgba(0, 255, 229, 0.2);
-  }
-  50% {
-    border-color: rgba(0, 255, 229, 0.8);
-    box-shadow: 0 0 30px rgba(0, 255, 229, 0.6);
-  }
-}
-
-/* Float */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-/* Shimmer (for loading states) */
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-/* Text Glitch */
-@keyframes textGlitch {
-  0% {
-    text-shadow: 0 0 0 rgba(0, 255, 229, 0);
-  }
-  25% {
-    text-shadow: -2px 0 0 rgba(255, 0, 255, 0.8), 2px 0 0 rgba(0, 255, 229, 0.8);
-  }
-  50% {
-    text-shadow: 0 0 0 rgba(0, 255, 229, 0);
-  }
-  75% {
-    text-shadow: 2px 0 0 rgba(255, 0, 255, 0.8), -2px 0 0 rgba(0, 255, 229, 0.8);
-  }
-  100% {
-    text-shadow: 0 0 0 rgba(0, 255, 229, 0);
-  }
-}
-
-/* Scan Line */
-@keyframes scanLine {
-  0% {
-    top: 0%;
-  }
-  100% {
-    top: 100%;
-  }
-}
-
-/* Ripple Effect */
-@keyframes ripple {
-  0% {
-    transform: scale(0);
+    transform: scale(1);
     opacity: 1;
   }
-  100% {
-    transform: scale(4);
-    opacity: 0;
+  50% {
+    transform: scale(1.2);
+    opacity: 0.6;
   }
 }
 
-/* Gradient Animation */
-@keyframes gradientShift {
+/* Ring pulse - subtle */
+@keyframes ringPulse {
   0% {
-    background-position: 0% 50%;
+    transform: scale(1);
+    opacity: 0.3;
   }
   50% {
-    background-position: 100% 50%;
+    transform: scale(1.2);
+    opacity: 0.6;
   }
   100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* Number Counter */
-@keyframes numberCount {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Particle Burst */
-@keyframes particleBurst {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--tx), var(--ty)) scale(0);
+    transform: scale(1.4);
     opacity: 0;
   }
 }
 
 /* ========================================
-   ANIMATION UTILITY CLASSES
+   SLIDE ANIMATIONS - For panels/modals
    ======================================== */
 
-/* Fade Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInBottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   SKELETON LOADING - Professional
+   ======================================== */
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ========================================
+   PROGRESS INDICATORS
+   ======================================== */
+
+@keyframes progressIndeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
+  animation: fadeInUp 0.4s ease-out forwards;
 }
 
 .animate-fade-in-down {
-  animation: fadeInDown 0.5s ease-out forwards;
+  animation: fadeInDown 0.4s ease-out forwards;
 }
 
-/* Slide Animations */
-.animate-slide-in-right {
-  animation: slideInRight 0.5s ease-out forwards;
-}
-
-.animate-slide-in-left {
-  animation: slideInLeft 0.5s ease-out forwards;
-}
-
-/* Scale Animations */
 .animate-scale-in {
   animation: scaleIn 0.3s ease-out forwards;
 }
@@ -290,179 +213,101 @@
   animation: pulse 2s ease-in-out infinite;
 }
 
-/* Glow Animations */
-.animate-glow-pulse {
-  animation: glowPulse 2s ease-in-out infinite;
-}
-
-.animate-glow-pulse-cyan {
-  animation: glowPulseCyan 2s ease-in-out infinite;
-}
-
-.animate-glow-pulse-purple {
-  animation: glowPulsePurple 2s ease-in-out infinite;
-}
-
-/* Spin Animations */
 .animate-spin {
   animation: spin 1s linear infinite;
 }
 
-.animate-spin-slow {
-  animation: spinSlow 3s linear infinite;
-}
-
-.animate-hexagon-spin {
-  animation: hexagonSpin 2s ease-in-out infinite;
-}
-
-/* Border Glow */
-.animate-border-glow {
-  animation: borderGlow 2s ease-in-out infinite;
-}
-
-/* Float */
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
 
-/* Shimmer */
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(0, 255, 229, 0) 0%,
-    rgba(0, 255, 229, 0.3) 50%,
-    rgba(0, 255, 229, 0) 100%
-  );
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite;
-}
-
-/* Text Glitch */
-.animate-text-glitch {
-  animation: textGlitch 0.5s ease-in-out;
-}
-
-/* Gradient Shift */
-.animate-gradient-shift {
-  background-size: 200% 200%;
-  animation: gradientShift 3s ease infinite;
-}
-
-/* ========================================
-   STAGGER ANIMATIONS
-   ======================================== */
-
+/* Stagger delays for sequential animations */
 .animate-stagger-1 {
-  animation-delay: 0.1s;
+  animation-delay: 0.05s;
 }
 
 .animate-stagger-2 {
-  animation-delay: 0.2s;
+  animation-delay: 0.1s;
 }
 
 .animate-stagger-3 {
-  animation-delay: 0.3s;
+  animation-delay: 0.15s;
 }
 
 .animate-stagger-4 {
-  animation-delay: 0.4s;
+  animation-delay: 0.2s;
 }
 
 .animate-stagger-5 {
-  animation-delay: 0.5s;
+  animation-delay: 0.25s;
 }
 
 /* ========================================
-   HOVER ANIMATIONS
+   HOVER STATES - Subtle Professional Effects
    ======================================== */
 
 .hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
 .hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 32px 0 rgba(0, 255, 229, 0.4);
-}
-
-.hover-glow {
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.hover-glow:hover {
-  border-color: rgba(0, 255, 229, 0.8);
-  box-shadow: 0 0 30px rgba(0, 255, 229, 0.6);
+  transform: translateY(-2px);
 }
 
 .hover-scale {
-  transition: transform 0.3s ease;
+  transition: transform 200ms ease;
 }
 
 .hover-scale:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .hover-brightness {
-  transition: filter 0.3s ease;
+  transition: filter 200ms ease;
 }
 
 .hover-brightness:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.1);
 }
 
 /* ========================================
-   CLICK ANIMATIONS
+   FOCUS ANIMATIONS
    ======================================== */
 
-.click-ripple {
-  position: relative;
-  overflow: hidden;
+.focus-ring {
+  transition: outline 150ms ease, box-shadow 150ms ease;
 }
 
-.click-ripple::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(0, 255, 229, 0.5);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.click-ripple:active::after {
-  width: 300px;
-  height: 300px;
-  opacity: 0;
+.focus-ring:focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
 }
 
 /* ========================================
-   LOADING ANIMATIONS
+   LOADING COMPONENTS
    ======================================== */
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(0, 255, 229, 0.2);
-  border-top-color: var(--cyber-cyan-500);
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top-color: var(--primary-500);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spinnerRotate 0.8s linear infinite;
 }
 
 .loading-dots {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .loading-dots span {
   width: 8px;
   height: 8px;
-  background: var(--cyber-cyan-500);
+  background: var(--primary-500);
   border-radius: 50%;
-  animation: pulse 1.4s ease-in-out infinite;
+  animation: dotPulse 1.4s ease-in-out infinite;
 }
 
 .loading-dots span:nth-child(2) {
@@ -473,43 +318,41 @@
   animation-delay: 0.4s;
 }
 
-/* Skeleton Loading */
+/* Skeleton loader */
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.05) 25%,
-    rgba(0, 255, 229, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 75%
+    rgba(229, 231, 235, 0.08) 25%,
+    rgba(229, 231, 235, 0.15) 50%,
+    rgba(229, 231, 235, 0.08) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.8s infinite;
   border-radius: var(--radius-md);
 }
 
 /* ========================================
-   PAGE TRANSITIONS
+   PAGE TRANSITIONS - Subtle
    ======================================== */
 
-.page-enter {
+.page-transition-enter {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(8px);
 }
 
-.page-enter-active {
+.page-transition-enter-active {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 300ms ease, transform 300ms ease;
 }
 
-.page-exit {
+.page-transition-exit {
   opacity: 1;
-  transform: translateY(0);
 }
 
-.page-exit-active {
+.page-transition-exit-active {
   opacity: 0;
-  transform: translateY(-20px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 200ms ease;
 }
 
 /* ========================================
@@ -522,53 +365,52 @@
 
 .modal-backdrop-enter-active {
   opacity: 1;
-  transition: opacity 0.3s ease;
+  transition: opacity 200ms ease;
 }
 
-.modal-enter {
+.modal-content-enter {
   opacity: 0;
-  transform: scale(0.9);
+  transform: scale(0.95);
 }
 
-.modal-enter-active {
+.modal-content-enter-active {
   opacity: 1;
   transform: scale(1);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 200ms ease, transform 200ms ease;
 }
 
 /* ========================================
-   SUCCESS ANIMATIONS
+   TOAST/NOTIFICATION ANIMATIONS
    ======================================== */
 
-@keyframes successCheckmark {
-  0% {
-    stroke-dashoffset: 100;
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
   }
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-.success-checkmark {
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-  animation: successCheckmark 0.5s ease forwards;
-}
-
-/* Confetti */
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(0) rotate(0deg);
+  to {
+    transform: translateX(0);
     opacity: 1;
   }
-  100% {
-    transform: translateY(100vh) rotate(720deg);
+}
+
+@keyframes toastSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
     opacity: 0;
   }
 }
 
-.confetti {
-  animation: confetti-fall 3s ease-out forwards;
+.toast-enter {
+  animation: toastSlideIn 300ms ease-out forwards;
+}
+
+.toast-exit {
+  animation: toastSlideOut 200ms ease-in forwards;
 }
 
 /* ========================================
@@ -578,10 +420,20 @@
 /* GPU acceleration for smooth animations */
 .gpu-accelerated {
   transform: translateZ(0);
-  will-change: transform, opacity;
+  will-change: transform;
 }
 
-/* Reduce motion for accessibility */
+/* Reduce jank on animations */
+@media (prefers-reduced-motion: no-preference) {
+  .smooth-transform {
+    will-change: transform;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY - Reduced Motion Support
+   ======================================== */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -589,5 +441,54 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-fade-in-down,
+  .animate-scale-in,
+  .animate-pulse,
+  .animate-float {
+    animation: none !important;
+  }
+
+  .hover-lift:hover,
+  .hover-scale:hover {
+    transform: none !important;
+  }
+
+  .skeleton {
+    animation: none;
+    opacity: 0.3;
   }
 }
+
+/* ========================================
+   DEVELOPER NOTES
+   ======================================== */
+
+/*
+ * ANIMATION PRINCIPLES FOR ENTERPRISE UI:
+ *
+ * 1. PURPOSEFUL: Every animation serves a function
+ *    - Entrance: Draws attention to new content
+ *    - Loading: Indicates processing
+ *    - Transition: Maintains context during changes
+ *    - Feedback: Confirms user actions
+ *
+ * 2. SUBTLE: Animations enhance, not distract
+ *    - Use 200-400ms durations (not >500ms)
+ *    - Small transforms (2-12px movements, not 20px+)
+ *    - Ease curves feel natural
+ *
+ * 3. PERFORMANT: 60fps, GPU-accelerated
+ *    - Animate transform & opacity (cheap)
+ *    - Avoid animating width, height, top, left (expensive)
+ *    - Use will-change sparingly
+ *
+ * 4. ACCESSIBLE: Respect user preferences
+ *    - Honor prefers-reduced-motion
+ *    - Never animate critical information
+ *    - Ensure animations don't cause motion sickness
+ */

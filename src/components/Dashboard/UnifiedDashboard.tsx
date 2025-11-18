@@ -26,10 +26,10 @@ interface Tab {
   badge?: number;
 }
 
-// Cyberpunk Loading Fallback
+// Professional Loading Fallback
 const TabLoadingFallback = () => (
   <div className="tab-loading-container">
-    <CyberLoader variant="brain" size="xl" message="Initializing Command Center" />
+    <CyberLoader variant="spinner" size="lg" message="Loading module..." />
   </div>
 );
 
@@ -100,16 +100,16 @@ export const UnifiedDashboard: React.FC = memo(() => {
               <div className="cyber-header__logo">
                 <img
                   src="/assets/branding/dlx-brain-command-center.png"
-                  alt="DLX Command Center"
-                  className="cyber-header__logo-img animate-glow-pulse-cyan"
+                  alt="DLX Studios"
+                  className="cyber-header__logo-img"
                 />
               </div>
               <div className="cyber-header__title">
-                <h1 className="cyber-gradient-text">
-                  DLX COMMAND CENTER
+                <h1 className="gradient-text">
+                  DLX Studios Ultimate
                 </h1>
                 <p className="cyber-header__subtitle">
-                  Complete Passive Income Automation Platform
+                  Enterprise Revenue Automation Platform
                 </p>
               </div>
             </div>
@@ -184,19 +184,19 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ se
         {/* Quick Stats */}
         <section className="cyber-section">
           <h2 className="cyber-section__title">
-            <span className="cyber-gradient-text">SYSTEM STATUS</span>
+            <span>Overview</span>
           </h2>
           <div className="cyber-stats-grid">
             {quickStats.map((stat, idx) => (
               <CyberCard
                 key={idx}
                 variant="glass"
-                glow={true}
+                glow={false}
                 hoverEffect={true}
-                neonBorder={true}
-                cornerAccents={true}
+                neonBorder={false}
+                cornerAccents={false}
                 className="cyber-stat-card animate-fade-in-up"
-                style={{ animationDelay: `${idx * 0.1}s` }}
+                style={{ animationDelay: `${idx * 0.05}s` }}
               >
                 <div className="cyber-stat-card__header">
                   <span className="cyber-stat-card__icon">{stat.icon}</span>
@@ -204,7 +204,7 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ se
                     {stat.change}
                   </div>
                 </div>
-                <div className={`cyber-stat-card__value cyber-gradient-text`}>
+                <div className={`cyber-stat-card__value gradient-text`}>
                   {stat.value}
                 </div>
                 <div className="cyber-stat-card__label">
@@ -218,7 +218,7 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ se
         {/* Feature Cards */}
         <section className="cyber-section">
           <h2 className="cyber-section__title">
-            <span className="cyber-gradient-text">QUICK ACCESS</span>
+            <span>Quick Access</span>
           </h2>
           <div className="cyber-features-grid">
             <FeatureCard
@@ -297,9 +297,9 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ se
         {/* Recent Activity */}
         <section className="cyber-section">
           <h2 className="cyber-section__title">
-            <span className="cyber-gradient-text">RECENT ACTIVITY</span>
+            <span>Recent Activity</span>
           </h2>
-          <CyberCard variant="glass" neonBorder={true} className="cyber-activity-list">
+          <CyberCard variant="glass" neonBorder={false} className="cyber-activity-list">
             <ActivityItem
               icon="✅"
               title="Stripe Connected"
@@ -348,15 +348,15 @@ interface FeatureCardProps {
 const FeatureCard: React.FC<FeatureCardProps> = memo(({ icon, title, description, onClick, delay = 0 }) => (
   <CyberCard
     variant="glass"
-    glow={true}
+    glow={false}
     hoverEffect={true}
-    neonBorder={true}
+    neonBorder={false}
     clickable={true}
     onClick={onClick}
     className="cyber-feature-card animate-fade-in-up"
-    style={{ animationDelay: `${delay}s` }}
+    style={{ animationDelay: `${delay * 0.05}s` }}
   >
-    <div className="cyber-feature-card__icon animate-float">{icon}</div>
+    <div className="cyber-feature-card__icon">{icon}</div>
     <h3 className="cyber-feature-card__title">{title}</h3>
     <p className="cyber-feature-card__description">{description}</p>
     <div className="cyber-feature-card__arrow">→</div>
