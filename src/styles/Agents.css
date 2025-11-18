@@ -621,7 +621,7 @@
   width: 100%;
   height: 100%;
   border-radius: 4px;
-  background: radial-gradient(circle, var(--itor-glow-color, var(--cyan-500)) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--itor-glow-color, var(--primary-500)) 0%, transparent 70%);
   opacity: 0.3;
   animation: itorToolbarGlow 2s ease-in-out infinite;
   pointer-events: none;
@@ -716,7 +716,7 @@
 .itor-stat-value {
   font-size: 20px;
   font-weight: bold;
-  color: var(--cyan-400);
+  color: var(--primary-400);
 }
 
 .itor-popover-alert {
