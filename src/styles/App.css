@@ -116,7 +116,7 @@
 
 .error-boundary-button--primary:hover {
   background: var(--clean-accent-primary-hover, var(--accent-primary));
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
 }
 
 .error-boundary-button--secondary {
@@ -127,7 +127,7 @@
 
 .error-boundary-button--secondary:hover {
   background: var(--clean-bg-hover, var(--bg-tertiary));
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
 }
 
 .error-boundary-button--danger {

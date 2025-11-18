@@ -139,12 +139,12 @@
 }
 
 .type-badge.local {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(6, 182, 212, 0.1);
   color: #3b82f6;
 }
 
 .type-badge.cloud {
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(168, 85, 247, 0.1);
   color: var(--accent-primary);
 }
 
@@ -188,7 +188,7 @@
 .key-input:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.1);
 }
 
 .form-actions {
@@ -216,7 +216,7 @@
 .add-button:hover:not(:disabled) {
   background: var(--accent-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 8px rgba(168, 85, 247, 0.3);
 }
 
 .add-button:disabled {
@@ -297,7 +297,7 @@
 }
 
 .key-tier-free {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(6, 182, 212, 0.1);
   color: #3b82f6;
 }
 

@@ -134,7 +134,7 @@
 .gemini-studio-input:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.1);
 }
 
 .gemini-studio-textarea {
@@ -153,7 +153,7 @@
 .gemini-studio-textarea:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.1);
 }
 
 .gemini-studio-description {
@@ -299,7 +299,7 @@
 .gemini-studio-btn-primary:hover {
   background: var(--accent-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 8px rgba(168, 85, 247, 0.3);
 }
 
 .gemini-studio-btn-secondary {

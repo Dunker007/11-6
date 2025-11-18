@@ -102,7 +102,7 @@
 .visual-to-code-panel textarea:focus {
   outline: none;
   border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
 }
 
 .visual-to-code-panel textarea:disabled {
@@ -134,7 +134,7 @@
 .visual-to-code-panel button:hover:not(:disabled) {
   background: var(--color-primary-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
 .visual-to-code-panel button:disabled {

@@ -38,7 +38,7 @@
 .smart-comments-panel button:hover:not(:disabled) {
   background: var(--color-primary-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
 .smart-comments-panel button:disabled {

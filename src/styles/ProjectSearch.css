@@ -111,8 +111,8 @@
 }
 
 .search-input:focus {
-  border-color: var(--violet-500);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  border-color: var(--secondary-500);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
 }
 
 .search-input::placeholder {
@@ -137,7 +137,7 @@
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: var(--violet-500);
+  accent-color: var(--secondary-500);
 }
 
 .search-option span {
@@ -191,7 +191,7 @@
 
 .result-item:hover {
   background: var(--bg-tertiary);
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
   transform: translateX(4px);
 }
 
@@ -225,7 +225,7 @@
 }
 
 .search-highlight {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(168, 85, 247, 0.3);
   color: var(--text-primary);
   font-weight: 600;
   padding: 0.125rem 0.25rem;
@@ -247,7 +247,7 @@
 }
 
 .search-results::-webkit-scrollbar-thumb:hover {
-  background: var(--violet-500);
+  background: var(--secondary-500);
 }
 
 /* Search Tabs */

@@ -78,7 +78,7 @@
 .workflow-create-plan-btn:hover {
   background: linear-gradient(135deg, var(--accent-primary-hover), var(--accent-secondary));
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
 .workflow-divider {

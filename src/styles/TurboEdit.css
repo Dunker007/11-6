@@ -104,7 +104,7 @@
 }
 
 .agent-itor .agent-label {
-  color: var(--cyan-500);
+  color: var(--primary-500);
 }
 
 .instruction-input {
@@ -236,7 +236,7 @@
 
 .turbo-edit-actions .generate-btn:hover {
   background-color: var(--accent-purple-dark);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
 }
 
 .turbo-edit-actions .generate-btn:disabled {

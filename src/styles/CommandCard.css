@@ -21,13 +21,13 @@
 
 /* Variants */
 .command-card.cyan {
-  border-color: var(--cyan-500);
-  color: var(--cyan-500);
+  border-color: var(--primary-500);
+  color: var(--primary-500);
 }
 
 .command-card.violet {
-  border-color: var(--violet-500);
-  color: var(--violet-500);
+  border-color: var(--secondary-500);
+  color: var(--secondary-500);
 }
 
 .command-card.emerald {
@@ -89,7 +89,7 @@
 .card-glow.violet-glow {
   background: radial-gradient(
     circle at center,
-    rgba(139, 92, 246, 0.3) 0%,
+    rgba(168, 85, 247, 0.3) 0%,
     transparent 70%
   );
 }
@@ -207,7 +207,7 @@
 /* Active State */
 .command-card.active {
   border-color: currentColor;
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
 }
 
 .command-card.active.cyan {
