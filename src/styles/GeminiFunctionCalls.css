@@ -128,7 +128,7 @@
 .gemini-function-call-execute:hover {
   background: var(--accent-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 8px rgba(168, 85, 247, 0.3);
 }
 
 @keyframes spin {

@@ -40,13 +40,13 @@
 
 .tab-btn:hover {
   color: var(--color-text-primary);
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(168, 85, 247, 0.1);
 }
 
 .tab-btn.active {
   color: var(--accent-violet);
   border-bottom-color: var(--accent-violet);
-  background: rgba(139, 92, 246, 0.15);
+  background: rgba(168, 85, 247, 0.15);
 }
 
 /* ===============================================
@@ -151,7 +151,7 @@
 
 .layouts-tab-content .mockup-card.hovered {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
 }
 
 .layouts-tab-content .mockup-vibe-level {
@@ -339,7 +339,7 @@
 .project-item.active {
   background: linear-gradient(135deg,
     rgba(6, 182, 212, 0.1),
-    rgba(139, 92, 246, 0.1)
+    rgba(168, 85, 247, 0.1)
   );
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.3);

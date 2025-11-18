@@ -196,7 +196,7 @@
 .commit-item.selected {
   border-color: var(--accent-primary);
   background: var(--bg-primary);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
 }
 
 .commit-item.merge-commit {

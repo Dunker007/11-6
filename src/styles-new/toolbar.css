@@ -129,13 +129,13 @@
 }
 
 .test-btn {
-  border-color: rgba(139, 92, 246, 0.3);
+  border-color: rgba(168, 85, 247, 0.3);
 }
 
 .test-btn:hover:not(:disabled) {
   border-color: var(--accent-violet);
-  background-color: rgba(139, 92, 246, 0.1);
-  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.2);
+  background-color: rgba(168, 85, 247, 0.1);
+  box-shadow: 0 4px 8px rgba(168, 85, 247, 0.2);
 }
 
 /* ===============================================

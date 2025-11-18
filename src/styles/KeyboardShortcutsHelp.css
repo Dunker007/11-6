@@ -105,7 +105,7 @@
 
 .shortcut-item:hover {
   background: var(--bg-tertiary);
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
   transform: translateX(4px);
 }
 
