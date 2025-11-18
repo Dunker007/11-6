@@ -191,9 +191,9 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ se
               <CyberCard
                 key={idx}
                 variant="glass"
-                glow={false}
+                glow={true}
                 hoverEffect={true}
-                neonBorder={false}
+                neonBorder={true}
                 cornerAccents={false}
                 className="cyber-stat-card animate-fade-in-up"
                 style={{ animationDelay: `${idx * 0.05}s` }}
@@ -299,7 +299,7 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ se
           <h2 className="cyber-section__title">
             <span>Recent Activity</span>
           </h2>
-          <CyberCard variant="glass" neonBorder={false} className="cyber-activity-list">
+          <CyberCard variant="glass" neonBorder={true} glow={false} className="cyber-activity-list">
             <ActivityItem
               icon="✅"
               title="Stripe Connected"
@@ -348,9 +348,9 @@ interface FeatureCardProps {
 const FeatureCard: React.FC<FeatureCardProps> = memo(({ icon, title, description, onClick, delay = 0 }) => (
   <CyberCard
     variant="glass"
-    glow={false}
+    glow={true}
     hoverEffect={true}
-    neonBorder={false}
+    neonBorder={true}
     clickable={true}
     onClick={onClick}
     className="cyber-feature-card animate-fade-in-up"

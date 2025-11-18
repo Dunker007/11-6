@@ -35,24 +35,25 @@
   background-size: 50px 50px;
 }
 
-/* Very subtle glow orbs - barely visible */
+/* Tasteful glow orbs - subtle but present */
 .cyber-background__glow {
   position: absolute;
   width: 600px;
   height: 600px;
   border-radius: 50%;
   filter: blur(120px);
-  opacity: 0.05;
+  opacity: 0.12;
+  transition: opacity var(--transition-base);
 }
 
 .cyber-background__glow--cyan {
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, transparent 70%);
   top: -100px;
   right: -100px;
 }
 
 .cyber-background__glow--purple {
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.35) 0%, transparent 70%);
   bottom: -100px;
   left: -100px;
 }
@@ -111,8 +112,12 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  /* Subtle shadow instead of excessive glow */
-  filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.2));
+  filter: drop-shadow(0 2px 8px rgba(6, 182, 212, 0.2));
+  transition: filter var(--transition-base);
+}
+
+.cyber-header__logo-img:hover {
+  filter: drop-shadow(0 4px 12px rgba(6, 182, 212, 0.35));
 }
 
 .cyber-header__title h1 {
@@ -120,6 +125,14 @@
   font-size: var(--text-2xl);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
+  transition: background var(--transition-base), -webkit-background-clip var(--transition-base);
+}
+
+.cyber-header__title h1:hover {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .cyber-header__subtitle {
@@ -177,13 +190,15 @@
 
 .cyber-tab:hover {
   color: var(--text-secondary);
-  background: rgba(59, 130, 246, 0.05);
+  background: rgba(6, 182, 212, 0.08);
 }
 
 .cyber-tab--active {
   color: var(--primary-500);
-  background: rgba(59, 130, 246, 0.08);
-  border-bottom-color: var(--primary-500);
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%);
+  border-bottom: 2px solid transparent;
+  border-image: var(--gradient-accent) 1;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.15);
 }
 
 .cyber-tab__icon {
@@ -277,6 +292,11 @@
 .cyber-stat-card__icon {
   font-size: 40px;
   opacity: 0.9;
+  transition: transform var(--transition-base);
+}
+
+.cyber-stat-card:hover .cyber-stat-card__icon {
+  transform: translateY(-2px);
 }
 
 .cyber-stat-card__change {
@@ -288,15 +308,17 @@
 }
 
 .cyber-stat-card__change--cyan {
-  background: var(--status-info-bg);
+  background: rgba(6, 182, 212, 0.15);
   color: var(--primary-500);
-  border: 1px solid var(--status-info-border);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  box-shadow: 0 2px 4px rgba(6, 182, 212, 0.1);
 }
 
 .cyber-stat-card__change--purple {
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(168, 85, 247, 0.15);
   color: var(--secondary-500);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  box-shadow: 0 2px 4px rgba(168, 85, 247, 0.1);
 }
 
 .cyber-stat-card__value {
@@ -331,6 +353,12 @@
   font-size: 48px;
   margin-bottom: var(--space-4);
   opacity: 0.9;
+  transition: transform var(--transition-base), filter var(--transition-base);
+}
+
+.cyber-feature-card:hover .cyber-feature-card__icon {
+  transform: translateY(-3px) scale(1.05);
+  filter: drop-shadow(0 4px 8px rgba(6, 182, 212, 0.25));
 }
 
 .cyber-feature-card__title {
@@ -383,7 +411,9 @@
 }
 
 .cyber-activity-item:hover {
-  background: rgba(59, 130, 246, 0.04);
+  background: rgba(6, 182, 212, 0.06);
+  border-left: 2px solid var(--primary-500);
+  padding-left: calc(var(--space-5) - 2px);
 }
 
 .cyber-activity-item__icon {
@@ -403,13 +433,13 @@
 }
 
 .cyber-activity-item__icon--info {
-  background: var(--status-info-bg);
-  border: 1px solid var(--status-info-border);
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.3);
 }
 
 .cyber-activity-item__icon--purple {
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.3);
 }
 
 .cyber-activity-item__icon--warning {
