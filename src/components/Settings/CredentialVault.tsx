@@ -3,7 +3,6 @@ import { credentialVaultService, ServiceCredentials, ConnectionTest } from '../.
 
 export const CredentialVault: React.FC = () => {
   const [credentials, setCredentials] = useState<ServiceCredentials[]>([]);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<ServiceCredentials | null>(null);
   const [testResults, setTestResults] = useState<Map<string, ConnectionTest>>(new Map());
   const [isTestingAll, setIsTestingAll] = useState(false);
@@ -12,7 +11,7 @@ export const CredentialVault: React.FC = () => {
   useEffect(() => {
     loadCredentials();
 
-    const unsubscribe = credentialVaultService.onStatusChange((serviceId, status) => {
+    const unsubscribe = credentialVaultService.onStatusChange(() => {
       loadCredentials();
     });
 
@@ -26,7 +25,6 @@ export const CredentialVault: React.FC = () => {
 
   const handleEditService = (service: ServiceCredentials) => {
     setEditingService({ ...service });
-    setSelectedService(service.serviceId);
   };
 
   const handleSaveCredentials = () => {
@@ -34,7 +32,6 @@ export const CredentialVault: React.FC = () => {
 
     credentialVaultService.setCredentials(editingService.serviceId, editingService.credentials);
     setEditingService(null);
-    setSelectedService(null);
     loadCredentials();
   };
 
