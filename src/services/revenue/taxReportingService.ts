@@ -119,5 +119,7 @@ class TaxReportingService {
   }
 }
 
-export const taxReportingService = new TaxReportingService();
-if (typeof window !== 'undefined') (window as any).testTaxReporting = () => taxReportingService.quickTest();
+// Renamed from taxReportingService to avoid conflict with wealth/taxReportingService
+// This service handles passive income tax (Form 1099-NEC, Schedule C, quarterly estimates)
+export const incomeTaxService = new TaxReportingService();
+if (typeof window !== 'undefined') (window as any).testIncomeTax = () => incomeTaxService.quickTest();

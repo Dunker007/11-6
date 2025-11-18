@@ -15,7 +15,7 @@ export type {
 export { stripeIntegrationService } from './stripeIntegrationService';
 export { gumroadIntegrationService } from './gumroadIntegrationService';
 export { multiCurrencyService } from './multiCurrencyService';
-export { taxReportingService} from './taxReportingService';
+export { incomeTaxService } from './taxReportingService';
 export { unifiedRevenueService } from './unifiedRevenueService'; // Legacy - prefer unifiedRevenueAggregator
 
 // Types

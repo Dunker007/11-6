@@ -9,7 +9,7 @@
  */
 
 import { wealthService } from './wealthService';
-import { taxReportingService, type TaxReport } from './taxReportingService';
+import { capitalGainsTaxService, type TaxReport } from './taxReportingService';
 import { dividendTrackingService, type DividendSummary, type DividendCalendarEntry } from './dividendTrackingService';
 import type { Asset, Transaction, NetWorthHistory, Budget, NetWorth } from '@/types/wealth';
 
@@ -248,8 +248,8 @@ class ExportService {
       throw new Error('Year required for tax report');
     }
 
-    const report = taxReportingService.generateTaxReport(options.year);
-    const form1099B = taxReportingService.generate1099BReport(options.year);
+    const report = capitalGainsTaxService.generateTaxReport(options.year);
+    const form1099B = capitalGainsTaxService.generate1099BReport(options.year);
 
     if (options.format === 'csv') {
       return this.toCSV(

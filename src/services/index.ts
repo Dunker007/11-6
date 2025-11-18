@@ -56,6 +56,7 @@ export { revenueTrackingService } from './passive-income/revenueTrackingService'
 export { unifiedRevenueService } from './revenue/unifiedRevenueService';
 export { contentGenerationService } from './passive-income/contentGenerationService';
 export { automationScheduler } from './passive-income/automationScheduler';
+export { incomeTaxService } from './revenue/taxReportingService';
 
 // ========================================
 // CREDENTIALS & SECURITY
@@ -99,8 +100,9 @@ export { deployWorkflowService } from './workflow/deployWorkflowService';
 
 export { useWealthStore } from './wealth/wealthStore';
 export { portfolioService } from './wealth/portfolioService';
-export { marketDataService } from './wealth/marketDataService';
+export { wealthMarketDataService } from './wealth/marketDataService';
 export { dividendTrackingService } from './wealth/dividendTrackingService';
+export { capitalGainsTaxService } from './wealth/taxReportingService';
 
 // ========================================
 // CRYPTO & TRADING
@@ -108,7 +110,7 @@ export { dividendTrackingService } from './wealth/dividendTrackingService';
 
 export { useCryptoStore } from './crypto/cryptoStore';
 export { coinbaseService } from './crypto/coinbaseService';
-export { cryptoMarketDataService } from './crypto/cryptoMarketDataService';
+export { marketDataService as cryptoMarketDataService } from './crypto/marketDataService';
 
 // ========================================
 // PROJECT MANAGEMENT

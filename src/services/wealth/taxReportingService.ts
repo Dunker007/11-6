@@ -488,5 +488,7 @@ class TaxReportingService {
   }
 }
 
-export const taxReportingService = TaxReportingService.getInstance();
+// Renamed from taxReportingService to avoid conflict with revenue/taxReportingService
+// This service handles capital gains tax (Form 1099-B, Schedule D)
+export const capitalGainsTaxService = TaxReportingService.getInstance();
 
