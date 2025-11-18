@@ -416,7 +416,7 @@ class AIControlCenterService {
    */
   private getLearningStats() {
     try {
-      const profile = learningSystemService.getUserProfile();
+      const profile = learningSystemService.getProfile();
       if (!profile) return undefined;
 
       return {

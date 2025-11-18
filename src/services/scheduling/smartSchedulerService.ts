@@ -359,7 +359,7 @@ class SmartSchedulerService {
       .sort((a, b) => b.activityLevel - a.activityLevel);
 
     // Get learning system patterns for this platform
-    const learningPatterns = learningSystemService.getUserProfile()?.patterns.filter(
+    const learningPatterns = learningSystemService.getProfile()?.patterns.filter(
       p => p.type === 'temporal'
     ) || [];
 
@@ -424,7 +424,7 @@ class SmartSchedulerService {
     const hasEnoughData = platformHistory.length >= this.MIN_DATA_POINTS;
 
     // Get learning system's temporal patterns
-    const userProfile = learningSystemService.getUserProfile();
+    const userProfile = learningSystemService.getProfile();
     const temporalPatterns = userProfile?.patterns.filter(p => p.type === 'temporal') || [];
 
     // Score each possible time slot

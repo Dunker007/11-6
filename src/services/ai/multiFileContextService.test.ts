@@ -44,7 +44,7 @@ export function main() {}`,
       const projectWithFiles = { ...mockProject, files: mockFiles };
       await multiFileContextService.analyzeProject(projectWithFiles);
 
-      const context = multiFileContextService.getContext(mockProject.id);
+      const context = multiFileContextService.getProjectContext(mockProject.id);
       expect(context).toBeDefined();
       expect(context?.projectId).toBe(mockProject.id);
     });
@@ -53,7 +53,7 @@ export function main() {}`,
       const projectWithFiles = { ...mockProject, files: mockFiles };
       await multiFileContextService.analyzeProject(projectWithFiles);
 
-      const context = multiFileContextService.getContext(mockProject.id);
+      const context = multiFileContextService.getProjectContext(mockProject.id);
       const indexContext = context?.files.get('src/index.ts');
       expect(indexContext?.imports.length).toBeGreaterThan(0);
     });
@@ -62,7 +62,7 @@ export function main() {}`,
       const projectWithFiles = { ...mockProject, files: mockFiles };
       await multiFileContextService.analyzeProject(projectWithFiles);
 
-      const context = multiFileContextService.getContext(mockProject.id);
+      const context = multiFileContextService.getProjectContext(mockProject.id);
       expect(context?.dependencyGraph).toBeDefined();
       expect(context?.dependencyGraph.size).toBeGreaterThan(0);
     });
@@ -109,7 +109,7 @@ export function main() {}`,
       await multiFileContextService.analyzeProject(projectWithFiles);
 
       multiFileContextService.clearContext(mockProject.id);
-      const context = multiFileContextService.getContext(mockProject.id);
+      const context = multiFileContextService.getProjectContext(mockProject.id);
       expect(context).toBeUndefined();
     });
   });

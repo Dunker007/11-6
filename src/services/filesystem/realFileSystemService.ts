@@ -133,8 +133,11 @@ class RealFileSystemService {
 
     try {
       // Verify the path exists and is a directory
-      const stats = await window.fileSystem.stat(folderPath);
-      if (!stats.isDirectory()) {
+      const statsResult = await window.fileSystem!.stat(folderPath);
+      if (!statsResult.success || !statsResult.stats) {
+        throw new Error(`Failed to stat path: ${statsResult.error || 'Unknown error'}`);
+      }
+      if (!statsResult.stats.isDirectory) {
         throw new Error(`Path ${folderPath} is not a directory`);
       }
 
@@ -200,8 +203,8 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      const result = await window.dialogs.openDirectory();
-      if (result && !result.canceled && result.filePaths && result.filePaths.length > 0) {
+      const result = await window.dialogs!.openDirectory();
+      if (result && result.success && result.filePaths && result.filePaths.length > 0) {
         return await this.mountWorkspace(result.filePaths[0]);
       }
       return null;
@@ -218,9 +221,12 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      const drives = await window.fileSystem.listDrives();
-      logger.debug('Listed drives', { count: drives.length });
-      return drives;
+      const result = await window.fileSystem!.listDrives();
+      if (!result.success || !result.drives) {
+        throw new Error(result.error || 'Failed to list drives');
+      }
+      logger.debug('Listed drives', { count: result.drives.length });
+      return result.drives as DriveInfo[];
     } catch (error) {
       logger.error('Failed to list drives', { error });
       throw error;
@@ -234,23 +240,32 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      const entries = await window.fileSystem.readdir(dirPath);
+      const result = await window.fileSystem!.readdir(dirPath);
+      if (!result.success || !result.entries) {
+        throw new Error(result.error || 'Failed to read directory');
+      }
+
       const fileEntries: FileEntry[] = [];
 
       // Get stats for each entry in parallel
-      const statsPromises = entries.map(async (name: string) => {
-        const fullPath = `${dirPath}/${name}`.replace(/\\/g, '/');
+      const statsPromises = result.entries.map(async (entry) => {
+        const fullPath = `${dirPath}/${entry.name}`.replace(/\\/g, '/');
         try {
-          const stats = await window.fileSystem.stat(fullPath);
-          const isDir = stats.isDirectory();
+          const statsResult = await window.fileSystem!.stat(fullPath);
+          if (!statsResult.success || !statsResult.stats) {
+            logger.warn('Failed to stat file', { path: fullPath, error: statsResult.error });
+            return null;
+          }
+
+          const isDir = statsResult.stats.isDirectory;
 
           return {
-            name,
+            name: entry.name,
             path: fullPath,
             type: isDir ? 'directory' as const : 'file' as const,
-            size: isDir ? undefined : stats.size,
-            modifiedAt: new Date(stats.mtime),
-            extension: isDir ? undefined : name.split('.').pop(),
+            size: isDir ? undefined : statsResult.stats.size,
+            modifiedAt: new Date(statsResult.stats.mtime),
+            extension: isDir ? undefined : entry.name.split('.').pop(),
           };
         } catch (error) {
           logger.warn('Failed to stat file', { path: fullPath, error });
@@ -293,16 +308,19 @@ class RealFileSystemService {
     }
 
     try {
-      const content = await window.fileSystem.readFile(filePath);
+      const result = await window.fileSystem!.readFile(filePath);
+      if (!result.success || !result.content) {
+        throw new Error(result.error || 'Failed to read file');
+      }
 
       // Update cache
       this.fileCache.set(filePath, {
-        content,
+        content: result.content,
         timestamp: Date.now(),
       });
 
-      logger.debug('File read from disk', { path: filePath, size: content.length });
-      return content;
+      logger.debug('File read from disk', { path: filePath, size: result.content.length });
+      return result.content;
     } catch (error) {
       logger.error('Failed to read file', { error, path: filePath });
       throw error;
@@ -316,7 +334,10 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      await window.fileSystem.writeFile(filePath, content);
+      const result = await window.fileSystem!.writeFile(filePath, content);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to write file');
+      }
 
       // Update cache
       this.fileCache.set(filePath, {
@@ -345,12 +366,15 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      const exists = await window.fileSystem.exists(filePath);
-      if (exists) {
+      const existsResult = await window.fileSystem!.exists(filePath);
+      if (existsResult.success && existsResult.exists) {
         throw new Error(`File already exists: ${filePath}`);
       }
 
-      await window.fileSystem.writeFile(filePath, content);
+      const result = await window.fileSystem!.writeFile(filePath, content);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create file');
+      }
 
       logger.info('File created', { path: filePath });
 
@@ -373,7 +397,10 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      await window.fileSystem.mkdir(dirPath, recursive);
+      const result = await window.fileSystem!.mkdir(dirPath, recursive);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create directory');
+      }
 
       logger.info('Directory created', { path: dirPath, recursive });
 
@@ -396,7 +423,10 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      await window.fileSystem.rm(path, recursive);
+      const result = await window.fileSystem!.rm(path, recursive);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete');
+      }
 
       // Clear from cache
       this.fileCache.delete(path);
@@ -422,7 +452,8 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      return await window.fileSystem.exists(path);
+      const result = await window.fileSystem!.exists(path);
+      return result.success && result.exists === true;
     } catch (error) {
       logger.error('Failed to check existence', { error, path });
       return false;
@@ -436,7 +467,11 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      return await window.fileSystem.stat(path);
+      const result = await window.fileSystem!.stat(path);
+      if (!result.success || !result.stats) {
+        throw new Error(result.error || 'Failed to get stats');
+      }
+      return result.stats;
     } catch (error) {
       logger.error('Failed to get stats', { error, path });
       throw error;
@@ -450,9 +485,12 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      const size = await window.fileSystem.getDirectorySize(dirPath);
-      logger.debug('Directory size calculated', { path: dirPath, size });
-      return size;
+      const result = await window.fileSystem!.getDirectorySize(dirPath);
+      if (!result.success || result.size === undefined) {
+        throw new Error(result.error || 'Failed to get directory size');
+      }
+      logger.debug('Directory size calculated', { path: dirPath, size: result.size });
+      return result.size;
     } catch (error) {
       logger.error('Failed to get directory size', { error, path: dirPath });
       throw error;
@@ -466,9 +504,12 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      const largeFiles = await window.fileSystem.findLargeFiles(dirPath, minSizeMB);
-      logger.info('Large files found', { path: dirPath, count: largeFiles.length, minSizeMB });
-      return largeFiles;
+      const result = await window.fileSystem!.findLargeFiles(dirPath, minSizeMB);
+      if (!result.success || !result.files) {
+        throw new Error(result.error || 'Failed to find large files');
+      }
+      logger.info('Large files found', { path: dirPath, count: result.files.length, minSizeMB });
+      return result.files;
     } catch (error) {
       logger.error('Failed to find large files', { error, path: dirPath });
       throw error;
@@ -482,7 +523,10 @@ class RealFileSystemService {
     this.ensureElectron();
 
     try {
-      await window.shell.showItemInFolder(filePath);
+      const result = await window.shell!.showItemInFolder(filePath);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to show in folder');
+      }
       logger.info('Showed file in folder', { path: filePath });
     } catch (error) {
       logger.error('Failed to show in folder', { error, path: filePath });

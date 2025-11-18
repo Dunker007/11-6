@@ -102,14 +102,22 @@ export function getSlowOperations(): SlowOperation[] {
 
 export async function measureAsync<T>(
   name: string,
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
+  threshold?: number,
+  metadata?: Record<string, any>
 ): Promise<T> {
   const start = performance.now();
   try {
     return await fn();
   } finally {
     const duration = performance.now() - start;
-    logSlowOperation(name, duration);
+    // Use custom threshold if provided, otherwise use default
+    const effectiveThreshold = threshold ?? SLOW_THRESHOLD;
+    if (duration > effectiveThreshold) {
+      const metadataStr = metadata ? ` ${JSON.stringify(metadata)}` : '';
+      slowOperations.push({ name, duration, timestamp: Date.now() });
+      console.warn(`Slow operation: ${name} took ${duration}ms${metadataStr}`);
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 import { type LucideIcon } from '../components/Icons/icons';
 
-export type ActivityType = 'file' | 'project' | 'ai' | 'build' | 'deploy' | 'deployment' | 'code' | 'git' | 'error' | 'system' | 'automation' | 'warning' | 'optimization' | 'revenue';
+export type ActivityType = 'file' | 'project' | 'ai' | 'build' | 'deploy' | 'deployment' | 'code' | 'git' | 'error' | 'system' | 'automation' | 'warning' | 'optimization' | 'revenue' | 'alert';
 export type ActivityColor = 'cyan' | 'violet' | 'green' | 'yellow' | 'red';
 
 export interface Activity {
@@ -12,6 +12,7 @@ export interface Activity {
   metadata?: any;
   icon: LucideIcon;
   color: ActivityColor;
+  message?: string;
 }
 
 export interface ActivityListener {

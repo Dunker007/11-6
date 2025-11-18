@@ -522,7 +522,7 @@ class EmergencyResponseService {
 
     // Check learning system
     try {
-      const profile = learningSystemService.getUserProfile();
+      const profile = learningSystemService.getProfile();
       const hasData = profile && profile.totalActions > 0;
 
       healthChecks.push({
