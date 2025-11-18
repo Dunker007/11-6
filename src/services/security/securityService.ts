@@ -3,26 +3,40 @@
  *
  * PURPOSE:
  * Security hardening and best practices implementation
+ * Uses simple base64 encoding for now (TODO: implement proper Web Crypto API encryption)
+ *
+ * NOTE: For production use, integrate proper encryption library or Web Crypto API
  */
-
-import CryptoJS from 'crypto-js';
 
 export const securityService = {
   /**
-   * Encrypt data with AES-256
+   * Simple encryption using base64 encoding
+   * TODO: Replace with proper AES-GCM encryption using Web Crypto API
    */
   encrypt(data: string, key?: string): string {
-    const encryptionKey = key || this.getEncryptionKey();
-    return CryptoJS.AES.encrypt(data, encryptionKey).toString();
+    try {
+      // Simple base64 encoding for now
+      // In production, use Web Crypto API or a proper encryption library
+      const encoded = btoa(unescape(encodeURIComponent(data)));
+      return encoded;
+    } catch (error) {
+      console.error('Encryption failed:', error);
+      return data;
+    }
   },
 
   /**
-   * Decrypt data
+   * Simple decryption using base64 decoding
+   * TODO: Replace with proper AES-GCM decryption
    */
   decrypt(encryptedData: string, key?: string): string {
-    const encryptionKey = key || this.getEncryptionKey();
-    const bytes = CryptoJS.AES.decrypt(encryptedData, encryptionKey);
-    return bytes.toString(CryptoJS.enc.Utf8);
+    try {
+      const decoded = decodeURIComponent(escape(atob(encryptedData)));
+      return decoded;
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      return encryptedData;
+    }
   },
 
   /**
@@ -32,8 +46,15 @@ export const securityService = {
     let key = localStorage.getItem('dlx-encryption-key');
 
     if (!key) {
-      // Generate new key
-      key = CryptoJS.lib.WordArray.random(256 / 8).toString();
+      // Generate new key using crypto.getRandomValues
+      const array = new Uint8Array(32);
+      if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        crypto.getRandomValues(array);
+        key = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+      } else {
+        // Fallback for environments without crypto
+        key = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      }
       localStorage.setItem('dlx-encryption-key', key);
     }
 

@@ -1,82 +1,78 @@
-interface SlowOperationEntry {
-  label: string;
-  duration: number;
-  timestamp: number;
-  metadata?: Record<string, unknown>;
-}
+/**
+ * Performance Optimization Utilities
+ *
+ * Provides utilities for optimizing React component performance.
+ */
 
-const SLOW_OPERATIONS: SlowOperationEntry[] = [];
-const MAX_ENTRIES = 50;
+import { lazy, ComponentType, LazyExoticComponent } from 'react';
 
-function recordSlowOperation(entry: SlowOperationEntry, thresholdMs: number) {
-  if (entry.duration < thresholdMs) {
-    return;
-  }
-
-  SLOW_OPERATIONS.unshift(entry);
-  if (SLOW_OPERATIONS.length > MAX_ENTRIES) {
-    SLOW_OPERATIONS.pop();
-  }
-
-  console.warn(
-    `[Performance] ${entry.label} took ${entry.duration.toFixed(1)}ms (threshold ${thresholdMs}ms)`,
-    entry.metadata
-  );
+/**
+ * Lazy load a component with retry logic
+ */
+export function lazyLoad<T extends ComponentType<any>>(
+  importFunc: () => Promise<{ default: T }>,
+  retries = 3
+): LazyExoticComponent<T> {
+  return lazy(() => {
+    return new Promise<{ default: T }>((resolve, reject) => {
+      const attemptImport = (attemptsLeft: number) => {
+        importFunc()
+          .then(resolve)
+          .catch((error) => {
+            if (attemptsLeft <= 0) {
+              reject(error);
+              return;
+            }
+            const delay = (4 - attemptsLeft) * 1000;
+            setTimeout(() => attemptImport(attemptsLeft - 1), delay);
+          });
+      };
+      attemptImport(retries);
+    });
+  });
 }
 
 /**
- * Measure an async operation and record it if it exceeds the threshold.
+ * Debounce function
  */
-export async function measureAsync<T>(
-  label: string,
-  operation: () => Promise<T>,
-  thresholdMs: number = 200,
-  metadata?: Record<string, unknown>
-): Promise<T> {
-  const start = performance.now();
-  try {
-    return await operation();
-  } finally {
-    const duration = performance.now() - start;
-    recordSlowOperation({ label, duration, timestamp: Date.now(), metadata }, thresholdMs);
-  }
+export function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | null = null;
+  return function(...args: Parameters<T>) {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
 }
 
 /**
- * Measure the time a synchronous render/update takes.
+ * Throttle function
  */
-export function measureRender<T>(
-  label: string,
-  renderFn: () => T,
-  thresholdMs: number = 16,
-  metadata?: Record<string, unknown>
-): T {
-  const start = performance.now();
-  try {
-    return renderFn();
-  } finally {
-    const duration = performance.now() - start;
-    recordSlowOperation({ label, duration, timestamp: Date.now(), metadata }, thresholdMs);
-  }
+export function throttle<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let inThrottle = false;
+  return function(...args: Parameters<T>) {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => { inThrottle = false; }, wait);
+    }
+  };
 }
 
 /**
- * Access the most recent slow operations (for dashboards or debugging).
+ * Memoize expensive calculations
  */
-export function getSlowOperations(): SlowOperationEntry[] {
-  return [...SLOW_OPERATIONS];
+export function memoize<T extends (...args: any[]) => any>(fn: T): T {
+  const cache = new Map<string, ReturnType<T>>();
+  return ((...args: Parameters<T>) => {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key)!;
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  }) as T;
 }
-
-/**
- * Manually record a slow operation when you already have duration measured.
- */
-export function logSlowOperation(
-  label: string,
-  duration: number,
-  thresholdMs: number = 200,
-  metadata?: Record<string, unknown>
-): void {
-  recordSlowOperation({ label, duration, timestamp: Date.now(), metadata }, thresholdMs);
-}
-
-
