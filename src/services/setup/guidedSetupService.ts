@@ -5,6 +5,8 @@
 
 import { logger } from '../logging/loggerService';
 import { credentialVaultService } from '../credentials/credentialVaultService';
+import { providerDetectionService, type ProviderDetectionResult } from './providerDetectionService';
+import { validateAllCredentials, allValidationsPassed, type ValidationResult } from './apiKeyValidator';
 
 export interface SetupStep {
   id: string;
@@ -335,12 +337,26 @@ class GuidedSetupService {
     return this.nextStep(serviceId);
   }
 
-  saveCredentials(serviceId: string, credentials: Record<string, string>): void {
+  saveCredentials(serviceId: string, credentials: Record<string, string>): { success: boolean; errors?: Record<string, ValidationResult> } {
+    // Validate credentials before saving
+    const validationResults = validateAllCredentials(serviceId, credentials);
+    const isValid = allValidationsPassed(validationResults);
+
+    if (!isValid) {
+      logger.warn('Credential validation failed', { serviceId, validationResults });
+      return {
+        success: false,
+        errors: validationResults,
+      };
+    }
+
+    // Save to credential vault
     credentialVaultService.setCredentials(serviceId, credentials);
 
     this.recordProgress(serviceId, 'credentials-saved', { credentialsSet: true });
 
     logger.info('Setup credentials saved', { serviceId });
+    return { success: true };
   }
 
   async testSetup(serviceId: string): Promise<boolean> {
@@ -404,6 +420,81 @@ class GuidedSetupService {
       completedSetups: setups.filter(s => s.steps.every(step => step.completed)).length,
       inProgressSetups: setups.filter(s => s.currentStep > 0 && !s.steps.every(step => step.completed)).length,
     };
+  }
+
+  /**
+   * Auto-detect local AI providers (LM Studio, Ollama)
+   */
+  async detectLocalProviders(): Promise<ProviderDetectionResult> {
+    return providerDetectionService.detectAll();
+  }
+
+  /**
+   * Quick check if any local provider is available
+   */
+  async hasLocalProvider(): Promise<boolean> {
+    const result = await this.detectLocalProviders();
+    return result.hasAnyProvider;
+  }
+
+  /**
+   * Auto-configure detected providers
+   * Returns list of services that were auto-configured
+   */
+  async autoConfigureProviders(): Promise<string[]> {
+    const detection = await this.detectLocalProviders();
+    const configured: string[] = [];
+
+    // Auto-configure LM Studio
+    if (detection.lmstudio.detected) {
+      const lmstudioSetup = this.getSetup('lmstudio');
+      if (lmstudioSetup && lmstudioSetup.currentStep === 0) {
+        // Skip to credentials step
+        this.nextStep('lmstudio');
+
+        // Auto-fill endpoint
+        this.saveCredentials('lmstudio', {
+          endpoint: detection.lmstudio.url,
+          apiKey: '', // LM Studio doesn't require API key
+        });
+
+        configured.push('lmstudio');
+        logger.info('[AutoConfig] LM Studio auto-configured', {
+          url: detection.lmstudio.url,
+          models: detection.lmstudio.models?.length,
+        });
+      }
+    }
+
+    // Auto-configure Ollama
+    if (detection.ollama.detected) {
+      const ollamaSetup = this.getSetup('ollama');
+      if (ollamaSetup && ollamaSetup.currentStep === 0) {
+        // Skip to credentials step
+        this.nextStep('ollama');
+
+        // Auto-fill endpoint
+        this.saveCredentials('ollama', {
+          endpoint: detection.ollama.url,
+          apiKey: '', // Ollama doesn't require API key
+        });
+
+        configured.push('ollama');
+        logger.info('[AutoConfig] Ollama auto-configured', {
+          url: detection.ollama.url,
+          models: detection.ollama.models?.length,
+        });
+      }
+    }
+
+    return configured;
+  }
+
+  /**
+   * Validate credentials without saving
+   */
+  validateCredentials(serviceId: string, credentials: Record<string, string>): Record<string, ValidationResult> {
+    return validateAllCredentials(serviceId, credentials);
   }
 
   quickTest() {

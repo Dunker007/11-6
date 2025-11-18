@@ -1,0 +1,200 @@
+/**
+ * SetupIntegration.css
+ * Styles for the setup integration component
+ */
+
+.setup-integration {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.setup-integration-quick {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Detection Status */
+.setup-integration-detecting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 0.5rem;
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+
+.setup-integration-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Detection Results */
+.setup-integration-detection-result {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.05));
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.setup-integration-detection-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.setup-integration-detection-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.setup-integration-detection-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--success);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.setup-integration-detection-content p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Intro */
+.setup-integration-intro {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.setup-integration-intro h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.setup-integration-intro p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Service Cards */
+.setup-integration-services {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.setup-integration-service-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.setup-integration-service-card:hover {
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.setup-integration-service-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.setup-integration-service-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.setup-integration-service-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.setup-integration-service-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.setup-integration-service-action {
+  flex-shrink: 0;
+}
+
+/* Show All Link */
+.setup-integration-show-all {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.setup-integration-show-all-button {
+  background: none;
+  border: none;
+  color: var(--accent-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.setup-integration-show-all-button:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--accent-secondary);
+}
+
+/* Footer */
+.setup-integration-footer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .setup-integration-services {
+    grid-template-columns: 1fr;
+  }
+
+  .setup-integration-service-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .setup-integration-service-info {
+    text-align: center;
+  }
+
+  .setup-integration-service-action {
+    width: 100%;
+  }
+
+  .setup-integration-service-action button {
+    width: 100%;
+  }
+}
