@@ -2,12 +2,15 @@
 
 .command-card {
   position: relative;
-  background: var(--bg-secondary);
-  border: 1px solid var(--bg-tertiary);
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(var(--blur-xl));
+  -webkit-backdrop-filter: blur(var(--blur-xl));
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   padding: 0;
   overflow: hidden;
   transition: var(--transition-base);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
 }
 
 .command-card.clickable {
@@ -17,6 +20,7 @@
 .command-card.clickable:hover {
   transform: translateY(-2px);
   border-color: currentColor;
+  box-shadow: var(--shadow-cyber);
 }
 
 /* Variants */
