@@ -38,13 +38,13 @@
 .toolbar-button:hover {
   background: var(--bg-tertiary);
   color: var(--text-primary);
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
 }
 
 .toolbar-button.active {
-  background: var(--violet-500);
+  background: var(--secondary-500);
   color: white;
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
 }
 
 /* File Tree */
@@ -74,8 +74,8 @@
 }
 
 .file-item.active {
-  background: rgba(139, 92, 246, 0.2);
-  border-left: 2px solid var(--violet-500);
+  background: rgba(168, 85, 247, 0.2);
+  border-left: 2px solid var(--secondary-500);
 }
 
 .file-item.directory {
@@ -109,7 +109,7 @@
 }
 
 .file-item.file .file-icon {
-  color: var(--cyan-500);
+  color: var(--primary-500);
 }
 
 /* File Name */
@@ -181,7 +181,7 @@
 /* File Children (Nested) */
 .file-children {
   margin-left: 0.5rem;
-  border-left: 1px solid rgba(139, 92, 246, 0.1);
+  border-left: 1px solid rgba(168, 85, 247, 0.1);
   padding-left: 0.5rem;
 }
 
@@ -189,7 +189,7 @@
 .rename-input {
   flex: 1;
   background: var(--bg-tertiary);
-  border: 1px solid var(--violet-500);
+  border: 1px solid var(--secondary-500);
   border-radius: 0.25rem;
   padding: 0.25rem 0.5rem;
   color: var(--text-primary);
@@ -200,7 +200,7 @@
 
 .rename-input:focus {
   border-color: var(--violet-400);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
 }
 
 /* Loading Indicator */
@@ -306,6 +306,6 @@
 }
 
 .file-tree::-webkit-scrollbar-thumb:hover {
-  background: var(--violet-500);
+  background: var(--secondary-500);
 }
 

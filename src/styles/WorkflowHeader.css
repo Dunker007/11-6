@@ -34,7 +34,7 @@
 
 .back-btn:hover {
   background: var(--bg-secondary);
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
   transform: translateX(-2px);
 }
 
@@ -98,7 +98,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    var(--violet-500),
+    var(--secondary-500),
     transparent
   );
   opacity: 0.5;
@@ -106,7 +106,7 @@
 
 .title-text {
   white-space: nowrap;
-  background: linear-gradient(135deg, var(--violet-500), var(--cyan-500));
+  background: linear-gradient(135deg, var(--secondary-500), var(--primary-500));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -146,8 +146,8 @@
 
 .status-badge.info {
   background: rgba(6, 182, 212, 0.2);
-  border: 1px solid var(--cyan-500);
-  color: var(--cyan-500);
+  border: 1px solid var(--primary-500);
+  color: var(--primary-500);
 }
 
 .badge-pulse {
@@ -171,7 +171,7 @@
 }
 
 .status-badge.info .badge-pulse {
-  background: var(--cyan-500);
+  background: var(--primary-500);
 }
 
 .badge-label {

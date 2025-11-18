@@ -39,8 +39,8 @@
 
 .search-input:focus {
   outline: none;
-  border-color: var(--violet-500);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+  border-color: var(--secondary-500);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
 }
 
 .refresh-btn {
@@ -56,7 +56,7 @@
 
 .refresh-btn:hover:not(:disabled) {
   background: var(--bg-tertiary);
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
 }
 
 .refresh-btn:disabled {
@@ -86,12 +86,12 @@
 
 .category-btn:hover {
   background: var(--bg-tertiary);
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
 }
 
 .category-btn.active {
-  background: var(--violet-500);
-  border-color: var(--violet-500);
+  background: var(--secondary-500);
+  border-color: var(--secondary-500);
   color: white;
 }
 
@@ -118,8 +118,8 @@
 }
 
 .tool-card:hover {
-  border-color: var(--violet-500);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+  border-color: var(--secondary-500);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
   transform: translateY(-2px);
 }
 
@@ -233,14 +233,14 @@
 }
 
 .tool-link:hover {
-  background: var(--violet-500);
+  background: var(--secondary-500);
   color: white;
-  border-color: var(--violet-500);
+  border-color: var(--secondary-500);
 }
 
 .install-btn {
   padding: 0.5rem 0.75rem;
-  background: var(--violet-500);
+  background: var(--secondary-500);
   border: none;
   border-radius: 6px;
   color: white;
@@ -252,7 +252,7 @@
 
 .install-btn:hover:not(:disabled) {
   background: var(--violet-600);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
 }
 
 .install-btn:disabled {
@@ -275,7 +275,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: var(--violet-500);
+  background: var(--secondary-500);
   border: none;
   border-radius: 6px;
   color: white;
@@ -287,7 +287,7 @@
 
 .check-updates-btn:hover:not(:disabled) {
   background: var(--violet-600);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
 }
 
 .check-updates-btn:disabled {

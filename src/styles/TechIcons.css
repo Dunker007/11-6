@@ -17,12 +17,12 @@
 /* Glow Effects */
 .tech-icon-wrapper.glow-cyan .tech-icon-svg {
   filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.6));
-  color: var(--cyan-500);
+  color: var(--primary-500);
 }
 
 .tech-icon-wrapper.glow-violet .tech-icon-svg {
-  filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.6));
-  color: var(--violet-500);
+  filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.6));
+  color: var(--secondary-500);
 }
 
 .tech-icon-wrapper.glow-amber .tech-icon-svg {
@@ -83,7 +83,7 @@
 }
 
 .tech-icon-wrapper:hover .hex-border {
-  stroke: var(--cyan-500);
+  stroke: var(--primary-500);
   opacity: 0.8;
 }
 
@@ -104,7 +104,7 @@
   position: absolute;
   width: 4px;
   height: 4px;
-  background: var(--cyan-500);
+  background: var(--primary-500);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -155,14 +155,14 @@
 
 .circuit-line {
   fill: none;
-  stroke: var(--cyan-500);
+  stroke: var(--primary-500);
   stroke-width: 0.5;
   stroke-dasharray: 2, 2;
   animation: circuitFlow 2s linear infinite;
 }
 
 .circuit-node {
-  fill: var(--cyan-500);
+  fill: var(--primary-500);
   animation: circuitPulse 1.5s ease-in-out infinite;
 }
 
@@ -194,7 +194,7 @@
 
 .tech-icon-wrapper.variant-circle:hover {
   background: var(--bg-tertiary);
-  border-color: var(--cyan-500);
+  border-color: var(--primary-500);
 }
 
 /* Animated Effects */
@@ -220,7 +220,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    var(--cyan-500),
+    var(--primary-500),
     transparent
   );
   animation: scanLine 2s linear infinite;
@@ -256,7 +256,7 @@
   position: absolute;
   width: 2px;
   height: 2px;
-  background: var(--cyan-500);
+  background: var(--primary-500);
   border-radius: 50%;
   opacity: 0;
   animation: particleFloat 2s ease-in-out infinite;
@@ -293,7 +293,7 @@
 
 /* Active State */
 .tech-icon-wrapper.active .tech-icon-svg {
-  color: var(--cyan-500);
+  color: var(--primary-500);
   filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
 }
 
@@ -303,7 +303,7 @@
   left: 50%;
   width: 100%;
   height: 100%;
-  border: 2px solid var(--cyan-500);
+  border: 2px solid var(--primary-500);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   animation: pulseRing 2s ease-out infinite;

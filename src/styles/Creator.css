@@ -15,7 +15,7 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
 }
 
 .creator-header h2 {
@@ -60,20 +60,20 @@
 .document-item {
   padding: 1rem;
   background: var(--bg-secondary);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.2);
   border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .document-item:hover {
-  background: rgba(139, 92, 246, 0.1);
-  border-color: var(--violet-500);
+  background: rgba(168, 85, 247, 0.1);
+  border-color: var(--secondary-500);
 }
 
 .document-item.active {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: var(--violet-500);
+  background: rgba(168, 85, 247, 0.2);
+  border-color: var(--secondary-500);
 }
 
 .modal-overlay {
@@ -91,7 +91,7 @@
 
 .modal-content {
   background: var(--bg-primary);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 0.75rem;
   padding: 1.5rem;
   min-width: 300px;
@@ -109,13 +109,13 @@
 .cancel-btn {
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .confirm-btn {
-  background: var(--violet-500);
+  background: var(--secondary-500);
   color: white;
 }
 
@@ -142,7 +142,7 @@
 .template-card {
   padding: 1rem;
   background: var(--bg-secondary);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.2);
   border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -150,13 +150,13 @@
 }
 
 .template-card:hover {
-  background: rgba(139, 92, 246, 0.1);
-  border-color: var(--violet-500);
+  background: rgba(168, 85, 247, 0.1);
+  border-color: var(--secondary-500);
 }
 
 .template-card.selected {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: var(--violet-500);
+  background: rgba(168, 85, 247, 0.2);
+  border-color: var(--secondary-500);
 }
 
 .template-icon {
