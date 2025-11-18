@@ -58,6 +58,13 @@ class ActivityService {
   }
 
   /**
+   * Log activity (alias for addActivity for backward compatibility)
+   */
+  logActivity(activity: Omit<Activity, 'id' | 'timestamp' | 'icon' | 'color'> | Activity): void {
+    this.addActivity(activity);
+  }
+
+  /**
    * Get all activities
    */
   getActivities(): Activity[] {

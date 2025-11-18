@@ -1,6 +1,6 @@
 import { type LucideIcon } from '../components/Icons/icons';
 
-export type ActivityType = 'file' | 'project' | 'ai' | 'build' | 'deploy' | 'deployment' | 'code' | 'git' | 'error' | 'system';
+export type ActivityType = 'file' | 'project' | 'ai' | 'build' | 'deploy' | 'deployment' | 'code' | 'git' | 'error' | 'system' | 'automation' | 'warning' | 'optimization' | 'revenue';
 export type ActivityColor = 'cyan' | 'violet' | 'green' | 'yellow' | 'red';
 
 export interface Activity {
