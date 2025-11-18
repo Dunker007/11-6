@@ -63,6 +63,3 @@ export function detectTaskType(prompt: string): TaskType {
   return 'general';
 }
 
-
-
-

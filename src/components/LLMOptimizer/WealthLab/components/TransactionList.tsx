@@ -303,7 +303,6 @@ const TransactionList = memo(function TransactionList({ month, year }: Transacti
     loadTransactions(startDate, endDate);
   }, [loadTransactions, month, year]);
 
-
   const renderTransaction = (tx: Transaction, showCheckbox: boolean = false) => {
     if (editingId === tx.id) {
       return (

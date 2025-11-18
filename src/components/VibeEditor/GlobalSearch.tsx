@@ -132,4 +132,3 @@ export default function GlobalSearch({ isOpen, onClose, onOpenFile, onRevealInSi
   );
 }
 
-

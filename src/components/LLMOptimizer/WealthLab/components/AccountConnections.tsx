@@ -423,7 +423,6 @@ const AccountConnections = memo(function AccountConnections() {
     }
   };
 
-
   return (
     <div className="account-connections">
       <div className="account-connections-header">

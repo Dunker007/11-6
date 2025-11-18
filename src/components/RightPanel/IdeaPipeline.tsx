@@ -63,7 +63,6 @@ const DroppableColumn = ({ status, projects, getStatusColor, statusOrder }: { st
   );
 };
 
-
 const IdeaPipeline = () => {
   const { projects, updateProjectStatus } = useProjectStore();
 

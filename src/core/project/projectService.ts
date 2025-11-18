@@ -22,7 +22,6 @@ function isProjectArray(obj: unknown): obj is Project[] {
   return Array.isArray(obj) && obj.every(isProject);
 }
 
-
 const STORAGE_KEY = 'dlx_projects';
 const ACTIVE_PROJECT_KEY = 'dlx_active_project';
 const USE_FILE_SYSTEM_KEY = 'dlx_use_file_system';

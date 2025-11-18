@@ -45,4 +45,3 @@ export async function downloadFile(path: string) {
   saveAs(blob, name);
 }
 
-

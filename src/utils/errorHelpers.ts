@@ -49,7 +49,3 @@ export function isRetryable(error: CapturedError | Error | string): boolean {
   return true;
 }
 
-
-
-
-

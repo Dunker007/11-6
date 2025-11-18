@@ -30,4 +30,3 @@ class CodebaseInsightsService {
 
 export const codebaseInsightsService = new CodebaseInsightsService();
 
-

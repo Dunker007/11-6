@@ -86,5 +86,4 @@ const DeveloperConsole: React.FC = () => {
 // Simple Button for the console - to avoid circular deps if Button has logging
 const Button: React.FC<any> = ({ children, ...props }) => <button {...props}>{children}</button>;
 
-
 export default DeveloperConsole;

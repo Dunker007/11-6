@@ -260,7 +260,6 @@ const SpendingAnalysis = memo(function SpendingAnalysis({ month, year }: Spendin
     })).filter((item) => item.budgeted > 0 || item.actual > 0);
   }, [month, year]);
 
-
   const currentTotal = currentAnalysis.total;
   const previousTotal = trendData[trendData.length - 2]?.total || 0;
   const totalChange = currentTotal - previousTotal;

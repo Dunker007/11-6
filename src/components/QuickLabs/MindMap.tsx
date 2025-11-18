@@ -79,7 +79,6 @@ function MindMap() {
     [draggedNode, isDragging, dragStart, scale, updateNode]
   );
 
-
   const handleDeleteNode = (e: React.KeyboardEvent) => {
     if (e.key === 'Delete' && selectedNode && currentMindMap) {
       deleteNode(selectedNode.id);

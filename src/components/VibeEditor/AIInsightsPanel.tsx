@@ -93,4 +93,3 @@ function AIInsightsPanel({ visible, onClose, insights, callGraph, coverage, deps
 
 export default AIInsightsPanel;
 
-

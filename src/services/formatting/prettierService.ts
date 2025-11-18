@@ -74,4 +74,3 @@ class PrettierService {
 
 export const prettierService = new PrettierService();
 
-

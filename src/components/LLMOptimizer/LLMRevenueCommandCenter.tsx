@@ -178,7 +178,6 @@ function LLMRevenueCommandCenter() {
     setActiveWorkflow(workflow);
   }, []);
 
-
   return (
     <div className="mockup-container llm-revenue-command-center" data-screen-size={screenSize.isMobile ? 'mobile' : screenSize.isTablet ? 'tablet' : screenSize.isLargeDesktop ? 'large-desktop' : 'desktop'}>
       {/* Skip Links - Hidden by default, visible on focus */}

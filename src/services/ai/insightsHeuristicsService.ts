@@ -40,4 +40,3 @@ class InsightsHeuristicsService {
 
 export const insightsHeuristicsService = new InsightsHeuristicsService();
 
-

@@ -155,7 +155,3 @@ export function getRecoveryChecklist(error: Pick<CapturedError, 'type' | 'messag
   return getErrorTemplate(error).recoverySteps;
 }
 
-
-
-
-

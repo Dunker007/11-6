@@ -48,4 +48,3 @@ export default function SettingsFlyout({ visible, onClose }: SettingsFlyoutProps
   );
 }
 
-

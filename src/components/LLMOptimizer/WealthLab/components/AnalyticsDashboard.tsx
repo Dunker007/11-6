@@ -139,7 +139,6 @@ const AnalyticsDashboard = memo(function AnalyticsDashboard() {
     }
   };
 
-
   const topContributors = useMemo(() => {
     if (!performanceAttribution) return [];
     return performanceAttribution.assetContributions.slice(0, 10);

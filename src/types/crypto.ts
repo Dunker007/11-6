@@ -228,4 +228,3 @@ export interface CoinbaseCandle {
 // Alternative array format from Coinbase API
 export type CoinbaseCandleArray = [number, string, string, string, string, string];
 
-
