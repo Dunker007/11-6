@@ -2,24 +2,41 @@
  * UserPreferences.tsx
  *
  * Comprehensive settings panel for user preferences
+ * ✨ NOW WITH FULL ENFORCEMENT - CHANGES ARE APPLIED IMMEDIATELY!
  */
 
-import React from 'react';
-import { usePreferencesStore } from '../../services/settings/userPreferencesService';
+import React, { useState } from 'react';
+import { usePreferences } from '../../hooks/usePreferences';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import './UserPreferences.css';
 
 export const UserPreferences: React.FC = () => {
-  const { preferences, updatePreferences, resetPreferences } = usePreferencesStore();
+  const { preferences, updatePreferences, resetPreferences } = usePreferences();
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const handleReset = () => {
+    resetPreferences();
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
 
   return (
     <div className="user-preferences">
       <div className="preferences-header">
         <h2>User Preferences</h2>
-        <Button variant="secondary" size="sm" onClick={resetPreferences}>
-          Reset to Defaults
-        </Button>
+        <div className="header-actions">
+          {showSuccess && <span className="success-message">✓ Preferences reset!</span>}
+          <Button variant="secondary" size="sm" onClick={handleReset}>
+            Reset to Defaults
+          </Button>
+        </div>
+      </div>
+
+      <div className="preferences-info">
+        <p className="info-text">
+          ✨ All changes are applied immediately - no save button needed!
+        </p>
       </div>
 
       {/* General Settings */}
