@@ -5,8 +5,13 @@ import { AgentGrid } from '../Agents/AgentChat';
 import { IntegrationTestDashboard } from '../Testing/IntegrationTestDashboard';
 import { SetupLauncher } from '../Setup/GuidedSetupWizard';
 import { AIIntelligenceDashboard } from './AIIntelligenceDashboard';
+import { MasterRevenueDashboard } from '../Revenue/MasterRevenueDashboard';
+import FinancialDashboard from '../BackOffice/FinancialDashboard';
+import WealthLab from '../LLMOptimizer/WealthLab/WealthLab';
+import IdeaLab from '../LLMOptimizer/IdeaLab';
+import GoogleAIHub from '../LLMOptimizer/GoogleAIHub';
 
-type TabId = 'overview' | 'intelligence' | 'credentials' | 'idle' | 'agents' | 'testing' | 'setup';
+type TabId = 'overview' | 'intelligence' | 'credentials' | 'idle' | 'agents' | 'testing' | 'setup' | 'revenue' | 'backoffice' | 'wealth' | 'ideas' | 'googleai';
 
 interface Tab {
   id: TabId;
@@ -20,6 +25,11 @@ export const UnifiedDashboard: React.FC = () => {
 
   const tabs: Tab[] = [
     { id: 'overview', name: 'Overview', icon: '📊' },
+    { id: 'revenue', name: 'Revenue', icon: '💰' },
+    { id: 'backoffice', name: 'Back Office', icon: '📈' },
+    { id: 'wealth', name: 'Wealth Lab', icon: '💎' },
+    { id: 'ideas', name: 'Idea Lab', icon: '💡' },
+    { id: 'googleai', name: 'Google AI', icon: '🤖' },
     { id: 'intelligence', name: 'AI Intelligence', icon: '🧠' },
     { id: 'credentials', name: 'Credentials', icon: '🔐' },
     { id: 'idle', name: 'Idle Computing', icon: '💻' },
@@ -32,6 +42,16 @@ export const UnifiedDashboard: React.FC = () => {
     switch (activeTab) {
       case 'overview':
         return <OverviewTab setActiveTab={setActiveTab} />;
+      case 'revenue':
+        return <MasterRevenueDashboard />;
+      case 'backoffice':
+        return <FinancialDashboard />;
+      case 'wealth':
+        return <WealthLab />;
+      case 'ideas':
+        return <IdeaLab />;
+      case 'googleai':
+        return <GoogleAIHub />;
       case 'intelligence':
         return <AIIntelligenceDashboard />;
       case 'credentials':
@@ -202,6 +222,46 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = ({ setActi
       <div style={{ marginBottom: '30px' }}>
         <h2 style={{ fontSize: '20px', marginBottom: '15px', fontWeight: '600' }}>Quick Actions</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+          <FeatureCard
+            icon="💰"
+            title="Master Revenue Dashboard"
+            description="Unified view of all revenue sources - Stripe, Gumroad, affiliates, passive income, and idle computing"
+            action="View Revenue"
+            gradient="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
+            onClick={() => setActiveTab('revenue')}
+          />
+          <FeatureCard
+            icon="📈"
+            title="Back Office & Analytics"
+            description="Financial charts, expense tracking, and business performance metrics"
+            action="View Analytics"
+            gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+            onClick={() => setActiveTab('backoffice')}
+          />
+          <FeatureCard
+            icon="💎"
+            title="Wealth Lab"
+            description="Crypto & ETF portfolio tracking, budget management, and net worth analysis"
+            action="View Wealth"
+            gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+            onClick={() => setActiveTab('wealth')}
+          />
+          <FeatureCard
+            icon="💡"
+            title="Idea Lab"
+            description="Brainstorm and plan ideas with interactive canvas and mind maps"
+            action="Open Idea Lab"
+            gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+            onClick={() => setActiveTab('ideas')}
+          />
+          <FeatureCard
+            icon="🤖"
+            title="Google AI Hub"
+            description="Gemini AI Studio, NotebookLM research, vision-to-code, and smart code analysis"
+            action="Open AI Hub"
+            gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+            onClick={() => setActiveTab('googleai')}
+          />
           <FeatureCard
             icon="🧠"
             title="AI Intelligence"
