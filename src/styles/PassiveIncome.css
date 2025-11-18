@@ -18,7 +18,7 @@
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 2px solid rgba(168, 85, 247, 0.3);
 }
 
 .dashboard-header h1 {
@@ -34,16 +34,16 @@
 }
 
 .icon-glow {
-  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
 @keyframes pulse-glow {
   0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
+    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
   }
   50% {
-    filter: drop-shadow(0 0 16px rgba(139, 92, 246, 0.9));
+    filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.9));
   }
 }
 
@@ -78,7 +78,7 @@
 
 .scheduler-toggle:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
 }
 
 .scheduler-status {
@@ -105,7 +105,7 @@
   display: flex;
   gap: 0.5rem;
   margin-bottom: 2rem;
-  border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 2px solid rgba(168, 85, 247, 0.3);
   padding-bottom: 0.5rem;
 }
 
@@ -126,12 +126,12 @@
 }
 
 .tab-btn:hover {
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(168, 85, 247, 0.1);
   color: #8b5cf6;
 }
 
 .tab-btn.active {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(168, 85, 247, 0.2);
   color: #8b5cf6;
 }
 
@@ -161,7 +161,7 @@
 .stat-card {
   background: rgba(26, 31, 53, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -172,8 +172,8 @@
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 12px 32px rgba(168, 85, 247, 0.3);
+  border-color: rgba(168, 85, 247, 0.5);
 }
 
 .stat-icon {
@@ -193,7 +193,7 @@
 
 .stat-card.content .stat-icon {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 16px rgba(6, 182, 212, 0.4);
 }
 
 .stat-card.affiliate .stat-icon {
@@ -203,7 +203,7 @@
 
 .stat-card.automation .stat-icon {
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
 }
 
 .stat-content {
@@ -239,7 +239,7 @@
 .quick-actions {
   background: rgba(26, 31, 53, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -262,8 +262,8 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
-  border: 1px solid rgba(139, 92, 246, 0.5);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
   color: #e5e7eb;
   font-weight: 600;
   border-radius: 8px;
@@ -272,10 +272,10 @@
 }
 
 .action-btn:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
-  border-color: rgba(139, 92, 246, 0.8);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+  border-color: rgba(168, 85, 247, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
 }
 
 /* Content Tab */
@@ -293,7 +293,7 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.3);
 }
 
 .tab-header h2 {
@@ -310,9 +310,9 @@
 
 .stats-summary span {
   padding: 0.5rem 1rem;
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(168, 85, 247, 0.1);
   border-radius: 6px;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
 }
 
 .content-list,
@@ -327,7 +327,7 @@
 .performer-item {
   background: rgba(26, 31, 53, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 12px;
   padding: 1.5rem;
   transition: all 0.3s ease;
@@ -335,7 +335,7 @@
 
 .content-item:hover,
 .link-item:hover {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: rgba(168, 85, 247, 0.5);
   transform: translateX(4px);
 }
 
@@ -384,7 +384,7 @@
 .content-meta span,
 .link-metrics span {
   padding: 0.25rem 0.5rem;
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(168, 85, 247, 0.1);
   border-radius: 4px;
 }
 
@@ -425,14 +425,14 @@
 
 .primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
 }
 
 /* Automation Tab */
 .automation-stats {
   background: rgba(26, 31, 53, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -478,7 +478,7 @@
 .task-item {
   background: rgba(26, 31, 53, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 12px;
   padding: 1.25rem;
   display: flex;
@@ -488,7 +488,7 @@
 
 .task-item.status-running {
   border-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(6, 182, 212, 0.1);
 }
 
 .task-item.status-failed {
@@ -532,7 +532,7 @@
 }
 
 .priority.low {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(6, 182, 212, 0.2);
   color: #3b82f6;
 }
 
@@ -542,7 +542,7 @@
 }
 
 .status.running {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(6, 182, 212, 0.2);
   color: #3b82f6;
 }
 

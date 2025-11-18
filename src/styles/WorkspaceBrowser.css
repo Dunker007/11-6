@@ -19,7 +19,7 @@
   background: var(--bg-tertiary, #0f1729);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid var(--border-color, rgba(139, 92, 246, 0.2));
+  border: 1px solid var(--border-color, rgba(168, 85, 247, 0.2));
 }
 
 .workspace-header {
@@ -28,7 +28,7 @@
   align-items: center;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border-color, rgba(139, 92, 246, 0.2));
+  border-bottom: 1px solid var(--border-color, rgba(168, 85, 247, 0.2));
 }
 
 .workspace-header h3 {
@@ -54,7 +54,7 @@
 
 .mount-workspace-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
 .workspace-list {
@@ -93,7 +93,7 @@
 
 .mount-workspace-btn-large:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.5);
+  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.5);
 }
 
 .workspace-item {
@@ -110,7 +110,7 @@
 
 .workspace-item:hover {
   border-color: var(--accent-color, #8b5cf6);
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(168, 85, 247, 0.05);
 }
 
 .workspace-info {
@@ -162,7 +162,7 @@
   background: var(--bg-tertiary, #0f1729);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid var(--border-color, rgba(139, 92, 246, 0.2));
+  border: 1px solid var(--border-color, rgba(168, 85, 247, 0.2));
 }
 
 .drive-header {
@@ -171,7 +171,7 @@
   align-items: center;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border-color, rgba(139, 92, 246, 0.2));
+  border-bottom: 1px solid var(--border-color, rgba(168, 85, 247, 0.2));
 }
 
 .drive-header h3 {
@@ -185,7 +185,7 @@
 .refresh-btn {
   padding: 0.375rem;
   background: transparent;
-  border: 1px solid var(--border-color, rgba(139, 92, 246, 0.3));
+  border: 1px solid var(--border-color, rgba(168, 85, 247, 0.3));
   border-radius: 6px;
   color: var(--text-muted, #9ca3af);
   cursor: pointer;
@@ -198,7 +198,7 @@
 .refresh-btn:hover {
   border-color: var(--accent-color, #8b5cf6);
   color: var(--accent-color, #8b5cf6);
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(168, 85, 247, 0.05);
 }
 
 .drive-list {
@@ -221,7 +221,7 @@
 
 .drive-item:hover {
   border-color: var(--accent-color, #8b5cf6);
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(168, 85, 247, 0.05);
 }
 
 .drive-info {
@@ -245,7 +245,7 @@
   background: var(--bg-tertiary, #0f1729);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid var(--border-color, rgba(139, 92, 246, 0.2));
+  border: 1px solid var(--border-color, rgba(168, 85, 247, 0.2));
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -258,13 +258,13 @@
   gap: 0.75rem;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border-color, rgba(139, 92, 246, 0.2));
+  border-bottom: 1px solid var(--border-color, rgba(168, 85, 247, 0.2));
 }
 
 .nav-up-btn {
   padding: 0.375rem;
   background: transparent;
-  border: 1px solid var(--border-color, rgba(139, 92, 246, 0.3));
+  border: 1px solid var(--border-color, rgba(168, 85, 247, 0.3));
   border-radius: 6px;
   color: var(--text-muted, #9ca3af);
   cursor: pointer;
@@ -277,7 +277,7 @@
 .nav-up-btn:hover {
   border-color: var(--accent-color, #8b5cf6);
   color: var(--accent-color, #8b5cf6);
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(168, 85, 247, 0.05);
 }
 
 .current-path {
@@ -333,12 +333,12 @@
 }
 
 .file-entry:hover {
-  background: rgba(139, 92, 246, 0.05);
-  border-color: rgba(139, 92, 246, 0.2);
+  background: rgba(168, 85, 247, 0.05);
+  border-color: rgba(168, 85, 247, 0.2);
 }
 
 .file-entry.active {
-  background: rgba(139, 92, 246, 0.15);
+  background: rgba(168, 85, 247, 0.15);
   border-color: var(--accent-color, #8b5cf6);
 }
 
@@ -396,11 +396,11 @@
 
 .workspace-browser::-webkit-scrollbar-thumb,
 .file-list::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(168, 85, 247, 0.3);
   border-radius: 4px;
 }
 
 .workspace-browser::-webkit-scrollbar-thumb:hover,
 .file-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.5);
+  background: rgba(168, 85, 247, 0.5);
 }

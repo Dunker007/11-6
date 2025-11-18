@@ -92,7 +92,7 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary-500);
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
 }
 
 /* Smooth scrolling */
@@ -109,12 +109,12 @@ html {
 
 /* Better selection styling */
 ::selection {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(168, 85, 247, 0.3);
   color: var(--color-text-primary);
 }
 
 ::-moz-selection {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(168, 85, 247, 0.3);
   color: var(--color-text-primary);
 }
 
@@ -127,14 +127,14 @@ html {
 
 .os-mode-toggle-btn-inner {
   padding: 1.25rem 1.5rem 1rem;
-  background: linear-gradient(135deg, var(--violet-500), var(--cyan-500));
-  border: 2px solid var(--violet-500);
+  background: linear-gradient(135deg, var(--secondary-500), var(--primary-500));
+  border: 2px solid var(--secondary-500);
   border-radius: 0.5rem;
   color: white;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
   transition: all 0.3s ease;
   animation: pulseGlow 3s infinite;
   display: flex;
@@ -146,15 +146,15 @@ html {
 
 .os-mode-toggle-btn-inner:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.6);
+  box-shadow: 0 12px 40px rgba(168, 85, 247, 0.6);
 }
 
 @keyframes pulseGlow {
   0%, 100% { 
-    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
   }
   50% { 
-    box-shadow: 0 8px 48px rgba(139, 92, 246, 0.8);
+    box-shadow: 0 8px 48px rgba(168, 85, 247, 0.8);
   }
 }
 
@@ -188,7 +188,7 @@ button[class*="create-"]:hover,
 button[class*="save-"]:hover,
 button[class*="deploy-"]:hover,
 button[class*="install-"]:hover {
-  box-shadow: 0 0 30px rgba(139, 92, 246, 0.8) !important;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.8) !important;
 }
 
 /* Card Enhancements */
@@ -200,7 +200,7 @@ button[class*="install-"]:hover {
 [class*="card"]:hover,
 [class*="-item"]:not(.workflow-item):not(.lab-item):hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
 }
 
 /* Input Field Enhancements */
@@ -217,15 +217,15 @@ input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: var(--violet-500) !important;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  border-color: var(--secondary-500) !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
 }
 
 /* Floating Elements */
 .floating-chat-bubble,
 .floating-assistant {
   backdrop-filter: var(--panel-blur);
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
 }
 
 /* Global Animations */
@@ -271,10 +271,10 @@ select:focus {
 
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
   }
   50% {
-    box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
   }
 }
 
@@ -323,7 +323,7 @@ select:focus {
   left: 50%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, transparent 70%);
   transform: translate(-50%, -50%);
   animation: glow 3s infinite;
   pointer-events: none;
