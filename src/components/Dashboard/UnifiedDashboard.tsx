@@ -4,8 +4,9 @@ import { IdleRevenueDashboard } from '../IdleComputing/IdleRevenueDashboard';
 import { AgentGrid } from '../Agents/AgentChat';
 import { IntegrationTestDashboard } from '../Testing/IntegrationTestDashboard';
 import { SetupLauncher } from '../Setup/GuidedSetupWizard';
+import { AIIntelligenceDashboard } from './AIIntelligenceDashboard';
 
-type TabId = 'overview' | 'credentials' | 'idle' | 'agents' | 'testing' | 'setup';
+type TabId = 'overview' | 'intelligence' | 'credentials' | 'idle' | 'agents' | 'testing' | 'setup';
 
 interface Tab {
   id: TabId;
@@ -19,6 +20,7 @@ export const UnifiedDashboard: React.FC = () => {
 
   const tabs: Tab[] = [
     { id: 'overview', name: 'Overview', icon: '📊' },
+    { id: 'intelligence', name: 'AI Intelligence', icon: '🧠' },
     { id: 'credentials', name: 'Credentials', icon: '🔐' },
     { id: 'idle', name: 'Idle Computing', icon: '💻' },
     { id: 'agents', name: 'AI Agents', icon: '🤖', badge: 7 },
@@ -30,6 +32,8 @@ export const UnifiedDashboard: React.FC = () => {
     switch (activeTab) {
       case 'overview':
         return <OverviewTab setActiveTab={setActiveTab} />;
+      case 'intelligence':
+        return <AIIntelligenceDashboard />;
       case 'credentials':
         return <CredentialVault />;
       case 'idle':
@@ -198,6 +202,14 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = ({ setActi
       <div style={{ marginBottom: '30px' }}>
         <h2 style={{ fontSize: '20px', marginBottom: '15px', fontWeight: '600' }}>Quick Actions</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+          <FeatureCard
+            icon="🧠"
+            title="AI Intelligence"
+            description="10 intelligent systems optimizing revenue, content, and automation in real-time"
+            action="View AI Dashboard"
+            gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+            onClick={() => setActiveTab('intelligence')}
+          />
           <FeatureCard
             icon="🔐"
             title="Manage Credentials"
