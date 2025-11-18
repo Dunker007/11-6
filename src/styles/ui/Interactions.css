@@ -76,7 +76,7 @@ input[type="radio"]:hover {
 
 input[type="checkbox"]:checked,
 input[type="radio"]:checked {
-  filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.5));
+  filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.5));
 }
 
 /* Smooth opacity transitions */

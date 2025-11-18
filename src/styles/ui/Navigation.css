@@ -15,7 +15,7 @@
   overflow-y: hidden;
   scroll-behavior: smooth;
   scrollbar-width: thin;
-  scrollbar-color: var(--clean-accent-primary, rgba(139, 92, 246, 0.4)) transparent;
+  scrollbar-color: var(--clean-accent-primary, rgba(168, 85, 247, 0.4)) transparent;
   width: 100%;
   min-width: 0;
 }
@@ -34,12 +34,12 @@
 }
 
 .tab-selector::-webkit-scrollbar-thumb {
-  background: var(--clean-accent-primary, rgba(139, 92, 246, 0.4));
+  background: var(--clean-accent-primary, rgba(168, 85, 247, 0.4));
   border-radius: var(--radius-full);
 }
 
 .tab-selector::-webkit-scrollbar-thumb:hover {
-  background: var(--clean-accent-primary-hover, rgba(139, 92, 246, 0.6));
+  background: var(--clean-accent-primary-hover, rgba(168, 85, 247, 0.6));
 }
 
 /* Tab Button */

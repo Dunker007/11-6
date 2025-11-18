@@ -37,7 +37,7 @@
 .ui-loading__spinner {
   animation: spin-smooth 0.8s linear infinite;
   color: var(--color-primary-500);
-  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5));
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
 }
 
 .ui-loading__dots {
@@ -51,7 +51,7 @@
   border-radius: var(--radius-full);
   background: var(--color-primary-500);
   animation: loading-dots 1.4s ease-in-out infinite;
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
 }
 
 .ui-loading__dots span:nth-child(1) {
@@ -72,7 +72,7 @@
   border-radius: var(--radius-full);
   background: var(--color-primary-500);
   animation: loading-pulse 1.5s ease-in-out infinite;
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
 }
 
 .ui-loading__text {
@@ -86,7 +86,7 @@
   background: linear-gradient(
     90deg,
     var(--color-bg-tertiary) 0%,
-    rgba(139, 92, 246, 0.2) 50%,
+    rgba(168, 85, 247, 0.2) 50%,
     var(--color-bg-tertiary) 100%
   );
   background-size: 200% 100%;
