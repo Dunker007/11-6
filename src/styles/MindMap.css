@@ -1,102 +1,380 @@
-/* Mind Map Component Styles */
-.mind-map-container {
+/**
+ * MindMap.css
+ * Styles for interactive mind map visualization
+ */
+
+.mindmap-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  padding: 1rem;
-  overflow: hidden;
+  background: var(--bg-primary, #ffffff);
 }
 
-.mind-map-header {
+/* Toolbar */
+.mindmap-toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-secondary, #f9fafb);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.mind-map-canvas {
-  flex: 1;
-  position: relative;
-  overflow: auto;
-  background: var(--bg-secondary);
-  border-radius: 0.5rem;
-  border: 1px solid rgba(139, 92, 246, 0.2);
-}
-
-.mind-map-node {
-  position: absolute;
+.mindmap-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  color: var(--text-primary, #1f2937);
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.mind-map-node.selected {
-  outline: 2px solid var(--violet-500);
-  outline-offset: 2px;
+.mindmap-btn:hover:not(:disabled) {
+  background: var(--bg-tertiary, #f3f4f6);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.mind-map-controls {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
+.mindmap-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.modal-overlay {
-  position: fixed;
+.mindmap-btn.feature {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.mindmap-btn.feature:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.mindmap-btn.task {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.mindmap-btn.task:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.mindmap-btn.note {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.mindmap-btn.note:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+/* Canvas */
+.mindmap-canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle, var(--border-color, #e5e7eb) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+/* SVG Connections */
+.mindmap-connections {
+  position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Nodes Container */
+.mindmap-nodes {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* Individual Node */
+.mindmap-node {
+  position: absolute;
+  min-width: 120px;
+  max-width: 200px;
+  padding: 12px 16px;
+  background: white;
+  border: 3px solid;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: move;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.mindmap-node:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+}
+
+.mindmap-node.selected {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transform: scale(1.05);
+}
+
+.mindmap-node.dragging {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  cursor: grabbing;
   z-index: 1000;
 }
 
-.modal-content {
-  background: var(--bg-primary);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  min-width: 300px;
-  max-width: 500px;
+.mindmap-node.central {
+  min-width: 160px;
+  padding: 20px 24px;
+  font-weight: 600;
+  font-size: 16px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: white;
+  border-color: #8b5cf6;
 }
 
-.modal-actions {
+.mindmap-node.feature {
+  border-color: #3b82f6;
+}
+
+.mindmap-node.task {
+  border-color: #10b981;
+}
+
+.mindmap-node.note {
+  border-color: #f59e0b;
+}
+
+.node-content {
+  word-wrap: break-word;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.mindmap-node.central .node-content {
+  margin-bottom: 0;
+}
+
+/* Node Actions */
+.node-actions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.confirm-btn,
-.cancel-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+.mindmap-node:hover .node-actions {
+  opacity: 1;
+}
+
+.node-action-btn {
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
+  color: var(--text-secondary, #6b7280);
   transition: all 0.2s ease;
 }
 
-.confirm-btn {
-  background: var(--violet-500);
+.node-action-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary, #1f2937);
+}
+
+.node-action-btn.delete:hover {
+  background: #ef4444;
   color: white;
 }
 
-.confirm-btn:hover {
-  background: var(--violet-600);
+/* Node Editor */
+.node-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.cancel-btn {
+.node-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+}
+
+.node-input:focus {
+  border-color: var(--accent-cyan, #06b6d4);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+.editor-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.editor-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.editor-btn.save {
+  background: #10b981;
+  color: white;
+}
+
+.editor-btn.save:hover {
+  background: #059669;
+}
+
+.editor-btn.cancel {
+  background: var(--bg-tertiary, #f3f4f6);
+  color: var(--text-secondary, #6b7280);
+}
+
+.editor-btn.cancel:hover {
+  background: var(--bg-secondary, #e5e7eb);
+}
+
+/* Empty State */
+.mindmap-empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--text-muted, #9ca3af);
+  pointer-events: none;
+  max-width: 400px;
+}
+
+.mindmap-empty-state p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.mindmap-empty-state .hint {
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Instructions */
+.mindmap-instructions {
+  padding: 12px 16px;
+  background: var(--bg-secondary, #f9fafb);
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  font-size: 13px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.mindmap-instructions strong {
+  color: var(--text-primary, #1f2937);
+}
+
+.selected-info {
+  color: var(--accent-cyan, #06b6d4);
+  font-weight: 500;
+}
+
+/* Dark theme support */
+[data-theme="dark"] .mindmap-container {
+  background: var(--bg-primary);
+}
+
+[data-theme="dark"] .mindmap-toolbar,
+[data-theme="dark"] .mindmap-instructions {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .mindmap-btn {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .mindmap-btn:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .mindmap-canvas {
+  background:
+    radial-gradient(circle, var(--border-color) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+[data-theme="dark"] .mindmap-node {
   background: var(--bg-secondary);
   color: var(--text-primary);
 }
 
-.cancel-btn:hover {
-  background: var(--bg-tertiary);
+[data-theme="dark"] .mindmap-node.central {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: white;
 }
 
+[data-theme="dark"] .node-input {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mindmap-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-section {
+    width: 100%;
+  }
+
+  .mindmap-node {
+    min-width: 100px;
+    max-width: 150px;
+    padding: 10px 12px;
+  }
+
+  .mindmap-node.central {
+    min-width: 140px;
+    padding: 16px 20px;
+  }
+}
+
+/* Animations */
+@keyframes nodeAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mindmap-node {
+  animation: nodeAppear 0.3s ease-out;
+}

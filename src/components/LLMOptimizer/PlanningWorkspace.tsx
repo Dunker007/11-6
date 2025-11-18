@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { FileText, Map, Calendar, Layout, BookOpen, Lightbulb } from 'lucide-react';
 import { Idea } from '@/services/idea/ideaInventoryService';
+import PlanningCanvas from './PlanningCanvas';
+import MindMap from './MindMap';
 import '../../styles/LLMOptimizer.css';
 
 interface PlanningWorkspaceProps {
@@ -111,25 +113,11 @@ function PlanningWorkspace({ selectedIdea }: PlanningWorkspaceProps) {
         )}
 
         {activeView === 'canvas' && (
-          <div className="planning-canvas-view">
-            <div className="canvas-placeholder">
-              <Layout size={48} className="placeholder-icon" />
-              <h3>Planning Canvas</h3>
-              <p>Visual planning board coming soon</p>
-              <p className="placeholder-hint">Drag ideas here to create a visual plan</p>
-            </div>
-          </div>
+          <PlanningCanvas ideaId={selectedIdea.id} ideaTitle={selectedIdea.title} />
         )}
 
         {activeView === 'mindmap' && (
-          <div className="mindmap-view">
-            <div className="canvas-placeholder">
-              <Map size={48} className="placeholder-icon" />
-              <h3>Mind Map</h3>
-              <p>Mind map visualization coming soon</p>
-              <p className="placeholder-hint">Visualize connections and relationships</p>
-            </div>
-          </div>
+          <MindMap ideaId={selectedIdea.id} ideaTitle={selectedIdea.title} />
         )}
 
         {activeView === 'timeline' && (
