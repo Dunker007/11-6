@@ -17,6 +17,10 @@ interface Tab {
 export const UnifiedDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
+  const handleQuickAction = (tabId: TabId) => {
+    setActiveTab(tabId);
+  };
+
   const tabs: Tab[] = [
     { id: 'overview', name: 'Overview', icon: '📊' },
     { id: 'credentials', name: 'Credentials', icon: '🔐' },
@@ -29,7 +33,7 @@ export const UnifiedDashboard: React.FC = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewTab />;
+        return <OverviewTab setActiveTab={setActiveTab} />;
       case 'credentials':
         return <CredentialVault />;
       case 'idle':
@@ -61,6 +65,7 @@ export const UnifiedDashboard: React.FC = () => {
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
+                onClick={() => setActiveTab('credentials')}
                 style={{
                   padding: '10px 20px',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -74,6 +79,7 @@ export const UnifiedDashboard: React.FC = () => {
                 ⚙️ Settings
               </button>
               <button
+                onClick={() => setActiveTab('setup')}
                 style={{
                   padding: '10px 20px',
                   background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
@@ -141,7 +147,7 @@ export const UnifiedDashboard: React.FC = () => {
   );
 };
 
-const OverviewTab: React.FC = () => {
+const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = ({ setActiveTab }) => {
   const quickStats = [
     { label: 'Total Revenue', value: '$2,847.32', change: '+12.5%', icon: '💰', color: '#10b981' },
     { label: 'Content Published', value: '142', change: '+8', icon: '📝', color: '#3b82f6' },
@@ -202,6 +208,7 @@ const OverviewTab: React.FC = () => {
             description="Connect and manage all your service credentials in one secure vault"
             action="View Credentials"
             gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+            onClick={() => setActiveTab('credentials')}
           />
           <FeatureCard
             icon="💻"
@@ -209,6 +216,7 @@ const OverviewTab: React.FC = () => {
             description="Earn up to $432/month from your unused computing resources"
             action="Start Earning"
             gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+            onClick={() => setActiveTab('idle')}
           />
           <FeatureCard
             icon="🤖"
@@ -216,6 +224,7 @@ const OverviewTab: React.FC = () => {
             description="7 specialized agents ready to help with content, revenue, and more"
             action="Chat with Agents"
             gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+            onClick={() => setActiveTab('agents')}
           />
           <FeatureCard
             icon="🧪"
@@ -223,6 +232,7 @@ const OverviewTab: React.FC = () => {
             description="One-click testing for all your service connections"
             action="Run Tests"
             gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+            onClick={() => setActiveTab('testing')}
           />
         </div>
       </div>
@@ -271,9 +281,10 @@ interface FeatureCardProps {
   description: string;
   action: string;
   gradient: string;
+  onClick?: () => void;
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, action, gradient }) => (
+const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, action, gradient, onClick }) => (
   <div
     style={{
       padding: '25px',
@@ -299,6 +310,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, act
       {description}
     </p>
     <button
+      onClick={onClick}
       style={{
         padding: '10px 20px',
         background: gradient,
