@@ -1,11 +1,32 @@
 /**
- * zapierIntegrationService.ts
- * Zapier integration for workflow automation and app connections.
+ * Zapier Integration Service
+ *
+ * PURPOSE:
+ * Integration with Zapier for workflow automation and app connections.
+ * Enables creation, management, and triggering of Zaps.
+ *
+ * FEATURES:
+ * - Create and manage Zaps
+ * - Activate/pause Zaps
+ * - Trigger Zaps programmatically
+ * - Create webhooks
+ * - Send webhook payloads
+ * - Zap analytics and run history
+ *
+ * COST TIER: Free (with paid plans for more tasks)
+ *
+ * USAGE:
+ * ```typescript
+ * import { zapierIntegrationService } from '@/services/integrations/zapierIntegrationService';
+ *
+ * // Auto-connects from vault
+ * const zap = await zapierIntegrationService.createZap(name, trigger, actions);
+ * await zapierIntegrationService.activateZap(zap.id);
+ * await zapierIntegrationService.triggerZap(zap.id, data);
+ * ```
  */
 
-import { logger } from '../logging/loggerService';
-import { activityService } from '../activity/activityService';
-import { credentialVaultService } from '../credentials/credentialVaultService';
+import { BaseIntegrationService, GoogleOAuthConfig, autoInitializeService } from './BaseIntegrationService';
 
 export interface ZapierTrigger {
   id: string;
@@ -42,46 +63,52 @@ export interface ZapierWebhook {
   secret?: string;
 }
 
-class ZapierIntegrationService {
-  private apiKey?: string;
+/**
+ * Zapier Integration Service
+ * Extends BaseIntegrationService for credential management and OAuth
+ */
+class ZapierIntegrationService extends BaseIntegrationService {
   private zaps: ZapierZap[] = [];
   private webhooks: ZapierWebhook[] = [];
   private runHistory: { zapId: string; timestamp: Date; success: boolean }[] = [];
 
-  setAPIKey(key: string) {
-    this.apiKey = key;
-    logger.info('Zapier API key configured');
+  // ========================================
+  // REQUIRED ABSTRACT METHODS
+  // ========================================
+
+  getServiceId(): string {
+    return 'zapier';
   }
 
-  isConnected(): boolean {
-    return this.apiKey !== undefined;
+  getServiceName(): string {
+    return 'Zapier';
   }
 
-  connectFromVault(): boolean {
-    const creds = credentialVaultService.getCredentials('zapier');
-    if (creds && creds.credentials.apiKey) {
-      this.setAPIKey(creds.credentials.apiKey);
-      logger.info('Zapier auto-initialized from credential vault');
-      return true;
-    }
-    logger.warn('Zapier credentials not found in vault - using demo mode');
-    return false;
+  getBaseURL(): string {
+    return 'https://api.zapier.com/v1';
   }
 
-  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
-    const hasVaultCreds = credentialVaultService.hasCredentials('zapier');
-    const isConnected = this.isConnected();
-    if (isConnected && hasVaultCreds) {
-      return { connected: true, hasCredentials: true, message: 'Connected to Zapier' };
-    } else if (hasVaultCreds && !isConnected) {
-      return { connected: false, hasCredentials: true, message: 'Credentials available - click to connect' };
-    } else {
-      return { connected: false, hasCredentials: false, message: 'Demo mode - configure credentials in vault to connect' };
-    }
+  getCostTier(): 'free' | 'paid' | 'metered' {
+    return 'free'; // Free tier available, paid plans for more tasks
   }
 
+  supportsGoogleOAuth(): boolean {
+    return false; // Zapier uses its own OAuth flow
+  }
+
+  getGoogleOAuthConfig(): GoogleOAuthConfig | null {
+    return null;
+  }
+
+  // ========================================
+  // ZAPIER-SPECIFIC METHODS
+  // ========================================
+
+  /**
+   * Create a new Zap
+   */
   async createZap(name: string, trigger: Omit<ZapierTrigger, 'id'>, actions: Omit<ZapierAction, 'id'>[]): Promise<ZapierZap> {
-    logger.info('Creating Zap', { name });
+    this.logActivity('Creating Zap', { name });
 
     await this.simulateAPICall();
 
@@ -97,17 +124,16 @@ class ZapierIntegrationService {
 
     this.zaps.push(zap);
 
-    activityService.logActivity({
-      type: 'zapier_zap_created',
-      message: `Created Zap: ${name}`,
-      metadata: { trigger: trigger.name },
-    });
+    this.logActivity(`Created Zap: ${name}`, { trigger: trigger.name });
 
     return zap;
   }
 
+  /**
+   * Activate a Zap
+   */
   async activateZap(zapId: string): Promise<boolean> {
-    logger.info('Activating Zap', { zapId });
+    this.logActivity('Activating Zap', { zapId });
 
     await this.simulateAPICall();
 
@@ -118,10 +144,13 @@ class ZapierIntegrationService {
     }
 
     zap.status = 'active';
-    logger.info('Zap activated', { name: zap.name });
+    this.logActivity('Zap activated', { name: zap.name });
     return true;
   }
 
+  /**
+   * Pause a Zap
+   */
   async pauseZap(zapId: string): Promise<boolean> {
     const zap = this.zaps.find(z => z.id === zapId);
 
@@ -130,12 +159,15 @@ class ZapierIntegrationService {
     }
 
     zap.status = 'paused';
-    logger.info('Zap paused', { name: zap.name });
+    this.logActivity('Zap paused', { name: zap.name });
     return true;
   }
 
+  /**
+   * Trigger a Zap with data
+   */
   async triggerZap(zapId: string, data: Record<string, any>): Promise<boolean> {
-    logger.info('Triggering Zap', { zapId, dataKeys: Object.keys(data) });
+    this.logActivity('Triggering Zap', { zapId, dataKeys: Object.keys(data) });
 
     await this.simulateAPICall();
 
@@ -155,17 +187,16 @@ class ZapierIntegrationService {
       success: true,
     });
 
-    activityService.logActivity({
-      type: 'zapier_zap_triggered',
-      message: `Triggered Zap: ${zap.name}`,
-      metadata: { runsCount: zap.runsCount },
-    });
+    this.logActivity(`Triggered Zap: ${zap.name}`, { runsCount: zap.runsCount });
 
     return true;
   }
 
+  /**
+   * Create a webhook
+   */
   async createWebhook(event: string, secret?: string): Promise<ZapierWebhook> {
-    logger.info('Creating webhook', { event });
+    this.logActivity('Creating webhook', { event });
 
     await this.simulateAPICall();
 
@@ -181,8 +212,11 @@ class ZapierIntegrationService {
     return webhook;
   }
 
+  /**
+   * Send webhook payload
+   */
   async sendWebhook(webhookId: string, payload: Record<string, any>): Promise<boolean> {
-    logger.info('Sending webhook', { webhookId });
+    this.logActivity('Sending webhook', { webhookId });
 
     await this.simulateAPICall();
 
@@ -193,11 +227,14 @@ class ZapierIntegrationService {
     }
 
     // Demo mode: simulate webhook send
-    logger.info('Webhook sent', { url: webhook.url, payloadSize: JSON.stringify(payload).length });
+    this.logActivity('Webhook sent', { url: webhook.url, payloadSize: JSON.stringify(payload).length });
 
     return true;
   }
 
+  /**
+   * Get list of Zaps
+   */
   getZaps(status?: 'active' | 'paused' | 'draft'): ZapierZap[] {
     if (status) {
       return this.zaps.filter(z => z.status === status);
@@ -205,6 +242,9 @@ class ZapierIntegrationService {
     return this.zaps;
   }
 
+  /**
+   * Get analytics for a Zap
+   */
   getZapAnalytics(zapId: string): { runs: number; successRate: number; lastRun?: Date } {
     const zap = this.zaps.find(z => z.id === zapId);
 
@@ -223,8 +263,11 @@ class ZapierIntegrationService {
     };
   }
 
+  /**
+   * Quick test for demo purposes
+   */
   async quickTest() {
-    this.setAPIKey('demo_zapier_key');
+    this.setAccessToken('demo_zapier_key');
 
     // Create a Zap for new content publishing
     const contentZap = await this.createZap(
@@ -273,16 +316,10 @@ class ZapierIntegrationService {
       analytics,
     };
   }
-
-  private async simulateAPICall(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
 }
 
+// Export singleton instance
 export const zapierIntegrationService = new ZapierIntegrationService();
 
-if (typeof window !== 'undefined') {
-  setTimeout(() => zapierIntegrationService.connectFromVault(), 100);
-}
-
-if (typeof window !== 'undefined') (window as any).testZapierIntegration = () => zapierIntegrationService.quickTest();
+// Auto-initialize from credential vault
+autoInitializeService(zapierIntegrationService);

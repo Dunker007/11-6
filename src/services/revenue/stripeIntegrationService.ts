@@ -1,36 +1,48 @@
 /**
- * stripeIntegrationService.ts
+ * Stripe Integration Service
  *
+ * PURPOSE:
  * Stripe webhook integration for revenue tracking and automation.
- * Handle payments, subscriptions, refunds, and disputes automatically.
+ * Handles payments, subscriptions, refunds, and disputes automatically.
  *
  * FEATURES:
- * ✅ Webhook event handling (demo mode)
- * ✅ Payment tracking
- * ✅ Subscription management
- * ✅ Refund processing
- * ✅ Dispute handling
- * ✅ Customer management
- * ✅ Revenue analytics
- * ✅ MRR calculation
- * ✅ Churn tracking
- * ✅ Automated receipts
+ * - Webhook event handling (demo mode)
+ * - Payment tracking
+ * - Subscription management
+ * - Refund processing
+ * - Dispute handling
+ * - Customer management
+ * - Revenue analytics
+ * - MRR/ARR calculation
+ * - Churn tracking
+ * - Automated receipts
  *
  * WEBHOOK EVENTS:
- * - payment_intent.succeeded
- * - payment_intent.payment_failed
- * - charge.refunded
- * - charge.dispute.created
- * - customer.subscription.created
- * - customer.subscription.updated
- * - customer.subscription.deleted
- * - invoice.payment_succeeded
- * - invoice.payment_failed
+ * - payment.succeeded
+ * - payment.failed
+ * - refund.created
+ * - dispute.created
+ * - subscription.created
+ * - subscription.updated
+ * - subscription.cancelled
+ * - invoice.paid
+ * - invoice.failed
+ *
+ * COST TIER: Metered (per-transaction fees)
+ *
+ * USAGE:
+ * ```typescript
+ * import { stripeIntegrationService } from '@/services/revenue/stripeIntegrationService';
+ *
+ * // Auto-connects from vault
+ * const event = await stripeIntegrationService.processWebhook(webhookData);
+ * const metrics = stripeIntegrationService.getMetrics();
+ * ```
  */
 
+import { BaseIntegrationService, GoogleOAuthConfig, autoInitializeService } from '../integrations/BaseIntegrationService';
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
-import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export type StripeEventType =
   | 'payment.succeeded'
@@ -93,80 +105,56 @@ export interface RevenueMetrics {
   refundRate: number; // Percentage
 }
 
-class StripeIntegrationService {
+/**
+ * Stripe Integration Service
+ * Extends BaseIntegrationService for credential management and OAuth
+ */
+class StripeIntegrationService extends BaseIntegrationService {
   private events: StripeEvent[] = [];
   private customers: Map<string, StripeCustomer> = new Map();
   private subscriptions: Map<string, StripeSubscription> = new Map();
-  private webhookSecret: string | null = null;
 
-  /**
-   * Initialize with Stripe webhook secret
-   */
-  initialize(webhookSecret: string) {
-    this.webhookSecret = webhookSecret;
-    logger.info('Stripe integration initialized (demo mode)');
+  // ========================================
+  // REQUIRED ABSTRACT METHODS
+  // ========================================
+
+  getServiceId(): string {
+    return 'stripe';
   }
 
-  /**
-   * Check if Stripe is connected
-   */
-  isConnected(): boolean {
-    return this.webhookSecret !== null;
+  getServiceName(): string {
+    return 'Stripe';
   }
 
-  /**
-   * Connect from credential vault
-   */
-  connectFromVault(): boolean {
-    const creds = credentialVaultService.getCredentials('stripe');
-
-    if (creds && creds.credentials.secretKey) {
-      this.initialize(creds.credentials.secretKey);
-      logger.info('Stripe auto-initialized from credential vault');
-      return true;
-    }
-
-    logger.warn('Stripe credentials not found in vault - using demo mode');
-    return false;
+  getBaseURL(): string {
+    return 'https://api.stripe.com/v1';
   }
 
-  /**
-   * Get connection status
-   */
-  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
-    const hasVaultCreds = credentialVaultService.hasCredentials('stripe');
-    const isConnected = this.isConnected();
-
-    if (isConnected && hasVaultCreds) {
-      return {
-        connected: true,
-        hasCredentials: true,
-        message: 'Connected to Stripe',
-      };
-    } else if (hasVaultCreds && !isConnected) {
-      return {
-        connected: false,
-        hasCredentials: true,
-        message: 'Credentials available - click to connect',
-      };
-    } else {
-      return {
-        connected: false,
-        hasCredentials: false,
-        message: 'Demo mode - configure credentials in vault to connect',
-      };
-    }
+  getCostTier(): 'free' | 'paid' | 'metered' {
+    return 'metered'; // Stripe charges per-transaction fees
   }
+
+  supportsGoogleOAuth(): boolean {
+    return false; // Stripe uses its own OAuth/Connect flow
+  }
+
+  getGoogleOAuthConfig(): GoogleOAuthConfig | null {
+    return null;
+  }
+
+  // ========================================
+  // STRIPE-SPECIFIC METHODS
+  // ========================================
 
   /**
    * Process webhook event (demo mode)
    */
   async processWebhook(eventData: Partial<StripeEvent>): Promise<StripeEvent> {
-    logger.info('Processing Stripe webhook', { type: eventData.type });
+    this.logActivity('Processing Stripe webhook', { type: eventData.type });
 
     try {
       // Validate webhook signature (in production, verify with Stripe)
-      if (!this.webhookSecret) {
+      if (!this.isConnected()) {
         throw new Error('Stripe webhook secret not configured');
       }
 
@@ -191,7 +179,7 @@ class StripeIntegrationService {
 
       activityService.addActivity({
         type: 'automation',
-        action: 'Stripe Webhook Processed',
+        action: 'stripe_webhook_processed',
         description: `Processed ${event.type} event`,
         metadata: {
           eventId: event.id,
@@ -572,7 +560,7 @@ class StripeIntegrationService {
    */
   async quickTest(): Promise<RevenueMetrics> {
     // Initialize
-    this.initialize('demo_webhook_secret');
+    this.setCredentials({ secretKey: 'demo_webhook_secret' });
 
     // Simulate events
     await this.simulateEvent('payment.succeeded', 4999);
@@ -587,16 +575,5 @@ class StripeIntegrationService {
 // Export singleton
 export const stripeIntegrationService = new StripeIntegrationService();
 
-// Auto-initialize from credential vault if available
-if (typeof window !== 'undefined') {
-  // Delay auto-init to ensure credential vault is loaded
-  setTimeout(() => {
-    stripeIntegrationService.connectFromVault();
-  }, 100);
-}
-
-// Expose to window for testing
-if (typeof window !== 'undefined') {
-  (window as any).testStripeIntegration = () => stripeIntegrationService.quickTest();
-  (window as any).stripeIntegrationService = stripeIntegrationService;
-}
+// Auto-initialize from credential vault
+autoInitializeService(stripeIntegrationService);

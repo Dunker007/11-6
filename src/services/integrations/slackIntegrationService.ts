@@ -1,11 +1,33 @@
 /**
- * slackIntegrationService.ts
- * Slack integration for team notifications and collaboration.
+ * Slack Integration Service
+ *
+ * PURPOSE:
+ * Integration with Slack for team notifications and collaboration.
+ * Sends real-time notifications for revenue, content, errors, and milestones.
+ *
+ * FEATURES:
+ * - Send messages to Slack channels
+ * - Revenue notifications
+ * - Content publication alerts
+ * - Error monitoring notifications
+ * - Milestone celebrations
+ * - Daily summary reports
+ * - Channel management
+ * - Google OAuth support
+ *
+ * COST TIER: Free (with paid plans available)
+ *
+ * USAGE:
+ * ```typescript
+ * import { slackIntegrationService } from '@/services/integrations/slackIntegrationService';
+ *
+ * // Auto-connects from vault
+ * await slackIntegrationService.notifyRevenue(49.99, 'Stripe');
+ * await slackIntegrationService.sendDailySummary();
+ * ```
  */
 
-import { logger } from '../logging/loggerService';
-import { activityService } from '../activity/activityService';
-import { credentialVaultService } from '../credentials/credentialVaultService';
+import { BaseIntegrationService, GoogleOAuthConfig, autoInitializeService } from './BaseIntegrationService';
 
 export interface SlackMessage {
   channel: string;
@@ -45,58 +67,58 @@ export interface SlackNotification {
   delivered: boolean;
 }
 
-class SlackIntegrationService {
-  private webhookUrl?: string;
-  private botToken?: string;
+/**
+ * Slack Integration Service
+ * Extends BaseIntegrationService for credential management and OAuth
+ */
+class SlackIntegrationService extends BaseIntegrationService {
   private channels: SlackChannel[] = [];
   private notifications: SlackNotification[] = [];
 
-  setWebhookUrl(url: string) {
-    this.webhookUrl = url;
-    logger.info('Slack webhook URL configured');
+  // ========================================
+  // REQUIRED ABSTRACT METHODS
+  // ========================================
+
+  getServiceId(): string {
+    return 'slack';
   }
 
-  setBotToken(token: string) {
-    this.botToken = token;
-    logger.info('Slack bot token configured');
+  getServiceName(): string {
+    return 'Slack';
   }
 
-  isConnected(): boolean {
-    return this.webhookUrl !== undefined || this.botToken !== undefined;
+  getBaseURL(): string {
+    return 'https://slack.com/api';
   }
 
-  connectFromVault(): boolean {
-    const creds = credentialVaultService.getCredentials('slack');
-    if (creds) {
-      if (creds.credentials.webhookUrl) {
-        this.setWebhookUrl(creds.credentials.webhookUrl);
-      }
-      if (creds.credentials.botToken) {
-        this.setBotToken(creds.credentials.botToken);
-      }
-      if (creds.credentials.webhookUrl || creds.credentials.botToken) {
-        logger.info('Slack auto-initialized from credential vault');
-        return true;
-      }
-    }
-    logger.warn('Slack credentials not found in vault - using demo mode');
-    return false;
+  getCostTier(): 'free' | 'paid' | 'metered' {
+    return 'free'; // Free tier available, paid plans for larger teams
   }
 
-  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
-    const hasVaultCreds = credentialVaultService.hasCredentials('slack');
-    const isConnected = this.isConnected();
-    if (isConnected && hasVaultCreds) {
-      return { connected: true, hasCredentials: true, message: 'Connected to Slack' };
-    } else if (hasVaultCreds && !isConnected) {
-      return { connected: false, hasCredentials: true, message: 'Credentials available - click to connect' };
-    } else {
-      return { connected: false, hasCredentials: false, message: 'Demo mode - configure credentials in vault to connect' };
-    }
+  supportsGoogleOAuth(): boolean {
+    return true; // Slack supports Google SSO
   }
 
+  getGoogleOAuthConfig(): GoogleOAuthConfig | null {
+    return {
+      clientId: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+      scopes: [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+      ],
+      redirectUri: `${window.location.origin}/oauth/callback`,
+    };
+  }
+
+  // ========================================
+  // SLACK-SPECIFIC METHODS
+  // ========================================
+
+  /**
+   * Send a message to a Slack channel
+   */
   async sendMessage(message: SlackMessage): Promise<boolean> {
-    logger.info('Sending Slack message', { channel: message.channel });
+    this.logActivity('Sending Slack message', { channel: message.channel });
 
     await this.simulateAPICall();
 
@@ -112,15 +134,14 @@ class SlackIntegrationService {
 
     this.notifications.push(notification);
 
-    activityService.logActivity({
-      type: 'slack_message_sent',
-      message: `Sent message to #${message.channel}`,
-      metadata: { messageLength: message.text.length },
-    });
+    this.logActivity(`Sent message to #${message.channel}`, { messageLength: message.text.length });
 
     return true;
   }
 
+  /**
+   * Send revenue notification to Slack
+   */
   async notifyRevenue(amount: number, source: string, channel: string = 'revenue'): Promise<boolean> {
     const message: SlackMessage = {
       channel,
@@ -143,6 +164,9 @@ class SlackIntegrationService {
     return this.sendMessage(message);
   }
 
+  /**
+   * Send content publication notification to Slack
+   */
   async notifyContentPublished(title: string, platform: string, url: string, channel: string = 'content'): Promise<boolean> {
     const message: SlackMessage = {
       channel,
@@ -164,6 +188,9 @@ class SlackIntegrationService {
     return this.sendMessage(message);
   }
 
+  /**
+   * Send error notification to Slack
+   */
   async notifyError(error: string, context: Record<string, any>, channel: string = 'errors'): Promise<boolean> {
     const message: SlackMessage = {
       channel,
@@ -187,6 +214,9 @@ class SlackIntegrationService {
     return this.sendMessage(message);
   }
 
+  /**
+   * Send milestone notification to Slack
+   */
   async notifyMilestone(milestone: string, details: string, channel: string = 'general'): Promise<boolean> {
     const message: SlackMessage = {
       channel,
@@ -205,8 +235,11 @@ class SlackIntegrationService {
     return this.sendMessage(message);
   }
 
+  /**
+   * Get list of Slack channels
+   */
   async getChannels(): Promise<SlackChannel[]> {
-    logger.info('Fetching Slack channels');
+    this.logActivity('Fetching Slack channels');
 
     await this.simulateAPICall();
 
@@ -222,8 +255,11 @@ class SlackIntegrationService {
     return this.channels;
   }
 
+  /**
+   * Create a new Slack channel
+   */
   async createChannel(name: string, isPrivate: boolean = false): Promise<SlackChannel> {
-    logger.info('Creating Slack channel', { name });
+    this.logActivity('Creating Slack channel', { name });
 
     await this.simulateAPICall();
 
@@ -239,6 +275,9 @@ class SlackIntegrationService {
     return channel;
   }
 
+  /**
+   * Get notification history
+   */
   getNotificationHistory(type?: string, limit: number = 20): SlackNotification[] {
     let filtered = this.notifications;
 
@@ -249,6 +288,9 @@ class SlackIntegrationService {
     return filtered.slice(-limit).reverse();
   }
 
+  /**
+   * Send daily summary to Slack
+   */
   async sendDailySummary(channel: string = 'general'): Promise<boolean> {
     const summary = {
       revenue: '$1,234.56',
@@ -279,13 +321,14 @@ class SlackIntegrationService {
     return this.sendMessage(message);
   }
 
-  private async simulateAPICall(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-
+  /**
+   * Quick test for demo purposes
+   */
   async quickTest() {
-    this.setWebhookUrl('https://hooks.slack.com/services/demo/webhook');
-    this.setBotToken('xoxb-demo-token');
+    this.setCredentials({
+      webhookUrl: 'https://hooks.slack.com/services/demo/webhook',
+      botToken: 'xoxb-demo-token',
+    });
 
     await this.getChannels();
 
@@ -313,10 +356,8 @@ class SlackIntegrationService {
   }
 }
 
+// Export singleton instance
 export const slackIntegrationService = new SlackIntegrationService();
 
-if (typeof window !== 'undefined') {
-  setTimeout(() => slackIntegrationService.connectFromVault(), 100);
-}
-
-if (typeof window !== 'undefined') (window as any).testSlackIntegration = () => slackIntegrationService.quickTest();
+// Auto-initialize from credential vault
+autoInitializeService(slackIntegrationService);

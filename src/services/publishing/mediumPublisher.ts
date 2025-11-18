@@ -1,28 +1,43 @@
 /**
- * mediumPublisher.ts
+ * Medium Publisher Service
  *
+ * PURPOSE:
  * Medium auto-publisher for passive income content distribution.
  * Automate publishing to Medium with optimal timing and formatting.
  *
  * FEATURES:
- * ✅ Auto-publish to Medium (demo mode)
- * ✅ Schedule publishing
- * ✅ Tag optimization
- * ✅ Canonical URL support
- * ✅ Draft vs published status
- * ✅ Publication targeting (submit to publications)
- * ✅ SEO metadata
- * ✅ Cross-posting detection
- * ✅ Analytics tracking
- * ✅ Batch publishing
+ * - Auto-publish to Medium (demo mode)
+ * - Schedule publishing
+ * - Tag optimization
+ * - Canonical URL support
+ * - Draft vs published status
+ * - Publication targeting (submit to publications)
+ * - SEO metadata
+ * - Cross-posting detection
+ * - Analytics tracking
+ * - Batch publishing
+ *
+ * COST TIER: Free (with Partner Program for earnings)
+ *
+ * USAGE:
+ * ```typescript
+ * import { mediumPublisher } from '@/services/publishing/mediumPublisher';
+ *
+ * // Auto-connects from vault
+ * const post = await mediumPublisher.publish({
+ *   title: 'My Article',
+ *   content: '# Markdown content here',
+ *   tags: ['AI', 'Automation']
+ * });
+ * ```
  *
  * NOTE: Demo mode - simulates Medium API calls.
  * In production, integrate with Medium's OAuth and API.
  */
 
+import { BaseIntegrationService, GoogleOAuthConfig, autoInitializeService } from '../integrations/BaseIntegrationService';
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
-import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface MediumPost {
   id: string;
@@ -69,81 +84,56 @@ export interface PublicationSubmission {
   respondedAt?: Date;
 }
 
-class MediumPublisher {
+/**
+ * Medium Publisher Service
+ * Extends BaseIntegrationService for credential management and OAuth
+ */
+class MediumPublisher extends BaseIntegrationService {
   private posts: MediumPost[] = [];
   private submissions: PublicationSubmission[] = [];
-  private apiToken: string | null = null;
-  private userId: string | null = null;
+  private schedulerInterval: NodeJS.Timeout | null = null;
 
-  /**
-   * Initialize with Medium API token (demo mode)
-   */
-  initialize(apiToken: string, userId: string) {
-    this.apiToken = apiToken;
-    this.userId = userId;
-    logger.info('Medium publisher initialized (demo mode)');
+  // ========================================
+  // REQUIRED ABSTRACT METHODS
+  // ========================================
+
+  getServiceId(): string {
+    return 'medium';
   }
 
-  /**
-   * Check if Medium is connected
-   */
-  isConnected(): boolean {
-    return this.apiToken !== null && this.userId !== null;
+  getServiceName(): string {
+    return 'Medium';
   }
 
-  /**
-   * Connect from credential vault
-   */
-  connectFromVault(): boolean {
-    const creds = credentialVaultService.getCredentials('medium');
-
-    if (creds && creds.credentials.apiToken && creds.credentials.userId) {
-      this.initialize(creds.credentials.apiToken, creds.credentials.userId);
-      logger.info('Medium auto-initialized from credential vault');
-      return true;
-    }
-
-    logger.warn('Medium credentials not found in vault - using demo mode');
-    return false;
+  getBaseURL(): string {
+    return 'https://api.medium.com/v1';
   }
 
-  /**
-   * Get connection status
-   */
-  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
-    const hasVaultCreds = credentialVaultService.hasCredentials('medium');
-    const isConnected = this.isConnected();
-
-    if (isConnected && hasVaultCreds) {
-      return {
-        connected: true,
-        hasCredentials: true,
-        message: 'Connected to Medium',
-      };
-    } else if (hasVaultCreds && !isConnected) {
-      return {
-        connected: false,
-        hasCredentials: true,
-        message: 'Credentials available - click to connect',
-      };
-    } else {
-      return {
-        connected: false,
-        hasCredentials: false,
-        message: 'Demo mode - configure credentials in vault to connect',
-      };
-    }
+  getCostTier(): 'free' | 'paid' | 'metered' {
+    return 'free'; // Free to publish, Partner Program for earnings
   }
+
+  supportsGoogleOAuth(): boolean {
+    return false; // Medium uses its own OAuth flow
+  }
+
+  getGoogleOAuthConfig(): GoogleOAuthConfig | null {
+    return null;
+  }
+
+  // ========================================
+  // MEDIUM-SPECIFIC METHODS
+  // ========================================
 
   /**
    * Publish article to Medium
    */
   async publish(options: PublishOptions): Promise<MediumPost> {
-    logger.info('Publishing to Medium', { title: options.title });
+    this.logActivity('Publishing to Medium', { title: options.title });
 
     try {
       // Validate
-      if (!this.apiToken) {
+      if (!this.isConnected()) {
         throw new Error('Medium API token not configured');
       }
 
@@ -179,14 +169,14 @@ class MediumPublisher {
         logger.info('Post scheduled for later', { scheduleTime: options.scheduleTime });
       } else {
         // DEMO MODE: Simulate API call
-        await this.simulatePublish(post);
+        await this.simulateMediumPublish(post);
       }
 
       this.posts.push(post);
 
       activityService.addActivity({
         type: 'automation',
-        action: 'Medium Post Published',
+        action: 'medium_post_published',
         description: `Published "${post.title}" to Medium`,
         metadata: {
           postId: post.id,
@@ -211,9 +201,9 @@ class MediumPublisher {
   /**
    * Simulate Medium API publish call (demo mode)
    */
-  private async simulatePublish(post: MediumPost): Promise<void> {
+  private async simulateMediumPublish(post: MediumPost): Promise<void> {
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await this.simulateAPICall(500);
 
     // Generate mock published URL
     const slug = post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -251,7 +241,7 @@ class MediumPublisher {
    * Submit post to a Medium publication
    */
   async submitToPublication(postId: string, publicationName: string): Promise<PublicationSubmission> {
-    logger.info('Submitting to Medium publication', { postId, publicationName });
+    this.logActivity('Submitting to Medium publication', { postId, publicationName });
 
     const post = this.posts.find(p => p.id === postId);
     if (!post) {
@@ -259,7 +249,7 @@ class MediumPublisher {
     }
 
     // DEMO MODE: Simulate submission
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await this.simulateAPICall(300);
 
     const submission: PublicationSubmission = {
       postId,
@@ -279,7 +269,7 @@ class MediumPublisher {
 
     activityService.addActivity({
       type: 'automation',
-      action: 'Submitted to Publication',
+      action: 'submitted_to_publication',
       description: `Submitted "${post.title}" to ${publicationName}`,
       metadata: { postId, publicationName },
     });
@@ -364,7 +354,7 @@ class MediumPublisher {
    * Schedule batch publishing
    */
   async batchPublish(posts: PublishOptions[], delayMinutes: number = 60): Promise<MediumPost[]> {
-    logger.info('Batch publishing to Medium', { count: posts.length, delayMinutes });
+    this.logActivity('Batch publishing to Medium', { count: posts.length, delayMinutes });
 
     const published: MediumPost[] = [];
     let scheduleTime = new Date();
@@ -398,7 +388,7 @@ class MediumPublisher {
 
     for (const post of duePosts) {
       try {
-        await this.simulatePublish(post);
+        await this.simulateMediumPublish(post);
         post.publishStatus = 'public';
         logger.info('Scheduled post published', { id: post.id, title: post.title });
       } catch (error) {
@@ -410,8 +400,6 @@ class MediumPublisher {
   /**
    * Start scheduler for auto-publishing
    */
-  private schedulerInterval: NodeJS.Timeout | null = null;
-
   startScheduler() {
     if (this.schedulerInterval) {
       logger.warn('Medium scheduler already running');
@@ -424,6 +412,9 @@ class MediumPublisher {
     }, 60 * 1000); // Check every minute
   }
 
+  /**
+   * Stop scheduler
+   */
   stopScheduler() {
     if (this.schedulerInterval) {
       clearInterval(this.schedulerInterval);
@@ -495,7 +486,7 @@ class MediumPublisher {
    */
   async quickTest(): Promise<MediumPost> {
     // Initialize with demo credentials
-    this.initialize('demo-api-token', 'demo-user-id');
+    this.setCredentials({ integrationToken: 'demo-api-token', userId: 'demo-user-id' });
 
     return await this.publish({
       title: 'Building Passive Income with AI Automation',
@@ -522,16 +513,5 @@ The future of passive income is automated. Start today!`,
 // Export singleton
 export const mediumPublisher = new MediumPublisher();
 
-// Auto-initialize from credential vault if available
-if (typeof window !== 'undefined') {
-  // Delay auto-init to ensure credential vault is loaded
-  setTimeout(() => {
-    mediumPublisher.connectFromVault();
-  }, 100);
-}
-
-// Expose to window for testing
-if (typeof window !== 'undefined') {
-  (window as any).testMediumPublisher = () => mediumPublisher.quickTest();
-  (window as any).mediumPublisher = mediumPublisher;
-}
+// Auto-initialize from credential vault
+autoInitializeService(mediumPublisher);

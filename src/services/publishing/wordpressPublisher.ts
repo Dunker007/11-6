@@ -1,28 +1,44 @@
 /**
- * wordpressPublisher.ts
+ * WordPress Publisher Service
  *
+ * PURPOSE:
  * WordPress REST API integration for auto-publishing.
  * Publish blog posts, pages, and custom post types to WordPress sites.
  *
  * FEATURES:
- * ✅ Auto-publish posts to WordPress (demo mode)
- * ✅ Schedule publishing
- * ✅ Category and tag management
- * ✅ Featured image upload
- * ✅ Custom fields/meta
- * ✅ Multiple site support
- * ✅ Draft/pending/publish status
- * ✅ SEO optimization (Yoast/RankMath)
- * ✅ Bulk publishing
- * ✅ Post revision tracking
+ * - Auto-publish posts to WordPress (demo mode)
+ * - Schedule publishing
+ * - Category and tag management
+ * - Featured image upload
+ * - Custom fields/meta
+ * - Multiple site support
+ * - Draft/pending/publish status
+ * - SEO optimization (Yoast/RankMath)
+ * - Bulk publishing
+ * - Post revision tracking
+ *
+ * COST TIER: Free (self-hosted)
+ *
+ * USAGE:
+ * ```typescript
+ * import { wordpressPublisher } from '@/services/publishing/wordpressPublisher';
+ *
+ * // Auto-connects from vault
+ * const post = await wordpressPublisher.publish({
+ *   siteId,
+ *   title: 'My Post',
+ *   content: '<p>Content here</p>',
+ *   status: 'publish'
+ * });
+ * ```
  *
  * NOTE: Demo mode - simulates WordPress REST API.
  * In production, use WordPress REST API with Application Password.
  */
 
+import { BaseIntegrationService, GoogleOAuthConfig, autoInitializeService } from '../integrations/BaseIntegrationService';
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
-import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface WordPressSite {
   id: string;
@@ -76,10 +92,88 @@ export interface PublishToWordPressOptions {
   scheduleTime?: Date;
 }
 
-class WordPressPublisher {
+/**
+ * WordPress Publisher Service
+ * Extends BaseIntegrationService for credential management and OAuth
+ */
+class WordPressPublisher extends BaseIntegrationService {
   private sites: WordPressSite[] = [];
   private posts: WordPressPost[] = [];
   private schedulerInterval: NodeJS.Timeout | null = null;
+
+  // ========================================
+  // REQUIRED ABSTRACT METHODS
+  // ========================================
+
+  getServiceId(): string {
+    return 'wordpress';
+  }
+
+  getServiceName(): string {
+    return 'WordPress';
+  }
+
+  getBaseURL(): string {
+    // WordPress is multi-site, so base URL varies
+    // Return first site's URL or default
+    return this.sites[0]?.url || 'https://myblog.wordpress.com';
+  }
+
+  getCostTier(): 'free' | 'paid' | 'metered' {
+    return 'free'; // Self-hosted is free, WordPress.com has paid plans
+  }
+
+  supportsGoogleOAuth(): boolean {
+    return false; // WordPress uses Application Passwords
+  }
+
+  getGoogleOAuthConfig(): GoogleOAuthConfig | null {
+    return null;
+  }
+
+  // Override isConnected for multi-site support
+  isConnected(): boolean {
+    return this.sites.length > 0 && this.sites.some(s => s.status === 'connected');
+  }
+
+  // Override connectFromVault for multi-site support
+  connectFromVault(): boolean {
+    const creds = this.credentials;
+
+    if (!creds) {
+      // Try to get from parent class
+      const result = super.connectFromVault();
+      if (result && this.credentials) {
+        // Parent class loaded credentials, now use them
+        this.addSiteFromCredentials(this.credentials);
+        return true;
+      }
+      return false;
+    }
+
+    this.addSiteFromCredentials(creds);
+    return true;
+  }
+
+  // Helper to add site from credentials
+  private addSiteFromCredentials(creds: Record<string, string>): void {
+    if (creds.url && creds.username && creds.appPassword) {
+      const existingSite = this.sites.find(s => s.url === creds.url);
+      if (!existingSite) {
+        this.addSite({
+          name: creds.siteName || 'My WordPress Site',
+          url: creds.url,
+          username: creds.username,
+          applicationPassword: creds.appPassword,
+        });
+        logger.info('WordPress site auto-loaded from credentials');
+      }
+    }
+  }
+
+  // ========================================
+  // WORDPRESS-SPECIFIC METHODS
+  // ========================================
 
   /**
    * Add WordPress site
@@ -97,77 +191,12 @@ class WordPressPublisher {
 
     activityService.addActivity({
       type: 'system',
-      action: 'WordPress Site Connected',
+      action: 'wordpress_site_connected',
       description: `Connected to ${site.name}`,
       metadata: { siteId: newSite.id, url: site.url },
     });
 
     return newSite;
-  }
-
-  /**
-   * Check if WordPress is connected (has any sites)
-   */
-  isConnected(): boolean {
-    return this.sites.length > 0 && this.sites.some(s => s.status === 'connected');
-  }
-
-  /**
-   * Connect from credential vault
-   */
-  connectFromVault(): boolean {
-    const creds = credentialVaultService.getCredentials('wordpress');
-
-    if (creds && creds.credentials.url && creds.credentials.username && creds.credentials.applicationPassword) {
-      // Check if site already exists
-      const existingSite = this.sites.find(s => s.url === creds.credentials.url);
-
-      if (!existingSite) {
-        this.addSite({
-          name: creds.credentials.siteName || 'My WordPress Site',
-          url: creds.credentials.url,
-          username: creds.credentials.username,
-          applicationPassword: creds.credentials.applicationPassword,
-        });
-        logger.info('WordPress site auto-loaded from credential vault');
-        return true;
-      }
-    }
-
-    logger.warn('WordPress credentials not found in vault - no sites loaded');
-    return false;
-  }
-
-  /**
-   * Get connection status
-   */
-  getStatus(): { connected: boolean; hasCredentials: boolean; message: string; siteCount: number } {
-    const hasVaultCreds = credentialVaultService.hasCredentials('wordpress');
-    const isConnected = this.isConnected();
-    const siteCount = this.sites.length;
-
-    if (isConnected && hasVaultCreds) {
-      return {
-        connected: true,
-        hasCredentials: true,
-        message: `Connected to ${siteCount} WordPress site(s)`,
-        siteCount,
-      };
-    } else if (hasVaultCreds && !isConnected) {
-      return {
-        connected: false,
-        hasCredentials: true,
-        message: 'Credentials available - click to connect',
-        siteCount: 0,
-      };
-    } else {
-      return {
-        connected: false,
-        hasCredentials: false,
-        message: 'Demo mode - configure credentials in vault to connect',
-        siteCount: 0,
-      };
-    }
   }
 
   /**
@@ -181,7 +210,7 @@ class WordPressPublisher {
 
     try {
       // DEMO MODE: Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await this.simulateAPICall(300);
 
       site.status = 'connected';
       logger.info('WordPress connection test successful', { siteId, url: site.url });
@@ -198,7 +227,7 @@ class WordPressPublisher {
    * Publish post to WordPress
    */
   async publish(options: PublishToWordPressOptions): Promise<WordPressPost> {
-    logger.info('Publishing to WordPress', {
+    this.logActivity('Publishing to WordPress', {
       siteId: options.siteId,
       title: options.title,
     });
@@ -254,7 +283,7 @@ class WordPressPublisher {
 
       activityService.addActivity({
         type: 'automation',
-        action: 'WordPress Post Published',
+        action: 'wordpress_post_published',
         description: `Published "${post.title}" to ${site.name}`,
         metadata: {
           postId: post.id,
@@ -282,7 +311,7 @@ class WordPressPublisher {
    */
   private async simulatePublish(post: WordPressPost, site: WordPressSite): Promise<void> {
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await this.simulateAPICall(500);
 
     // Generate WordPress ID
     post.wordPressId = Math.floor(Math.random() * 10000) + 1;
@@ -327,7 +356,7 @@ class WordPressPublisher {
     post.revisionCount++;
 
     // DEMO MODE: Simulate update
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await this.simulateAPICall(300);
 
     logger.info('WordPress post updated', { postId, revisions: post.revisionCount });
 
@@ -408,7 +437,7 @@ class WordPressPublisher {
    * Bulk publish posts
    */
   async bulkPublish(posts: PublishToWordPressOptions[], delayMinutes: number = 30): Promise<WordPressPost[]> {
-    logger.info('Bulk publishing to WordPress', {
+    this.logActivity('Bulk publishing to WordPress', {
       count: posts.length,
       delayMinutes,
     });
@@ -553,7 +582,7 @@ class WordPressPublisher {
     }
 
     // DEMO MODE: Simulate category creation
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await this.simulateAPICall(200);
 
     const category = {
       id: Math.floor(Math.random() * 1000) + 1,
@@ -576,7 +605,7 @@ class WordPressPublisher {
     }
 
     // DEMO MODE: Simulate image upload
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await this.simulateAPICall(500);
 
     const imageUrl = `${site.url}/wp-content/uploads/${Date.now()}.jpg`;
 
@@ -634,16 +663,5 @@ class WordPressPublisher {
 // Export singleton
 export const wordpressPublisher = new WordPressPublisher();
 
-// Auto-initialize from credential vault if available
-if (typeof window !== 'undefined') {
-  // Delay auto-init to ensure credential vault is loaded
-  setTimeout(() => {
-    wordpressPublisher.connectFromVault();
-  }, 100);
-}
-
-// Expose to window for testing
-if (typeof window !== 'undefined') {
-  (window as any).testWordPressPublisher = () => wordpressPublisher.quickTest();
-  (window as any).wordpressPublisher = wordpressPublisher;
-}
+// Auto-initialize from credential vault
+autoInitializeService(wordpressPublisher);

@@ -1,11 +1,32 @@
 /**
- * airtableIntegrationService.ts
- * Airtable integration for structured data management and tracking.
+ * Airtable Integration Service
+ *
+ * PURPOSE:
+ * Integration with Airtable for structured data management and tracking.
+ * Manages bases, tables, records, and content synchronization.
+ *
+ * FEATURES:
+ * - Airtable base and table management
+ * - Record CRUD operations
+ * - Bulk record creation
+ * - Content synchronization
+ * - Query with filter formulas
+ * - Report generation
+ * - Google OAuth support
+ *
+ * COST TIER: Free (with paid plans available)
+ *
+ * USAGE:
+ * ```typescript
+ * import { airtableIntegrationService } from '@/services/integrations/airtableIntegrationService';
+ *
+ * // Auto-connects from vault
+ * const bases = await airtableIntegrationService.getBases();
+ * const record = await airtableIntegrationService.createRecord(baseId, tableName, fields);
+ * ```
  */
 
-import { logger } from '../logging/loggerService';
-import { activityService } from '../activity/activityService';
-import { credentialVaultService } from '../credentials/credentialVaultService';
+import { BaseIntegrationService, GoogleOAuthConfig, autoInitializeService } from './BaseIntegrationService';
 
 export interface AirtableBase {
   id: string;
@@ -42,44 +63,57 @@ export interface ContentRecord {
   tags?: string[];
 }
 
-class AirtableIntegrationService {
-  private apiKey?: string;
+/**
+ * Airtable Integration Service
+ * Extends BaseIntegrationService for credential management and OAuth
+ */
+class AirtableIntegrationService extends BaseIntegrationService {
   private bases: AirtableBase[] = [];
 
-  setAPIKey(key: string) {
-    this.apiKey = key;
-    logger.info('Airtable API key configured');
+  // ========================================
+  // REQUIRED ABSTRACT METHODS
+  // ========================================
+
+  getServiceId(): string {
+    return 'airtable';
   }
 
-  isConnected(): boolean {
-    return this.apiKey !== undefined;
+  getServiceName(): string {
+    return 'Airtable';
   }
 
-  connectFromVault(): boolean {
-    const creds = credentialVaultService.getCredentials('airtable');
-    if (creds && creds.credentials.apiKey) {
-      this.setAPIKey(creds.credentials.apiKey);
-      logger.info('Airtable auto-initialized from credential vault');
-      return true;
-    }
-    logger.warn('Airtable credentials not found in vault - using demo mode');
-    return false;
+  getBaseURL(): string {
+    return 'https://api.airtable.com/v0';
   }
 
-  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
-    const hasVaultCreds = credentialVaultService.hasCredentials('airtable');
-    const isConnected = this.isConnected();
-    if (isConnected && hasVaultCreds) {
-      return { connected: true, hasCredentials: true, message: 'Connected to Airtable' };
-    } else if (hasVaultCreds && !isConnected) {
-      return { connected: false, hasCredentials: true, message: 'Credentials available - click to connect' };
-    } else {
-      return { connected: false, hasCredentials: false, message: 'Demo mode - configure credentials in vault to connect' };
-    }
+  getCostTier(): 'free' | 'paid' | 'metered' {
+    return 'free'; // Free tier available, paid plans for advanced features
   }
 
+  supportsGoogleOAuth(): boolean {
+    return true; // Airtable supports Google SSO
+  }
+
+  getGoogleOAuthConfig(): GoogleOAuthConfig | null {
+    return {
+      clientId: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+      scopes: [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+      ],
+      redirectUri: `${window.location.origin}/oauth/callback`,
+    };
+  }
+
+  // ========================================
+  // AIRTABLE-SPECIFIC METHODS
+  // ========================================
+
+  /**
+   * Get all Airtable bases
+   */
   async getBases(): Promise<AirtableBase[]> {
-    logger.info('Fetching Airtable bases');
+    this.logActivity('Fetching Airtable bases');
 
     await this.simulateAPICall();
 
@@ -87,8 +121,11 @@ class AirtableIntegrationService {
     return this.bases;
   }
 
+  /**
+   * Get a specific table from a base
+   */
   async getTable(baseId: string, tableName: string): Promise<AirtableTable | undefined> {
-    logger.info('Fetching Airtable table', { baseId, tableName });
+    this.logActivity('Fetching Airtable table', { baseId, tableName });
 
     await this.simulateAPICall();
 
@@ -96,8 +133,11 @@ class AirtableIntegrationService {
     return base?.tables.find(t => t.name === tableName);
   }
 
+  /**
+   * Create a new record in a table
+   */
   async createRecord(baseId: string, tableName: string, fields: Record<string, any>): Promise<AirtableRecord> {
-    logger.info('Creating Airtable record', { baseId, tableName });
+    this.logActivity('Creating Airtable record', { baseId, tableName });
 
     await this.simulateAPICall();
 
@@ -114,17 +154,16 @@ class AirtableIntegrationService {
       table.records.push(record);
     }
 
-    activityService.logActivity({
-      type: 'airtable_record_created',
-      message: `Created record in ${tableName}`,
-      metadata: { baseId },
-    });
+    this.logActivity(`Created record in ${tableName}`, { baseId, recordId: record.id });
 
     return record;
   }
 
+  /**
+   * Update an existing record
+   */
   async updateRecord(baseId: string, tableName: string, recordId: string, fields: Record<string, any>): Promise<AirtableRecord> {
-    logger.info('Updating Airtable record', { recordId });
+    this.logActivity('Updating Airtable record', { recordId });
 
     await this.simulateAPICall();
 
@@ -140,6 +179,9 @@ class AirtableIntegrationService {
     return record;
   }
 
+  /**
+   * Bulk create multiple records
+   */
   async bulkCreateRecords(baseId: string, tableName: string, records: Record<string, any>[]): Promise<AirtableRecord[]> {
     const createdRecords: AirtableRecord[] = [];
 
@@ -148,10 +190,13 @@ class AirtableIntegrationService {
       createdRecords.push(record);
     }
 
-    logger.info('Bulk create complete', { count: createdRecords.length });
+    this.logActivity('Bulk create complete', { count: createdRecords.length });
     return createdRecords;
   }
 
+  /**
+   * Sync content to Airtable content tracker
+   */
   async syncContentToAirtable(content: ContentRecord): Promise<AirtableRecord> {
     const baseId = 'base-content';
     const tableName = 'Content Tracker';
@@ -167,8 +212,11 @@ class AirtableIntegrationService {
     });
   }
 
+  /**
+   * Query records with optional filter formula
+   */
   async queryRecords(baseId: string, tableName: string, filterFormula?: string): Promise<AirtableRecord[]> {
-    logger.info('Querying Airtable records', { baseId, tableName, filterFormula });
+    this.logActivity('Querying Airtable records', { baseId, tableName, filterFormula });
 
     await this.simulateAPICall();
 
@@ -178,6 +226,9 @@ class AirtableIntegrationService {
     return table?.records || [];
   }
 
+  /**
+   * Generate report for a table
+   */
   async generateReport(baseId: string, tableName: string): Promise<{ totalRecords: number; summary: Record<string, any> }> {
     const records = await this.queryRecords(baseId, tableName);
 
@@ -190,6 +241,10 @@ class AirtableIntegrationService {
 
     return { totalRecords: records.length, summary };
   }
+
+  // ========================================
+  // MOCK DATA (Demo mode)
+  // ========================================
 
   private generateMockBases(): AirtableBase[] {
     return [
@@ -247,12 +302,11 @@ class AirtableIntegrationService {
     ];
   }
 
-  private async simulateAPICall(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-
+  /**
+   * Quick test for demo purposes
+   */
   async quickTest() {
-    this.setAPIKey('demo_airtable_key');
+    this.setAccessToken('demo_airtable_key');
 
     const bases = await this.getBases();
     const table = await this.getTable('base-content', 'Content Tracker');
@@ -286,10 +340,8 @@ class AirtableIntegrationService {
   }
 }
 
+// Export singleton instance
 export const airtableIntegrationService = new AirtableIntegrationService();
 
-if (typeof window !== 'undefined') {
-  setTimeout(() => airtableIntegrationService.connectFromVault(), 100);
-}
-
-if (typeof window !== 'undefined') (window as any).testAirtableIntegration = () => airtableIntegrationService.quickTest();
+// Auto-initialize from credential vault
+autoInitializeService(airtableIntegrationService);
