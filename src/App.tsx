@@ -62,7 +62,7 @@
  */
 import { Component, ErrorInfo, ReactNode } from 'react';
 import * as React from 'react';
-import LLMRevenueCommandCenter from './components/LLMOptimizer/LLMRevenueCommandCenter';
+import { UnifiedDashboard } from './components/Dashboard/UnifiedDashboard';
 import UpdateNotification from './components/System/UpdateNotification';
 import WindowControls from './components/System/WindowControls';
 import ItorToolbar from './components/Agents/ItorToolbar';
@@ -309,7 +309,7 @@ function App() {
             <WindowControls />
           </div>
           <ItorToolbar />
-          <LLMRevenueCommandCenter />
+          <UnifiedDashboard />
           <UpdateNotification />
 
           {/* Production Features */}

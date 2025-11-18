@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import { CredentialVault } from '../Settings/CredentialVault';
-import { IdleRevenueDashboard } from '../IdleComputing/IdleRevenueDashboard';
-import { AgentGrid } from '../Agents/AgentChat';
-import { IntegrationTestDashboard } from '../Testing/IntegrationTestDashboard';
-import { SetupLauncher } from '../Setup/GuidedSetupWizard';
-import { AIIntelligenceDashboard } from './AIIntelligenceDashboard';
-import { MasterRevenueDashboard } from '../Revenue/MasterRevenueDashboard';
-import FinancialDashboard from '../BackOffice/FinancialDashboard';
-import WealthLab from '../LLMOptimizer/WealthLab/WealthLab';
-import IdeaLab from '../LLMOptimizer/IdeaLab';
-import GoogleAIHub from '../LLMOptimizer/GoogleAIHub';
+import React, { useState, lazy, Suspense, memo } from 'react';
+
+// Lazy load all heavy components for optimal bundle splitting
+const CredentialVault = lazy(() => import('../Settings/CredentialVault').then(m => ({ default: m.CredentialVault })));
+const IdleRevenueDashboard = lazy(() => import('../IdleComputing/IdleRevenueDashboard').then(m => ({ default: m.IdleRevenueDashboard })));
+const AgentGrid = lazy(() => import('../Agents/AgentChat').then(m => ({ default: m.AgentGrid })));
+const IntegrationTestDashboard = lazy(() => import('../Testing/IntegrationTestDashboard').then(m => ({ default: m.IntegrationTestDashboard })));
+const SetupLauncher = lazy(() => import('../Setup/GuidedSetupWizard').then(m => ({ default: m.SetupLauncher })));
+const AIIntelligenceDashboard = lazy(() => import('./AIIntelligenceDashboard').then(m => ({ default: m.AIIntelligenceDashboard })));
+const MasterRevenueDashboard = lazy(() => import('../Revenue/MasterRevenueDashboard').then(m => ({ default: m.MasterRevenueDashboard })));
+const FinancialDashboard = lazy(() => import('../BackOffice/FinancialDashboard'));
+const WealthLab = lazy(() => import('../LLMOptimizer/WealthLab/WealthLab'));
+const IdeaLab = lazy(() => import('../LLMOptimizer/IdeaLab'));
+const GoogleAIHub = lazy(() => import('../LLMOptimizer/GoogleAIHub'));
 
 type TabId = 'overview' | 'intelligence' | 'credentials' | 'idle' | 'agents' | 'testing' | 'setup' | 'revenue' | 'backoffice' | 'wealth' | 'ideas' | 'googleai';
 
@@ -20,7 +22,31 @@ interface Tab {
   badge?: number;
 }
 
-export const UnifiedDashboard: React.FC = () => {
+// Loading fallback with skeleton
+const TabLoadingFallback = () => (
+  <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '30px 20px' }}>
+    <div style={{
+      background: 'white',
+      borderRadius: '12px',
+      padding: '40px',
+      textAlign: 'center',
+      border: '1px solid #e5e7eb'
+    }}>
+      <div className="loading-spinner" style={{
+        width: '40px',
+        height: '40px',
+        border: '4px solid #f3f4f6',
+        borderTop: '4px solid #3b82f6',
+        borderRadius: '50%',
+        margin: '0 auto 20px',
+        animation: 'spin 1s linear infinite'
+      }}></div>
+      <p style={{ color: '#6b7280', fontSize: '16px', margin: 0 }}>Loading...</p>
+    </div>
+  </div>
+);
+
+export const UnifiedDashboard: React.FC = memo(() => {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
   const tabs: Tab[] = [
@@ -43,27 +69,27 @@ export const UnifiedDashboard: React.FC = () => {
       case 'overview':
         return <OverviewTab setActiveTab={setActiveTab} />;
       case 'revenue':
-        return <MasterRevenueDashboard />;
+        return <Suspense fallback={<TabLoadingFallback />}><MasterRevenueDashboard /></Suspense>;
       case 'backoffice':
-        return <FinancialDashboard />;
+        return <Suspense fallback={<TabLoadingFallback />}><FinancialDashboard /></Suspense>;
       case 'wealth':
-        return <WealthLab />;
+        return <Suspense fallback={<TabLoadingFallback />}><WealthLab /></Suspense>;
       case 'ideas':
-        return <IdeaLab />;
+        return <Suspense fallback={<TabLoadingFallback />}><IdeaLab /></Suspense>;
       case 'googleai':
-        return <GoogleAIHub />;
+        return <Suspense fallback={<TabLoadingFallback />}><GoogleAIHub /></Suspense>;
       case 'intelligence':
-        return <AIIntelligenceDashboard />;
+        return <Suspense fallback={<TabLoadingFallback />}><AIIntelligenceDashboard /></Suspense>;
       case 'credentials':
-        return <CredentialVault />;
+        return <Suspense fallback={<TabLoadingFallback />}><CredentialVault /></Suspense>;
       case 'idle':
-        return <IdleRevenueDashboard />;
+        return <Suspense fallback={<TabLoadingFallback />}><IdleRevenueDashboard /></Suspense>;
       case 'agents':
-        return <AgentGrid />;
+        return <Suspense fallback={<TabLoadingFallback />}><AgentGrid /></Suspense>;
       case 'testing':
-        return <IntegrationTestDashboard />;
+        return <Suspense fallback={<TabLoadingFallback />}><IntegrationTestDashboard /></Suspense>;
       case 'setup':
-        return <SetupLauncher />;
+        return <Suspense fallback={<TabLoadingFallback />}><SetupLauncher /></Suspense>;
       default:
         return <OverviewTab setActiveTab={setActiveTab} />;
     }
@@ -163,11 +189,21 @@ export const UnifiedDashboard: React.FC = () => {
       <div>
         {renderTabContent()}
       </div>
+
+      {/* Add keyframes for spinner */}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
-};
+});
 
-const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = ({ setActiveTab }) => {
+UnifiedDashboard.displayName = 'UnifiedDashboard';
+
+const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ setActiveTab }) => {
   const quickStats = [
     { label: 'Total Revenue', value: '$2,847.32', change: '+12.5%', icon: '💰', color: '#10b981' },
     { label: 'Content Published', value: '142', change: '+8', icon: '📝', color: '#3b82f6' },
@@ -341,7 +377,9 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = ({ setActi
       </div>
     </div>
   );
-};
+});
+
+OverviewTab.displayName = 'OverviewTab';
 
 interface FeatureCardProps {
   icon: string;
@@ -352,7 +390,7 @@ interface FeatureCardProps {
   onClick?: () => void;
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, action, gradient, onClick }) => (
+const FeatureCard: React.FC<FeatureCardProps> = memo(({ icon, title, description, action, gradient, onClick }) => (
   <div
     style={{
       padding: '25px',
@@ -394,7 +432,9 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, act
       {action} →
     </button>
   </div>
-);
+));
+
+FeatureCard.displayName = 'FeatureCard';
 
 interface ActivityItemProps {
   icon: string;
@@ -404,7 +444,7 @@ interface ActivityItemProps {
   color: string;
 }
 
-const ActivityItem: React.FC<ActivityItemProps> = ({ icon, title, description, time, color }) => (
+const ActivityItem: React.FC<ActivityItemProps> = memo(({ icon, title, description, time, color }) => (
   <div
     style={{
       padding: '20px',
@@ -434,4 +474,6 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ icon, title, description, t
     </div>
     <div style={{ fontSize: '12px', color: '#9ca3af' }}>{time}</div>
   </div>
-);
+));
+
+ActivityItem.displayName = 'ActivityItem';
