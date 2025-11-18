@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Shield, Zap, Cloud, Sparkles } from 'lucide-react';
+import { Shield, Zap, Cloud, Sparkles, DollarSign } from 'lucide-react';
 import { llmRouter } from '@/services/ai/router';
 import '../../styles/LLMOptimizer.css';
 
-type ProviderStrategy = 'local-only' | 'local-first' | 'cloud-fallback' | 'hybrid';
+type ProviderStrategy = 'local-only' | 'local-first' | 'cloud-fallback' | 'hybrid' | 'gemini-first';
 
 interface StrategyOption {
   id: ProviderStrategy;
@@ -12,9 +12,21 @@ interface StrategyOption {
   description: string;
   pros: string[];
   cons: string[];
+  recommended?: boolean;
+  free?: boolean;
 }
 
 const strategies: StrategyOption[] = [
+  {
+    id: 'gemini-first',
+    name: 'Gemini First (FREE)',
+    icon: <Sparkles size={20} style={{ color: '#4285F4' }} />,
+    description: 'Try Gemini → LM Studio → Ollama → Others (Recommended)',
+    pros: ['100% FREE defaults', 'No surprise costs', 'Gemini: 1,500 requests/day', 'Always available'],
+    cons: ['Requires Gemini API key', 'Cloud latency'],
+    recommended: true,
+    free: true,
+  },
   {
     id: 'local-only',
     name: 'Local Only',
@@ -22,6 +34,7 @@ const strategies: StrategyOption[] = [
     description: 'Never use cloud - maximum privacy',
     pros: ['100% privacy', 'No API costs', 'Works offline'],
     cons: ['Fails if local unavailable', 'Limited to local models'],
+    free: true,
   },
   {
     id: 'local-first',
@@ -30,27 +43,28 @@ const strategies: StrategyOption[] = [
     description: 'Prefer local, fail if unavailable',
     pros: ['Fast local inference', 'No costs when working', 'Privacy first'],
     cons: ['No fallback', 'Fails if Ollama/LM Studio down'],
+    free: true,
   },
   {
     id: 'cloud-fallback',
     name: 'Cloud Fallback',
     icon: <Cloud size={20} />,
-    description: 'Try local, use cloud if needed (Recommended)',
+    description: 'Try local, use OpenRouter if needed',
     pros: ['Always available', 'Best of both worlds', 'Automatic fallback'],
     cons: ['May incur cloud costs', 'Requires OpenRouter key'],
   },
   {
     id: 'hybrid',
     name: 'Hybrid',
-    icon: <Sparkles size={20} />,
+    icon: <DollarSign size={20} />,
     description: 'Auto-choose best for each task',
     pros: ['Optimal performance', 'Task-aware routing', 'Flexible'],
-    cons: ['More complex', 'Requires configuration'],
+    cons: ['More complex', 'May cost money'],
   },
 ];
 
 const StrategySelector = () => {
-  const [selectedStrategy, setSelectedStrategy] = useState<ProviderStrategy>('cloud-fallback');
+  const [selectedStrategy, setSelectedStrategy] = useState<ProviderStrategy>('gemini-first');
 
   // Load strategy from localStorage first, then sync with router
   useEffect(() => {

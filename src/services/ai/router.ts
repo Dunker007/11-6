@@ -95,12 +95,12 @@ import { logger } from '@/services/logging/loggerService';
 
 export type { LLMProvider };
 
-type ProviderStrategy = 'local-only' | 'local-first' | 'cloud-fallback' | 'hybrid';
+type ProviderStrategy = 'local-only' | 'local-first' | 'cloud-fallback' | 'hybrid' | 'gemini-first';
 
 export class LLMRouter {
   private providers: Map<string, LLMProvider> = new Map();
-  private preferredProvider: 'lmstudio' | 'ollama' | 'ollama-cloud' | 'gemini' | 'notebooklm' | 'openrouter' | null = null;
-  private strategy: ProviderStrategy = 'cloud-fallback'; // Default to cloud fallback for reliability
+  private preferredProvider: 'lmstudio' | 'ollama' | 'ollama-cloud' | 'gemini' | 'notebooklm' | 'openrouter' | null = 'gemini'; // Default to Gemini (free tier)
+  private strategy: ProviderStrategy = 'gemini-first'; // Default to Gemini-first strategy (FREE)
   private openRouterProvider: OpenRouterProvider = new OpenRouterProvider();
   private studioContext: boolean = false; // Track if Studio is active
   private providerHealthCache: Map<string, { status: boolean; timestamp: number }> = new Map();
@@ -116,19 +116,24 @@ export class LLMRouter {
     this.providers.set('notebooklm', new NotebookLMProvider());
     this.providers.set('openrouter', this.openRouterProvider);
     this.providers.set('ollama-cloud', new OllamaCloudProvider());
-    
+
     // Load saved strategy from localStorage
     try {
       const savedStrategy = localStorage.getItem('llm-strategy');
-      if (savedStrategy && ['local-only', 'local-first', 'cloud-fallback', 'hybrid'].includes(savedStrategy)) {
+      const validStrategies = ['local-only', 'local-first', 'cloud-fallback', 'hybrid', 'gemini-first'];
+      if (savedStrategy && validStrategies.includes(savedStrategy)) {
         this.strategy = savedStrategy as ProviderStrategy;
       } else {
-        // Default to local-first if no saved strategy
-        this.strategy = 'local-first';
+        // DEFAULT TO GEMINI-FIRST (FREE TIER - 1,500 requests/day)
+        // Fallback chain: Gemini → LM Studio → Ollama → Others
+        // Never defaults to paid APIs
+        this.strategy = 'gemini-first';
+        // Save this as the default
+        localStorage.setItem('llm-strategy', 'gemini-first');
       }
     } catch (error) {
       // Continue with default strategy if localStorage access fails
-      this.strategy = 'local-first';
+      this.strategy = 'gemini-first';
     }
 
     // Don't call setStrategy() here - it uses activityService which may not be initialized yet
@@ -515,6 +520,43 @@ export class LLMRouter {
     const taskAwareProvider = await this.selectModelForTask(options?.taskType);
     if (taskAwareProvider) {
       return taskAwareProvider;
+    }
+
+    // Strategy 0: gemini-first (DEFAULT) - Try Gemini → LM Studio → Ollama → Others
+    // This is the COST-SAFE default that prioritizes FREE options
+    if (this.strategy === 'gemini-first') {
+      // 1. Try Gemini first (FREE - 1,500 requests/day)
+      const gemini = this.providers.get('gemini');
+      if (gemini && await this.isProviderHealthy('gemini', gemini)) {
+        logger.info('Using Gemini (FREE tier)');
+        return gemini;
+      }
+
+      // 2. Fallback to LM Studio (FREE local)
+      const lmstudio = this.providers.get('lmstudio');
+      if (lmstudio && await this.isProviderHealthy('lmstudio', lmstudio)) {
+        logger.info('Using LM Studio (FREE local)');
+        return lmstudio;
+      }
+
+      // 3. Fallback to Ollama (FREE local)
+      const ollama = this.providers.get('ollama');
+      if (ollama && await this.isProviderHealthy('ollama', ollama)) {
+        logger.info('Using Ollama (FREE local)');
+        return ollama;
+      }
+
+      // 4. Last resort: Ollama Cloud (still free)
+      const ollamaCloud = this.providers.get('ollama-cloud');
+      if (ollamaCloud && await this.isProviderHealthy('ollama-cloud', ollamaCloud)) {
+        logger.info('Using Ollama Cloud (FREE)');
+        return ollamaCloud;
+      }
+
+      // NOTE: We do NOT fallback to OpenRouter by default (it costs money)
+      // User must explicitly opt-in to paid services
+      logger.warn('No free AI providers available. Please configure Gemini API key, or install LM Studio/Ollama.');
+      return null;
     }
 
     // Strategy 1: local-only - Only try Ollama/LM Studio

@@ -1,11 +1,22 @@
 /**
- * githubIntegrationService.ts
+ * GitHub Integration Service
+ *
+ * PURPOSE:
  * GitHub integration for automated repo management and issue tracking.
+ * Supports both API token and Google OAuth authentication.
+ *
+ * FEATURES:
+ * - Repository management
+ * - Issue tracking and creation
+ * - Release management
+ * - Content syncing
+ * - Google OAuth support
+ *
+ * COST: Free (GitHub API has rate limits but no cost)
  */
 
+import { BaseIntegrationService, GoogleOAuthConfig, autoInitializeService } from './BaseIntegrationService';
 import { logger } from '../logging/loggerService';
-import { activityService } from '../activity/activityService';
-import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface GitHubRepo {
   id: string;
@@ -43,66 +54,45 @@ export interface GitHubRelease {
   publishedAt?: Date;
 }
 
-class GitHubIntegrationService {
-  private accessToken?: string;
+class GitHubIntegrationService extends BaseIntegrationService {
   private repos: GitHubRepo[] = [];
   private issues: GitHubIssue[] = [];
 
-  setAccessToken(token: string) {
-    this.accessToken = token;
-    logger.info('GitHub access token configured');
+  // ========================================
+  // BASE CLASS IMPLEMENTATION
+  // ========================================
+
+  getServiceId(): string {
+    return 'github';
   }
 
-  /**
-   * Check if GitHub is connected
-   */
-  isConnected(): boolean {
-    return this.accessToken !== undefined;
+  getServiceName(): string {
+    return 'GitHub';
   }
 
-  /**
-   * Connect from credential vault
-   */
-  connectFromVault(): boolean {
-    const creds = credentialVaultService.getCredentials('github');
-
-    if (creds && creds.credentials.accessToken) {
-      this.setAccessToken(creds.credentials.accessToken);
-      logger.info('GitHub auto-initialized from credential vault');
-      return true;
-    }
-
-    logger.warn('GitHub credentials not found in vault - using demo mode');
-    return false;
+  getBaseURL(): string {
+    return 'https://api.github.com';
   }
 
-  /**
-   * Get connection status
-   */
-  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
-    const hasVaultCreds = credentialVaultService.hasCredentials('github');
-    const isConnected = this.isConnected();
-
-    if (isConnected && hasVaultCreds) {
-      return {
-        connected: true,
-        hasCredentials: true,
-        message: 'Connected to GitHub',
-      };
-    } else if (hasVaultCreds && !isConnected) {
-      return {
-        connected: false,
-        hasCredentials: true,
-        message: 'Credentials available - click to connect',
-      };
-    } else {
-      return {
-        connected: false,
-        hasCredentials: false,
-        message: 'Demo mode - configure credentials in vault to connect',
-      };
-    }
+  getCostTier(): 'free' | 'paid' | 'metered' {
+    return 'free'; // GitHub API is free with rate limits
   }
+
+  supportsGoogleOAuth(): boolean {
+    return true; // GitHub supports OAuth
+  }
+
+  getGoogleOAuthConfig(): GoogleOAuthConfig | null {
+    return {
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      scopes: ['https://www.googleapis.com/auth/userinfo.email'],
+      redirectUri: `${window.location.origin}/oauth/callback`,
+    };
+  }
+
+  // ========================================
+  // GITHUB-SPECIFIC METHODS
+  // ========================================
 
   async getRepos(username?: string): Promise<GitHubRepo[]> {
     logger.info('Fetching GitHub repositories');
@@ -141,11 +131,7 @@ class GitHubIntegrationService {
 
     this.issues.push(issue);
 
-    activityService.logActivity({
-      type: 'github_issue_created',
-      message: `Created issue: ${title}`,
-      metadata: { repo },
-    });
+    this.logActivity(`Created issue: ${title}`, { repo });
 
     return issue;
   }
@@ -166,11 +152,7 @@ class GitHubIntegrationService {
       publishedAt: new Date(),
     };
 
-    activityService.logActivity({
-      type: 'github_release_created',
-      message: `Released version ${version}`,
-      metadata: { repo },
-    });
+    this.logActivity(`Released version ${version}`, { repo });
 
     return release;
   }
@@ -199,6 +181,10 @@ class GitHubIntegrationService {
 
     return stats;
   }
+
+  // ========================================
+  // MOCK DATA GENERATORS (for demo mode)
+  // ========================================
 
   private generateMockRepos(): GitHubRepo[] {
     return [
@@ -255,34 +241,13 @@ class GitHubIntegrationService {
     ];
   }
 
-  private async simulateAPICall(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-
-  async quickTest() {
-    this.setAccessToken('demo_token_123');
-
-    const repos = await this.getRepos('testuser');
-    const issues = await this.getIssues('dlx-studios');
-    const newIssue = await this.createIssue('dlx-studios', 'Test automation feature', 'Adding automated testing', ['enhancement']);
-    const stats = await this.trackRepoStats(['dlx-studios', 'content-automation']);
-
-    return {
-      repos,
-      issues,
-      newIssue,
-      stats: Object.fromEntries(stats),
-    };
-  }
 }
+
+// ========================================
+// SINGLETON EXPORT
+// ========================================
 
 export const githubIntegrationService = new GitHubIntegrationService();
 
 // Auto-initialize from credential vault if available
-if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    githubIntegrationService.connectFromVault();
-  }, 100);
-}
-
-if (typeof window !== 'undefined') (window as any).testGitHubIntegration = () => githubIntegrationService.quickTest();
+autoInitializeService(githubIntegrationService);

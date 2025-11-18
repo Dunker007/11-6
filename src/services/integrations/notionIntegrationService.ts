@@ -1,11 +1,22 @@
 /**
- * notionIntegrationService.ts
+ * Notion Integration Service
+ *
+ * PURPOSE:
  * Notion integration for knowledge management and content documentation.
+ * Supports both API key and Google OAuth authentication.
+ *
+ * FEATURES:
+ * - Database management and queries
+ * - Page creation and updates
+ * - Content syncing
+ * - Bulk export
+ * - Google OAuth support
+ *
+ * COST: Free (Notion API is free with generous limits)
  */
 
+import { BaseIntegrationService, GoogleOAuthConfig, autoInitializeService } from './BaseIntegrationService';
 import { logger } from '../logging/loggerService';
-import { activityService } from '../activity/activityService';
-import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface NotionPage {
   id: string;
@@ -40,66 +51,45 @@ export interface ContentToNotion {
   publishDate?: Date;
 }
 
-class NotionIntegrationService {
-  private accessToken?: string;
+class NotionIntegrationService extends BaseIntegrationService {
   private databases: NotionDatabase[] = [];
   private pages: NotionPage[] = [];
 
-  setAccessToken(token: string) {
-    this.accessToken = token;
-    logger.info('Notion access token configured');
+  // ========================================
+  // BASE CLASS IMPLEMENTATION
+  // ========================================
+
+  getServiceId(): string {
+    return 'notion';
   }
 
-  /**
-   * Check if Notion is connected
-   */
-  isConnected(): boolean {
-    return this.accessToken !== undefined;
+  getServiceName(): string {
+    return 'Notion';
   }
 
-  /**
-   * Connect from credential vault
-   */
-  connectFromVault(): boolean {
-    const creds = credentialVaultService.getCredentials('notion');
-
-    if (creds && creds.credentials.apiKey) {
-      this.setAccessToken(creds.credentials.apiKey);
-      logger.info('Notion auto-initialized from credential vault');
-      return true;
-    }
-
-    logger.warn('Notion credentials not found in vault - using demo mode');
-    return false;
+  getBaseURL(): string {
+    return 'https://api.notion.com/v1';
   }
 
-  /**
-   * Get connection status
-   */
-  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
-    const hasVaultCreds = credentialVaultService.hasCredentials('notion');
-    const isConnected = this.isConnected();
-
-    if (isConnected && hasVaultCreds) {
-      return {
-        connected: true,
-        hasCredentials: true,
-        message: 'Connected to Notion',
-      };
-    } else if (hasVaultCreds && !isConnected) {
-      return {
-        connected: false,
-        hasCredentials: true,
-        message: 'Credentials available - click to connect',
-      };
-    } else {
-      return {
-        connected: false,
-        hasCredentials: false,
-        message: 'Demo mode - configure credentials in vault to connect',
-      };
-    }
+  getCostTier(): 'free' | 'paid' | 'metered' {
+    return 'free'; // Notion API is free
   }
+
+  supportsGoogleOAuth(): boolean {
+    return true; // Notion supports OAuth
+  }
+
+  getGoogleOAuthConfig(): GoogleOAuthConfig | null {
+    return {
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      scopes: ['https://www.googleapis.com/auth/userinfo.email'],
+      redirectUri: `${window.location.origin}/oauth/callback`,
+    };
+  }
+
+  // ========================================
+  // NOTION-SPECIFIC METHODS
+  // ========================================
 
   async getDatabases(): Promise<NotionDatabase[]> {
     logger.info('Fetching Notion databases');
@@ -132,11 +122,7 @@ class NotionIntegrationService {
 
     this.pages.push(page);
 
-    activityService.logActivity({
-      type: 'notion_page_created',
-      message: `Created Notion page: ${content.title}`,
-      metadata: { databaseId },
-    });
+    this.logActivity(`Created page: ${content.title}`, { databaseId });
 
     return page;
   }
@@ -240,49 +226,13 @@ class NotionIntegrationService {
     ];
   }
 
-  private async simulateAPICall(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-
-  async quickTest() {
-    this.setAccessToken('demo_notion_token');
-
-    const databases = await this.getDatabases();
-
-    const page1 = await this.createPage('db-content', {
-      title: 'Complete Guide to Passive Income',
-      content: 'Learn how to build multiple revenue streams...',
-      tags: ['passive income', 'guide'],
-      status: 'Published',
-    });
-
-    const page2 = await this.createPage('db-content', {
-      title: 'AI Automation Tools Review',
-      content: 'Top 10 AI tools for content creators...',
-      tags: ['ai', 'tools'],
-      status: 'Draft',
-    });
-
-    const updatedPage = await this.updatePage(page1.id, {
-      status: 'Updated',
-    });
-
-    return {
-      databases,
-      pages: [page1, page2],
-      updatedPage,
-      totalPages: this.pages.length,
-    };
-  }
 }
+
+// ========================================
+// SINGLETON EXPORT
+// ========================================
 
 export const notionIntegrationService = new NotionIntegrationService();
 
 // Auto-initialize from credential vault if available
-if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    notionIntegrationService.connectFromVault();
-  }, 100);
-}
-
-if (typeof window !== 'undefined') (window as any).testNotionIntegration = () => notionIntegrationService.quickTest();
+autoInitializeService(notionIntegrationService);
