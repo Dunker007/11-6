@@ -76,3 +76,47 @@ export function memoize<T extends (...args: any[]) => any>(fn: T): T {
     return result;
   }) as T;
 }
+
+/**
+ * Performance monitoring
+ */
+interface SlowOperation {
+  name: string;
+  duration: number;
+  timestamp: number;
+}
+
+const slowOperations: SlowOperation[] = [];
+const SLOW_THRESHOLD = 100; // ms
+
+export function logSlowOperation(name: string, duration: number): void {
+  if (duration > SLOW_THRESHOLD) {
+    slowOperations.push({ name, duration, timestamp: Date.now() });
+    console.warn(`Slow operation: ${name} took ${duration}ms`);
+  }
+}
+
+export function getSlowOperations(): SlowOperation[] {
+  return [...slowOperations];
+}
+
+export async function measureAsync<T>(
+  name: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  const start = performance.now();
+  try {
+    return await fn();
+  } finally {
+    const duration = performance.now() - start;
+    logSlowOperation(name, duration);
+  }
+}
+
+export function measureRender(componentName: string): () => void {
+  const start = performance.now();
+  return () => {
+    const duration = performance.now() - start;
+    logSlowOperation(`Render: ${componentName}`, duration);
+  };
+}
