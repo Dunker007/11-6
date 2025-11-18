@@ -100,7 +100,7 @@ class AgentOrchestratorService {
    */
   initialize() {
     // Set up agent performance tracking for all agents
-    const agents = specialtyAgentService.getAgents();
+    const agents = specialtyAgentService.getAllAgents();
 
     agents.forEach(agent => {
       if (!this.agentPerformance.has(agent.id)) {
@@ -481,7 +481,7 @@ class AgentOrchestratorService {
    * Suggest best agent for task
    */
   suggestAgentForTask(taskDescription: string, taskType?: string): { agentId: string; confidence: number; reason: string } {
-    const agents = specialtyAgentService.getAgents();
+    const agents = specialtyAgentService.getAllAgents();
 
     // Score each agent
     const scores = agents.map(agent => {

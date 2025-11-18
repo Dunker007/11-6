@@ -96,9 +96,9 @@ export const UnifiedDashboard: React.FC = memo(() => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fafafa' }}>
+    <div className="unified-dashboard" style={{ minHeight: '100vh', overflow: 'auto' }}>
       {/* Header */}
-      <div style={{ background: 'white', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 100 }}>
+      <div className="unified-dashboard-header" style={{ position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div>
