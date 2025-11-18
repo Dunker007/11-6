@@ -41,10 +41,11 @@ export default [
       ...prettier.rules,
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
-      'react-hooks/set-state-in-effect': 'warn',
       'no-unreachable': 'warn',
       'no-prototype-builtins': 'warn',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prefer-const': 'warn',
+      'no-var': 'error',
     },
   },
 ];
