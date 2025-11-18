@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { credentialVaultService, ServiceCredentials, ConnectionTest } from '../../services/credentials/credentialVaultService';
 
-export const CredentialVault: React.FC = () => {
+export const CredentialVault: React.FC = React.memo(() => {
   const [credentials, setCredentials] = useState<ServiceCredentials[]>([]);
   const [editingService, setEditingService] = useState<ServiceCredentials | null>(null);
   const [testResults, setTestResults] = useState<Map<string, ConnectionTest>>(new Map());
   const [isTestingAll, setIsTestingAll] = useState(false);
   const [filter, setFilter] = useState<'all' | ServiceCredentials['category']>('all');
+
+  // Memoize loadCredentials to prevent re-creation on every render
+  const loadCredentials = useCallback(() => {
+    const allCreds = credentialVaultService.getAllCredentials();
+    setCredentials(allCreds);
+  }, []);
 
   useEffect(() => {
     loadCredentials();
@@ -16,32 +22,27 @@ export const CredentialVault: React.FC = () => {
     });
 
     return unsubscribe;
+  }, [loadCredentials]);
+
+  const handleEditService = useCallback((service: ServiceCredentials) => {
+    setEditingService({ ...service });
   }, []);
 
-  const loadCredentials = () => {
-    const allCreds = credentialVaultService.getAllCredentials();
-    setCredentials(allCreds);
-  };
-
-  const handleEditService = (service: ServiceCredentials) => {
-    setEditingService({ ...service });
-  };
-
-  const handleSaveCredentials = () => {
+  const handleSaveCredentials = useCallback(() => {
     if (!editingService) return;
 
     credentialVaultService.setCredentials(editingService.serviceId, editingService.credentials);
     setEditingService(null);
     loadCredentials();
-  };
+  }, [editingService, loadCredentials]);
 
-  const handleTestConnection = async (serviceId: string) => {
+  const handleTestConnection = useCallback(async (serviceId: string) => {
     const result = await credentialVaultService.testConnection(serviceId);
     setTestResults(prev => new Map(prev).set(serviceId, result));
     loadCredentials();
-  };
+  }, [loadCredentials]);
 
-  const handleTestAll = async () => {
+  const handleTestAll = useCallback(async () => {
     setIsTestingAll(true);
     const results = await credentialVaultService.testAllConnections();
 
@@ -51,16 +52,16 @@ export const CredentialVault: React.FC = () => {
 
     setIsTestingAll(false);
     loadCredentials();
-  };
+  }, [loadCredentials]);
 
-  const handleClearCredentials = (serviceId: string) => {
+  const handleClearCredentials = useCallback((serviceId: string) => {
     if (confirm(`Clear credentials for ${serviceId}?`)) {
       credentialVaultService.clearCredentials(serviceId);
       loadCredentials();
     }
-  };
+  }, [loadCredentials]);
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     const exported = credentialVaultService.exportCredentials();
     const blob = new Blob([JSON.stringify(exported, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -69,9 +70,9 @@ export const CredentialVault: React.FC = () => {
     a.download = `dlx-credentials-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  };
+  }, []);
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -87,9 +88,9 @@ export const CredentialVault: React.FC = () => {
       }
     };
     reader.readAsText(file);
-  };
+  }, [loadCredentials]);
 
-  const getStatusIcon = (status: ServiceCredentials['status']) => {
+  const getStatusIcon = useCallback((status: ServiceCredentials['status']) => {
     switch (status) {
       case 'connected':
         return '🟢';
@@ -102,9 +103,9 @@ export const CredentialVault: React.FC = () => {
       default:
         return '⚪';
     }
-  };
+  }, []);
 
-  const getStatusColor = (status: ServiceCredentials['status']) => {
+  const getStatusColor = useCallback((status: ServiceCredentials['status']) => {
     switch (status) {
       case 'connected':
         return '#10b981';
@@ -117,13 +118,16 @@ export const CredentialVault: React.FC = () => {
       default:
         return '#9ca3af';
     }
-  };
+  }, []);
 
-  const filteredCredentials = filter === 'all'
-    ? credentials
-    : credentials.filter(c => c.category === filter);
+  // Memoize filtered credentials to prevent re-filtering on every render
+  const filteredCredentials = useMemo(
+    () => filter === 'all' ? credentials : credentials.filter(c => c.category === filter),
+    [credentials, filter]
+  );
 
-  const stats = credentialVaultService.getConnectionStats();
+  // Memoize stats to prevent re-calculation on every render
+  const stats = useMemo(() => credentialVaultService.getConnectionStats(), [credentials]);
 
   return (
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -450,4 +454,4 @@ export const CredentialVault: React.FC = () => {
       )}
     </div>
   );
-};
+});

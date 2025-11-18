@@ -78,7 +78,7 @@
  * - Multi-model conversations
  * - Voice input/output
  */
-import { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLLMStore } from '../../services/ai/llmStore';
 import { useProjectStore } from '../../services/project/projectStore';
 import { projectKnowledgeService } from '../../services/ai/projectKnowledgeService';
@@ -121,7 +121,7 @@ interface Message {
   timestamp: Date;
 }
 
-function AIAssistant() {
+const AIAssistant = React.memo(() => {
   const { streamGenerate, isLoading, activeModel, models } = useLLMStore();
   const { activeProject, getFileContent, activeFile } = useProjectStore();
   const { setEdStatus } = useAgentStore();
@@ -151,12 +151,23 @@ function AIAssistant() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // Track timeouts for cleanup on unmount (prevents memory leaks)
+  const timeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
+
   // Check if Gemini is available and active
   const isGeminiActive = useMemo(() => {
     return activeModel?.provider === 'gemini' &&
            models.some(m => m.provider === 'gemini' && m.isAvailable) &&
            keys.some(k => k.provider === 'gemini' && k.isValid);
   }, [activeModel, models, keys]);
+
+  // Cleanup all timeouts on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.clear();
+    };
+  }, []);
 
   // Load conversation from memory on mount
   useEffect(() => {
@@ -576,7 +587,12 @@ function AIAssistant() {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsStreaming(false);
-      setTimeout(() => setEdStatus('idle'), 2000); // Reset to idle after 2 seconds
+      // Reset to idle after 2 seconds (track timeout for cleanup)
+      const timeout = setTimeout(() => {
+        setEdStatus('idle');
+        timeoutsRef.current.delete(timeout);
+      }, 2000);
+      timeoutsRef.current.add(timeout);
     }
   };
 
@@ -605,7 +621,12 @@ function AIAssistant() {
   const handleCopyCode = (messageId: string, content: string) => {
     navigator.clipboard.writeText(content);
     setCopiedMessageId(messageId);
-    setTimeout(() => setCopiedMessageId(null), 2000);
+    // Reset copied state after 2 seconds (track timeout for cleanup)
+    const timeout = setTimeout(() => {
+      setCopiedMessageId(null);
+      timeoutsRef.current.delete(timeout);
+    }, 2000);
+    timeoutsRef.current.add(timeout);
   };
 
   return (
@@ -842,6 +863,6 @@ function AIAssistant() {
       </div>
     </div>
   );
-}
+});
 
 export default AIAssistant;
