@@ -4,5 +4,20 @@
  */
 
 export { idleRevenueService } from './idleRevenueService';
+export { idleProfitMaximizerService } from './idleProfitMaximizerService';
 
-export type { IdleNetwork, ComputeResource, EarningsCalculation, PowerCost } from './idleRevenueService';
+export type {
+  IdleNetwork,
+  ComputeResource,
+  EarningsHistory,
+  PowerCost,
+  NetworkConfig,
+} from './idleRevenueService';
+
+export type {
+  ElectricityPricing,
+  NetworkProfitability,
+  ProfitOptimization,
+  HourlyPrediction,
+  ProfitAlert,
+} from './idleProfitMaximizerService';
