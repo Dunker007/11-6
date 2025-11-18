@@ -1,0 +1,378 @@
+/**
+ * CYBER BUTTON - Holographic button with neon effects
+ */
+
+.cyber-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.cyber-button:active {
+  transform: scale(0.98);
+}
+
+/* ========================================
+   BUTTON LAYERS
+   ======================================== */
+
+.cyber-button__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  transition: opacity var(--transition-base);
+}
+
+.cyber-button__border {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 2px;
+  background: var(--gradient-cyber);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  transition: opacity var(--transition-base);
+}
+
+.cyber-button__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.cyber-button__glow {
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+
+/* ========================================
+   VARIANTS
+   ======================================== */
+
+/* Primary (Cyan) */
+.cyber-button--primary {
+  background: linear-gradient(135deg, rgba(0, 255, 229, 0.1) 0%, rgba(0, 217, 255, 0.1) 100%);
+  color: var(--cyber-cyan-500);
+  border-radius: var(--radius-lg);
+}
+
+.cyber-button--primary .cyber-button__bg {
+  background: linear-gradient(135deg, rgba(0, 255, 229, 0.1) 0%, rgba(0, 217, 255, 0.1) 100%);
+}
+
+.cyber-button--primary .cyber-button__glow {
+  background: radial-gradient(circle at center, rgba(0, 255, 229, 0.4) 0%, transparent 70%);
+  filter: blur(20px);
+}
+
+.cyber-button--primary:hover .cyber-button__bg {
+  opacity: 1.5;
+}
+
+.cyber-button--primary:hover .cyber-button__border {
+  opacity: 1;
+}
+
+.cyber-button--primary:hover .cyber-button__glow {
+  opacity: 1;
+}
+
+.cyber-button--primary.cyber-button--glow {
+  box-shadow: 0 0 20px rgba(0, 255, 229, 0.3);
+}
+
+.cyber-button--primary.cyber-button--glow:hover {
+  box-shadow: 0 0 40px rgba(0, 255, 229, 0.6);
+}
+
+/* Secondary (Purple) */
+.cyber-button--secondary {
+  background: linear-gradient(135deg, rgba(255, 0, 255, 0.1) 0%, rgba(217, 70, 239, 0.1) 100%);
+  color: var(--cyber-purple-500);
+  border-radius: var(--radius-lg);
+}
+
+.cyber-button--secondary .cyber-button__bg {
+  background: linear-gradient(135deg, rgba(255, 0, 255, 0.1) 0%, rgba(217, 70, 239, 0.1) 100%);
+}
+
+.cyber-button--secondary .cyber-button__glow {
+  background: radial-gradient(circle at center, rgba(255, 0, 255, 0.4) 0%, transparent 70%);
+  filter: blur(20px);
+}
+
+.cyber-button--secondary:hover .cyber-button__border {
+  opacity: 1;
+}
+
+.cyber-button--secondary:hover .cyber-button__glow {
+  opacity: 1;
+}
+
+.cyber-button--secondary.cyber-button--glow {
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+.cyber-button--secondary.cyber-button--glow:hover {
+  box-shadow: 0 0 40px rgba(255, 0, 255, 0.6);
+}
+
+/* Danger */
+.cyber-button--danger {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+  color: var(--status-error);
+  border-radius: var(--radius-lg);
+}
+
+.cyber-button--danger .cyber-button__bg {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+}
+
+.cyber-button--danger .cyber-button__border {
+  background: linear-gradient(135deg, var(--status-error) 0%, #dc2626 100%);
+}
+
+.cyber-button--danger .cyber-button__glow {
+  background: radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, transparent 70%);
+  filter: blur(20px);
+}
+
+.cyber-button--danger:hover .cyber-button__glow {
+  opacity: 1;
+}
+
+.cyber-button--danger.cyber-button--glow {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.cyber-button--danger.cyber-button--glow:hover {
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.6);
+}
+
+/* Ghost */
+.cyber-button--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.cyber-button--ghost .cyber-button__bg {
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 0;
+}
+
+.cyber-button--ghost .cyber-button__border {
+  opacity: 0;
+}
+
+.cyber-button--ghost:hover {
+  color: var(--cyber-cyan-500);
+}
+
+.cyber-button--ghost:hover .cyber-button__bg {
+  opacity: 1;
+}
+
+.cyber-button--ghost:hover .cyber-button__border {
+  opacity: 0.6;
+}
+
+/* Outline */
+.cyber-button--outline {
+  background: transparent;
+  color: var(--cyber-cyan-500);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border-default);
+}
+
+.cyber-button--outline .cyber-button__bg {
+  background: rgba(0, 255, 229, 0.05);
+  opacity: 0;
+}
+
+.cyber-button--outline .cyber-button__border {
+  opacity: 0;
+}
+
+.cyber-button--outline:hover {
+  border-color: var(--border-hover);
+}
+
+.cyber-button--outline:hover .cyber-button__bg {
+  opacity: 1;
+}
+
+.cyber-button--outline.cyber-button--glow:hover {
+  box-shadow: 0 0 30px rgba(0, 255, 229, 0.4);
+}
+
+/* ========================================
+   SIZES
+   ======================================== */
+
+.cyber-button--sm {
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-xs);
+  gap: var(--space-1);
+}
+
+.cyber-button--md {
+  height: 40px;
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+.cyber-button--lg {
+  height: 48px;
+  padding: 0 var(--space-6);
+  font-size: var(--font-size-base);
+}
+
+.cyber-button--xl {
+  height: 56px;
+  padding: 0 var(--space-8);
+  font-size: var(--font-size-lg);
+}
+
+/* ========================================
+   STATES
+   ======================================== */
+
+.cyber-button--full-width {
+  width: 100%;
+}
+
+.cyber-button--loading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.cyber-button--loading .cyber-button__text {
+  opacity: 0.5;
+}
+
+.cyber-button--disabled,
+.cyber-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ========================================
+   ICONS
+   ======================================== */
+
+.cyber-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyber-button__icon--left {
+  margin-right: calc(var(--space-2) * -0.5);
+}
+
+.cyber-button__icon--right {
+  margin-left: calc(var(--space-2) * -0.5);
+}
+
+.cyber-button__icon svg {
+  width: 1em;
+  height: 1em;
+}
+
+/* ========================================
+   SPINNER
+   ======================================== */
+
+.cyber-button__spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyber-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.cyber-button--lg .cyber-spinner {
+  width: 20px;
+  height: 20px;
+}
+
+.cyber-button--xl .cyber-spinner {
+  width: 24px;
+  height: 24px;
+}
+
+/* ========================================
+   RIPPLE EFFECT
+   ======================================== */
+
+.cyber-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.cyber-button:active::after {
+  transform: scale(1);
+  opacity: 1;
+  transition: transform 0s, opacity 0s;
+}
+
+/* ========================================
+   FOCUS STATES
+   ======================================== */
+
+.cyber-button:focus-visible {
+  outline: 2px solid var(--cyber-cyan-500);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .cyber-button {
+    transition: none;
+  }
+
+  .cyber-button::after {
+    display: none;
+  }
+}

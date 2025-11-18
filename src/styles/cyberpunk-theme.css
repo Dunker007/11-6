@@ -1,0 +1,419 @@
+/**
+ * DLX COMMAND CENTER - CYBERPUNK THEME
+ * A holographic, neon-powered design system
+ * Inspired by: JARVIS, Cyberpunk 2077, Tron Legacy
+ */
+
+:root {
+  /* ========================================
+     PRIMARY COLORS - Neon Cyber Palette
+     ======================================== */
+
+  /* Cyan/Turbo - Primary accent */
+  --cyber-cyan-50: #E0FFFC;
+  --cyber-cyan-100: #B8FFF8;
+  --cyber-cyan-200: #8CFFF3;
+  --cyber-cyan-300: #5CFFED;
+  --cyber-cyan-400: #2DFFE8;
+  --cyber-cyan-500: #00FFE5; /* Primary */
+  --cyber-cyan-600: #00D9FF;
+  --cyber-cyan-700: #00B8DB;
+  --cyber-cyan-800: #0097B8;
+  --cyber-cyan-900: #007694;
+
+  /* Purple/Magenta - Secondary accent */
+  --cyber-purple-50: #FCE0FF;
+  --cyber-purple-100: #F7B8FF;
+  --cyber-purple-200: #F38CFF;
+  --cyber-purple-300: #ED5CFF;
+  --cyber-purple-400: #E82DFF;
+  --cyber-purple-500: #FF00FF; /* Magenta */
+  --cyber-purple-600: #D946EF;
+  --cyber-purple-700: #B826D4;
+  --cyber-purple-800: #9610B8;
+  --cyber-purple-900: #75009C;
+
+  /* Deep Space - Backgrounds */
+  --cyber-space-50: #1F2937;
+  --cyber-space-100: #1A202E;
+  --cyber-space-200: #151A25;
+  --cyber-space-300: #11141F;
+  --cyber-space-400: #0E1119;
+  --cyber-space-500: #0A0E27; /* Primary background */
+  --cyber-space-600: #080B1F;
+  --cyber-space-700: #060917;
+  --cyber-space-800: #04060F;
+  --cyber-space-900: #020307;
+
+  /* ========================================
+     SEMANTIC COLORS
+     ======================================== */
+
+  /* Backgrounds */
+  --bg-space: #0A0E27;
+  --bg-dark: #111827;
+  --bg-panel: rgba(17, 24, 39, 0.8);
+  --bg-card: rgba(31, 41, 55, 0.9);
+  --bg-elevated: rgba(55, 65, 81, 0.95);
+  --bg-hover: rgba(75, 85, 99, 0.9);
+  --bg-glass: rgba(17, 24, 39, 0.6);
+
+  /* Text */
+  --text-primary: #E5E7EB;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #6B7280;
+  --text-inverse: #111827;
+  --text-neon-cyan: #00FFE5;
+  --text-neon-purple: #FF00FF;
+
+  /* Borders */
+  --border-default: rgba(0, 255, 229, 0.2);
+  --border-hover: rgba(0, 255, 229, 0.5);
+  --border-active: rgba(0, 255, 229, 0.8);
+  --border-purple: rgba(255, 0, 255, 0.3);
+  --border-glass: rgba(255, 255, 255, 0.1);
+
+  /* Shadows & Glows */
+  --glow-cyan: 0 0 20px rgba(0, 255, 229, 0.5);
+  --glow-cyan-strong: 0 0 40px rgba(0, 255, 229, 0.8);
+  --glow-purple: 0 0 20px rgba(255, 0, 255, 0.5);
+  --glow-purple-strong: 0 0 40px rgba(255, 0, 255, 0.8);
+  --glow-mixed: 0 0 30px rgba(0, 255, 229, 0.4), 0 0 60px rgba(255, 0, 255, 0.3);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+
+  --shadow-cyber: 0 8px 32px 0 rgba(0, 255, 229, 0.2);
+  --shadow-cyber-strong: 0 8px 32px 0 rgba(0, 255, 229, 0.4), 0 0 80px rgba(255, 0, 255, 0.2);
+
+  /* Status Colors */
+  --status-success: #10b981;
+  --status-warning: #f59e0b;
+  --status-error: #ef4444;
+  --status-info: #3b82f6;
+
+  --glow-success: 0 0 20px rgba(16, 185, 129, 0.5);
+  --glow-warning: 0 0 20px rgba(245, 158, 11, 0.5);
+  --glow-error: 0 0 20px rgba(239, 68, 68, 0.5);
+
+  /* ========================================
+     GRADIENTS
+     ======================================== */
+
+  --gradient-cyber: linear-gradient(135deg, var(--cyber-cyan-500) 0%, var(--cyber-purple-500) 100%);
+  --gradient-cyber-vertical: linear-gradient(180deg, var(--cyber-cyan-500) 0%, var(--cyber-purple-500) 100%);
+  --gradient-space: linear-gradient(180deg, #0A0E27 0%, #111827 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+
+  --gradient-cyan-glow: radial-gradient(circle at 50% 50%, rgba(0, 255, 229, 0.3) 0%, transparent 70%);
+  --gradient-purple-glow: radial-gradient(circle at 50% 50%, rgba(255, 0, 255, 0.3) 0%, transparent 70%);
+
+  /* ========================================
+     TYPOGRAPHY
+     ======================================== */
+
+  --font-display: 'Orbitron', 'Rajdhani', 'Exo 2', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-mono: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-size-5xl: 3rem;      /* 48px */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+
+  /* ========================================
+     SPACING
+     ======================================== */
+
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+
+  /* ========================================
+     BORDERS & RADIUS
+     ======================================== */
+
+  --border-width-1: 1px;
+  --border-width-2: 2px;
+  --border-width-4: 4px;
+
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-2xl: 1.5rem;   /* 24px */
+  --radius-full: 9999px;
+
+  /* ========================================
+     TRANSITIONS
+     ======================================== */
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ========================================
+     Z-INDEX LAYERS
+     ======================================== */
+
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+
+  /* ========================================
+     BACKDROP BLUR
+     ======================================== */
+
+  --blur-sm: 4px;
+  --blur-md: 8px;
+  --blur-lg: 16px;
+  --blur-xl: 24px;
+  --blur-2xl: 40px;
+}
+
+/* ========================================
+   GLOBAL STYLES
+   ======================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  background: var(--bg-space);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+/* ========================================
+   SCROLLBARS - Cyberpunk Style
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-space);
+  border-left: 1px solid var(--border-default);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    var(--cyber-cyan-600) 0%,
+    var(--cyber-purple-600) 100%
+  );
+  border-radius: var(--radius-full);
+  border: 2px solid var(--bg-space);
+  box-shadow: var(--glow-cyan);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    var(--cyber-cyan-500) 0%,
+    var(--cyber-purple-500) 100%
+  );
+  box-shadow: var(--glow-mixed);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--bg-space);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyber-cyan-600) var(--bg-space);
+}
+
+/* ========================================
+   SELECTION
+   ======================================== */
+
+::selection {
+  background: var(--cyber-cyan-500);
+  color: var(--text-inverse);
+  text-shadow: none;
+}
+
+::-moz-selection {
+  background: var(--cyber-cyan-500);
+  color: var(--text-inverse);
+  text-shadow: none;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.cyber-gradient-text {
+  background: var(--gradient-cyber);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: var(--font-weight-bold);
+}
+
+.cyber-glow-cyan {
+  box-shadow: var(--glow-cyan);
+}
+
+.cyber-glow-purple {
+  box-shadow: var(--glow-purple);
+}
+
+.cyber-glow-mixed {
+  box-shadow: var(--glow-mixed);
+}
+
+.cyber-glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--blur-lg));
+  -webkit-backdrop-filter: blur(var(--blur-lg));
+  border: 1px solid var(--border-glass);
+}
+
+.cyber-border-gradient {
+  position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.cyber-border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: var(--gradient-cyber);
+  border-radius: inherit;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ========================================
+   GRID PATTERNS
+   ======================================== */
+
+.cyber-grid-pattern {
+  background-image:
+    linear-gradient(rgba(0, 255, 229, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 229, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.cyber-grid-dots {
+  background-image: radial-gradient(circle, rgba(0, 255, 229, 0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ========================================
+   HOVER EFFECTS
+   ======================================== */
+
+.cyber-hover-lift {
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.cyber-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-cyber-strong);
+}
+
+.cyber-hover-glow {
+  transition: box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.cyber-hover-glow:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--glow-cyan);
+}
+
+/* ========================================
+   FOCUS STATES
+   ======================================== */
+
+.cyber-focus:focus-visible {
+  outline: 2px solid var(--cyber-cyan-500);
+  outline-offset: 2px;
+  box-shadow: var(--glow-cyan);
+}
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+
+.cyber-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 255, 229, 0.0) 0%,
+    rgba(0, 255, 229, 0.2) 50%,
+    rgba(0, 255, 229, 0.0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+@media (max-width: 640px) {
+  :root {
+    --font-size-3xl: 1.5rem;
+    --font-size-4xl: 1.875rem;
+    --font-size-5xl: 2.25rem;
+  }
+}

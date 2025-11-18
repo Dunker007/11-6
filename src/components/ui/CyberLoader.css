@@ -1,0 +1,367 @@
+/**
+ * CYBER LOADER - Animated loading states
+ */
+
+.cyber-loader-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+.cyber-loader-container--fullscreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 39, 0.95);
+  backdrop-filter: blur(var(--blur-lg));
+  z-index: var(--z-modal);
+}
+
+.cyber-loader-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.cyber-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========================================
+   SIZES
+   ======================================== */
+
+.cyber-loader--sm {
+  width: 40px;
+  height: 40px;
+}
+
+.cyber-loader--md {
+  width: 80px;
+  height: 80px;
+}
+
+.cyber-loader--lg {
+  width: 120px;
+  height: 120px;
+}
+
+.cyber-loader--xl {
+  width: 160px;
+  height: 160px;
+}
+
+/* ========================================
+   BRAIN LOADER
+   ======================================== */
+
+.cyber-loader-brain {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyber-loader-brain__image {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(0, 255, 229, 0.6));
+  animation: glowPulseCyan 2s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+.cyber-loader-brain__rings {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cyber-loader-brain__ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid;
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: ringPulse 3s ease-in-out infinite;
+}
+
+.cyber-loader-brain__ring--1 {
+  border-color: var(--cyber-cyan-500);
+  animation-delay: 0s;
+}
+
+.cyber-loader-brain__ring--2 {
+  border-color: var(--cyber-purple-500);
+  animation-delay: 1s;
+  transform: scale(0.8);
+}
+
+.cyber-loader-brain__ring--3 {
+  border-color: var(--cyber-cyan-500);
+  animation-delay: 2s;
+  transform: scale(0.6);
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.6;
+  }
+}
+
+/* ========================================
+   HEXAGON LOADER
+   ======================================== */
+
+.cyber-loader-hexagon {
+  width: 100%;
+  height: 100%;
+  animation: hexagonSpin 2s ease-in-out infinite;
+}
+
+.cyber-loader-hexagon__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.cyber-loader-hexagon__shape {
+  fill: none;
+  stroke: url(#hexagonGradient);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 10px var(--cyber-cyan-500));
+  animation: hexagonStroke 2s ease-in-out infinite;
+}
+
+@keyframes hexagonStroke {
+  0%, 100% {
+    stroke-dasharray: 300;
+    stroke-dashoffset: 600;
+  }
+  50% {
+    stroke-dasharray: 300;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* SVG Gradient Definition */
+svg {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* ========================================
+   SPINNER LOADER
+   ======================================== */
+
+.cyber-loader-spinner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.cyber-loader-spinner__circle {
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(0, 255, 229, 0.1);
+  border-top-color: var(--cyber-cyan-500);
+  border-right-color: var(--cyber-purple-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  box-shadow: 0 0 20px rgba(0, 255, 229, 0.3);
+}
+
+/* ========================================
+   DOTS LOADER
+   ======================================== */
+
+.cyber-loader-dots {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: center;
+}
+
+.cyber-loader-dots__dot {
+  width: 12px;
+  height: 12px;
+  background: var(--cyber-cyan-500);
+  border-radius: 50%;
+  animation: dotPulse 1.4s ease-in-out infinite;
+  box-shadow: 0 0 10px var(--cyber-cyan-500);
+}
+
+.cyber-loader-dots__dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.cyber-loader-dots__dot:nth-child(2) {
+  animation-delay: 0.2s;
+  background: var(--cyber-purple-500);
+  box-shadow: 0 0 10px var(--cyber-purple-500);
+}
+
+.cyber-loader-dots__dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+}
+
+.cyber-loader--sm .cyber-loader-dots__dot {
+  width: 6px;
+  height: 6px;
+}
+
+.cyber-loader--lg .cyber-loader-dots__dot {
+  width: 16px;
+  height: 16px;
+}
+
+.cyber-loader--xl .cyber-loader-dots__dot {
+  width: 20px;
+  height: 20px;
+}
+
+/* ========================================
+   PULSE LOADER
+   ======================================== */
+
+.cyber-loader-pulse {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyber-loader-pulse__circle {
+  position: absolute;
+  border: 2px solid var(--cyber-cyan-500);
+  border-radius: 50%;
+  animation: pulsate 2s ease-out infinite;
+}
+
+.cyber-loader-pulse__circle--1 {
+  width: 100%;
+  height: 100%;
+  animation-delay: 0s;
+}
+
+.cyber-loader-pulse__circle--2 {
+  width: 100%;
+  height: 100%;
+  animation-delay: 0.7s;
+  border-color: var(--cyber-purple-500);
+}
+
+.cyber-loader-pulse__circle--3 {
+  width: 100%;
+  height: 100%;
+  animation-delay: 1.4s;
+}
+
+@keyframes pulsate {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   MESSAGE
+   ======================================== */
+
+.cyber-loader-message {
+  text-align: center;
+  margin-top: var(--space-4);
+}
+
+.cyber-loader-message__text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Optional: Animated dots after message */
+.cyber-loader-message__text::after {
+  content: '';
+  animation: loadingDots 1.5s steps(4, end) infinite;
+}
+
+@keyframes loadingDots {
+  0%, 20% {
+    content: '';
+  }
+  40% {
+    content: '.';
+  }
+  60% {
+    content: '..';
+  }
+  80%, 100% {
+    content: '...';
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .cyber-loader-brain__image,
+  .cyber-loader-brain__ring,
+  .cyber-loader-hexagon,
+  .cyber-loader-spinner__circle,
+  .cyber-loader-dots__dot,
+  .cyber-loader-pulse__circle {
+    animation: none;
+  }
+
+  .cyber-loader-spinner__circle {
+    border-top-color: var(--cyber-cyan-500);
+    opacity: 0.5;
+  }
+}
+
+/* ========================================
+   SVG GRADIENT DEFINITIONS
+   ======================================== */
+
+.cyber-loader-svg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}

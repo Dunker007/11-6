@@ -1,0 +1,430 @@
+/**
+ * CYBER INPUT - Neon-styled form inputs
+ */
+
+.cyber-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cyber-input-container--full-width {
+  width: 100%;
+}
+
+/* ========================================
+   LABEL
+   ======================================== */
+
+.cyber-input-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color var(--transition-base);
+}
+
+.cyber-input-container:focus-within .cyber-input-label {
+  color: var(--cyber-cyan-500);
+}
+
+.cyber-input-container--error .cyber-input-label {
+  color: var(--status-error);
+}
+
+/* ========================================
+   INPUT WRAPPER
+   ======================================== */
+
+.cyber-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* ========================================
+   INPUT
+   ======================================== */
+
+.cyber-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 var(--space-4);
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background: rgba(17, 24, 39, 0.6);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  outline: none;
+  transition: all var(--transition-base);
+  backdrop-filter: blur(var(--blur-md));
+  -webkit-backdrop-filter: blur(var(--blur-md));
+}
+
+.cyber-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* With icons */
+.cyber-input--has-left-icon {
+  padding-left: calc(var(--space-4) + 24px + var(--space-2));
+}
+
+.cyber-input--has-right-icon {
+  padding-right: calc(var(--space-4) + 24px + var(--space-2));
+}
+
+/* ========================================
+   ICONS
+   ======================================== */
+
+.cyber-input-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  transition: color var(--transition-base);
+  pointer-events: none;
+}
+
+.cyber-input-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.cyber-input-icon--left {
+  left: var(--space-4);
+}
+
+.cyber-input-icon--right {
+  right: var(--space-4);
+}
+
+.cyber-input:focus ~ .cyber-input-icon {
+  color: var(--cyber-cyan-500);
+}
+
+/* ========================================
+   ANIMATED BORDER
+   ======================================== */
+
+.cyber-input-border {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    var(--cyber-cyan-500) 0%,
+    var(--cyber-purple-500) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cyber-input:focus ~ .cyber-input-border {
+  opacity: 1;
+}
+
+/* ========================================
+   FOCUS STATES
+   ======================================== */
+
+.cyber-input:focus {
+  background: rgba(17, 24, 39, 0.8);
+  border-color: transparent;
+}
+
+.cyber-input--glow:focus {
+  box-shadow: 0 0 20px rgba(0, 255, 229, 0.3);
+}
+
+/* ========================================
+   ERROR STATE
+   ======================================== */
+
+.cyber-input-container--error .cyber-input {
+  border-color: var(--status-error);
+}
+
+.cyber-input-container--error .cyber-input:focus {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.cyber-input-container--error .cyber-input-border {
+  background: var(--status-error);
+}
+
+.cyber-input-container--error .cyber-input-icon {
+  color: var(--status-error);
+}
+
+/* ========================================
+   ERROR MESSAGE
+   ======================================== */
+
+.cyber-input-error {
+  font-size: var(--font-size-xs);
+  color: var(--status-error);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.cyber-input-error::before {
+  content: '⚠';
+  font-size: var(--font-size-sm);
+}
+
+/* ========================================
+   HELPER TEXT
+   ======================================== */
+
+.cyber-input-helper {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+/* ========================================
+   DISABLED STATE
+   ======================================== */
+
+.cyber-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(17, 24, 39, 0.3);
+}
+
+/* ========================================
+   TEXTAREA
+   ======================================== */
+
+.cyber-textarea {
+  min-height: 120px;
+  padding: var(--space-3) var(--space-4);
+  resize: vertical;
+  font-family: var(--font-body);
+}
+
+/* ========================================
+   SELECT
+   ======================================== */
+
+.cyber-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2300FFE5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-4) center;
+  padding-right: calc(var(--space-4) + 24px);
+  cursor: pointer;
+}
+
+/* ========================================
+   INPUT GROUPS
+   ======================================== */
+
+.cyber-input-group {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+.cyber-input-group > .cyber-input-container {
+  flex: 1;
+}
+
+/* ========================================
+   SEARCH INPUT
+   ======================================== */
+
+.cyber-input--search {
+  border-radius: var(--radius-full);
+  padding-left: calc(var(--space-6) + 20px);
+}
+
+.cyber-input--search ~ .cyber-input-icon--left {
+  left: var(--space-6);
+}
+
+/* ========================================
+   AUTOCOMPLETE
+   ======================================== */
+
+.cyber-autocomplete {
+  position: relative;
+}
+
+.cyber-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-cyber);
+  z-index: var(--z-dropdown);
+  backdrop-filter: blur(var(--blur-lg));
+  -webkit-backdrop-filter: blur(var(--blur-lg));
+}
+
+.cyber-autocomplete-item {
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  border-left: 2px solid transparent;
+}
+
+.cyber-autocomplete-item:hover,
+.cyber-autocomplete-item--active {
+  background: rgba(0, 255, 229, 0.1);
+  border-left-color: var(--cyber-cyan-500);
+}
+
+.cyber-autocomplete-item--highlighted {
+  color: var(--cyber-cyan-500);
+}
+
+/* ========================================
+   CHECKBOX & RADIO
+   ======================================== */
+
+.cyber-checkbox,
+.cyber-radio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.cyber-checkbox input[type='checkbox'],
+.cyber-radio input[type='radio'] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: rgba(17, 24, 39, 0.6);
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-base);
+}
+
+.cyber-radio input[type='radio'] {
+  border-radius: 50%;
+}
+
+.cyber-checkbox input[type='checkbox']:checked,
+.cyber-radio input[type='radio']:checked {
+  background: var(--gradient-cyber);
+  border-color: var(--cyber-cyan-500);
+  box-shadow: 0 0 10px rgba(0, 255, 229, 0.5);
+}
+
+.cyber-checkbox input[type='checkbox']:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.cyber-radio input[type='radio']:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+}
+
+/* ========================================
+   TOGGLE SWITCH
+   ======================================== */
+
+.cyber-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.cyber-toggle input[type='checkbox'] {
+  appearance: none;
+  width: 48px;
+  height: 24px;
+  background: rgba(17, 24, 39, 0.6);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-full);
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.cyber-toggle input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: all var(--transition-base);
+}
+
+.cyber-toggle input[type='checkbox']:checked {
+  background: var(--gradient-cyber);
+  border-color: var(--cyber-cyan-500);
+  box-shadow: 0 0 10px rgba(0, 255, 229, 0.5);
+}
+
+.cyber-toggle input[type='checkbox']:checked::after {
+  left: 26px;
+  background: white;
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.cyber-input:focus-visible,
+.cyber-checkbox input:focus-visible,
+.cyber-radio input:focus-visible,
+.cyber-toggle input:focus-visible {
+  outline: 2px solid var(--cyber-cyan-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cyber-input,
+  .cyber-input-border,
+  .cyber-input-icon,
+  .cyber-checkbox input,
+  .cyber-radio input,
+  .cyber-toggle input {
+    transition: none;
+  }
+}

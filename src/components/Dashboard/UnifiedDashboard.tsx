@@ -1,4 +1,8 @@
 import React, { useState, lazy, Suspense, memo } from 'react';
+import { CyberCard } from '../ui/CyberCard';
+import { CyberButton } from '../ui/CyberButton';
+import { CyberLoader } from '../ui/CyberLoader';
+import './UnifiedDashboard.css';
 
 // Lazy load all heavy components for optimal bundle splitting
 const CredentialVault = lazy(() => import('../Settings/CredentialVault').then(m => ({ default: m.CredentialVault })));
@@ -22,27 +26,10 @@ interface Tab {
   badge?: number;
 }
 
-// Loading fallback with skeleton
+// Cyberpunk Loading Fallback
 const TabLoadingFallback = () => (
-  <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '30px 20px' }}>
-    <div style={{
-      background: 'white',
-      borderRadius: '12px',
-      padding: '40px',
-      textAlign: 'center',
-      border: '1px solid #e5e7eb'
-    }}>
-      <div className="loading-spinner" style={{
-        width: '40px',
-        height: '40px',
-        border: '4px solid #f3f4f6',
-        borderTop: '4px solid #3b82f6',
-        borderRadius: '50%',
-        margin: '0 auto 20px',
-        animation: 'spin 1s linear infinite'
-      }}></div>
-      <p style={{ color: '#6b7280', fontSize: '16px', margin: 0 }}>Loading...</p>
-    </div>
+  <div className="tab-loading-container">
+    <CyberLoader variant="brain" size="xl" message="Initializing Command Center" />
   </div>
 );
 
@@ -96,107 +83,87 @@ export const UnifiedDashboard: React.FC = memo(() => {
   };
 
   return (
-    <div className="unified-dashboard" style={{ minHeight: '100vh', overflow: 'auto' }}>
+    <div className="cyber-command-center">
+      {/* Animated Background */}
+      <div className="cyber-background">
+        <div className="cyber-background__stars"></div>
+        <div className="cyber-background__grid"></div>
+        <div className="cyber-background__glow cyber-background__glow--cyan"></div>
+        <div className="cyber-background__glow cyber-background__glow--purple"></div>
+      </div>
+
       {/* Header */}
-      <div className="unified-dashboard-header" style={{ position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <div>
-              <h1 style={{ margin: '0 0 5px 0', fontSize: '28px', fontWeight: 'bold' }}>
-                DLX Studios Ultimate
-              </h1>
-              <p style={{ margin: 0, color: '#6b7280' }}>
-                Complete passive income automation platform
-              </p>
+      <header className="cyber-header">
+        <div className="cyber-header__container">
+          <div className="cyber-header__top">
+            <div className="cyber-header__brand">
+              <div className="cyber-header__logo">
+                <img
+                  src="/assets/branding/dlx-brain-command-center.png"
+                  alt="DLX Command Center"
+                  className="cyber-header__logo-img animate-glow-pulse-cyan"
+                />
+              </div>
+              <div className="cyber-header__title">
+                <h1 className="cyber-gradient-text">
+                  DLX COMMAND CENTER
+                </h1>
+                <p className="cyber-header__subtitle">
+                  Complete Passive Income Automation Platform
+                </p>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
+            <div className="cyber-header__actions">
+              <CyberButton
+                variant="secondary"
+                size="md"
                 onClick={() => setActiveTab('credentials')}
-                style={{
-                  padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                }}
+                leftIcon={<span>⚙️</span>}
               >
-                ⚙️ Settings
-              </button>
-              <button
+                Settings
+              </CyberButton>
+              <CyberButton
+                variant="primary"
+                size="md"
                 onClick={() => setActiveTab('setup')}
-                style={{
-                  padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                }}
+                leftIcon={<span>🚀</span>}
               >
-                🚀 Quick Start
-              </button>
+                Quick Start
+              </CyberButton>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div style={{ display: 'flex', gap: '5px', overflowX: 'auto' }}>
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  padding: '12px 20px',
-                  background: activeTab === tab.id ? '#eff6ff' : 'transparent',
-                  color: activeTab === tab.id ? '#1e40af' : '#6b7280',
-                  border: 'none',
-                  borderBottom: activeTab === tab.id ? '2px solid #3b82f6' : '2px solid transparent',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: activeTab === tab.id ? '600' : '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <span>{tab.icon}</span>
-                <span>{tab.name}</span>
-                {tab.badge && (
-                  <span
-                    style={{
-                      padding: '2px 6px',
-                      background: '#ef4444',
-                      color: 'white',
-                      borderRadius: '10px',
-                      fontSize: '11px',
-                      fontWeight: '700',
-                    }}
-                  >
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          {/* Tabs Navigation */}
+          <nav className="cyber-tabs">
+            <div className="cyber-tabs__container">
+              {tabs.map((tab, index) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`cyber-tab ${activeTab === tab.id ? 'cyber-tab--active' : ''} animate-fade-in-up`}
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <span className="cyber-tab__icon">{tab.icon}</span>
+                  <span className="cyber-tab__name">{tab.name}</span>
+                  {tab.badge && (
+                    <span className="cyber-tab__badge animate-pulse">
+                      {tab.badge}
+                    </span>
+                  )}
+                  {activeTab === tab.id && (
+                    <span className="cyber-tab__indicator"></span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </nav>
         </div>
-      </div>
+      </header>
 
-      {/* Tab Content */}
-      <div>
+      {/* Content Area */}
+      <main className="cyber-content">
         {renderTabContent()}
-      </div>
-
-      {/* Add keyframes for spinner */}
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
+      </main>
     </div>
   );
 });
@@ -205,175 +172,164 @@ UnifiedDashboard.displayName = 'UnifiedDashboard';
 
 const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ setActiveTab }) => {
   const quickStats = [
-    { label: 'Total Revenue', value: '$2,847.32', change: '+12.5%', icon: '💰', color: '#10b981' },
-    { label: 'Content Published', value: '142', change: '+8', icon: '📝', color: '#3b82f6' },
-    { label: 'Idle Computing', value: '$432/mo', change: 'potential', icon: '💻', color: '#8b5cf6' },
-    { label: 'Active Services', value: '12/18', change: '66%', icon: '🔗', color: '#f59e0b' },
+    { label: 'Total Revenue', value: '$2,847.32', change: '+12.5%', icon: '💰', color: 'cyan' },
+    { label: 'Content Published', value: '142', change: '+8', icon: '📝', color: 'purple' },
+    { label: 'Idle Computing', value: '$432/mo', change: 'potential', icon: '💻', color: 'cyan' },
+    { label: 'Active Services', value: '12/18', change: '66%', icon: '🔗', color: 'purple' },
   ];
 
   return (
-    <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '30px 20px' }}>
-      {/* Quick Stats */}
-      <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '20px', marginBottom: '15px', fontWeight: '600' }}>Quick Stats</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
-          {quickStats.map((stat, idx) => (
-            <div
-              key={idx}
-              style={{
-                padding: '20px',
-                background: 'white',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
-                <span style={{ fontSize: '32px' }}>{stat.icon}</span>
-                <div
-                  style={{
-                    padding: '4px 10px',
-                    background: `${stat.color}20`,
-                    color: stat.color,
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                  }}
-                >
-                  {stat.change}
+    <div className="cyber-overview">
+      <div className="cyber-overview__container">
+        {/* Quick Stats */}
+        <section className="cyber-section">
+          <h2 className="cyber-section__title">
+            <span className="cyber-gradient-text">SYSTEM STATUS</span>
+          </h2>
+          <div className="cyber-stats-grid">
+            {quickStats.map((stat, idx) => (
+              <CyberCard
+                key={idx}
+                variant="glass"
+                glow={true}
+                hoverEffect={true}
+                neonBorder={true}
+                cornerAccents={true}
+                className="cyber-stat-card animate-fade-in-up"
+                style={{ animationDelay: `${idx * 0.1}s` }}
+              >
+                <div className="cyber-stat-card__header">
+                  <span className="cyber-stat-card__icon">{stat.icon}</span>
+                  <div className={`cyber-stat-card__change cyber-stat-card__change--${stat.color}`}>
+                    {stat.change}
+                  </div>
                 </div>
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '5px' }}>
-                {stat.value}
-              </div>
-              <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+                <div className={`cyber-stat-card__value cyber-gradient-text`}>
+                  {stat.value}
+                </div>
+                <div className="cyber-stat-card__label">
+                  {stat.label}
+                </div>
+              </CyberCard>
+            ))}
+          </div>
+        </section>
 
-      {/* Feature Cards */}
-      <div style={{ marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '20px', marginBottom: '15px', fontWeight: '600' }}>Quick Actions</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-          <FeatureCard
-            icon="💰"
-            title="Master Revenue Dashboard"
-            description="Unified view of all revenue sources - Stripe, Gumroad, affiliates, passive income, and idle computing"
-            action="View Revenue"
-            gradient="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
-            onClick={() => setActiveTab('revenue')}
-          />
-          <FeatureCard
-            icon="📈"
-            title="Back Office & Analytics"
-            description="Financial charts, expense tracking, and business performance metrics"
-            action="View Analytics"
-            gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
-            onClick={() => setActiveTab('backoffice')}
-          />
-          <FeatureCard
-            icon="💎"
-            title="Wealth Lab"
-            description="Crypto & ETF portfolio tracking, budget management, and net worth analysis"
-            action="View Wealth"
-            gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
-            onClick={() => setActiveTab('wealth')}
-          />
-          <FeatureCard
-            icon="💡"
-            title="Idea Lab"
-            description="Brainstorm and plan ideas with interactive canvas and mind maps"
-            action="Open Idea Lab"
-            gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
-            onClick={() => setActiveTab('ideas')}
-          />
-          <FeatureCard
-            icon="🤖"
-            title="Google AI Hub"
-            description="Gemini AI Studio, NotebookLM research, vision-to-code, and smart code analysis"
-            action="Open AI Hub"
-            gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            onClick={() => setActiveTab('googleai')}
-          />
-          <FeatureCard
-            icon="🧠"
-            title="AI Intelligence"
-            description="10 intelligent systems optimizing revenue, content, and automation in real-time"
-            action="View AI Dashboard"
-            gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
-            onClick={() => setActiveTab('intelligence')}
-          />
-          <FeatureCard
-            icon="🔐"
-            title="Manage Credentials"
-            description="Connect and manage all your service credentials in one secure vault"
-            action="View Credentials"
-            gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            onClick={() => setActiveTab('credentials')}
-          />
-          <FeatureCard
-            icon="💻"
-            title="Idle Computing Revenue"
-            description="Earn up to $432/month from your unused computing resources"
-            action="Start Earning"
-            gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
-            onClick={() => setActiveTab('idle')}
-          />
-          <FeatureCard
-            icon="🤖"
-            title="AI Agents"
-            description="7 specialized agents ready to help with content, revenue, and more"
-            action="Chat with Agents"
-            gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
-            onClick={() => setActiveTab('agents')}
-          />
-          <FeatureCard
-            icon="🧪"
-            title="Test Integrations"
-            description="One-click testing for all your service connections"
-            action="Run Tests"
-            gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
-            onClick={() => setActiveTab('testing')}
-          />
-        </div>
-      </div>
+        {/* Feature Cards */}
+        <section className="cyber-section">
+          <h2 className="cyber-section__title">
+            <span className="cyber-gradient-text">QUICK ACCESS</span>
+          </h2>
+          <div className="cyber-features-grid">
+            <FeatureCard
+              icon="💰"
+              title="Master Revenue Dashboard"
+              description="Unified view of all revenue sources - Stripe, Gumroad, affiliates, passive income, and idle computing"
+              onClick={() => setActiveTab('revenue')}
+              delay={0}
+            />
+            <FeatureCard
+              icon="📈"
+              title="Back Office & Analytics"
+              description="Financial charts, expense tracking, and business performance metrics"
+              onClick={() => setActiveTab('backoffice')}
+              delay={0.1}
+            />
+            <FeatureCard
+              icon="💎"
+              title="Wealth Lab"
+              description="Crypto & ETF portfolio tracking, budget management, and net worth analysis"
+              onClick={() => setActiveTab('wealth')}
+              delay={0.2}
+            />
+            <FeatureCard
+              icon="💡"
+              title="Idea Lab"
+              description="Brainstorm and plan ideas with interactive canvas and mind maps"
+              onClick={() => setActiveTab('ideas')}
+              delay={0.3}
+            />
+            <FeatureCard
+              icon="🤖"
+              title="Google AI Hub"
+              description="Gemini AI Studio, NotebookLM research, vision-to-code, and smart code analysis"
+              onClick={() => setActiveTab('googleai')}
+              delay={0.4}
+            />
+            <FeatureCard
+              icon="🧠"
+              title="AI Intelligence"
+              description="10 intelligent systems optimizing revenue, content, and automation in real-time"
+              onClick={() => setActiveTab('intelligence')}
+              delay={0.5}
+            />
+            <FeatureCard
+              icon="🔐"
+              title="Manage Credentials"
+              description="Connect and manage all your service credentials in one secure vault"
+              onClick={() => setActiveTab('credentials')}
+              delay={0.6}
+            />
+            <FeatureCard
+              icon="💻"
+              title="Idle Computing Revenue"
+              description="Earn up to $432/month from your unused computing resources"
+              onClick={() => setActiveTab('idle')}
+              delay={0.7}
+            />
+            <FeatureCard
+              icon="🤖"
+              title="AI Agents"
+              description="7 specialized agents ready to help with content, revenue, and more"
+              onClick={() => setActiveTab('agents')}
+              delay={0.8}
+            />
+            <FeatureCard
+              icon="🧪"
+              title="Test Integrations"
+              description="One-click testing for all your service connections"
+              onClick={() => setActiveTab('testing')}
+              delay={0.9}
+            />
+          </div>
+        </section>
 
-      {/* Recent Activity */}
-      <div>
-        <h2 style={{ fontSize: '20px', marginBottom: '15px', fontWeight: '600' }}>Recent Activity</h2>
-        <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-          <ActivityItem
-            icon="✅"
-            title="Stripe Connected"
-            description="Payment processing is now active"
-            time="5 minutes ago"
-            color="#10b981"
-          />
-          <ActivityItem
-            icon="📝"
-            title="Content Generated"
-            description="New blog post created: 'Passive Income Strategies'"
-            time="1 hour ago"
-            color="#3b82f6"
-          />
-          <ActivityItem
-            icon="💻"
-            title="Joined Golem Network"
-            description="Earning $108/month from compute resources"
-            time="2 hours ago"
-            color="#8b5cf6"
-          />
-          <ActivityItem
-            icon="🧪"
-            title="Integration Tests Passed"
-            description="12/12 services connected successfully"
-            time="3 hours ago"
-            color="#10b981"
-          />
-        </div>
+        {/* Recent Activity */}
+        <section className="cyber-section">
+          <h2 className="cyber-section__title">
+            <span className="cyber-gradient-text">RECENT ACTIVITY</span>
+          </h2>
+          <CyberCard variant="glass" neonBorder={true} className="cyber-activity-list">
+            <ActivityItem
+              icon="✅"
+              title="Stripe Connected"
+              description="Payment processing is now active"
+              time="5 minutes ago"
+              color="success"
+            />
+            <ActivityItem
+              icon="📝"
+              title="Content Generated"
+              description="New blog post created: 'Passive Income Strategies'"
+              time="1 hour ago"
+              color="info"
+            />
+            <ActivityItem
+              icon="💻"
+              title="Joined Golem Network"
+              description="Earning $108/month from compute resources"
+              time="2 hours ago"
+              color="purple"
+            />
+            <ActivityItem
+              icon="🧪"
+              title="Integration Tests Passed"
+              description="12/12 services connected successfully"
+              time="3 hours ago"
+              color="success"
+            />
+          </CyberCard>
+        </section>
       </div>
     </div>
   );
@@ -385,53 +341,26 @@ interface FeatureCardProps {
   icon: string;
   title: string;
   description: string;
-  action: string;
-  gradient: string;
   onClick?: () => void;
+  delay?: number;
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = memo(({ icon, title, description, action, gradient, onClick }) => (
-  <div
-    style={{
-      padding: '25px',
-      background: 'white',
-      borderRadius: '12px',
-      border: '1px solid #e5e7eb',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-      transition: 'all 0.2s',
-      cursor: 'pointer',
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateY(-4px)';
-      e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
-    }}
+const FeatureCard: React.FC<FeatureCardProps> = memo(({ icon, title, description, onClick, delay = 0 }) => (
+  <CyberCard
+    variant="glass"
+    glow={true}
+    hoverEffect={true}
+    neonBorder={true}
+    clickable={true}
+    onClick={onClick}
+    className="cyber-feature-card animate-fade-in-up"
+    style={{ animationDelay: `${delay}s` }}
   >
-    <div style={{ fontSize: '40px', marginBottom: '15px' }}>{icon}</div>
-    <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', fontWeight: '600' }}>{title}</h3>
-    <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#6b7280', lineHeight: '1.5' }}>
-      {description}
-    </p>
-    <button
-      onClick={onClick}
-      style={{
-        padding: '10px 20px',
-        background: gradient,
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontSize: '14px',
-        fontWeight: '600',
-        width: '100%',
-      }}
-    >
-      {action} →
-    </button>
-  </div>
+    <div className="cyber-feature-card__icon animate-float">{icon}</div>
+    <h3 className="cyber-feature-card__title">{title}</h3>
+    <p className="cyber-feature-card__description">{description}</p>
+    <div className="cyber-feature-card__arrow">→</div>
+  </CyberCard>
 ));
 
 FeatureCard.displayName = 'FeatureCard';
@@ -441,38 +370,19 @@ interface ActivityItemProps {
   title: string;
   description: string;
   time: string;
-  color: string;
+  color: 'success' | 'info' | 'purple' | 'warning';
 }
 
 const ActivityItem: React.FC<ActivityItemProps> = memo(({ icon, title, description, time, color }) => (
-  <div
-    style={{
-      padding: '20px',
-      borderBottom: '1px solid #f3f4f6',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '15px',
-    }}
-  >
-    <div
-      style={{
-        width: '40px',
-        height: '40px',
-        borderRadius: '10px',
-        background: `${color}20`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '20px',
-      }}
-    >
+  <div className="cyber-activity-item">
+    <div className={`cyber-activity-item__icon cyber-activity-item__icon--${color}`}>
       {icon}
     </div>
-    <div style={{ flex: 1 }}>
-      <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '3px' }}>{title}</div>
-      <div style={{ fontSize: '13px', color: '#6b7280' }}>{description}</div>
+    <div className="cyber-activity-item__content">
+      <div className="cyber-activity-item__title">{title}</div>
+      <div className="cyber-activity-item__description">{description}</div>
     </div>
-    <div style={{ fontSize: '12px', color: '#9ca3af' }}>{time}</div>
+    <div className="cyber-activity-item__time">{time}</div>
   </div>
 ));
 

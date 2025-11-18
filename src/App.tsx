@@ -84,6 +84,8 @@ import { useHelpSystemStore } from './services/help/helpSystemService';
 import { useSmartErrorHandlerStore } from './services/errors/smartErrorHandlerService';
 import './styles/index.css';
 import './styles/dark-mode.css'; // Dark mode (default)
+import './styles/cyberpunk-theme.css'; // Cyberpunk Command Center theme
+import './styles/cyber-animations.css'; // Cyberpunk animations
 import './styles/themes.css';
 import './styles/themes-clean.css'; // Clean modern theme
 import './styles/animations.css';
