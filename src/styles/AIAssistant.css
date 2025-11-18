@@ -290,12 +290,15 @@
 /* Gemini Studio Settings Panel */
 .gemini-settings-panel {
   padding: 1rem;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  border-top: 1px solid var(--border-color);
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(var(--blur-xl));
+  -webkit-backdrop-filter: blur(var(--blur-xl));
+  border-bottom: 1px solid rgba(6, 182, 212, 0.15);
+  border-top: 1px solid rgba(6, 182, 212, 0.15);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  box-shadow: var(--shadow-lg), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
 }
 
 .settings-section {
