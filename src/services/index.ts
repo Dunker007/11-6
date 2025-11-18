@@ -63,6 +63,7 @@ export { automationScheduler } from './passive-income/automationScheduler';
 
 export { credentialVaultService } from './credentials/credentialVaultService';
 export { securityService } from './security/securityService';
+export { encryptionService } from './security/encryptionService';
 export { useSmartErrorHandlerStore, smartErrorHandlerService } from './errors/smartErrorHandlerService';
 
 // ========================================

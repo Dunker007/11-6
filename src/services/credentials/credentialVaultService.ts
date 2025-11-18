@@ -1,10 +1,31 @@
 /**
- * credentialVaultService.ts
- * Encrypted credential storage and management for all integrations.
+ * Credential Vault Service
+ *
+ * PURPOSE:
+ * Secure encrypted storage for API keys and credentials.
+ * Uses AES-256-GCM encryption for all sensitive data.
+ *
+ * SECURITY:
+ * - Real AES-256-GCM encryption (not fake base64)
+ * - PBKDF2 key derivation with 100,000 iterations
+ * - Random IV per encryption
+ * - Automatic migration from plaintext
+ *
+ * USAGE:
+ * ```typescript
+ * import { credentialVaultService } from '@/services/credentials/credentialVaultService';
+ *
+ * // Store credentials (automatically encrypted)
+ * credentialVaultService.setCredentials('github', { accessToken: 'ghp_...' });
+ *
+ * // Retrieve credentials (automatically decrypted)
+ * const creds = credentialVaultService.getCredentials('github');
+ * ```
  */
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { encryptionService } from '../security/encryptionService';
 
 export interface ServiceCredentials {
   serviceId: string;
@@ -34,13 +55,44 @@ export interface CredentialExport {
 
 class CredentialVaultService {
   private readonly STORAGE_KEY = 'dlx_credentials_vault';
-  private readonly ENCRYPTION_KEY = 'dlx_vault_key_v1'; // In production, use proper key management
   private credentials = new Map<string, ServiceCredentials>();
   private listeners: ((serviceId: string, status: ServiceCredentials['status']) => void)[] = [];
+  private encryptionInitialized = false;
 
   constructor() {
-    this.loadFromStorage();
-    this.initializeDefaults();
+    this.initializeAsync();
+  }
+
+  /**
+   * Initialize encryption and load credentials
+   */
+  private async initializeAsync(): Promise<void> {
+    try {
+      // Initialize encryption service first
+      await encryptionService.initialize();
+      this.encryptionInitialized = true;
+      logger.info('Encryption initialized successfully');
+
+      // Load credentials (will decrypt if encrypted)
+      await this.loadFromStorage();
+
+      // Initialize defaults for missing services
+      this.initializeDefaults();
+    } catch (error) {
+      logger.error('Failed to initialize credential vault', { error });
+      // Fall back to unencrypted mode (but log warning)
+      logger.warn('Credential vault running in UNENCRYPTED mode - encryption failed');
+      this.encryptionInitialized = false;
+    }
+  }
+
+  /**
+   * Ensure encryption is ready before operations
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (!this.encryptionInitialized) {
+      await this.initializeAsync();
+    }
   }
 
   private initializeDefaults(): void {
@@ -82,7 +134,9 @@ class CredentialVaultService {
     });
   }
 
-  setCredentials(serviceId: string, credentials: Record<string, string>): void {
+  async setCredentials(serviceId: string, credentials: Record<string, string>): Promise<void> {
+    await this.ensureInitialized();
+
     const existing = this.credentials.get(serviceId);
 
     if (existing) {
@@ -101,12 +155,13 @@ class CredentialVaultService {
       this.credentials.set(serviceId, newCreds);
     }
 
-    this.saveToStorage();
+    await this.saveToStorage();
     this.notifyListeners(serviceId, 'disconnected');
 
-    activityService.logActivity({
-      type: 'credentials_updated',
-      message: `Credentials updated for ${serviceId}`,
+    activityService.addActivity({
+      type: 'system',
+      action: 'credentials_updated',
+      description: `Credentials updated for ${serviceId}`,
       metadata: { serviceId },
     });
 
@@ -228,18 +283,18 @@ class CredentialVaultService {
     return Object.values(service.credentials).some(v => v && v.length > 0);
   }
 
-  updateStatus(serviceId: string, status: ServiceCredentials['status']): void {
+  async updateStatus(serviceId: string, status: ServiceCredentials['status']): Promise<void> {
     const service = this.credentials.get(serviceId);
 
     if (service) {
       service.status = status;
       this.credentials.set(serviceId, service);
-      this.saveToStorage();
+      await this.saveToStorage();
       this.notifyListeners(serviceId, status);
     }
   }
 
-  clearCredentials(serviceId: string): void {
+  async clearCredentials(serviceId: string): Promise<void> {
     const service = this.credentials.get(serviceId);
 
     if (service) {
@@ -250,7 +305,7 @@ class CredentialVaultService {
       service.status = 'disconnected';
       service.lastError = undefined;
       this.credentials.set(serviceId, service);
-      this.saveToStorage();
+      await this.saveToStorage();
       this.notifyListeners(serviceId, 'disconnected');
     }
 
@@ -270,7 +325,7 @@ class CredentialVaultService {
     return exportData;
   }
 
-  importCredentials(data: CredentialExport): number {
+  async importCredentials(data: CredentialExport): Promise<number> {
     let imported = 0;
 
     data.credentials.forEach(cred => {
@@ -278,7 +333,7 @@ class CredentialVaultService {
       imported++;
     });
 
-    this.saveToStorage();
+    await this.saveToStorage();
 
     logger.info('Credentials imported', { count: imported });
 
@@ -312,26 +367,69 @@ class CredentialVaultService {
     this.listeners.forEach(callback => callback(serviceId, status));
   }
 
-  private saveToStorage(): void {
+  /**
+   * Save credentials to storage with encryption
+   */
+  private async saveToStorage(): Promise<void> {
     try {
-      const data = JSON.stringify(Array.from(this.credentials.entries()));
-      localStorage.setItem(this.STORAGE_KEY, data);
+      const plaintext = JSON.stringify(Array.from(this.credentials.entries()));
+
+      // Encrypt if encryption is initialized
+      if (this.encryptionInitialized) {
+        const encrypted = await encryptionService.encrypt(plaintext);
+        localStorage.setItem(this.STORAGE_KEY, encrypted);
+        logger.info('Credentials saved (encrypted)', { count: this.credentials.size });
+      } else {
+        // Fall back to unencrypted (with warning)
+        localStorage.setItem(this.STORAGE_KEY, plaintext);
+        logger.warn('Credentials saved UNENCRYPTED - encryption not initialized');
+      }
     } catch (error) {
       logger.error('Failed to save credentials', { error });
     }
   }
 
-  private loadFromStorage(): void {
+  /**
+   * Load credentials from storage with decryption
+   * Automatically migrates from plaintext to encrypted format
+   */
+  private async loadFromStorage(): Promise<void> {
     try {
-      const data = localStorage.getItem(this.STORAGE_KEY);
+      const stored = localStorage.getItem(this.STORAGE_KEY);
 
-      if (data) {
-        const entries = JSON.parse(data);
-        this.credentials = new Map(entries);
-        logger.info('Credentials loaded from storage', { count: this.credentials.size });
+      if (!stored) {
+        logger.info('No stored credentials found');
+        return;
       }
+
+      let plaintext: string;
+
+      // Check if data is encrypted
+      if (encryptionService.isEncrypted(stored)) {
+        // Decrypt encrypted data
+        plaintext = await encryptionService.decrypt(stored);
+        logger.info('Credentials loaded (decrypted)');
+      } else {
+        // Migrate plaintext data to encrypted format
+        logger.warn('Found plaintext credentials - migrating to encrypted format');
+        plaintext = stored;
+
+        // Re-save as encrypted
+        if (this.encryptionInitialized) {
+          const entries = JSON.parse(plaintext);
+          this.credentials = new Map(entries);
+          await this.saveToStorage(); // This will encrypt
+          logger.info('Credentials migrated to encrypted format');
+        }
+      }
+
+      // Parse credentials
+      const entries = JSON.parse(plaintext);
+      this.credentials = new Map(entries);
+      logger.info('Credentials loaded from storage', { count: this.credentials.size });
     } catch (error) {
       logger.error('Failed to load credentials', { error });
+      // Don't throw - let app continue with empty credentials
     }
   }
 
@@ -342,35 +440,14 @@ class CredentialVaultService {
   clearAll(): void {
     this.credentials.clear();
     localStorage.removeItem(this.STORAGE_KEY);
+    // Also clear encryption keys
+    encryptionService.clearKeys();
     this.initializeDefaults();
     logger.info('All credentials cleared');
   }
-
-  quickTest() {
-    // Set some test credentials
-    this.setCredentials('stripe', { apiKey: 'sk_test_123', secretKey: 'sk_secret_456' });
-    this.setCredentials('wordpress', { url: 'https://myblog.com', username: 'admin', appPassword: 'pass123' });
-    this.setCredentials('openai', { apiKey: 'sk-abc123' });
-
-    const stats = this.getConnectionStats();
-    const hasStripe = this.hasCredentials('stripe');
-    const stripeService = this.getCredentials('stripe');
-
-    return {
-      stats,
-      services: this.getAllCredentials().map(s => ({
-        id: s.serviceId,
-        name: s.serviceName,
-        status: s.status,
-        hasCredentials: this.hasCredentials(s.serviceId),
-      })),
-      testData: {
-        hasStripe,
-        stripeStatus: stripeService?.status,
-      },
-    };
-  }
 }
 
+// Export singleton instance
 export const credentialVaultService = new CredentialVaultService();
-if (typeof window !== 'undefined') (window as any).testCredentialVault = () => credentialVaultService.quickTest();
+
+// ❌ SECURITY: Removed global test function - was exposing credentials on window object
