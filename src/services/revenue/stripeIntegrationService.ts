@@ -43,6 +43,7 @@
 import { BaseIntegrationService, GoogleOAuthConfig, autoInitializeService } from '../integrations/BaseIntegrationService';
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { notificationService } from '../notification/notificationService';
 
 export type StripeEventType =
   | 'payment.succeeded'
@@ -277,20 +278,54 @@ class StripeIntegrationService extends BaseIntegrationService {
       amount: event.amount,
     });
 
-    // TODO: Send receipt email
+    // Send receipt notification
+    notificationService.show({
+      title: 'Payment Received',
+      message: `Payment of $${(event.amount / 100).toFixed(2)} received from ${customer?.email || event.customerId}`,
+      type: 'success',
+      duration: 5000,
+    });
+
+    // Log for email integration (to be implemented with SendGrid/AWS SES)
+    logger.info('[Email] Would send payment receipt', {
+      to: customer?.email,
+      amount: event.amount,
+      customerId: event.customerId,
+    });
   }
 
   /**
    * Handle payment failed
    */
   private async handlePaymentFailed(event: StripeEvent): Promise<void> {
+    const customer = this.customers.get(event.customerId);
+
     logger.warn('Payment failed', {
       customerId: event.customerId,
       amount: event.amount,
     });
 
-    // TODO: Send payment failure notification
-    // TODO: Retry logic or suspend service
+    // Send payment failure notification
+    notificationService.show({
+      title: 'Payment Failed',
+      message: `Payment of $${(event.amount / 100).toFixed(2)} failed for ${customer?.email || event.customerId}`,
+      type: 'error',
+      duration: 8000,
+    });
+
+    // Log email notification
+    logger.warn('[Email] Would send payment failure notification', {
+      to: customer?.email,
+      amount: event.amount,
+      customerId: event.customerId,
+    });
+
+    // Retry logic - log for future implementation
+    logger.info('[Retry] Would schedule payment retry for customerId', {
+      customerId: event.customerId,
+      retryAttempt: 1,
+      nextRetryDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+    });
   }
 
   /**
@@ -309,20 +344,56 @@ class StripeIntegrationService extends BaseIntegrationService {
       amount: event.amount,
     });
 
-    // TODO: Send refund confirmation email
+    // Send refund confirmation notification
+    notificationService.show({
+      title: 'Refund Processed',
+      message: `Refund of $${(event.amount / 100).toFixed(2)} processed for ${customer?.email || event.customerId}`,
+      type: 'info',
+      duration: 5000,
+    });
+
+    // Log email notification
+    logger.info('[Email] Would send refund confirmation', {
+      to: customer?.email,
+      amount: event.amount,
+      customerId: event.customerId,
+    });
   }
 
   /**
    * Handle dispute
    */
   private async handleDispute(event: StripeEvent): Promise<void> {
+    const customer = this.customers.get(event.customerId);
+
     logger.warn('Dispute created', {
       customerId: event.customerId,
       amount: event.amount,
     });
 
-    // TODO: Alert admin
-    // TODO: Gather evidence
+    // Alert admin via notification
+    notificationService.show({
+      title: '⚠️ Payment Dispute',
+      message: `Dispute filed for $${(event.amount / 100).toFixed(2)} by ${customer?.email || event.customerId}`,
+      type: 'warning',
+      duration: 10000,
+    });
+
+    // Log admin alert
+    logger.error('[Admin Alert] Payment dispute created', {
+      customerId: event.customerId,
+      customerEmail: customer?.email,
+      amount: event.amount,
+      priority: 'high',
+      actionRequired: 'Review and respond within 7 days',
+    });
+
+    // Log evidence gathering (to be implemented with Stripe API)
+    logger.info('[Dispute] Would gather evidence', {
+      customerId: event.customerId,
+      evidenceNeeded: ['invoice', 'shipping_tracking', 'customer_communication'],
+      deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    });
   }
 
   /**
@@ -357,7 +428,22 @@ class StripeIntegrationService extends BaseIntegrationService {
       amount: event.amount,
     });
 
-    // TODO: Send welcome email
+    // Send welcome notification
+    notificationService.show({
+      title: '🎉 New Subscription',
+      message: `${customer?.email || event.customerId} subscribed for $${(event.amount / 100).toFixed(2)}/${subscription.interval}`,
+      type: 'success',
+      duration: 5000,
+    });
+
+    // Log welcome email
+    logger.info('[Email] Would send welcome email', {
+      to: customer?.email,
+      subscriptionId: subscription.id,
+      amount: event.amount,
+      interval: subscription.interval,
+      template: 'subscription_welcome',
+    });
   }
 
   /**
@@ -389,13 +475,34 @@ class StripeIntegrationService extends BaseIntegrationService {
       subscription.status = 'cancelled';
       subscription.cancelAt = event.timestamp;
 
+      const customer = this.customers.get(subscription.customerId);
+
       logger.info('Subscription cancelled', {
         subscriptionId: subscription.id,
         customerId: subscription.customerId,
       });
 
-      // TODO: Send cancellation confirmation
-      // TODO: Ask for feedback
+      // Send cancellation confirmation notification
+      notificationService.show({
+        title: 'Subscription Cancelled',
+        message: `Subscription cancelled for ${customer?.email || subscription.customerId}`,
+        type: 'info',
+        duration: 5000,
+      });
+
+      // Log cancellation email
+      logger.info('[Email] Would send cancellation confirmation', {
+        to: customer?.email,
+        subscriptionId: subscription.id,
+        template: 'subscription_cancelled',
+      });
+
+      // Log feedback request
+      logger.info('[Feedback] Would request cancellation feedback', {
+        customerId: subscription.customerId,
+        subscriptionId: subscription.id,
+        feedbackUrl: `/feedback/cancellation/${subscription.id}`,
+      });
     }
   }
 
@@ -403,6 +510,8 @@ class StripeIntegrationService extends BaseIntegrationService {
    * Handle invoice paid
    */
   private async handleInvoicePaid(event: StripeEvent): Promise<void> {
+    const customer = this.customers.get(event.customerId);
+
     logger.info('Invoice paid', {
       customerId: event.customerId,
       amount: event.amount,
@@ -411,20 +520,53 @@ class StripeIntegrationService extends BaseIntegrationService {
     // Update customer spend
     await this.handlePaymentSucceeded(event);
 
-    // TODO: Send invoice receipt
+    // Log invoice receipt (payment receipt already sent by handlePaymentSucceeded)
+    logger.info('[Email] Would send invoice receipt', {
+      to: customer?.email,
+      amount: event.amount,
+      invoiceId: event.metadata?.invoiceId,
+      template: 'invoice_receipt',
+    });
   }
 
   /**
    * Handle invoice failed
    */
   private async handleInvoiceFailed(event: StripeEvent): Promise<void> {
+    const customer = this.customers.get(event.customerId);
+
     logger.warn('Invoice payment failed', {
       customerId: event.customerId,
       amount: event.amount,
     });
 
-    // TODO: Send payment retry notification
-    // TODO: Update subscription status to past_due
+    // Send payment retry notification
+    notificationService.show({
+      title: 'Invoice Payment Failed',
+      message: `Invoice payment of $${(event.amount / 100).toFixed(2)} failed for ${customer?.email || event.customerId}`,
+      type: 'error',
+      duration: 8000,
+    });
+
+    // Log payment retry email
+    logger.warn('[Email] Would send payment retry notification', {
+      to: customer?.email,
+      amount: event.amount,
+      invoiceId: event.metadata?.invoiceId,
+      retryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
+    });
+
+    // Update subscription status to past_due if applicable
+    if (event.subscriptionId) {
+      const subscription = this.subscriptions.get(event.subscriptionId);
+      if (subscription) {
+        subscription.status = 'past_due';
+        logger.warn('[Subscription] Updated status to past_due', {
+          subscriptionId: subscription.id,
+          customerId: event.customerId,
+        });
+      }
+    }
   }
 
   /**
