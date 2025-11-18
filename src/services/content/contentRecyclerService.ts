@@ -7,7 +7,7 @@
 import { learningSystemService } from '../learning/learningSystemService';
 import { contentPerformancePredictorService } from '../ai/contentPerformancePredictorService';
 import { smartSchedulerService } from '../scheduling/smartSchedulerService';
-import { activityService } from '../activityService';
+import { activityService } from '../activity/activityService';
 
 export interface ContentPiece {
   id: string;

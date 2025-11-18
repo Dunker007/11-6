@@ -11,7 +11,7 @@ import { contentRecyclerService } from '../content/contentRecyclerService';
 import { idleProfitMaximizerService } from '../idle-computing/idleProfitMaximizerService';
 import { emergencyResponseService } from '../safety/emergencyResponseService';
 import { aiNotificationService } from './aiNotificationService';
-import { activityService } from '../activityService';
+import { activityService } from '../activity/activityService';
 
 export interface AISystemStatus {
   id: string;

@@ -6,7 +6,7 @@
 
 import { learningSystemService } from '../learning/learningSystemService';
 import { contentPerformancePredictorService } from '../ai/contentPerformancePredictorService';
-import { activityService } from '../activityService';
+import { activityService } from '../activity/activityService';
 
 export interface ScheduleSlot {
   id: string;

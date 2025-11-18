@@ -8,7 +8,7 @@ import { revenueAnomalyService } from '../analytics/revenueAnomalyService';
 import { learningSystemService } from '../learning/learningSystemService';
 import { autoOptimizationService } from '../optimization/autoOptimizationService';
 import { idleProfitMaximizerService } from '../idle-computing/idleProfitMaximizerService';
-import { activityService } from '../activityService';
+import { activityService } from '../activity/activityService';
 
 export interface Emergency {
   id: string;

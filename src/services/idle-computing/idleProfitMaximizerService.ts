@@ -7,7 +7,7 @@
 import { idleRevenueService, IdleNetwork, EarningsHistory } from './idleRevenueService';
 import { learningSystemService } from '../learning/learningSystemService';
 import { revenueAnomalyService } from '../analytics/revenueAnomalyService';
-import { activityService } from '../activityService';
+import { activityService } from '../activity/activityService';
 
 export interface ElectricityPricing {
   provider: string;

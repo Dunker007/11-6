@@ -4,7 +4,7 @@
  * Aggregates alerts from all intelligent systems
  */
 
-import { activityService } from '../activityService';
+import { activityService } from '../activity/activityService';
 
 export interface AINotification {
   id: string;

@@ -15,7 +15,7 @@ import { emergencyResponseService } from '../safety/emergencyResponseService';
 import { agentOrchestratorService } from '../agents/agentOrchestratorService';
 import { aiNotificationService } from './aiNotificationService';
 import { aiInsightsService } from './aiInsightsService';
-import { activityService } from '../activityService';
+import { activityService } from '../activity/activityService';
 
 export interface ContentPipeline {
   id: string;
