@@ -74,6 +74,7 @@ import { useFinancialStore } from '../../services/backoffice/financialStore';
 import { useThresholdStore } from '../../services/backoffice/thresholdStore';
 import { formatCurrency } from '../../utils/formatters';
 import type { ExpenseCategory, IncomeSource } from '@/types/backoffice';
+import FinancialCharts from './FinancialCharts';
 import '../../styles/FinancialDashboard.css';
 
 const EXPENSE_CATEGORIES: {
@@ -121,7 +122,7 @@ function FinancialDashboard() {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'expenses' | 'income'
+    'overview' | 'charts' | 'expenses' | 'income'
   >('overview');
 
   useEffect(() => {
@@ -302,6 +303,12 @@ function FinancialDashboard() {
           Overview
         </button>
         <button
+          className={`tab ${activeTab === 'charts' ? 'active' : ''}`}
+          onClick={() => setActiveTab('charts')}
+        >
+          📊 Charts
+        </button>
+        <button
           className={`tab ${activeTab === 'expenses' ? 'active' : ''}`}
           onClick={() => setActiveTab('expenses')}
         >
@@ -316,6 +323,10 @@ function FinancialDashboard() {
       </div>
 
       <div className="tab-content">
+        {activeTab === 'charts' && summary && (
+          <FinancialCharts expenses={expenses} income={income} summary={summary} />
+        )}
+
         {activeTab === 'overview' && summary && (
           <div className="overview-content">
             <div className="breakdown-section">

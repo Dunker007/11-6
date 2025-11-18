@@ -1,0 +1,74 @@
+/**
+ * FinancialCharts.css
+ * Styles for financial visualization charts
+ */
+
+.financial-charts {
+  width: 100%;
+  padding: 20px 0;
+}
+
+.chart-section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.chart-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+.empty-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6b7280;
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-section {
+    padding: 16px;
+  }
+
+  .chart-container {
+    height: 250px !important;
+  }
+}
+
+/* Dark theme support */
+[data-theme="dark"] .chart-section {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .chart-section h3 {
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .empty-chart {
+  color: var(--color-text-secondary);
+}
