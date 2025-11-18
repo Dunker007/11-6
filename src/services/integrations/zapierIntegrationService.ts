@@ -5,6 +5,7 @@
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface ZapierTrigger {
   id: string;
@@ -50,6 +51,33 @@ class ZapierIntegrationService {
   setAPIKey(key: string) {
     this.apiKey = key;
     logger.info('Zapier API key configured');
+  }
+
+  isConnected(): boolean {
+    return this.apiKey !== undefined;
+  }
+
+  connectFromVault(): boolean {
+    const creds = credentialVaultService.getCredentials('zapier');
+    if (creds && creds.credentials.apiKey) {
+      this.setAPIKey(creds.credentials.apiKey);
+      logger.info('Zapier auto-initialized from credential vault');
+      return true;
+    }
+    logger.warn('Zapier credentials not found in vault - using demo mode');
+    return false;
+  }
+
+  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
+    const hasVaultCreds = credentialVaultService.hasCredentials('zapier');
+    const isConnected = this.isConnected();
+    if (isConnected && hasVaultCreds) {
+      return { connected: true, hasCredentials: true, message: 'Connected to Zapier' };
+    } else if (hasVaultCreds && !isConnected) {
+      return { connected: false, hasCredentials: true, message: 'Credentials available - click to connect' };
+    } else {
+      return { connected: false, hasCredentials: false, message: 'Demo mode - configure credentials in vault to connect' };
+    }
   }
 
   async createZap(name: string, trigger: Omit<ZapierTrigger, 'id'>, actions: Omit<ZapierAction, 'id'>[]): Promise<ZapierZap> {
@@ -252,4 +280,9 @@ class ZapierIntegrationService {
 }
 
 export const zapierIntegrationService = new ZapierIntegrationService();
+
+if (typeof window !== 'undefined') {
+  setTimeout(() => zapierIntegrationService.connectFromVault(), 100);
+}
+
 if (typeof window !== 'undefined') (window as any).testZapierIntegration = () => zapierIntegrationService.quickTest();

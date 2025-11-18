@@ -5,6 +5,7 @@
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface GitHubRepo {
   id: string;
@@ -50,6 +51,57 @@ class GitHubIntegrationService {
   setAccessToken(token: string) {
     this.accessToken = token;
     logger.info('GitHub access token configured');
+  }
+
+  /**
+   * Check if GitHub is connected
+   */
+  isConnected(): boolean {
+    return this.accessToken !== undefined;
+  }
+
+  /**
+   * Connect from credential vault
+   */
+  connectFromVault(): boolean {
+    const creds = credentialVaultService.getCredentials('github');
+
+    if (creds && creds.credentials.accessToken) {
+      this.setAccessToken(creds.credentials.accessToken);
+      logger.info('GitHub auto-initialized from credential vault');
+      return true;
+    }
+
+    logger.warn('GitHub credentials not found in vault - using demo mode');
+    return false;
+  }
+
+  /**
+   * Get connection status
+   */
+  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
+    const hasVaultCreds = credentialVaultService.hasCredentials('github');
+    const isConnected = this.isConnected();
+
+    if (isConnected && hasVaultCreds) {
+      return {
+        connected: true,
+        hasCredentials: true,
+        message: 'Connected to GitHub',
+      };
+    } else if (hasVaultCreds && !isConnected) {
+      return {
+        connected: false,
+        hasCredentials: true,
+        message: 'Credentials available - click to connect',
+      };
+    } else {
+      return {
+        connected: false,
+        hasCredentials: false,
+        message: 'Demo mode - configure credentials in vault to connect',
+      };
+    }
   }
 
   async getRepos(username?: string): Promise<GitHubRepo[]> {
@@ -225,4 +277,12 @@ class GitHubIntegrationService {
 }
 
 export const githubIntegrationService = new GitHubIntegrationService();
+
+// Auto-initialize from credential vault if available
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    githubIntegrationService.connectFromVault();
+  }, 100);
+}
+
 if (typeof window !== 'undefined') (window as any).testGitHubIntegration = () => githubIntegrationService.quickTest();

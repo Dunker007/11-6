@@ -22,6 +22,7 @@
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface GumroadProduct {
   id: string;
@@ -112,6 +113,57 @@ class GumroadIntegrationService {
   initialize(accessToken: string) {
     this.accessToken = accessToken;
     logger.info('Gumroad integration initialized (demo mode)');
+  }
+
+  /**
+   * Check if Gumroad is connected
+   */
+  isConnected(): boolean {
+    return this.accessToken !== null;
+  }
+
+  /**
+   * Connect from credential vault
+   */
+  connectFromVault(): boolean {
+    const creds = credentialVaultService.getCredentials('gumroad');
+
+    if (creds && creds.credentials.accessToken) {
+      this.initialize(creds.credentials.accessToken);
+      logger.info('Gumroad auto-initialized from credential vault');
+      return true;
+    }
+
+    logger.warn('Gumroad credentials not found in vault - using demo mode');
+    return false;
+  }
+
+  /**
+   * Get connection status
+   */
+  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
+    const hasVaultCreds = credentialVaultService.hasCredentials('gumroad');
+    const isConnected = this.isConnected();
+
+    if (isConnected && hasVaultCreds) {
+      return {
+        connected: true,
+        hasCredentials: true,
+        message: 'Connected to Gumroad',
+      };
+    } else if (hasVaultCreds && !isConnected) {
+      return {
+        connected: false,
+        hasCredentials: true,
+        message: 'Credentials available - click to connect',
+      };
+    } else {
+      return {
+        connected: false,
+        hasCredentials: false,
+        message: 'Demo mode - configure credentials in vault to connect',
+      };
+    }
   }
 
   /**
@@ -609,6 +661,14 @@ class GumroadIntegrationService {
 
 // Export singleton
 export const gumroadIntegrationService = new GumroadIntegrationService();
+
+// Auto-initialize from credential vault if available
+if (typeof window !== 'undefined') {
+  // Delay auto-init to ensure credential vault is loaded
+  setTimeout(() => {
+    gumroadIntegrationService.connectFromVault();
+  }, 100);
+}
 
 // Expose to window for testing
 if (typeof window !== 'undefined') {

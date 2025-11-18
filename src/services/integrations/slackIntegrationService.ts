@@ -5,6 +5,7 @@
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface SlackMessage {
   channel: string;
@@ -58,6 +59,40 @@ class SlackIntegrationService {
   setBotToken(token: string) {
     this.botToken = token;
     logger.info('Slack bot token configured');
+  }
+
+  isConnected(): boolean {
+    return this.webhookUrl !== undefined || this.botToken !== undefined;
+  }
+
+  connectFromVault(): boolean {
+    const creds = credentialVaultService.getCredentials('slack');
+    if (creds) {
+      if (creds.credentials.webhookUrl) {
+        this.setWebhookUrl(creds.credentials.webhookUrl);
+      }
+      if (creds.credentials.botToken) {
+        this.setBotToken(creds.credentials.botToken);
+      }
+      if (creds.credentials.webhookUrl || creds.credentials.botToken) {
+        logger.info('Slack auto-initialized from credential vault');
+        return true;
+      }
+    }
+    logger.warn('Slack credentials not found in vault - using demo mode');
+    return false;
+  }
+
+  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
+    const hasVaultCreds = credentialVaultService.hasCredentials('slack');
+    const isConnected = this.isConnected();
+    if (isConnected && hasVaultCreds) {
+      return { connected: true, hasCredentials: true, message: 'Connected to Slack' };
+    } else if (hasVaultCreds && !isConnected) {
+      return { connected: false, hasCredentials: true, message: 'Credentials available - click to connect' };
+    } else {
+      return { connected: false, hasCredentials: false, message: 'Demo mode - configure credentials in vault to connect' };
+    }
   }
 
   async sendMessage(message: SlackMessage): Promise<boolean> {
@@ -279,4 +314,9 @@ class SlackIntegrationService {
 }
 
 export const slackIntegrationService = new SlackIntegrationService();
+
+if (typeof window !== 'undefined') {
+  setTimeout(() => slackIntegrationService.connectFromVault(), 100);
+}
+
 if (typeof window !== 'undefined') (window as any).testSlackIntegration = () => slackIntegrationService.quickTest();

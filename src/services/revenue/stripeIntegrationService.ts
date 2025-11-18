@@ -30,6 +30,7 @@
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export type StripeEventType =
   | 'payment.succeeded'
@@ -104,6 +105,57 @@ class StripeIntegrationService {
   initialize(webhookSecret: string) {
     this.webhookSecret = webhookSecret;
     logger.info('Stripe integration initialized (demo mode)');
+  }
+
+  /**
+   * Check if Stripe is connected
+   */
+  isConnected(): boolean {
+    return this.webhookSecret !== null;
+  }
+
+  /**
+   * Connect from credential vault
+   */
+  connectFromVault(): boolean {
+    const creds = credentialVaultService.getCredentials('stripe');
+
+    if (creds && creds.credentials.secretKey) {
+      this.initialize(creds.credentials.secretKey);
+      logger.info('Stripe auto-initialized from credential vault');
+      return true;
+    }
+
+    logger.warn('Stripe credentials not found in vault - using demo mode');
+    return false;
+  }
+
+  /**
+   * Get connection status
+   */
+  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
+    const hasVaultCreds = credentialVaultService.hasCredentials('stripe');
+    const isConnected = this.isConnected();
+
+    if (isConnected && hasVaultCreds) {
+      return {
+        connected: true,
+        hasCredentials: true,
+        message: 'Connected to Stripe',
+      };
+    } else if (hasVaultCreds && !isConnected) {
+      return {
+        connected: false,
+        hasCredentials: true,
+        message: 'Credentials available - click to connect',
+      };
+    } else {
+      return {
+        connected: false,
+        hasCredentials: false,
+        message: 'Demo mode - configure credentials in vault to connect',
+      };
+    }
   }
 
   /**
@@ -534,6 +586,14 @@ class StripeIntegrationService {
 
 // Export singleton
 export const stripeIntegrationService = new StripeIntegrationService();
+
+// Auto-initialize from credential vault if available
+if (typeof window !== 'undefined') {
+  // Delay auto-init to ensure credential vault is loaded
+  setTimeout(() => {
+    stripeIntegrationService.connectFromVault();
+  }, 100);
+}
 
 // Expose to window for testing
 if (typeof window !== 'undefined') {

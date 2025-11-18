@@ -5,6 +5,7 @@
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface AirtableBase {
   id: string;
@@ -48,6 +49,33 @@ class AirtableIntegrationService {
   setAPIKey(key: string) {
     this.apiKey = key;
     logger.info('Airtable API key configured');
+  }
+
+  isConnected(): boolean {
+    return this.apiKey !== undefined;
+  }
+
+  connectFromVault(): boolean {
+    const creds = credentialVaultService.getCredentials('airtable');
+    if (creds && creds.credentials.apiKey) {
+      this.setAPIKey(creds.credentials.apiKey);
+      logger.info('Airtable auto-initialized from credential vault');
+      return true;
+    }
+    logger.warn('Airtable credentials not found in vault - using demo mode');
+    return false;
+  }
+
+  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
+    const hasVaultCreds = credentialVaultService.hasCredentials('airtable');
+    const isConnected = this.isConnected();
+    if (isConnected && hasVaultCreds) {
+      return { connected: true, hasCredentials: true, message: 'Connected to Airtable' };
+    } else if (hasVaultCreds && !isConnected) {
+      return { connected: false, hasCredentials: true, message: 'Credentials available - click to connect' };
+    } else {
+      return { connected: false, hasCredentials: false, message: 'Demo mode - configure credentials in vault to connect' };
+    }
   }
 
   async getBases(): Promise<AirtableBase[]> {
@@ -259,4 +287,9 @@ class AirtableIntegrationService {
 }
 
 export const airtableIntegrationService = new AirtableIntegrationService();
+
+if (typeof window !== 'undefined') {
+  setTimeout(() => airtableIntegrationService.connectFromVault(), 100);
+}
+
 if (typeof window !== 'undefined') (window as any).testAirtableIntegration = () => airtableIntegrationService.quickTest();

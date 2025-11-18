@@ -22,6 +22,7 @@
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface MediumPost {
   id: string;
@@ -81,6 +82,57 @@ class MediumPublisher {
     this.apiToken = apiToken;
     this.userId = userId;
     logger.info('Medium publisher initialized (demo mode)');
+  }
+
+  /**
+   * Check if Medium is connected
+   */
+  isConnected(): boolean {
+    return this.apiToken !== null && this.userId !== null;
+  }
+
+  /**
+   * Connect from credential vault
+   */
+  connectFromVault(): boolean {
+    const creds = credentialVaultService.getCredentials('medium');
+
+    if (creds && creds.credentials.apiToken && creds.credentials.userId) {
+      this.initialize(creds.credentials.apiToken, creds.credentials.userId);
+      logger.info('Medium auto-initialized from credential vault');
+      return true;
+    }
+
+    logger.warn('Medium credentials not found in vault - using demo mode');
+    return false;
+  }
+
+  /**
+   * Get connection status
+   */
+  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
+    const hasVaultCreds = credentialVaultService.hasCredentials('medium');
+    const isConnected = this.isConnected();
+
+    if (isConnected && hasVaultCreds) {
+      return {
+        connected: true,
+        hasCredentials: true,
+        message: 'Connected to Medium',
+      };
+    } else if (hasVaultCreds && !isConnected) {
+      return {
+        connected: false,
+        hasCredentials: true,
+        message: 'Credentials available - click to connect',
+      };
+    } else {
+      return {
+        connected: false,
+        hasCredentials: false,
+        message: 'Demo mode - configure credentials in vault to connect',
+      };
+    }
   }
 
   /**
@@ -469,6 +521,14 @@ The future of passive income is automated. Start today!`,
 
 // Export singleton
 export const mediumPublisher = new MediumPublisher();
+
+// Auto-initialize from credential vault if available
+if (typeof window !== 'undefined') {
+  // Delay auto-init to ensure credential vault is loaded
+  setTimeout(() => {
+    mediumPublisher.connectFromVault();
+  }, 100);
+}
 
 // Expose to window for testing
 if (typeof window !== 'undefined') {

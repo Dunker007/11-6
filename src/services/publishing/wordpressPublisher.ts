@@ -22,6 +22,7 @@
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface WordPressSite {
   id: string;
@@ -102,6 +103,71 @@ class WordPressPublisher {
     });
 
     return newSite;
+  }
+
+  /**
+   * Check if WordPress is connected (has any sites)
+   */
+  isConnected(): boolean {
+    return this.sites.length > 0 && this.sites.some(s => s.status === 'connected');
+  }
+
+  /**
+   * Connect from credential vault
+   */
+  connectFromVault(): boolean {
+    const creds = credentialVaultService.getCredentials('wordpress');
+
+    if (creds && creds.credentials.url && creds.credentials.username && creds.credentials.applicationPassword) {
+      // Check if site already exists
+      const existingSite = this.sites.find(s => s.url === creds.credentials.url);
+
+      if (!existingSite) {
+        this.addSite({
+          name: creds.credentials.siteName || 'My WordPress Site',
+          url: creds.credentials.url,
+          username: creds.credentials.username,
+          applicationPassword: creds.credentials.applicationPassword,
+        });
+        logger.info('WordPress site auto-loaded from credential vault');
+        return true;
+      }
+    }
+
+    logger.warn('WordPress credentials not found in vault - no sites loaded');
+    return false;
+  }
+
+  /**
+   * Get connection status
+   */
+  getStatus(): { connected: boolean; hasCredentials: boolean; message: string; siteCount: number } {
+    const hasVaultCreds = credentialVaultService.hasCredentials('wordpress');
+    const isConnected = this.isConnected();
+    const siteCount = this.sites.length;
+
+    if (isConnected && hasVaultCreds) {
+      return {
+        connected: true,
+        hasCredentials: true,
+        message: `Connected to ${siteCount} WordPress site(s)`,
+        siteCount,
+      };
+    } else if (hasVaultCreds && !isConnected) {
+      return {
+        connected: false,
+        hasCredentials: true,
+        message: 'Credentials available - click to connect',
+        siteCount: 0,
+      };
+    } else {
+      return {
+        connected: false,
+        hasCredentials: false,
+        message: 'Demo mode - configure credentials in vault to connect',
+        siteCount: 0,
+      };
+    }
   }
 
   /**
@@ -567,6 +633,14 @@ class WordPressPublisher {
 
 // Export singleton
 export const wordpressPublisher = new WordPressPublisher();
+
+// Auto-initialize from credential vault if available
+if (typeof window !== 'undefined') {
+  // Delay auto-init to ensure credential vault is loaded
+  setTimeout(() => {
+    wordpressPublisher.connectFromVault();
+  }, 100);
+}
 
 // Expose to window for testing
 if (typeof window !== 'undefined') {

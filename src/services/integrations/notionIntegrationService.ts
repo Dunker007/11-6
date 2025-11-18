@@ -5,6 +5,7 @@
 
 import { logger } from '../logging/loggerService';
 import { activityService } from '../activity/activityService';
+import { credentialVaultService } from '../credentials/credentialVaultService';
 
 export interface NotionPage {
   id: string;
@@ -47,6 +48,57 @@ class NotionIntegrationService {
   setAccessToken(token: string) {
     this.accessToken = token;
     logger.info('Notion access token configured');
+  }
+
+  /**
+   * Check if Notion is connected
+   */
+  isConnected(): boolean {
+    return this.accessToken !== undefined;
+  }
+
+  /**
+   * Connect from credential vault
+   */
+  connectFromVault(): boolean {
+    const creds = credentialVaultService.getCredentials('notion');
+
+    if (creds && creds.credentials.apiKey) {
+      this.setAccessToken(creds.credentials.apiKey);
+      logger.info('Notion auto-initialized from credential vault');
+      return true;
+    }
+
+    logger.warn('Notion credentials not found in vault - using demo mode');
+    return false;
+  }
+
+  /**
+   * Get connection status
+   */
+  getStatus(): { connected: boolean; hasCredentials: boolean; message: string } {
+    const hasVaultCreds = credentialVaultService.hasCredentials('notion');
+    const isConnected = this.isConnected();
+
+    if (isConnected && hasVaultCreds) {
+      return {
+        connected: true,
+        hasCredentials: true,
+        message: 'Connected to Notion',
+      };
+    } else if (hasVaultCreds && !isConnected) {
+      return {
+        connected: false,
+        hasCredentials: true,
+        message: 'Credentials available - click to connect',
+      };
+    } else {
+      return {
+        connected: false,
+        hasCredentials: false,
+        message: 'Demo mode - configure credentials in vault to connect',
+      };
+    }
   }
 
   async getDatabases(): Promise<NotionDatabase[]> {
@@ -225,4 +277,12 @@ class NotionIntegrationService {
 }
 
 export const notionIntegrationService = new NotionIntegrationService();
+
+// Auto-initialize from credential vault if available
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    notionIntegrationService.connectFromVault();
+  }, 100);
+}
+
 if (typeof window !== 'undefined') (window as any).testNotionIntegration = () => notionIntegrationService.quickTest();
