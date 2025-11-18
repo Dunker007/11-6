@@ -31,7 +31,7 @@ function ProgramRunner() {
     try {
       const workingDirectory = activeProject?.rootPath;
       const execution = await programService.execute(command.trim(), workingDirectory);
-      
+
       if (execution) {
         setSelectedExecution(execution.id);
         setHistory((prev) => {
@@ -79,7 +79,7 @@ function ProgramRunner() {
     }
   };
 
-  const selectedExec = selectedExecution 
+  const selectedExec = selectedExecution
     ? executions.find((e) => e.id === selectedExecution)
     : executions[executions.length - 1];
 
@@ -103,7 +103,7 @@ function ProgramRunner() {
               onChange={(e) => setCommand(e.target.value)}
               onKeyDown={handleKeyPress}
             />
-            <button 
+            <button
               className="execute-btn"
               onClick={handleExecute}
               disabled={!command.trim()}

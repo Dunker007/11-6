@@ -122,7 +122,7 @@ function GitWizard() {
       });
       return;
     }
-    
+
     if (!currentRepository) {
       showToast({
         variant: 'warning',

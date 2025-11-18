@@ -1,11 +1,11 @@
 /**
  * AIAssistant.tsx
- * 
+ *
  * PURPOSE:
  * Main AI chat assistant component (Vibed Ed). Provides conversational interface for AI-powered
  * coding assistance with context awareness, streaming responses, function calling support, and
  * conversation memory. Integrates with multiple AI services for intelligent code help.
- * 
+ *
  * ARCHITECTURE:
  * React component that orchestrates multiple services:
  * - useLLMStore: LLM generation and model management
@@ -14,7 +14,7 @@
  * - multiFileContextService: Multi-file context analysis
  * - agentMemoryService: Conversation persistence
  * - useLLMOptimizerStore: Optimization priority for temperature
- * 
+ *
  * Features:
  * - Streaming text responses
  * - Function call handling (Gemini)
@@ -23,7 +23,7 @@
  * - Quick action buttons
  * - Proactive suggestions
  * - Gemini-specific settings (safety, system instructions, tools)
- * 
+ *
  * CURRENT STATUS:
  * ✅ Full chat interface with streaming
  * ✅ Function call support (Gemini)
@@ -33,7 +33,7 @@
  * ✅ Quick actions (Explain, Refactor, Fix, Generate Tests)
  * ✅ Proactive suggestions
  * ✅ Gemini settings panel
- * 
+ *
  * DEPENDENCIES:
  * - useLLMStore: LLM generation
  * - useProjectStore: Project context
@@ -44,33 +44,33 @@
  * - getTemperatureForPriority: Temperature mapping
  * - EdAvatar: Agent avatar component
  * - GeminiFunctionCalls: Function call display
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: messages, input, streaming status, Gemini settings
  * - Uses multiple Zustand stores for global state
  * - Conversation ID for memory persistence
- * 
+ *
  * PERFORMANCE:
  * - Streaming doesn't block UI
  * - Memoized Gemini active check
  * - Efficient message updates
  * - Auto-scroll to latest message
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import AIAssistant from '@/components/AIAssistant/AIAssistant';
- * 
+ *
  * function App() {
  *   return <AIAssistant />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/llmStore.ts: LLM generation
  * - src/services/ai/projectKnowledgeService.ts: Project context
  * - src/components/Agents/EdAvatar.tsx: Avatar component
  * - src/components/LLMOptimizer/GeminiFunctionCalls.tsx: Function call UI
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Code block syntax highlighting
  * - Message editing
@@ -153,7 +153,7 @@ function AIAssistant() {
 
   // Check if Gemini is available and active
   const isGeminiActive = useMemo(() => {
-    return activeModel?.provider === 'gemini' && 
+    return activeModel?.provider === 'gemini' &&
            models.some(m => m.provider === 'gemini' && m.isAvailable) &&
            keys.some(k => k.provider === 'gemini' && k.isValid);
   }, [activeModel, models, keys]);
@@ -168,7 +168,7 @@ function AIAssistant() {
             projectId: activeProject.id,
             limit: 1,
           });
-          
+
           if (conversations.length > 0) {
             const conv = conversations[0];
             setConversationId(conv.id);
@@ -192,7 +192,7 @@ function AIAssistant() {
         }
       }
     };
-    
+
     loadConversation();
   }, [activeProject?.id]);
 
@@ -254,7 +254,7 @@ function AIAssistant() {
     }
 
     if (activeFile) {
-      const relatedFiles = deepContext 
+      const relatedFiles = deepContext
         ? multiFileContextService.getRelatedFiles(activeProject.id, activeFile, 1)
         : [];
       if (relatedFiles.length > 0) {
@@ -337,7 +337,7 @@ function AIAssistant() {
             activeFile,
             2
           ).filter(f => f !== activeFile).slice(0, 3);
-          
+
           if (relatedFiles.length > 0) {
             relatedFilesContext = '\n\nRelated files that might be relevant:\n';
             relatedFiles.forEach(filePath => {
@@ -448,7 +448,7 @@ function AIAssistant() {
         generateOptions.taskType = detectTaskType(userMessageContent);
         currentTaskType = generateOptions.taskType;
       }
-      
+
       // Add Gemini-specific options if Gemini is active
       if (isGeminiActive) {
         if (geminiSafetySettings.length > 0) {
@@ -475,7 +475,7 @@ function AIAssistant() {
 
       let fullContent = '';
       const accumulatedFunctionCalls: GeminiFunctionCall[] = [];
-      
+
       // Stream the response and handle both text and function calls
       streamStart = performance.now();
       for await (const chunk of streamGenerate(prompt, generateOptions)) {
@@ -483,7 +483,7 @@ function AIAssistant() {
         if (chunk.text) {
           fullContent += chunk.text;
         }
-        
+
         // Handle function calls from stream
         if (chunk.functionCalls && chunk.functionCalls.length > 0) {
           // Accumulate function calls (avoid duplicates)
@@ -493,7 +493,7 @@ function AIAssistant() {
             }
           });
         }
-        
+
         // Update message content
         setMessages((prev) => {
           const updated = [...prev];
@@ -504,12 +504,12 @@ function AIAssistant() {
           return updated;
         });
       }
-      
+
       // Update function calls state if any were found
       if (accumulatedFunctionCalls.length > 0) {
         setLastFunctionCalls(accumulatedFunctionCalls);
       }
-      
+
       logSlowOperation(
         'AIAssistant.streamGenerate',
         performance.now() - streamStart,
@@ -518,7 +518,7 @@ function AIAssistant() {
       );
 
       setEdStatus('success');
-      
+
       // Save messages to memory
       if (conversationId) {
         await agentMemoryService.addMessage(conversationId, {
@@ -529,7 +529,7 @@ function AIAssistant() {
           agent: 'vibed-ed',
           projectId: activeProject?.id,
         });
-        
+
         await agentMemoryService.addMessage(conversationId, {
           id: assistantMessage.id,
           role: 'assistant',
@@ -722,7 +722,7 @@ function AIAssistant() {
             </div>
           </div>
         )}
-        
+
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.role}`}>
             {message.role === 'assistant' && (

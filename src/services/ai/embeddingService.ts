@@ -109,12 +109,12 @@ class EmbeddingService {
       const hash = await EmbeddingService.hashText(text);
       const cacheKey = `${EmbeddingService.CACHE_KEY_PREFIX}${hash}`;
       const cached = localStorage.getItem(cacheKey);
-      
+
       if (!cached) return null;
 
       const parsed = JSON.parse(cached);
       const timestamp = parsed.timestamp;
-      
+
       // Check if cache is expired
       if (Date.now() - timestamp > EmbeddingService.CACHE_TTL) {
         localStorage.removeItem(cacheKey);
@@ -135,7 +135,7 @@ class EmbeddingService {
     try {
       const hash = await EmbeddingService.hashText(text);
       const cacheKey = `${EmbeddingService.CACHE_KEY_PREFIX}${hash}`;
-      
+
       const cacheEntry = {
         embedding,
         timestamp: Date.now(),
@@ -170,7 +170,7 @@ class EmbeddingService {
    */
   private static async enforceCacheSizeLimit(): Promise<void> {
     try {
-      const keys = Object.keys(localStorage).filter(key => 
+      const keys = Object.keys(localStorage).filter(key =>
         key.startsWith(EmbeddingService.CACHE_KEY_PREFIX)
       );
 
@@ -197,7 +197,7 @@ class EmbeddingService {
       // Remove oldest entries if over limit
       if (totalSize > EmbeddingService.MAX_CACHE_SIZE) {
         entries.sort((a, b) => a.timestamp - b.timestamp);
-        
+
         let removedSize = 0;
         for (const entry of entries) {
           if (totalSize - removedSize <= EmbeddingService.MAX_CACHE_SIZE) break;
@@ -215,7 +215,7 @@ class EmbeddingService {
    */
   public static clearCache(): void {
     try {
-      const keys = Object.keys(localStorage).filter(key => 
+      const keys = Object.keys(localStorage).filter(key =>
         key.startsWith(EmbeddingService.CACHE_KEY_PREFIX)
       );
       keys.forEach(key => localStorage.removeItem(key));

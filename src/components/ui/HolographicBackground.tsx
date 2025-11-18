@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 /**
  * HolographicBackground Component
- * 
+ *
  * Canvas-based animated background with:
  * - Starfield with parallax layers
  * - Floating particles with glow effects
@@ -77,7 +77,7 @@ export function HolographicBackground({
     // Initialize starfield
     const initStarfield = () => {
       if (!enableStarfield) return;
-      
+
       for (let i = 0; i < counts.stars; i++) {
         starsRef.current.push({
           x: Math.random() * canvas.width,
@@ -96,9 +96,9 @@ export function HolographicBackground({
     // Initialize floating particles
     const initParticles = () => {
       if (!enableParticles) return;
-      
+
       const colors = ['#06b6d4', '#8b5cf6', '#d946ef', '#f59e0b'];
-      
+
       for (let i = 0; i < counts.particles; i++) {
         particlesRef.current.push({
           x: Math.random() * canvas.width,
@@ -117,7 +117,7 @@ export function HolographicBackground({
     // Initialize neural network nodes
     const initNeuralNetwork = () => {
       if (!enableNeuralNetwork) return;
-      
+
       for (let i = 0; i < counts.nodes; i++) {
         neuralNodesRef.current.push({
           x: Math.random() * canvas.width,
@@ -137,7 +137,7 @@ export function HolographicBackground({
         }));
 
         distances.sort((a, b) => a.distance - b.distance);
-        
+
         // Connect to 2-3 nearest nodes (skip self at index 0)
         const connectionCount = Math.floor(Math.random() * 2) + 2;
         node.connections = distances.slice(1, connectionCount + 1).map(d => d.index);
@@ -148,7 +148,7 @@ export function HolographicBackground({
     initStarfield();
     initParticles();
     initNeuralNetwork();
-    
+
     // Debug log to confirm component is rendering
     console.log('[HolographicBackground] Canvas initialized:', {
       width: canvas.width,
@@ -160,7 +160,7 @@ export function HolographicBackground({
 
     // Animation loop
     let pulsePhase = 0;
-    
+
     const animate = () => {
       // Subtle trail fade effect for smooth motion
       ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
@@ -247,14 +247,14 @@ export function HolographicBackground({
           node.connections.forEach(targetIndex => {
             const target = neuralNodesRef.current[targetIndex];
             const distance = Math.hypot(node.x - target.x, node.y - target.y);
-            
+
             // Only draw if within reasonable distance
             if (distance < 300) {
               const alpha = 1 - distance / 300;
-              
+
               // Pulsing effect
               const pulseAlpha = alpha * (0.2 + Math.sin(pulsePhase + i * 0.5) * 0.1);
-              
+
               ctx.save();
               ctx.globalAlpha = pulseAlpha;
               ctx.strokeStyle = '#06b6d4';
@@ -270,7 +270,7 @@ export function HolographicBackground({
           // Draw node
           ctx.save();
           ctx.globalAlpha = 0.8 + Math.sin(pulsePhase + i) * 0.2;
-          
+
           // Glow
           const gradient = ctx.createRadialGradient(
             node.x, node.y, 0,

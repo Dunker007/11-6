@@ -1,11 +1,11 @@
 /**
  * wealthStore.ts
- * 
+ *
  * PURPOSE:
  * Comprehensive Zustand store for WealthLab financial management. Manages accounts, assets,
  * liabilities, portfolios, watchlists, news, budgets, transactions, retirement planning, and
  * crypto ETFs. Provides reactive state for all wealth management features.
- * 
+ *
  * ARCHITECTURE:
  * Large Zustand store that aggregates multiple wealth services:
  * - wealthService: Core wealth operations
@@ -13,7 +13,7 @@
  * - watchlistService: Watchlist and alerts
  * - newsService: Financial news and insights
  * - wealthMarketDataService: Market data
- * 
+ *
  * Organizes state by domain:
  * - Accounts, Assets, Liabilities
  * - Portfolios and Watchlists
@@ -21,7 +21,7 @@
  * - Budgets and Transactions
  * - Retirement Planning
  * - Crypto ETFs
- * 
+ *
  * CURRENT STATUS:
  * ✅ Full CRUD for accounts, assets, liabilities
  * ✅ Portfolio management
@@ -31,7 +31,7 @@
  * ✅ Retirement planning
  * ✅ Crypto ETF tracking
  * ✅ Net worth calculation and history
- * 
+ *
  * DEPENDENCIES:
  * - wealthService: Core wealth operations
  * - portfolioService: Portfolio management
@@ -39,44 +39,44 @@
  * - newsService: News and insights
  * - wealthMarketDataService: Market data
  * - @/types/wealth: Wealth type definitions
- * 
+ *
  * STATE MANAGEMENT:
  * - Financial data: accounts, assets, liabilities, portfolios, watchlists
  * - UI state: activeTab, selectedMonth/Year, selectedPortfolioId
  * - News and insights: news articles, market insights
  * - Crypto ETFs: crypto ETFs list, upcoming ETFs
  * - Loading/error states for operations
- * 
+ *
  * PERFORMANCE:
  * - Reactive updates via Zustand
  * - Efficient data loading
  * - Cached market data
  * - Async operations don't block UI
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { useWealthStore } from '@/services/wealth/wealthStore';
- * 
+ *
  * function WealthDashboard() {
- *   const { 
- *     netWorth, 
- *     portfolios, 
+ *   const {
+ *     netWorth,
+ *     portfolios,
  *     selectedPortfolioId,
- *     loadPortfolios 
+ *     loadPortfolios
  *   } = useWealthStore();
- *   
+ *
  *   useEffect(() => {
  *     loadPortfolios();
  *   }, []);
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/wealth/wealthService.ts: Core wealth operations
  * - src/services/wealth/portfolioService.ts: Portfolio management
  * - src/components/LLMOptimizer/WealthLab/WealthLab.tsx: Main UI component
  * - src/components/LLMOptimizer/WealthLab/components/*: Feature components
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Real-time market data updates
  * - Account aggregation from external sources
@@ -122,29 +122,29 @@ interface WealthStore {
   retirementPlans: RetirementPlan[];
   goals: Goal[];
   accountConnections: AccountConnection[];
-  
+
   // Selected period for budgeting/transactions
   selectedMonth: number;
   selectedYear: number;
-  
+
   // UI State
   isLoading: boolean;
   error: string | null;
   activeTab: 'overview' | 'portfolios' | 'crypto-etfs' | 'watchlists' | 'news' | 'analytics' | 'budgeting' | 'retirement' | 'estate';
-  
+
   // Portfolio Management State
   portfolios: Portfolio[];
   selectedPortfolioId: string | null;
-  
+
   // Watchlist State
   watchlists: Watchlist[];
   selectedWatchlistId: string | null;
   alerts: Alert[];
-  
+
   // News & Insights State
   news: NewsArticle[];
   insights: MarketInsight[];
-  
+
   // Crypto ETFs State
   cryptoETFs: CryptoETF[];
   upcomingETFs: CryptoETF[];
@@ -205,7 +205,7 @@ interface WealthStore {
   setSelectedYear: (year: number) => void;
   setActiveTab: (tab: 'overview' | 'portfolios' | 'crypto-etfs' | 'watchlists' | 'news' | 'analytics' | 'budgeting' | 'retirement' | 'estate') => void;
   refresh: () => void;
-  
+
   // Portfolio Actions
   loadPortfolios: () => void;
   createPortfolio: (name: string, description?: string) => Promise<Portfolio>;
@@ -215,7 +215,7 @@ interface WealthStore {
   deletePortfolio: (id: string) => void;
   setSelectedPortfolio: (id: string | null) => void;
   updatePortfolioPerformance: (portfolioId: string) => Promise<void>;
-  
+
   // Watchlist Actions
   loadWatchlists: () => void;
   createWatchlist: (name: string) => Watchlist;
@@ -226,14 +226,14 @@ interface WealthStore {
   setPriceAlert: (symbol: string, targetPrice: number, direction: 'above' | 'below') => Alert;
   setNewsAlert: (symbol: string, keywords: string[]) => Alert;
   deleteAlert: (id: string) => void;
-  
+
   // News & Insights Actions
   loadNews: (symbols?: string[]) => Promise<void>;
   loadCryptoETFNews: () => Promise<void>;
   loadMarketNews: () => Promise<void>;
   loadInsights: () => void;
   generateInsights: (portfolioId: string) => Promise<void>;
-  
+
   // Crypto ETF Actions
   loadCryptoETFs: () => Promise<void>;
   loadUpcomingETFs: () => Promise<void>;
@@ -258,7 +258,7 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
   isLoading: false,
   error: null,
   activeTab: 'overview',
-  
+
   portfolios: [],
   selectedPortfolioId: null,
   watchlists: [],
@@ -538,7 +538,7 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
     get().loadPortfolios();
     get().loadWatchlists();
     get().loadInsights();
-    
+
     // Load account connections from localStorage
     try {
       const stored = localStorage.getItem('dlx_account_connections');
@@ -558,34 +558,34 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
       // Could add logger here if needed: logger.error('Failed to load account connections', { error });
     }
   },
-  
+
   // Portfolio Actions
   loadPortfolios: () => {
     const portfolios = portfolioService.getPortfolios();
     set({ portfolios });
   },
-  
+
   createPortfolio: async (name, description) => {
     const portfolio = await portfolioService.createPortfolio(name, description);
     get().loadPortfolios();
     return portfolio;
   },
-  
+
   addPosition: async (portfolioId, symbol, quantity, costBasis, purchaseDate) => {
     await portfolioService.addPosition(portfolioId, symbol, quantity, costBasis, purchaseDate);
     get().loadPortfolios();
   },
-  
+
   removePosition: (portfolioId, positionId) => {
     portfolioService.removePosition(portfolioId, positionId);
     get().loadPortfolios();
   },
-  
+
   updatePortfolio: (id, updates) => {
     portfolioService.updatePortfolio(id, updates);
     get().loadPortfolios();
   },
-  
+
   deletePortfolio: (id) => {
     portfolioService.deletePortfolio(id);
     get().loadPortfolios();
@@ -593,39 +593,39 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
       set({ selectedPortfolioId: null });
     }
   },
-  
+
   setSelectedPortfolio: (id) => {
     set({ selectedPortfolioId: id });
   },
-  
+
   updatePortfolioPerformance: async (portfolioId) => {
     await portfolioService.updatePortfolioPerformance(portfolioId);
     get().loadPortfolios();
   },
-  
+
   // Watchlist Actions
   loadWatchlists: () => {
     const watchlists = watchlistService.getWatchlists();
     const alerts = watchlistService.getAlerts();
     set({ watchlists, alerts });
   },
-  
+
   createWatchlist: (name) => {
     const watchlist = watchlistService.createWatchlist(name);
     get().loadWatchlists();
     return watchlist;
   },
-  
+
   addToWatchlist: (watchlistId, symbol) => {
     watchlistService.addToWatchlist(watchlistId, symbol);
     get().loadWatchlists();
   },
-  
+
   removeFromWatchlist: (watchlistId, symbol) => {
     watchlistService.removeFromWatchlist(watchlistId, symbol);
     get().loadWatchlists();
   },
-  
+
   deleteWatchlist: (id) => {
     watchlistService.deleteWatchlist(id);
     get().loadWatchlists();
@@ -633,28 +633,28 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
       set({ selectedWatchlistId: null });
     }
   },
-  
+
   setSelectedWatchlist: (id) => {
     set({ selectedWatchlistId: id });
   },
-  
+
   setPriceAlert: (symbol, targetPrice, direction) => {
     const alert = watchlistService.setPriceAlert(symbol, targetPrice, direction);
     get().loadWatchlists();
     return alert;
   },
-  
+
   setNewsAlert: (symbol, keywords) => {
     const alert = watchlistService.setNewsAlert(symbol, keywords);
     get().loadWatchlists();
     return alert;
   },
-  
+
   deleteAlert: (id) => {
     watchlistService.deleteAlert(id);
     get().loadWatchlists();
   },
-  
+
   // News & Insights Actions
   loadNews: async (symbols) => {
     set({ isLoading: true });
@@ -665,7 +665,7 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
       set({ error: (error as Error).message, isLoading: false });
     }
   },
-  
+
   loadCryptoETFNews: async () => {
     set({ isLoading: true });
     try {
@@ -675,7 +675,7 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
       set({ error: (error as Error).message, isLoading: false });
     }
   },
-  
+
   loadMarketNews: async () => {
     set({ isLoading: true });
     try {
@@ -685,22 +685,22 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
       set({ error: (error as Error).message, isLoading: false });
     }
   },
-  
+
   loadInsights: () => {
     const insights = newsService.getInsights();
     set({ insights });
   },
-  
+
   generateInsights: async (portfolioId) => {
     const portfolio = portfolioService.getPortfolio(portfolioId);
     if (!portfolio) return;
-    
+
     const symbols = portfolio.holdings.map(h => h.symbol);
     const news = await newsService.fetchNews(symbols);
     const insights = await newsService.generateInsights(portfolio, news);
     set({ insights });
   },
-  
+
   // Crypto ETF Actions
   loadCryptoETFs: async () => {
     set({ isLoading: true });
@@ -711,7 +711,7 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
       set({ error: (error as Error).message, isLoading: false });
     }
   },
-  
+
   loadUpcomingETFs: async () => {
     set({ isLoading: true });
     try {

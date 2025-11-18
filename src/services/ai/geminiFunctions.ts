@@ -68,7 +68,7 @@ class GeminiFunctionRegistry {
   private async validateProjectPath(filePath: string): Promise<{ valid: boolean; error?: string }> {
     const state = useProjectStore.getState();
     const activeProject = state.activeProject;
-    
+
     if (!activeProject || !activeProject.rootPath) {
       return { valid: false, error: 'No active project' };
     }
@@ -80,16 +80,16 @@ class GeminiFunctionRegistry {
 
     // Resolve absolute paths and ensure they're within project root
     const projectRoot = activeProject.rootPath;
-    
+
     // Normalize paths for comparison
     const normalizedPath = filePath.replace(/\\/g, '/');
     const normalizedRoot = projectRoot.replace(/\\/g, '/');
-    
+
     // If path is already absolute and within project root, allow it
     if (normalizedPath.startsWith(normalizedRoot)) {
       return { valid: true };
     }
-    
+
     // If it's a relative path starting with './', resolve it relative to project root
     if (normalizedPath.startsWith('./')) {
       const resolvedPath = `${normalizedRoot}/${normalizedPath.substring(2)}`;
@@ -97,7 +97,7 @@ class GeminiFunctionRegistry {
         return { valid: true };
       }
     }
-    
+
     // If it's a relative path without prefix, resolve it relative to project root
     if (!normalizedPath.startsWith('/')) {
       const resolvedPath = `${normalizedRoot}/${normalizedPath}`;

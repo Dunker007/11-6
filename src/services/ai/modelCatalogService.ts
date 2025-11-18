@@ -1,6 +1,6 @@
 /**
  * Model Catalog Service
- * 
+ *
  * Manages the LLM model catalog and provides model recommendations based on
  * hardware profile, use case, and optimization priorities.
  */

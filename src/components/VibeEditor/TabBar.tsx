@@ -1,6 +1,6 @@
 /**
  * TabBar.tsx
- * 
+ *
  * Tab management component for displaying and managing editor tabs.
  * Supports tab operations: close, pin, context menu, drag & drop.
  */
@@ -22,7 +22,7 @@ function TabBar({ paneId, onTabClick, onTabClose, onTabContextMenu }: TabBarProp
   const { getTabsByPane, activeTabId, pinTab, unpinTab, closeTab, closeOtherTabs } = useTabStore();
   const [contextMenu, setContextMenu] = useState<{ tabId: string; x: number; y: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  
+
   const tabs = getTabsByPane(paneId);
   const sortedTabs = [...tabs].sort((a, b) => {
     // Pinned tabs first
@@ -34,7 +34,7 @@ function TabBar({ paneId, onTabClick, onTabClose, onTabContextMenu }: TabBarProp
   const handleContextMenu = (e: React.MouseEvent, tabId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (onTabContextMenu) {
       onTabContextMenu(tabId, e.clientX, e.clientY);
     } else {
@@ -77,7 +77,7 @@ function TabBar({ paneId, onTabClick, onTabClose, onTabContextMenu }: TabBarProp
       <div className="tab-bar-scroll" ref={scrollRef}>
         {sortedTabs.map((tab) => {
           const isActive = tab.id === activeTabId;
-          
+
           return (
             <div
               key={tab.id}
@@ -92,7 +92,7 @@ function TabBar({ paneId, onTabClick, onTabClose, onTabContextMenu }: TabBarProp
               <TechIcon icon={Code} size={14} glow="none" className="tab-icon" />
               <span className="tab-name">{tab.name}</span>
               {tab.isUnsaved && <span className="unsaved-indicator" />}
-              
+
               <div className="tab-actions">
                 <button
                   className="tab-action-btn"
@@ -113,7 +113,7 @@ function TabBar({ paneId, onTabClick, onTabClose, onTabContextMenu }: TabBarProp
           );
         })}
       </div>
-      
+
       {contextMenu && (
         <>
           <div

@@ -42,7 +42,7 @@ class LoggerService {
 
     // Pass structured log to the console
     this.consoleLog(logEntry);
-    
+
     // Notify listeners
     this.listeners.forEach(listener => listener(logEntry));
   }
@@ -52,21 +52,21 @@ class LoggerService {
    */
   private formatContextForMessage(context: Record<string, any>): string {
     const parts: string[] = [];
-    
+
     // Prioritize error messages
     if (context.error !== undefined) {
-      const errorStr = typeof context.error === 'string' 
-        ? context.error 
-        : context.error instanceof Error 
+      const errorStr = typeof context.error === 'string'
+        ? context.error
+        : context.error instanceof Error
           ? `${context.error.name}: ${context.error.message}`
           : String(context.error);
       parts.push(`error: ${errorStr}`);
     }
-    
+
     // Add other context properties (excluding error which we already handled)
     for (const [key, value] of Object.entries(context)) {
       if (key === 'error') continue; // Already handled above
-      
+
       let formattedValue: string;
       if (value === null || value === undefined) {
         formattedValue = String(value);
@@ -89,17 +89,17 @@ class LoggerService {
       } else {
         formattedValue = String(value);
       }
-      
+
       parts.push(`${key}: ${formattedValue}`);
     }
-    
+
     return parts.length > 0 ? ` (${parts.join(', ')})` : '';
   }
 
   private consoleLog(entry: LogEntry) {
     const { level, message, context } = entry;
     const style = `color: ${this.getColor(level)}; font-weight: bold;`;
-    
+
     if (context) {
       // Format context into message string for better visibility
       const contextStr = this.formatContextForMessage(context);

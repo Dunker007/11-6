@@ -1,6 +1,6 @@
 /**
  * NFT Service
- * 
+ *
  * Integrates with OpenSea API for NFT floor price and transaction tracking
  * Supports Ethereum, Polygon, and Solana NFTs
  */
@@ -147,12 +147,12 @@ class NFTService {
     try {
       const apiBase = chain === 'polygon' ? OPENSEA_POLYGON_API_BASE : OPENSEA_API_BASE;
       const chainParam = chain === 'polygon' ? 'matic' : chain === 'ethereum' ? 'ethereum' : 'solana';
-      
+
       const url = `${apiBase}/chain/${chainParam}/contract/${contractAddress}/nfts/${tokenId}`;
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
-      
+
       if (this.apiKey) {
         headers['X-API-KEY'] = this.apiKey;
       }
@@ -191,12 +191,12 @@ class NFTService {
     try {
       const apiBase = chain === 'polygon' ? OPENSEA_POLYGON_API_BASE : OPENSEA_API_BASE;
       const chainParam = chain === 'polygon' ? 'matic' : chain === 'ethereum' ? 'ethereum' : 'solana';
-      
+
       const url = `${apiBase}/chain/${chainParam}/collection/${collectionSlug}`;
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
-      
+
       if (this.apiKey) {
         headers['X-API-KEY'] = this.apiKey;
       }
@@ -238,12 +238,12 @@ class NFTService {
     try {
       const apiBase = chain === 'polygon' ? OPENSEA_POLYGON_API_BASE : OPENSEA_API_BASE;
       const chainParam = chain === 'polygon' ? 'matic' : chain === 'ethereum' ? 'ethereum' : 'solana';
-      
+
       const url = `${apiBase}/chain/${chainParam}/contract/${contractAddress}/nfts/${tokenId}/events`;
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
-      
+
       if (this.apiKey) {
         headers['X-API-KEY'] = this.apiKey;
       }
@@ -259,14 +259,14 @@ class NFTService {
       return events.map((event: OpenSeaAssetEvent) => {
         const eventType = event.event_type || 'transfer';
         let type: 'mint' | 'purchase' | 'sale' | 'transfer' = 'transfer';
-        
+
         if (eventType === 'created' || eventType === 'mint') {
           type = 'mint';
         } else if (eventType === 'successful') {
           type = event.seller?.address ? 'sale' : 'purchase';
         }
 
-        const price = event.total_price 
+        const price = event.total_price
           ? parseFloat(event.total_price) / Math.pow(10, event.payment_token?.decimals || 18)
           : undefined;
 
@@ -312,13 +312,13 @@ class NFTService {
         }));
       }
       if (nftData.last_sale) {
-        const price = parseFloat(nftData.last_sale.total_price.toString()) / 
+        const price = parseFloat(nftData.last_sale.total_price.toString()) /
           Math.pow(10, nftData.last_sale.payment_token.decimals);
         asset.lastSalePrice = price;
         asset.lastSaleDate = new Date(nftData.last_sale.event_timestamp);
       }
       if (nftData.orders && nftData.orders.length > 0) {
-        const lowestPrice = Math.min(...nftData.orders.map(order => 
+        const lowestPrice = Math.min(...nftData.orders.map(order =>
           parseFloat(order.current_price.toString()) / Math.pow(10, order.payment_token.decimals)
         ));
         asset.currentFloorPrice = lowestPrice;
@@ -378,25 +378,25 @@ class NFTService {
    * Get marketplace URL for an NFT
    */
   getMarketplaceUrl(asset: NFTAsset): string {
-    const baseUrl = asset.chain === 'polygon' 
+    const baseUrl = asset.chain === 'polygon'
       ? 'https://opensea.io/assets/matic'
       : asset.chain === 'solana'
       ? 'https://opensea.io/assets/solana'
       : 'https://opensea.io/assets/ethereum';
-    
+
     return `${baseUrl}/${asset.contractAddress}/${asset.tokenId}`;
   }
 
   private getCached<T extends CachedData>(key: string): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
-    
+
     const age = Date.now() - entry.timestamp;
     if (age > CACHE_TTL) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return entry.data as T;
   }
 

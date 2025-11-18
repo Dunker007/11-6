@@ -24,7 +24,7 @@ class ErrorConsoleShortcut {
    */
   activate(toggleCallback: ToggleCallback): void {
     this.toggleCallback = toggleCallback;
-    
+
     if (!this.isActive) {
       window.addEventListener('keydown', this.handleKeyDown);
       this.isActive = true;

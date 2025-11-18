@@ -58,7 +58,7 @@ const LiveHardwareProfiler = () => {
           <Activity size={18} />
           <h3>Live Hardware Profiler</h3>
           {stats && (
-            <span className="hardware-profiler-source" style={{ 
+            <span className="hardware-profiler-source" style={{
               color: isMonitoring ? 'var(--emerald-400)' : 'var(--text-muted)',
               display: 'flex',
               alignItems: 'center',
@@ -133,12 +133,12 @@ const LiveHardwareProfiler = () => {
                 )}
               </div>
               <div className="tile-progress">
-                <div 
+                <div
                   className="progress-bar"
-                  style={{ 
+                  style={{
                     width: `${stats.cpu.usage}%`,
-                    background: stats.cpu.usage > 80 ? 'var(--red-500)' : 
-                               stats.cpu.usage > 50 ? 'var(--amber-500)' : 
+                    background: stats.cpu.usage > 80 ? 'var(--red-500)' :
+                               stats.cpu.usage > 50 ? 'var(--amber-500)' :
                                'var(--emerald-500)'
                   }}
                 />
@@ -159,12 +159,12 @@ const LiveHardwareProfiler = () => {
                 <span>{formatBytes(stats.memory.free)} free</span>
               </div>
               <div className="tile-progress">
-                <div 
+                <div
                   className="progress-bar"
-                  style={{ 
+                  style={{
                     width: `${stats.memory.usage}%`,
-                    background: stats.memory.usage > 85 ? 'var(--red-500)' : 
-                               stats.memory.usage > 70 ? 'var(--amber-500)' : 
+                    background: stats.memory.usage > 85 ? 'var(--red-500)' :
+                               stats.memory.usage > 70 ? 'var(--amber-500)' :
                                'var(--emerald-500)'
                   }}
                 />
@@ -186,12 +186,12 @@ const LiveHardwareProfiler = () => {
                   <span>{formatPercent((stats.disk[0] as DiskInfo).usage, 0, true)} used</span>
                 </div>
                 <div className="tile-progress">
-                  <div 
+                  <div
                     className="progress-bar"
-                    style={{ 
+                    style={{
                       width: `${(stats.disk[0] as DiskInfo).usage}%`,
-                      background: (stats.disk[0] as DiskInfo).usage > 90 ? 'var(--red-500)' : 
-                                 (stats.disk[0] as DiskInfo).usage > 75 ? 'var(--amber-500)' : 
+                      background: (stats.disk[0] as DiskInfo).usage > 90 ? 'var(--red-500)' :
+                                 (stats.disk[0] as DiskInfo).usage > 75 ? 'var(--amber-500)' :
                                  'var(--emerald-500)'
                     }}
                   />
@@ -220,13 +220,13 @@ const LiveHardwareProfiler = () => {
       )}
 
       {showBenchmark && (
-        <BenchmarkSuite 
+        <BenchmarkSuite
           onClose={() => setShowBenchmark(false)}
         />
       )}
 
       {showOptimizer && isWindows && (
-        <WindowsOptimizer 
+        <WindowsOptimizer
           onClose={() => setShowOptimizer(false)}
         />
       )}

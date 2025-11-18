@@ -114,7 +114,7 @@ function VibedEd() {
       setActiveFile(activeFilePath);
       setUnsavedChanges(false);
       setSaveStatus('saved');
-      
+
       const ext = activeFilePath.split('.').pop()?.toLowerCase();
       const langMap: Record<string, string> = {
         ts: 'typescript',

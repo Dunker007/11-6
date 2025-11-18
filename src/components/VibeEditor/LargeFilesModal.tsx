@@ -28,7 +28,7 @@ function LargeFilesModal({ isOpen, files, onClose, onDelete, onOpenLocation }: L
   const sortedFiles = useMemo(() => {
     const sorted = [...files].sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortField) {
         case 'path':
           comparison = a.path.localeCompare(b.path);
@@ -40,10 +40,10 @@ function LargeFilesModal({ isOpen, files, onClose, onDelete, onOpenLocation }: L
           comparison = a.lastModified.getTime() - b.lastModified.getTime();
           break;
       }
-      
+
       return sortDirection === 'asc' ? comparison : -comparison;
     });
-    
+
     return sorted;
   }, [files, sortField, sortDirection]);
 
@@ -82,10 +82,10 @@ function LargeFilesModal({ isOpen, files, onClose, onDelete, onOpenLocation }: L
 
   const handleDeleteSelected = () => {
     if (selectedFiles.size === 0) return;
-    
+
     const count = selectedFiles.size;
     const confirmMessage = `Delete ${count} file${count > 1 ? 's' : ''}? This action cannot be undone.`;
-    
+
     if (confirm(confirmMessage)) {
       selectedFiles.forEach((path) => {
         onDelete?.(path);
@@ -97,8 +97,8 @@ function LargeFilesModal({ isOpen, files, onClose, onDelete, onOpenLocation }: L
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null;
     return (
-      <ArrowUpDown 
-        size={12} 
+      <ArrowUpDown
+        size={12}
         className={`sort-icon ${sortDirection === 'asc' ? 'asc' : 'desc'}`}
       />
     );
@@ -156,21 +156,21 @@ function LargeFilesModal({ isOpen, files, onClose, onDelete, onOpenLocation }: L
                         onChange={handleSelectAll}
                       />
                     </th>
-                    <th 
+                    <th
                       className="sortable"
                       onClick={() => handleSort('path')}
                     >
                       Path
                       <SortIcon field="path" />
                     </th>
-                    <th 
+                    <th
                       className="sortable"
                       onClick={() => handleSort('size')}
                     >
                       Size
                       <SortIcon field="size" />
                     </th>
-                    <th 
+                    <th
                       className="sortable"
                       onClick={() => handleSort('lastModified')}
                     >

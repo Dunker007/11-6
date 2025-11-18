@@ -12,7 +12,7 @@ const ActiveConnectionsCompact = () => {
   useEffect(() => {
     const testLatencies = async () => {
       const newLatencies: Record<string, number> = {};
-      
+
       for (const provider of availableProviders) {
         try {
           const providerInstance = llmRouter.getProvider(provider);
@@ -26,7 +26,7 @@ const ActiveConnectionsCompact = () => {
           // Provider check failed
         }
       }
-      
+
       setLatencies(newLatencies);
     };
 

@@ -56,7 +56,7 @@ function NewsInsightsPanel() {
     setLoading(true);
     try {
       let fetchedArticles: NewsArticle[] = [];
-      
+
       if (selectedSymbols.length > 0) {
         fetchedArticles = await newsService.fetchNews(selectedSymbols, 30);
       } else {
@@ -68,7 +68,7 @@ function NewsInsightsPanel() {
       const filtered = fetchedArticles.filter(article => {
         const articleDate = article.publishedAt.getTime();
         const age = now - articleDate;
-        
+
         switch (dateRange) {
           case 'today':
             return age < 24 * 60 * 60 * 1000;
@@ -111,7 +111,7 @@ function NewsInsightsPanel() {
       // Get portfolio from watchlists (simplified - in production would use portfolioService)
       const watchlists = watchlistService.getWatchlists();
       const allSymbols = watchlists.flatMap(w => w.symbols);
-      
+
       if (allSymbols.length === 0) {
         showToast({
           variant: 'info',
@@ -145,7 +145,7 @@ function NewsInsightsPanel() {
       const newInsights = await newsService.generateInsights(mockPortfolio as any, news);
       setInsights([...newInsights, ...insights]);
       loadInsights();
-      
+
       showToast({
         variant: 'success',
         title: 'Insights generated',

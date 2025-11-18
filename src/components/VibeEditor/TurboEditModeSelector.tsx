@@ -1,6 +1,6 @@
 /**
  * TurboEditModeSelector.tsx
- * 
+ *
  * Mode selector UI for Turbo Edit modes: Single File, Multi-File, Refactor, Generate, Test, Document.
  */
 

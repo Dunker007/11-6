@@ -1,11 +1,11 @@
 /**
  * commitHistoryService.ts
- * 
+ *
  * PURPOSE:
  * Service for retrieving Git commit history and commit graph visualization data.
  * Provides methods to get commit logs, commit details, branch information, and
  * parse commit graph for visualization.
- * 
+ *
  * ARCHITECTURE:
  * Service layer that wraps simple-git operations for commit history:
  * - Get commit history with pagination
@@ -13,33 +13,33 @@
  * - Get commit graph (for visualization)
  * - Filter commits by author, date, message
  * - Get branch information
- * 
+ *
  * Features:
  * - Commit history with pagination
  * - Commit graph parsing
  * - Branch visualization data
  * - Commit filtering and search
  * - Commit statistics
- * 
+ *
  * CURRENT STATUS:
  * ✅ Commit history retrieval
  * ✅ Commit graph parsing
  * ✅ Branch information
  * ✅ Commit filtering
  * ✅ Commit statistics
- * 
+ *
  * DEPENDENCIES:
  * - simple-git: Git operations
  * - Electron environment: Required for Node.js Git operations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { commitHistoryService } from '@/services/git/commitHistoryService';
- * 
+ *
  * const commits = await commitHistoryService.getCommitHistory('/path/to/repo', 50);
  * const graph = await commitHistoryService.getCommitGraph('/path/to/repo');
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/components/GitHub/CommitHistoryViewer.tsx: Commit history UI
  * - src/services/github/githubService.ts: Related Git operations

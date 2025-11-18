@@ -223,7 +223,7 @@ function PortfolioManager() {
 
   const allocationData = useMemo(() => {
     if (!currentPortfolio) return [];
-    
+
     return Object.entries(currentPortfolio.allocation)
       .filter(([_, value]) => value > 0)
       .map(([type, value]) => ({
@@ -526,7 +526,7 @@ function PortfolioManager() {
                       <tbody>
                         {currentPortfolio.holdings.map((position) => {
                           const currentValue = (position.costBasis + (position.unrealizedPL || 0) / position.quantity) * position.quantity;
-                          
+
                           return (
                             <tr key={position.id}>
                               <td className="symbol-cell">

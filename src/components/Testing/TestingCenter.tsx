@@ -29,7 +29,7 @@ const TestingCenter: React.FC = () => {
 
     try {
       const execution = await programService.execute('npm test');
-      
+
       if (!execution) {
         setTestOutput('Failed to execute tests.');
         setTestStatus('error');
@@ -38,7 +38,7 @@ const TestingCenter: React.FC = () => {
 
       const output = execution.output.join('\n');
       const errorOutput = execution.error || '';
-      
+
       if (execution.exitCode === 0) {
         setTestOutput(output);
         setTestStatus('completed');

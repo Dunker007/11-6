@@ -331,7 +331,7 @@ class BoltService {
       .map((f) => {
         // Extract relative path
         const relativePath = f.path.replace(project.rootPath || '', '').replace(/^\//, '');
-        
+
         // Track directory
         const dirParts = relativePath.split('/').slice(0, -1);
         dirParts.forEach((_, index) => {

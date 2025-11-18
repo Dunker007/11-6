@@ -1,46 +1,46 @@
 /**
  * PerformanceDashboard.tsx
- * 
+ *
  * PURPOSE:
  * Performance monitoring dashboard component. Displays real-time performance metrics including
  * render times, API call durations, slow operations log, and memory usage. Helps identify
  * performance bottlenecks and optimization opportunities.
- * 
+ *
  * ARCHITECTURE:
  * React component that aggregates performance data:
  * - Uses performance utility to access slow operations log
  * - Displays metrics in organized sections
  * - Auto-refreshes to show current performance state
  * - Provides clear visualization of performance data
- * 
+ *
  * Features:
  * - Render time metrics
  * - API call durations
  * - Slow operations log (operations > threshold)
  * - Memory usage (when available)
  * - Performance trends
- * 
+ *
  * CURRENT STATUS:
  * ✅ Slow operations display
  * ✅ Performance metrics aggregation
  * ✅ Auto-refresh functionality
  * ✅ Clear visualization
- * 
+ *
  * DEPENDENCIES:
  * - @/utils/performance: Performance measurement utilities
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: refresh interval, expanded sections
- * 
+ *
  * PERFORMANCE:
  * - Efficient data aggregation
  * - Debounced refresh
  * - Memoized calculations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import PerformanceDashboard from '@/components/System/PerformanceDashboard';
- * 
+ *
  * function Settings() {
  *   return (
  *     <div>
@@ -49,10 +49,10 @@
  *   );
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/utils/performance.ts: Performance measurement utilities
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Add memory usage tracking
  * - Add performance charts/graphs

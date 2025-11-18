@@ -18,7 +18,7 @@ const ConnectionStatus = () => {
   const { models, availableProviders, isLoading, discoverProviders } = useLLMStore();
   const [autoRetry, setAutoRetry] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-  
+
   // Calculate provider statuses from available data (memoized)
   const providerStatuses = useMemo(() => {
     const ollama: ProviderStatus = {
@@ -151,7 +151,7 @@ const ConnectionStatus = () => {
             />
             <span>Auto</span>
           </label>
-          <button 
+          <button
             className="refresh-button"
             onClick={handleRefresh}
             disabled={isLoading}
@@ -164,8 +164,8 @@ const ConnectionStatus = () => {
 
       <div className="provider-status-list">
         {providerStatuses.map((status) => (
-          <div 
-            key={status.provider} 
+          <div
+            key={status.provider}
             className={`provider-status-card ${status.isOnline ? 'online' : 'offline'} ${status.type}`}
           >
             <div className="provider-card-header">
@@ -180,13 +180,13 @@ const ConnectionStatus = () => {
               </div>
               {getStatusBadge(status)}
             </div>
-            
+
             <div className="provider-card-body">
               <div className="provider-status-indicator">
                 {getStatusIcon(status)}
                 <div className="status-details">
                   <span className="status-text">
-                    {status.isOnline 
+                    {status.isOnline
                       ? `${status.modelCount} model${status.modelCount !== 1 ? 's' : ''} available`
                       : 'Not connected'
                     }

@@ -61,7 +61,7 @@ describe('EnhancedErrorBoundary', () => {
 
   it('should display custom fallback when provided', () => {
     const customFallback = <div>Custom error message</div>;
-    
+
     render(
       <EnhancedErrorBoundary fallback={customFallback}>
         <ThrowError shouldThrow={true} />
@@ -73,7 +73,7 @@ describe('EnhancedErrorBoundary', () => {
 
   it('should call onError callback when error occurs', () => {
     const onError = vi.fn();
-    
+
     render(
       <EnhancedErrorBoundary onError={onError}>
         <ThrowError shouldThrow={true} />

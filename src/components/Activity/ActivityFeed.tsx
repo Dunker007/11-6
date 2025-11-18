@@ -116,8 +116,8 @@ const ActivityFeed = memo(() => {
           </button>
         </div>
       </div>
-      <div 
-        className="feed-list" 
+      <div
+        className="feed-list"
         onScroll={handleScroll}
         style={{ maxHeight: `${CONTAINER_HEIGHT}px`, overflow: 'auto' }}
       >

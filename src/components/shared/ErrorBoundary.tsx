@@ -1,11 +1,11 @@
 /**
  * ErrorBoundary.tsx
- * 
+ *
  * PURPOSE:
  * React Error Boundary component for catching and handling React component errors.
  * Prevents entire application crashes by catching errors in component trees and
  * displaying fallback UI. Integrates with error logging service for error tracking.
- * 
+ *
  * ARCHITECTURE:
  * Class component implementing React Error Boundary pattern:
  * - Catches errors in child component tree
@@ -13,7 +13,7 @@
  * - Logs errors to errorLogger service
  * - Supports custom error handlers
  * - Section-based error isolation
- * 
+ *
  * Features:
  * - Error catching and isolation
  * - Custom fallback UI
@@ -21,7 +21,7 @@
  * - Custom error handlers
  * - Section name tracking
  * - Error recovery (reset on prop change)
- * 
+ *
  * CURRENT STATUS:
  * ✅ Error catching
  * ✅ Fallback UI
@@ -29,21 +29,21 @@
  * ✅ Custom handlers
  * ✅ Section tracking
  * ✅ Error recovery
- * 
+ *
  * DEPENDENCIES:
  * - errorLogger: Error logging service
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: error status and error object
- * 
+ *
  * PERFORMANCE:
  * - Minimal overhead
  * - Only renders fallback on error
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
- * 
+ *
  * function App() {
  *   return (
  *     <ErrorBoundary fallback={<div>Something went wrong</div>} sectionName="App">
@@ -52,10 +52,10 @@
  *   );
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/errors/errorLogger.ts: Error logging service
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Add error reporting to external service
  * - Add error recovery actions

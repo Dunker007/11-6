@@ -1,42 +1,42 @@
 /**
  * npmAuditService.ts
- * 
+ *
  * PURPOSE:
  * Service for running npm audit to scan for security vulnerabilities in dependencies.
  * Provides methods to scan projects, get vulnerability details, and fix issues.
- * 
+ *
  * ARCHITECTURE:
  * Service that executes npm audit commands via child_process:
  * - Run npm audit to scan for vulnerabilities
  * - Parse audit results
  * - Provide fix recommendations
  * - Execute npm audit fix
- * 
+ *
  * Features:
  * - Vulnerability scanning
  * - Severity categorization
  * - Fix recommendations
  * - Auto-fix capability
  * - Summary statistics
- * 
+ *
  * CURRENT STATUS:
  * ✅ Vulnerability scanning
  * ✅ Result parsing
  * ✅ Fix recommendations
  * ✅ Auto-fix
- * 
+ *
  * DEPENDENCIES:
  * - Node.js child_process: Execute npm commands
  * - Electron environment: Required for Node.js operations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { npmAuditService } from '@/services/codeQuality/npmAuditService';
- * 
+ *
  * const vulnerabilities = await npmAuditService.scanProject('/path/to/project');
  * await npmAuditService.fixVulnerabilities('/path/to/project');
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/components/CodeQuality/SecurityScanPanel.tsx: Security scan UI
  */
@@ -219,7 +219,7 @@ class NpmAuditService {
     if (auditData.metadata) {
       summary.dependencies = auditData.metadata.dependencies?.total || 0;
       summary.devDependencies = auditData.metadata.dependencies?.dev || 0;
-      
+
       if (auditData.metadata.vulnerabilities) {
         summary.vulnerabilities = {
           info: auditData.metadata.vulnerabilities.info || 0,

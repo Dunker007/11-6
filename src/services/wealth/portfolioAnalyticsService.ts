@@ -1,6 +1,6 @@
 /**
  * Portfolio Analytics Service
- * 
+ *
  * Calculates advanced portfolio metrics:
  * - Performance metrics (returns, Sharpe ratio, Sortino ratio, alpha, beta)
  * - Risk metrics (volatility, max drawdown, VaR)
@@ -85,7 +85,7 @@ class PortfolioAnalyticsService {
   ): Promise<PerformanceMetrics> {
     const assets = wealthService.getAssets();
     const positions: Position[] = [];
-    
+
     // Collect all positions from assets
     assets.forEach(asset => {
       if (asset.holdings) {
@@ -133,7 +133,7 @@ class PortfolioAnalyticsService {
 
     // Calculate annualized return
     const years = this.getYearsInPeriod(period);
-    const annualizedReturn = years > 0 
+    const annualizedReturn = years > 0
       ? (Math.pow(1 + totalReturnPercent / 100, 1 / years) - 1) * 100
       : 0;
 
@@ -141,7 +141,7 @@ class PortfolioAnalyticsService {
     const volatility = this.calculateVolatility(positions, period);
 
     // Calculate Sharpe ratio
-    const sharpeRatio = volatility > 0 
+    const sharpeRatio = volatility > 0
       ? (annualizedReturn - this.riskFreeRate * 100) / (volatility * 100)
       : undefined;
 
@@ -205,11 +205,11 @@ class PortfolioAnalyticsService {
 
     assets.forEach(asset => {
       byType[asset.type] = (byType[asset.type] || 0) + asset.value;
-      
+
       if (asset.metadata?.sector) {
         bySector[asset.metadata.sector] = (bySector[asset.metadata.sector] || 0) + asset.value;
       }
-      
+
       if (asset.country) {
         byGeography[asset.country] = (byGeography[asset.country] || 0) + asset.value;
       }
@@ -235,7 +235,7 @@ class PortfolioAnalyticsService {
   async calculatePerformanceAttribution(_period: TimePeriod = '1Y'): Promise<PerformanceAttribution> {
     const assets = wealthService.getAssets();
     const positions: Position[] = [];
-    
+
     assets.forEach(asset => {
       if (asset.holdings) {
         positions.push(...asset.holdings);
@@ -315,7 +315,7 @@ class PortfolioAnalyticsService {
   ): Promise<BenchmarkComparison & { beta?: number }> {
     // Get benchmark performance
     const startDate = this.getStartDate(period, new Date());
-    
+
     try {
       const benchmarkData = await wealthMarketDataService.getHistoricalData(benchmarkSymbol, this.periodToRange(period));
       const portfolioData = await this.getPortfolioHistoricalData(positions, startDate);
@@ -330,14 +330,14 @@ class PortfolioAnalyticsService {
 
       const benchmarkStart = benchmarkData.close[0];
       const benchmarkEnd = benchmarkData.close[benchmarkData.close.length - 1];
-      const benchmarkReturn = benchmarkStart > 0 
-        ? ((benchmarkEnd - benchmarkStart) / benchmarkStart) * 100 
+      const benchmarkReturn = benchmarkStart > 0
+        ? ((benchmarkEnd - benchmarkStart) / benchmarkStart) * 100
         : 0;
 
       const portfolioStart = portfolioData[0];
       const portfolioEnd = portfolioData[portfolioData.length - 1];
-      const portfolioReturn = portfolioStart > 0 
-        ? ((portfolioEnd - portfolioStart) / portfolioStart) * 100 
+      const portfolioReturn = portfolioStart > 0
+        ? ((portfolioEnd - portfolioStart) / portfolioStart) * 100
         : 0;
 
       const excessReturn = portfolioReturn - benchmarkReturn;
@@ -491,7 +491,7 @@ class PortfolioAnalyticsService {
     const differences = portfolioReturns.map((p, i) => p - benchmarkReturns[i]);
     const meanDiff = differences.reduce((sum, d) => sum + d, 0) / differences.length;
     const variance = differences.reduce((sum, d) => sum + Math.pow(d - meanDiff, 2), 0) / differences.length;
-    
+
     return Math.sqrt(variance);
   }
 

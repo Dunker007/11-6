@@ -1,6 +1,6 @@
 /**
  * multiFileTurboEditService.ts
- * 
+ *
  * Service for multi-file Turbo Edit operations.
  * Analyzes patterns across project and applies changes to all matches.
  */
@@ -43,9 +43,9 @@ class MultiFileTurboEditService {
 
       // Get project context
       const context = await multiFileContextService.getProjectContext(activeProject.id);
-      
+
       // If file paths provided, only analyze those files
-      const filesToAnalyze = filePaths || 
+      const filesToAnalyze = filePaths ||
         activeProject.files
           .filter(f => !f.isDirectory)
           .map(f => f.path);
@@ -53,7 +53,7 @@ class MultiFileTurboEditService {
       // Get content of files to analyze
       const fileContents: Array<{ path: string; content: string }> = [];
       const { getFileContent } = useProjectStore.getState();
-      
+
       for (const path of filesToAnalyze) {
         const content = getFileContent(path);
         if (content !== null) {
@@ -105,7 +105,7 @@ Return JSON:
       let parsedResponse: { files: Array<{ path: string; newContent: string; changes: string[] }> };
       try {
         // Extract JSON from markdown code blocks if present
-        const jsonMatch = response.text.match(/```json\n([\s\S]*?)\n```/) || 
+        const jsonMatch = response.text.match(/```json\n([\s\S]*?)\n```/) ||
                          response.text.match(/```\n([\s\S]*?)\n```/) ||
                          [null, response.text];
         parsedResponse = JSON.parse(jsonMatch[1] || jsonMatch[0]);

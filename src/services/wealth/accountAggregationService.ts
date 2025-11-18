@@ -1,11 +1,11 @@
 /**
  * Account Aggregation Service
- * 
+ *
  * Unified interface for connecting financial accounts via:
  * - Plaid (banks, credit cards, investment accounts)
  * - Yodlee (comprehensive account aggregation)
  * - Schwab (direct API integration)
- * 
+ *
  * Handles OAuth flows, account syncing, and credential storage
  */
 
@@ -173,13 +173,13 @@ class AccountAggregationService {
     switch (provider) {
       case 'plaid':
         return this.initiatePlaidConnection(institutionId, config, connectionId);
-      
+
       case 'yodlee':
         return this.initiateYodleeConnection(institutionId, config, connectionId);
-      
+
       case 'schwab':
         return this.initiateSchwabConnection(config, connectionId);
-      
+
       default:
         throw new Error(`Unsupported provider: ${provider}`);
     }
@@ -198,10 +198,10 @@ class AccountAggregationService {
     // 1. Create a link token via Plaid API
     // 2. Return the token to the frontend
     // 3. Frontend uses Plaid Link SDK to complete OAuth
-    
+
     // For now, return a mock auth URL
     const authUrl = `https://plaid.com/auth?institution_id=${institutionId}&connection_id=${connectionId}`;
-    
+
     // Store connection state
     const connection: AccountConnection = {
       id: connectionId,
@@ -226,9 +226,9 @@ class AccountAggregationService {
   ): Promise<{ authUrl: string; connectionId: string }> {
     // Yodlee uses FastLink for OAuth
     // Similar flow to Plaid but with Yodlee's API
-    
+
     const authUrl = `https://yodlee.com/fastlink?institution_id=${institutionId}&connection_id=${connectionId}`;
-    
+
     const connection: AccountConnection = {
       id: connectionId,
       institution: institutionId,
@@ -254,7 +254,7 @@ class AccountAggregationService {
     try {
       if (config.apiKey && config.apiSecret) {
         const authUrl = await schwabService.getAuthorizationUrl(config.redirectUri || window.location.origin);
-        
+
         const connection: AccountConnection = {
           id: connectionId,
           institution: 'schwab',
@@ -292,11 +292,11 @@ class AccountAggregationService {
         case 'plaid':
           await this.completePlaidConnection(connectionId, authCode);
           break;
-        
+
         case 'yodlee':
           await this.completeYodleeConnection(connectionId, authCode);
           break;
-        
+
         case 'schwab':
           await this.completeSchwabConnection(connectionId, authCode);
           break;
@@ -304,7 +304,7 @@ class AccountAggregationService {
 
       connection.status = 'connected';
       connection.lastSynced = new Date();
-      
+
       // Perform initial sync
       await this.syncAccounts(connectionId);
 
@@ -365,15 +365,15 @@ class AccountAggregationService {
         case 'plaid':
           result = await this.syncPlaidAccounts(connectionId);
           break;
-        
+
         case 'yodlee':
           result = await this.syncYodleeAccounts(connectionId);
           break;
-        
+
         case 'schwab':
           result = await this.syncSchwabAccounts(connectionId);
           break;
-        
+
         default:
           throw new Error(`Unsupported provider: ${connection.provider}`);
       }
@@ -396,7 +396,7 @@ class AccountAggregationService {
     // 1. Call Plaid /accounts/get endpoint
     // 2. Transform Plaid accounts to our Account format
     // 3. Update or create accounts in our store
-    
+
     return {
       success: true,
       accountsAdded: 0,
@@ -427,7 +427,7 @@ class AccountAggregationService {
     // Use existing schwabService
     try {
       const accounts = await schwabService.getAccounts();
-      
+
       return {
         success: true,
         accountsAdded: accounts.length,
@@ -482,11 +482,11 @@ class AccountAggregationService {
    */
   async disconnect(connectionId: string): Promise<void> {
     this.stopAutoSync(connectionId);
-    
+
     const connection = this.connections.get(connectionId);
     if (connection) {
       connection.status = 'disconnected';
-      
+
       // In real implementation, would revoke tokens with provider
       // For now, just mark as disconnected
     }

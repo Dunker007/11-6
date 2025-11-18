@@ -1,36 +1,36 @@
 /**
  * MergeConflictResolver.tsx
- * 
+ *
  * PURPOSE:
  * Component for resolving Git merge conflicts. Displays 3-way merge view
  * with options to accept ours, theirs, or manually edit the resolution.
- * 
+ *
  * ARCHITECTURE:
  * React component that uses mergeConflictService:
  * - mergeConflictService: Conflict detection and resolution
  * - Monaco Editor: For viewing and editing conflicts
  * - 3-way merge view: Base, ours, theirs
- * 
+ *
  * Features:
  * - 3-way merge view
  * - Accept ours/theirs buttons
  * - Manual resolution editor
  * - Conflict file list
  * - Preview resolved result
- * 
+ *
  * CURRENT STATUS:
  * ✅ Conflict display
  * ✅ Resolution options
  * ✅ Manual editing
- * 
+ *
  * DEPENDENCIES:
  * - mergeConflictService: Conflict operations
  * - gitDiffService: Diff operations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import MergeConflictResolver from '@/components/GitHub/MergeConflictResolver';
- * 
+ *
  * <MergeConflictResolver
  *   repoPath="/path/to/repo"
  *   onResolved={() => console.log('Resolved!')}
@@ -42,12 +42,12 @@ import { useState, useEffect } from 'react';
 import { mergeConflictService, type ConflictFile, type ConflictMarker } from '@/services/git/mergeConflictService';
 import { DiffEditor } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
-import { 
-  GitMerge, 
-  CheckCircle, 
-  XCircle, 
-  FileText, 
-  ArrowRight, 
+import {
+  GitMerge,
+  CheckCircle,
+  XCircle,
+  FileText,
+  ArrowRight,
   ArrowLeft,
   RefreshCw,
   X,
@@ -169,7 +169,7 @@ function MergeConflictResolver({ repoPath, onResolved, onClose }: MergeConflictR
     const lines = content.split('\n');
     const before = lines.slice(0, conflict.startLine - 1).join('\n');
     const after = lines.slice(conflict.endLine).join('\n');
-    
+
     return [before, replacement, after].filter(Boolean).join('\n');
   };
 

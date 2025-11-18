@@ -1,36 +1,36 @@
 /**
  * aiTabCompletionService.ts
- * 
+ *
  * PURPOSE:
  * Service for GitHub Copilot-style Tab completion. Provides multi-line code suggestions
  * that appear as ghost text and can be accepted with Tab key.
- * 
+ *
  * ARCHITECTURE:
  * Service that integrates with Monaco Editor to provide inline AI suggestions:
  * - Detects when user pauses typing
  * - Generates multi-line code suggestions
  * - Displays as ghost text in editor
  * - Accepts with Tab, dismisses with Escape
- * 
+ *
  * Features:
  * - Multi-line code completion
  * - Context-aware suggestions
  * - Ghost text display
  * - Tab to accept, Escape to dismiss
- * 
+ *
  * CURRENT STATUS:
  * ✅ Tab completion detection
  * ✅ AI suggestion generation
  * ✅ Ghost text display
- * 
+ *
  * DEPENDENCIES:
  * - llmRouter: LLM provider routing
  * - Monaco Editor: Editor integration
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { aiTabCompletionService } from '@/services/ai/aiTabCompletionService';
- * 
+ *
  * aiTabCompletionService.initialize(editor, monaco);
  * ```
  */
@@ -117,7 +117,7 @@ class AITabCompletionService {
     }
 
     // Any other key dismisses
-    if (e.keyCode !== this.monaco.KeyCode.Shift && 
+    if (e.keyCode !== this.monaco.KeyCode.Shift &&
         e.keyCode !== this.monaco.KeyCode.Ctrl &&
         e.keyCode !== this.monaco.KeyCode.Meta) {
       this.clearSuggestion();
@@ -213,16 +213,16 @@ class AITabCompletionService {
 
     // Clean up response
     let suggestion = response.trim();
-    
+
     // Remove code block markers
     suggestion = suggestion.replace(/^```[\w]*\n?/g, '').replace(/\n?```$/g, '');
-    
+
     // Remove explanations
     const lines = suggestion.split('\n');
     const codeLines = lines.filter(line => {
       const trimmed = line.trim();
-      return !trimmed.startsWith('//') && 
-             !trimmed.startsWith('#') && 
+      return !trimmed.startsWith('//') &&
+             !trimmed.startsWith('#') &&
              !trimmed.toLowerCase().startsWith('here') &&
              !trimmed.toLowerCase().startsWith('this') &&
              trimmed.length > 0;

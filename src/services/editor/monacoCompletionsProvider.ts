@@ -115,7 +115,7 @@ class MonacoCompletionsProvider {
   ): CompletionContext {
     const currentLine = model.getLineContent(position.lineNumber);
     const previousLines: string[] = [];
-    
+
     // Get previous 10 lines for context
     for (let i = Math.max(1, position.lineNumber - 10); i < position.lineNumber; i++) {
       previousLines.push(model.getLineContent(i));
@@ -185,7 +185,7 @@ class MonacoCompletionsProvider {
     if (!this.monaco) return [];
 
     const suggestions: Monaco.languages.CompletionItem[] = [];
-    
+
     // Extract object/variable name before the dot
     const match = context.currentLine.match(/(\w+)\.$/);
     if (!match) return [];
@@ -358,7 +358,7 @@ class MonacoCompletionsProvider {
     }
 
     // Only trigger AI completions in specific contexts to avoid excessive API calls
-    const shouldTriggerAI = 
+    const shouldTriggerAI =
       context.currentLine.trim().length > 3 && // At least some context
       (context.currentLine.includes('function') ||
        context.currentLine.includes('const') ||
@@ -376,7 +376,7 @@ class MonacoCompletionsProvider {
     try {
       // Build prompt for AI completion
       const prompt = this.buildAIPrompt(context);
-      
+
       // Get AI suggestion with low temperature for more deterministic completions
       const response = await llmRouter.generate(prompt, {
         temperature: 0.3, // Lower temperature for code completion
@@ -389,7 +389,7 @@ class MonacoCompletionsProvider {
 
       // Parse the completion
       const completion = this.parseAICompletion(response.text, context);
-      
+
       if (!completion || completion.trim().length === 0) {
         return [];
       }
@@ -418,17 +418,17 @@ class MonacoCompletionsProvider {
   private buildAIPrompt(context: CompletionContext): string {
     const previousContext = context.previousLines.slice(-10).join('\n');
     const currentLinePrefix = context.currentLine.trim();
-    
+
     // Build context-aware prompt
     let prompt = `You are a code completion assistant. Complete the next line of code based on the context.\n\n`;
-    
+
     if (previousContext) {
       prompt += `Previous code:\n${previousContext}\n\n`;
     }
-    
+
     prompt += `Current line (incomplete): ${currentLinePrefix}\n\n`;
     prompt += `Provide only the completion for the current line. Do not repeat the existing code. Return only the code that should be inserted, without explanations.`;
-    
+
     return prompt;
   }
 
@@ -438,24 +438,24 @@ class MonacoCompletionsProvider {
   private parseAICompletion(response: string, context: CompletionContext): string {
     // Clean up the response
     let completion = response.trim();
-    
+
     // Remove code block markers if present
     completion = completion.replace(/^```[\w]*\n?/g, '').replace(/\n?```$/g, '');
-    
+
     // Remove explanations or comments that might be in the response
     const lines = completion.split('\n');
     const codeLines = lines.filter(line => {
       const trimmed = line.trim();
       // Filter out lines that look like explanations
-      return !trimmed.startsWith('//') && 
-             !trimmed.startsWith('#') && 
+      return !trimmed.startsWith('//') &&
+             !trimmed.startsWith('#') &&
              !trimmed.toLowerCase().startsWith('here') &&
              !trimmed.toLowerCase().startsWith('this') &&
              trimmed.length > 0;
     });
-    
+
     completion = codeLines.join('\n').trim();
-    
+
     // If we have multiple lines, take the first meaningful one
     if (completion.includes('\n')) {
       const firstLine = completion.split('\n')[0].trim();
@@ -464,13 +464,13 @@ class MonacoCompletionsProvider {
         completion = firstLine;
       }
     }
-    
+
     // Remove the prefix that's already in the current line
     const currentPrefix = context.currentLine.trim();
     if (completion.startsWith(currentPrefix)) {
       completion = completion.substring(currentPrefix.length).trim();
     }
-    
+
     return completion;
   }
 

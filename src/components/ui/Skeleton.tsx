@@ -187,7 +187,7 @@ export const SkeletonDashboard = memo(function SkeletonDashboard({
         <Skeleton variant="text" width="30%" height={32} />
         <Skeleton variant="rounded" width={120} height={40} />
       </div>
-      
+
       {/* Stat Cards */}
       <div className="skeleton-dashboard__stats">
         {Array.from({ length: 4 }).map((_, index) => (

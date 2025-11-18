@@ -52,7 +52,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       activeProject: project,
       activeProjectRoot: activeProjectRoot,
     }));
-    
+
     // Track activity
     activityService.addActivity({
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -63,7 +63,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       icon: FolderPlus,
       color: 'green',
     });
-    
+
     return project;
   },
 
@@ -73,7 +73,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     // Assuming projectService can provide the root path
     const activeProjectRoot = activeProject ? projectService.getProjectRoot(id) : null;
     set({ activeProject, activeProjectRoot });
-    
+
     // Track activity
     if (activeProject) {
       activityService.addActivity({
@@ -131,7 +131,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     if (updatedProject) {
       set({ activeProject: updatedProject });
     }
-    
+
     // Track activity
     const fileName = path.split('/').pop() || path;
     activityService.addActivity({
@@ -155,7 +155,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     if (updatedProject) {
       set({ activeProject: updatedProject });
     }
-    
+
     // Track activity
     const fileName = path.split('/').pop() || path;
     activityService.addActivity({

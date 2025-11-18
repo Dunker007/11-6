@@ -1,11 +1,11 @@
 /**
  * projectKnowledgeService.ts
- * 
+ *
  * PURPOSE:
  * High-level project knowledge management service. Provides structured project information
  * including languages, frameworks, dependencies, and structure insights. Acts as a bridge
  * between project data and AI services, providing context-aware information.
- * 
+ *
  * ARCHITECTURE:
  * Singleton service that:
  * - Aggregates project information from projectService
@@ -14,7 +14,7 @@
  * - Provides full project context for AI prompts
  * - Suggests workflow navigation based on user queries
  * - Triggers deep analysis via multiFileContextService
- * 
+ *
  * CURRENT STATUS:
  * ✅ Language detection (TypeScript, JavaScript, Python, etc.)
  * ✅ Framework detection (React, Vue, Next.js, Vite, etc.)
@@ -22,48 +22,48 @@
  * ✅ Structure analysis (config, tests, docs, entry points)
  * ✅ Navigation suggestions based on queries
  * ✅ Deep context integration with multiFileContextService
- * 
+ *
  * DEPENDENCIES:
  * - projectService: Project data access
  * - multiFileContextService: Deep project analysis
  * - @/types/project: Project type definitions
- * 
+ *
  * STATE MANAGEMENT:
  * - Singleton pattern (no instance state)
  * - Does not use Zustand (service pattern)
  * - Relies on projectService for project data
- * 
+ *
  * PERFORMANCE:
  * - Efficient file scanning
  * - Cached knowledge (via multiFileContextService)
  * - Lazy deep analysis (triggers async, doesn't block)
  * - Pattern matching for fast detection
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { projectKnowledgeService } from '@/services/ai/projectKnowledgeService';
- * 
+ *
  * // Get project knowledge
  * const knowledge = projectKnowledgeService.getProjectKnowledge(projectId);
  * console.log(`Languages: ${knowledge?.languages.join(', ')}`);
  * console.log(`Frameworks: ${knowledge?.frameworks.join(', ')}`);
- * 
+ *
  * // Get full context for AI
  * const context = projectKnowledgeService.getFullProjectContext();
- * 
+ *
  * // Get navigation suggestion
  * const suggestion = projectKnowledgeService.suggestNavigation('I want to deploy my app');
  * if (suggestion) {
  *   console.log(`Suggested workflow: ${suggestion.workflow}`);
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/project/projectService.ts: Project data source
  * - src/services/ai/multiFileContextService.ts: Deep analysis integration
  * - src/services/ai/aiServiceBridge.ts: Uses this for project context
  * - src/components/AIAssistant/AIAssistant.tsx: Uses context for AI prompts
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - More sophisticated framework detection
  * - Support for more package managers (npm, yarn, pnpm, etc.)
@@ -149,7 +149,7 @@ class ProjectKnowledgeService {
   }
 
   getFullProjectContext(projectId?: string): string {
-    const project = projectId 
+    const project = projectId
       ? projectService.getProject(projectId)
       : projectService.getActiveProject();
 
@@ -162,7 +162,7 @@ class ProjectKnowledgeService {
 
     // Get deep context from multiFileContextService if available
     const deepContext = multiFileContextService.getProjectContext(project.id);
-    
+
     const context = [
       `Project: ${project.name}`,
       project.description ? `Description: ${project.description}` : '',
@@ -172,10 +172,10 @@ class ProjectKnowledgeService {
       knowledge.structure.hasConfigFiles ? 'Has configuration files' : '',
       knowledge.structure.hasTests ? 'Has test files' : '',
       knowledge.structure.hasDocs ? 'Has documentation' : '',
-      knowledge.structure.entryPoints.length > 0 
+      knowledge.structure.entryPoints.length > 0
         ? `Entry points: ${knowledge.structure.entryPoints.join(', ')}`
         : '',
-      knowledge.dependencies.length > 0 
+      knowledge.dependencies.length > 0
         ? `Dependencies: ${knowledge.dependencies.slice(0, 10).join(', ')}${knowledge.dependencies.length > 10 ? '...' : ''}`
         : '',
     ];
@@ -185,7 +185,7 @@ class ProjectKnowledgeService {
       context.push(
         `Total Lines of Code: ${deepContext.totalLines.toLocaleString()}`,
         `Dependency Graph: ${deepContext.dependencyGraph.size} files with dependencies`,
-        deepContext.filesByLanguage.size > 0 
+        deepContext.filesByLanguage.size > 0
           ? `Files by Language: ${Array.from(deepContext.filesByLanguage.entries())
               .map(([lang, files]) => `${lang} (${files.length})`)
               .join(', ')}`
@@ -197,7 +197,7 @@ class ProjectKnowledgeService {
   }
 
   suggestNavigation(userQuery: string, projectId?: string): NavigationSuggestion | null {
-    const project = projectId 
+    const project = projectId
       ? projectService.getProject(projectId)
       : projectService.getActiveProject();
 
@@ -267,23 +267,23 @@ class ProjectKnowledgeService {
 
   private flattenFiles(files: ProjectFile[]): ProjectFile[] {
     const result: ProjectFile[] = [];
-    
+
     for (const file of files) {
       result.push(file);
       if (file.children) {
         result.push(...this.flattenFiles(file.children));
       }
     }
-    
+
     return result;
   }
 
   private detectLanguages(files: ProjectFile[]): string[] {
     const languages = new Set<string>();
-    
+
     for (const file of files) {
       if (file.isDirectory) continue;
-      
+
       const ext = file.path.split('.').pop()?.toLowerCase();
       const langMap: Record<string, string> = {
         ts: 'TypeScript',
@@ -305,19 +305,19 @@ class ProjectKnowledgeService {
         vue: 'Vue',
         svelte: 'Svelte',
       };
-      
+
       if (ext && langMap[ext]) {
         languages.add(langMap[ext]);
       }
     }
-    
+
     return Array.from(languages);
   }
 
   private detectFrameworks(files: ProjectFile[]): string[] {
     const frameworks: string[] = [];
     const filePaths = files.map(f => f.path.toLowerCase());
-    
+
     if (filePaths.some(p => p.includes('package.json'))) {
       // Check for React
       if (filePaths.some(p => p.includes('react') || p.includes('jsx'))) {
@@ -336,28 +336,28 @@ class ProjectKnowledgeService {
         frameworks.push('Vite');
       }
     }
-    
+
     if (filePaths.some(p => p.includes('requirements.txt'))) {
       frameworks.push('Python');
     }
-    
+
     if (filePaths.some(p => p.includes('pom.xml'))) {
       frameworks.push('Maven');
     }
-    
+
     if (filePaths.some(p => p.includes('cargo.toml'))) {
       frameworks.push('Cargo');
     }
-    
+
     return frameworks;
   }
 
   private extractDependencies(files: ProjectFile[]): string[] {
     const dependencies: string[] = [];
-    
+
     for (const file of files) {
       if (file.isDirectory) continue;
-      
+
       if (file.path.includes('package.json')) {
         try {
           const content = file.content || '';
@@ -371,7 +371,7 @@ class ProjectKnowledgeService {
           // Ignore parse errors
         }
       }
-      
+
       if (file.path.includes('requirements.txt')) {
         const content = file.content || '';
         if (content) {
@@ -385,7 +385,7 @@ class ProjectKnowledgeService {
         }
       }
     }
-    
+
     return dependencies.slice(0, 20); // Limit to first 20
   }
 
@@ -402,14 +402,14 @@ class ProjectKnowledgeService {
       '.gitignore',
       '.env',
     ];
-    
-    return files.some(f => 
+
+    return files.some(f =>
       configPatterns.some(pattern => f.path.toLowerCase().includes(pattern))
     );
   }
 
   private hasTests(files: ProjectFile[]): boolean {
-    return files.some(f => 
+    return files.some(f =>
       f.path.toLowerCase().includes('test') ||
       f.path.toLowerCase().includes('spec') ||
       f.path.toLowerCase().includes('__tests__')
@@ -417,7 +417,7 @@ class ProjectKnowledgeService {
   }
 
   private hasDocs(files: ProjectFile[]): boolean {
-    return files.some(f => 
+    return files.some(f =>
       f.path.toLowerCase().includes('readme') ||
       f.path.toLowerCase().includes('docs') ||
       f.path.toLowerCase().endsWith('.md')
@@ -438,7 +438,7 @@ class ProjectKnowledgeService {
       'main.py',
       'app.py',
     ];
-    
+
     for (const file of files) {
       if (file.isDirectory) continue;
       const fileName = file.path.split('/').pop()?.toLowerCase() || '';
@@ -446,7 +446,7 @@ class ProjectKnowledgeService {
         entryPoints.push(file.path);
       }
     }
-    
+
     return entryPoints;
   }
 }

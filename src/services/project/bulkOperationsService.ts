@@ -85,7 +85,7 @@ class BulkOperationsService {
         } else if (!file.isDirectory && file.content) {
           // Check file patterns
           if (options.filePatterns && options.filePatterns.length > 0) {
-            const matches = options.filePatterns.some(pattern => 
+            const matches = options.filePatterns.some(pattern =>
               new RegExp(pattern).test(file.path)
             );
             if (!matches) return;
@@ -93,7 +93,7 @@ class BulkOperationsService {
 
           // Check exclude patterns
           if (options.excludePatterns && options.excludePatterns.length > 0) {
-            const excluded = options.excludePatterns.some(pattern => 
+            const excluded = options.excludePatterns.some(pattern =>
               new RegExp(pattern).test(file.path)
             );
             if (excluded) return;
@@ -110,7 +110,7 @@ class BulkOperationsService {
                 newValue: newLine,
                 lineNumber: index + 1,
               });
-              
+
               if (!operation.affectedFiles.includes(file.path)) {
                 operation.affectedFiles.push(file.path);
               }
@@ -321,7 +321,7 @@ class BulkOperationsService {
    * Get all operations
    */
   getAllOperations(): BulkOperation[] {
-    return Array.from(this.operations.values()).sort((a, b) => 
+    return Array.from(this.operations.values()).sort((a, b) =>
       b.createdAt.getTime() - a.createdAt.getTime()
     );
   }

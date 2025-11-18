@@ -277,7 +277,7 @@ export class WindowsOptimizer {
           optimization.registryData,
           optimization.registryType || 'STRING'
         );
-        
+
         if (!result.success) {
           return {
             optimization,
@@ -305,7 +305,7 @@ export class WindowsOptimizer {
       if (optimization.command) {
         const adminResult = await window.windows?.checkAdmin();
         const isAdmin = adminResult?.isAdmin || false;
-        
+
         const result = await window.windows?.runCommand(optimization.command, optimization.requiresAdmin && !isAdmin);
         if (!result?.success) {
           return {
@@ -353,7 +353,7 @@ export class WindowsOptimizer {
           optimization.registryPath,
           optimization.registryValue
         );
-        
+
         // If restore fails, try to set default value
         if (!restoreResult.success) {
           // Set default values based on optimization type
@@ -361,7 +361,7 @@ export class WindowsOptimizer {
           if (optimization.id === 'disable-visual-effects') {
             defaultData = '0'; // Visual effects: 0 = Let Windows decide
           }
-          
+
           await registryManager.writeRegistryValue(
             optimization.registryPath,
             optimization.registryValue,
@@ -397,7 +397,7 @@ export class WindowsOptimizer {
   async getSystemInfo(): Promise<{ platform: string; isWindows: boolean; isAdmin: boolean }> {
     const platform = typeof process !== 'undefined' ? process.platform : 'unknown';
     const isWindows = platform === 'win32';
-    
+
     // Check admin status via IPC
     let isAdmin = false;
     if (isWindows && window.windows) {

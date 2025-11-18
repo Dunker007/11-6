@@ -1,6 +1,6 @@
 /**
  * TerminalPanel.tsx
- * 
+ *
  * Integrated terminal panel component using xterm.js.
  * Supports multiple terminal tabs and command execution.
  */
@@ -184,7 +184,7 @@ function TerminalPanel({ isVisible, onToggle }: TerminalPanelProps) {
     if (!activeSessionId || !terminalInstanceRef.current) return;
 
     const term = terminalInstanceRef.current;
-    
+
     try {
       const result = await terminalService.executeCommand(
         command,
@@ -271,7 +271,7 @@ function TerminalPanel({ isVisible, onToggle }: TerminalPanelProps) {
           )}
         </div>
       </div>
-      
+
       <div className="terminal-content">
         <div ref={terminalRef} className="terminal-container" />
       </div>

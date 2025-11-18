@@ -1,21 +1,21 @@
 /**
  * Error Handling Utilities
- * 
+ *
  * PURPOSE:
  * Shared error handling utilities for consistent error handling across the codebase.
  * Provides wrappers for async functions, error handler factories, and error boundary helpers.
- * 
+ *
  * USAGE:
  * ```typescript
  * import { handleAsyncError, createErrorHandler } from '@/utils/errorHandling';
- * 
+ *
  * // Wrap async function
  * const safeAsyncFn = handleAsyncError(async () => {
  *   await riskyOperation();
  * }, (error) => {
  *   logger.error('Operation failed:', { error });
  * });
- * 
+ *
  * // Create error handler
  * const handleApiError = createErrorHandler('API', (error) => {
  *   showToast({ title: 'API Error', variant: 'error' });
@@ -48,11 +48,11 @@ export interface HandleAsyncErrorOptions {
 
 /**
  * Wrap an async function with error handling
- * 
+ *
  * @param fn - The async function to wrap
  * @param options - Error handling options
  * @returns Wrapped function that handles errors gracefully
- * 
+ *
  * @example
  * ```typescript
  * const safeLoad = handleAsyncError(
@@ -81,7 +81,7 @@ export function handleAsyncError<T extends (...args: unknown[]) => Promise<unkno
       return await fn(...args) as ReturnType<T>;
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
-      
+
       if (logError) {
         errorLogger.logFromError('runtime', err, 'error', {
           source: 'handleAsyncError',
@@ -102,17 +102,17 @@ export function handleAsyncError<T extends (...args: unknown[]) => Promise<unkno
 
 /**
  * Create a reusable error handler factory
- * 
+ *
  * @param source - Source identifier for error context
  * @param customHandler - Custom error handling function
  * @returns Error handler function
- * 
+ *
  * @example
  * ```typescript
  * const handleApiError = createErrorHandler('API', (error) => {
  *   showToast({ title: 'API Error', variant: 'error' });
  * });
- * 
+ *
  * try {
  *   await apiCall();
  * } catch (error) {
@@ -142,12 +142,12 @@ export function createErrorHandler(
  * HOC for creating error boundary wrappers
  * Note: This is a utility type - actual error boundary should be a React class component
  * or use react-error-boundary library
- * 
+ *
  * @example
  * ```typescript
  * // Use with react-error-boundary
  * import { ErrorBoundary } from 'react-error-boundary';
- * 
+ *
  * <ErrorBoundary
  *   FallbackComponent={ErrorFallback}
  *   onError={(error, info) => {
@@ -167,7 +167,7 @@ export interface ErrorBoundaryWrapperProps {
 
 /**
  * Create an error boundary wrapper configuration
- * 
+ *
  * @param options - Error boundary options
  * @returns Configuration for error boundary
  */

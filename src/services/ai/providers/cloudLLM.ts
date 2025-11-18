@@ -1,17 +1,17 @@
 /**
  * cloudLLM.ts
- * 
+ *
  * PURPOSE:
  * Cloud LLM provider implementations for Google Gemini and NotebookLM. Provides reliable,
  * feature-rich LLM access via cloud APIs. Implements the LLMProvider interface with advanced
  * features like function calling, vision, and streaming.
- * 
+ *
  * ARCHITECTURE:
  * Three cloud provider implementations:
  * - GeminiProvider: Google Gemini API (function calling, vision, long context)
  * - NotebookLMProvider: Google NotebookLM API (document-aware)
  * - OllamaCloudProvider: Ollama Cloud API (same format as local Ollama, cloud-hosted)
- * 
+ *
  * Key features:
  * - API key management via apiKeyService
  * - Function calling support (Gemini)
@@ -20,7 +20,7 @@
  * - Safety settings (Gemini)
  * - System instructions
  * - Tool/function definitions
- * 
+ *
  * CURRENT STATUS:
  * ✅ Gemini provider fully implemented
  * ✅ NotebookLM provider fully implemented
@@ -32,30 +32,30 @@
  * ✅ System instructions
  * ✅ Tool definitions
  * ✅ Long context support (Gemini 1.5 Pro - 2M tokens)
- * 
+ *
  * DEPENDENCIES:
  * - apiKeyService: API key management
  * - @/types/llm: LLM type definitions
  * - @/types/gemini: Gemini-specific types
- * 
+ *
  * STATE MANAGEMENT:
  * - Stateless providers (API key loaded async)
  * - Does not use Zustand
  * - API keys managed by apiKeyService
- * 
+ *
  * PERFORMANCE:
  * - Async API key loading (prevents race conditions)
  * - Streaming for real-time responses
  * - Efficient function call parsing
  * - Error handling with fallbacks
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { GeminiProvider } from '@/services/ai/providers/cloudLLM';
- * 
+ *
  * const gemini = new GeminiProvider();
  * const isHealthy = await gemini.healthCheck();
- * 
+ *
  * if (isHealthy) {
  *   // Stream with function calls
  *   for await (const chunk of gemini.streamGenerate('Hello!', {
@@ -66,13 +66,13 @@
  *   }
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/router.ts: Uses these providers
  * - src/services/apiKeys/apiKeyService.ts: API key management
  * - src/services/ai/providers/localLLM.ts: Local provider implementations
  * - src/components/AIAssistant/AIAssistant.tsx: Uses Gemini for chat
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Support for more cloud providers
  * - Request retry logic
@@ -469,7 +469,7 @@ export class GeminiProvider implements LLMProvider {
               const text = parts
                 .map((part: GeminiContentPart) => part.text || '')
                 .join('');
-              
+
               // Extract function calls from parts
               const functionCalls: GeminiFunctionCall[] = [];
               parts.forEach((part: GeminiContentPart) => {
@@ -480,11 +480,11 @@ export class GeminiProvider implements LLMProvider {
                   });
                 }
               });
-              
+
               // Yield text if present, or function calls if present
               if (text || functionCalls.length > 0) {
-                yield { 
-                  text, 
+                yield {
+                  text,
                   done: false,
                   functionCalls: functionCalls.length > 0 ? functionCalls : undefined,
                 };
@@ -698,30 +698,30 @@ export class OllamaCloudProvider implements LLMProvider {
 
     try {
       await this.loadAPIKey();
-      
+
       // Skip health check if no API key (Ollama Cloud requires authentication)
       if (!this.apiKey) {
         return false;
       }
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
-      
+
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
       };
-      
+
       // Add Authorization header if API key is available
       if (this.apiKey) {
         headers['Authorization'] = `Bearer ${this.apiKey}`;
       }
-      
+
       const response = await fetch(`${this.baseUrl}/tags`, {
         method: 'GET',
         headers,
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
       return response.ok;
     } catch (error) {
@@ -735,16 +735,16 @@ export class OllamaCloudProvider implements LLMProvider {
       await this.loadAPIKey();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
-      
+
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
       };
-      
+
       // Add Authorization header if API key is available
       if (this.apiKey) {
         headers['Authorization'] = `Bearer ${this.apiKey}`;
       }
-      
+
       const response = await fetch(`${this.baseUrl}/tags`, {
         method: 'GET',
         headers,
@@ -782,14 +782,14 @@ export class OllamaCloudProvider implements LLMProvider {
   async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse> {
     await this.loadAPIKey();
     const model = options?.model || await this.getDefaultModel();
-    
+
     if (!model) {
       throw new Error('No Ollama Cloud models available');
     }
 
     // Retry logic for transient failures
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
@@ -798,12 +798,12 @@ export class OllamaCloudProvider implements LLMProvider {
         const headers: HeadersInit = {
           'Content-Type': 'application/json',
         };
-        
+
         // Add Authorization header if API key is available
         if (this.apiKey) {
           headers['Authorization'] = `Bearer ${this.apiKey}`;
         }
-        
+
         const response = await fetch(`${this.baseUrl}/generate`, {
           method: 'POST',
           headers,
@@ -827,7 +827,7 @@ export class OllamaCloudProvider implements LLMProvider {
         }
 
         const data = await response.json();
-        
+
         return {
           text: data.response || '',
           tokensUsed: data.eval_count || 0,
@@ -836,12 +836,12 @@ export class OllamaCloudProvider implements LLMProvider {
       } catch (error) {
         clearTimeout(timeoutId);
         lastError = error as Error;
-        
+
         // Don't retry on abort/timeout errors
         if (error instanceof Error && error.name === 'AbortError') {
           throw new Error('Ollama Cloud request timed out');
         }
-        
+
         if (attempt < this.maxRetries - 1) {
           // Exponential backoff
           await this.sleep(this.retryDelay * Math.pow(2, attempt));
@@ -856,29 +856,29 @@ export class OllamaCloudProvider implements LLMProvider {
   private async getDefaultModel(): Promise<string | null> {
     const models = await this.getModels();
     if (models.length === 0) return null;
-    
+
     // Prefer code models, then chat models
-    const codeModel = models.find(m => 
-      m.name.includes('coder') || 
+    const codeModel = models.find(m =>
+      m.name.includes('coder') ||
       m.name.includes('code') ||
       m.name.includes('deepseek')
     );
     if (codeModel) return codeModel.id;
-    
+
     return models[0].id;
   }
 
   private detectContextWindow(model: OllamaModel): number {
     // Try to get from model details first
     if (model.details?.context_length) return model.details.context_length;
-    
+
     // Fallback to name-based detection
     const name = (model.name || '').toLowerCase();
     if (name.includes('32b')) return 32768;
     if (name.includes('16b') || name.includes('14b')) return 16384;
     if (name.includes('7b') || name.includes('8b')) return 8192;
     if (name.includes('3b') || name.includes('1b')) return 4096;
-    
+
     return 4096; // Default
   }
 
@@ -921,12 +921,12 @@ export class OllamaCloudProvider implements LLMProvider {
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
       };
-      
+
       // Add Authorization header if API key is available
       if (this.apiKey) {
         headers['Authorization'] = `Bearer ${this.apiKey}`;
       }
-      
+
       const response = await fetch(`${this.baseUrl}/generate`, {
         method: 'POST',
         headers,

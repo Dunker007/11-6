@@ -65,7 +65,7 @@ const TokenUsageTracker = () => {
   // Combine provider stats with expense-based costs
   const costsByProvider = useMemo(() => {
     const providerMap: Record<string, number> = {};
-    
+
     // Add expense-based costs
     apiCosts.forEach((exp) => {
       const provider = exp.description?.toLowerCase().includes('gemini')

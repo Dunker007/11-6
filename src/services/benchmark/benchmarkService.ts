@@ -267,7 +267,7 @@ export class BenchmarkService {
         // Check if WebGL is available
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-        
+
         if (!gl) {
           resolve({
             test: 'GPU',
@@ -287,15 +287,15 @@ export class BenchmarkService {
         const render = () => {
           frameCount++;
           const currentTime = performance.now();
-          
+
           if (currentTime - startTime < testDuration) {
             requestAnimationFrame(render);
           } else {
             const fps = (frameCount / testDuration) * 1000;
-            
+
             // Get GPU info if available
             const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            const renderer = debugInfo 
+            const renderer = debugInfo
               ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
               : 'Unknown GPU';
 
@@ -365,8 +365,8 @@ export class BenchmarkService {
         results.gpu?.score || 0,
       ].filter(s => s > 0);
 
-      const avgScore = scores.length > 0 
-        ? scores.reduce((a, b) => a + b, 0) / scores.length 
+      const avgScore = scores.length > 0
+        ? scores.reduce((a, b) => a + b, 0) / scores.length
         : 0;
 
       let rating: 'excellent' | 'good' | 'average' | 'poor' = 'poor';

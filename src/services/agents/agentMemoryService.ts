@@ -99,7 +99,7 @@ export class AgentMemoryService {
     conversation.updatedAt = new Date();
     this.conversations.set(conversation.id, conversation);
     await this.saveConversations();
-    
+
     // Also save to adapter
     try {
       await this.adapter.saveConversation(conversation);
@@ -146,7 +146,7 @@ export class AgentMemoryService {
   async getConversation(id: string): Promise<Conversation | null> {
     // Try local first
     let conversation = this.conversations.get(id);
-    
+
     // If not found, try adapter
     if (!conversation) {
       const adapterConv = await this.adapter.getConversation(id);
@@ -220,7 +220,7 @@ export class AgentMemoryService {
   async deleteConversation(id: string): Promise<void> {
     this.conversations.delete(id);
     await this.saveConversations();
-    
+
     try {
       await this.adapter.deleteConversation(id);
     } catch (error) {
@@ -237,13 +237,13 @@ export class AgentMemoryService {
 
     try {
       await this.adapter.sync();
-      
+
       // Reload conversations from adapter
       const allConversations = await this.adapter.searchConversations({});
       allConversations.forEach(conv => {
         this.conversations.set(conv.id, conv);
       });
-      
+
       await this.saveConversations();
     } catch (error) {
       console.error('Failed to sync:', error);

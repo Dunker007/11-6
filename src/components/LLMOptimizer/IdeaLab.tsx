@@ -21,10 +21,10 @@ function IdeaLab() {
       status: 'pending',
       created: new Date(),
     };
-    
+
     // addIdea returns the created idea, so we can use it directly
     const createdIdea = ideaInventoryService.addIdea(newIdea);
-    
+
     // Select the newly created idea immediately using its unique ID
     setSelectedIdea(createdIdea);
   }, []);

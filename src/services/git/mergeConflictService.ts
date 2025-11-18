@@ -1,36 +1,36 @@
 /**
  * mergeConflictService.ts
- * 
+ *
  * PURPOSE:
  * Service for detecting and resolving Git merge conflicts. Provides methods
  * to get conflict information, parse conflict markers, and resolve conflicts.
- * 
+ *
  * ARCHITECTURE:
  * Service layer that wraps simple-git operations for conflict resolution:
  * - Detect conflicts
  * - Parse conflict markers
  * - Resolve conflicts (ours, theirs, manual)
  * - Get conflict details
- * 
+ *
  * Features:
  * - Conflict detection
  * - Conflict parsing
  * - Resolution options (ours, theirs, manual)
  * - Conflict file listing
- * 
+ *
  * CURRENT STATUS:
  * ✅ Conflict detection
  * ✅ Conflict parsing
  * ✅ Resolution methods
- * 
+ *
  * DEPENDENCIES:
  * - simple-git: Git operations
  * - Electron environment: Required for Node.js Git operations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { mergeConflictService } from '@/services/git/mergeConflictService';
- * 
+ *
  * const conflicts = await mergeConflictService.getConflicts('/path/to/repo');
  * await mergeConflictService.resolveConflict('/path/to/repo', 'file.ts', 'ours');
  * ```
@@ -90,7 +90,7 @@ class MergeConflictService {
     try {
       const git = await getSimpleGit(repoPath);
       const status = await git.status();
-      
+
       const conflictFiles: ConflictFile[] = [];
 
       for (const file of status.conflicted) {
@@ -259,12 +259,12 @@ class MergeConflictService {
       const fs = await import('fs/promises');
       const path = await import('path');
       const fullPath = path.join(repoPath, filePath);
-      
+
       await fs.writeFile(fullPath, content, 'utf-8');
-      
+
       const git = await getSimpleGit(repoPath);
       await git.add(filePath);
-      
+
       return { success: true };
     } catch (error) {
       return { success: false, error: (error as Error).message };

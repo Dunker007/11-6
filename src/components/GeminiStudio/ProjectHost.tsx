@@ -98,14 +98,14 @@ const ProjectHost: React.FC = () => {
           Import a <code>.zip</code> file exported from Gemini AI Studio to run it locally.
         </p>
       </div>
-      
+
       <div className="gemini-studio-section">
         <div className="gemini-studio-section-content">
           <div className="import-controls">
-            <input 
-              type="file" 
-              accept=".zip" 
-              onChange={handleFileChange} 
+            <input
+              type="file"
+              accept=".zip"
+              onChange={handleFileChange}
               disabled={isLoading}
               className="gemini-studio-input"
             />

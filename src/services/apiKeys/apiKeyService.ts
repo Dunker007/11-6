@@ -9,7 +9,7 @@ const ENCRYPTION_KEY_NAME = 'dlx_api_encryption_key';
 // Generate or retrieve encryption key using Web Crypto API
 async function getEncryptionKey(): Promise<CryptoKey> {
   const keyData = localStorage.getItem(ENCRYPTION_KEY_NAME);
-  
+
   if (keyData) {
     // Import existing key
     const keyBuffer = Uint8Array.from(JSON.parse(keyData));
@@ -28,12 +28,12 @@ async function getEncryptionKey(): Promise<CryptoKey> {
       true,
       ['encrypt', 'decrypt']
     );
-    
+
     // Export and store key
     const exported = await crypto.subtle.exportKey('raw', key);
     // Persist raw key bits so we can re-import on subsequent loads.
     localStorage.setItem(ENCRYPTION_KEY_NAME, JSON.stringify(Array.from(new Uint8Array(exported))));
-    
+
     return key;
   }
 }
@@ -44,21 +44,21 @@ async function encrypt(text: string): Promise<string> {
     const key = await getEncryptionKey();
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
-    
+
     // Generate random IV (12 bytes for AES-GCM)
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    
+
     const encrypted = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv },
       key,
       data
     );
-    
+
     // Combine IV and encrypted data, then base64 encode
     const combined = new Uint8Array(iv.length + encrypted.byteLength);
     combined.set(iv);
     combined.set(new Uint8Array(encrypted), iv.length);
-    
+
     // Persist IV alongside ciphertext so decryption can restore the nonce.
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
@@ -71,19 +71,19 @@ async function encrypt(text: string): Promise<string> {
 async function decrypt(encrypted: string): Promise<string> {
   try {
     const key = await getEncryptionKey();
-    
+
     // Decode base64 and extract IV and encrypted data
     const combined = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
     // Ciphertext is `[IV | payload]`; split back into nonce and encrypted data.
     const iv = combined.slice(0, 12);
     const data = combined.slice(12);
-    
+
     const decrypted = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv },
       key,
       data
     );
-    
+
     const decoder = new TextDecoder();
     return decoder.decode(decrypted);
   } catch (error) {
@@ -128,7 +128,7 @@ export class APIKeyService {
         const parsed = JSON.parse(stored);
         // Ensure parsed value is an array
         const keysArray: APIKey[] = Array.isArray(parsed) ? parsed : [];
-        
+
         // Decrypt all keys in parallel
         const decryptedKeys = await Promise.all(
           keysArray.map(async (key) => {
@@ -139,7 +139,7 @@ export class APIKeyService {
                 ...key,
                 key: decryptedKey,
               };
-              
+
               // Decrypt metadata if present
               if (key.metadata) {
                 decrypted.metadata = { ...key.metadata };
@@ -150,7 +150,7 @@ export class APIKeyService {
                   decrypted.metadata.passphrase = await decrypt(key.metadata.passphrase);
                 }
               }
-              
+
               return decrypted;
             } catch (error) {
               logger.error(`Failed to decrypt key ${key.id}:`, { error });
@@ -158,7 +158,7 @@ export class APIKeyService {
             }
           })
         );
-        
+
         // Filter out failed decryptions and store valid keys
         decryptedKeys
           .filter((key): key is APIKey => key !== null)
@@ -208,7 +208,7 @@ export class APIKeyService {
   async addKey(provider: APIProvider, key: string, name: string, metadata?: Record<string, unknown>): Promise<APIKey> {
     // Ensure initialization is complete before adding keys
     await this.ensureInitialized();
-    
+
     const apiKey: APIKey = {
       id: crypto.randomUUID(),
       provider,
@@ -361,17 +361,17 @@ export class APIKeyService {
 
       const data: { models?: GeminiModelInfo[] } = await response.json();
       const models = data.models || [];
-      
+
       // Check for Pro-tier models
-      const hasProModels = models.some((m: GeminiModelInfo) => 
-        m.name?.includes('gemini-1.5-pro') || 
+      const hasProModels = models.some((m: GeminiModelInfo) =>
+        m.name?.includes('gemini-1.5-pro') ||
         m.name?.includes('gemini-ultra') ||
         m.name?.includes('gemini-2.0')
       );
 
       // Check for advanced features (function calling, grounding)
       // Pro tier typically has access to more advanced features
-      const hasAdvancedFeatures = models.some((m: GeminiModelInfo) => 
+      const hasAdvancedFeatures = models.some((m: GeminiModelInfo) =>
         m.supportedGenerationMethods?.includes('generateContent') &&
         m.supportedGenerationMethods?.length > 1
       );
@@ -389,12 +389,12 @@ export class APIKeyService {
 
   async updateKey(id: string, updates: Partial<APIKey>): Promise<APIKey | null> {
     await this.ensureInitialized();
-    
+
     const key = this.keys.get(id);
     if (!key) return null;
 
     const updated = { ...key, ...updates };
-    
+
     // If key value changed, validate it
     if (updates.key && updates.key !== key.key) {
       updated.isValid = await this.validateKey(updated.provider, updates.key);
@@ -407,7 +407,7 @@ export class APIKeyService {
 
   async deleteKey(id: string): Promise<boolean> {
     await this.ensureInitialized();
-    
+
     const deleted = this.keys.delete(id);
     if (deleted) {
       await this.saveKeys();
@@ -474,11 +474,11 @@ export class APIKeyService {
    */
   async getGlobalKey(provider: APIProvider, fallbackProviders?: APIProvider[]): Promise<string | null> {
     await this.ensureInitialized();
-    
+
     // Try primary provider first
     let key = await this.getKeyForProviderAsync(provider);
     if (key) return key;
-    
+
     // Try fallback providers
     if (fallbackProviders) {
       for (const fallbackProvider of fallbackProviders) {
@@ -486,7 +486,7 @@ export class APIKeyService {
         if (key) return key;
       }
     }
-    
+
     return null;
   }
 
@@ -538,7 +538,7 @@ export class APIKeyService {
 
   async healthCheck(provider: APIProvider): Promise<boolean> {
     await this.ensureInitialized();
-    
+
     const key = this.getKeyForProvider(provider);
     if (!key && provider !== 'lmstudio' && provider !== 'ollama') {
       logger.warn('Health check failed: No key available', { provider });
@@ -594,7 +594,7 @@ export class APIKeyService {
 
   async recordUsage(id: string, tokens: number, cost: number): Promise<void> {
     await this.ensureInitialized();
-    
+
     const key = this.keys.get(id);
     if (key) {
       key.usage.requests += 1;
@@ -608,7 +608,7 @@ export class APIKeyService {
 
   async resetUsage(id: string): Promise<void> {
     await this.ensureInitialized();
-    
+
     const key = this.keys.get(id);
     if (key) {
       key.usage = {

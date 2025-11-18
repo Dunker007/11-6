@@ -185,7 +185,7 @@ class ErrorAnnotations {
    */
   annotate(error: CapturedError): CapturedError & { suggestedFix?: string; autoFixable?: boolean; fixStrategy?: string } {
     for (const pattern of this.patterns) {
-      const matches = typeof pattern.pattern === 'string' 
+      const matches = typeof pattern.pattern === 'string'
         ? error.message.includes(pattern.pattern)
         : pattern.pattern.test(error.message);
 

@@ -2,7 +2,7 @@ import { ReactNode, CSSProperties, HTMLAttributes } from 'react';
 
 /**
  * HolographicPanel Component
- * 
+ *
  * Glassmorphic floating panel with HUD-style aesthetics:
  * - Backdrop blur with glassmorphism
  * - Animated border glow (rotating gradient)

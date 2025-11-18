@@ -30,7 +30,7 @@ describe('AgentForgeService', () => {
       };
 
       const agent = agentForgeService.createAgent(config);
-      
+
       expect(agent).toBeDefined();
       expect(agent.id).toBeDefined();
       expect(agent.config).toEqual(config);
@@ -51,7 +51,7 @@ describe('AgentForgeService', () => {
 
       const agent = agentForgeService.createAgent(config);
       const retrieved = agentForgeService.getAgent(agent.id);
-      
+
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe(agent.id);
     });
@@ -60,7 +60,7 @@ describe('AgentForgeService', () => {
   describe('createFromTemplate', () => {
     it('should create agent from template', () => {
       const agent = agentForgeService.createFromTemplate('code-assistant');
-      
+
       expect(agent).toBeDefined();
       expect(agent?.config.name).toBe('Code Assistant');
       expect(agent?.config.provider).toBe('gemini');
@@ -75,7 +75,7 @@ describe('AgentForgeService', () => {
       const agent = agentForgeService.createFromTemplate('code-assistant', {
         temperature: 0.9,
       });
-      
+
       expect(agent).toBeDefined();
       expect(agent?.config.temperature).toBe(0.9);
     });
@@ -94,7 +94,7 @@ describe('AgentForgeService', () => {
 
       const created = agentForgeService.createAgent(config);
       const retrieved = agentForgeService.getAgent(created.id);
-      
+
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe(created.id);
     });
@@ -118,7 +118,7 @@ describe('AgentForgeService', () => {
 
       agentForgeService.createAgent(config);
       const agents = agentForgeService.getAllAgents();
-      
+
       expect(agents).toBeInstanceOf(Array);
       expect(agents.length).toBeGreaterThan(0);
     });
@@ -140,7 +140,7 @@ describe('AgentForgeService', () => {
         status: 'running',
         usageCount: 5,
       });
-      
+
       expect(updated).toBeDefined();
       expect(updated?.status).toBe('running');
       expect(updated?.usageCount).toBe(5);
@@ -168,7 +168,7 @@ describe('AgentForgeService', () => {
 
       const agent = agentForgeService.createAgent(config);
       const deleted = agentForgeService.deleteAgent(agent.id);
-      
+
       expect(deleted).toBe(true);
       expect(agentForgeService.getAgent(agent.id)).toBeNull();
     });

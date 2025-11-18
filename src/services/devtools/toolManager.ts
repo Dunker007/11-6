@@ -38,10 +38,10 @@ export class ToolManager {
       }
 
       const result = await window.devTools.check(tool.command);
-      
+
       if (result.success && result.installed) {
         let version: string | undefined;
-        
+
         if (tool.versionCommand) {
           const versionResult = await window.devTools.getVersion(tool.versionCommand);
           version = versionResult.version;

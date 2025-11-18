@@ -5,7 +5,7 @@ import { ToastProvider, useToast } from './Toast';
 // Test component that uses toast
 const TestComponent = () => {
   const { showToast, removeToast } = useToast();
-  
+
   return (
     <div>
       <button onClick={() => showToast({ variant: 'success', message: 'Success!' })}>
@@ -42,7 +42,7 @@ describe('Toast', () => {
         <div>Test</div>
       </ToastProvider>
     );
-    
+
     expect(screen.getByText('Test')).toBeInTheDocument();
   });
 
@@ -52,10 +52,10 @@ describe('Toast', () => {
         <TestComponent />
       </ToastProvider>
     );
-    
+
     const button = screen.getByText('Show Success');
     fireEvent.click(button);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Success!')).toBeInTheDocument();
       expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -68,10 +68,10 @@ describe('Toast', () => {
         <TestComponent />
       </ToastProvider>
     );
-    
+
     const button = screen.getByText('Show Error');
     fireEvent.click(button);
-    
+
     expect(screen.getByText('Error')).toBeInTheDocument();
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
   });
@@ -82,10 +82,10 @@ describe('Toast', () => {
         <TestComponent />
       </ToastProvider>
     );
-    
+
     const button = screen.getByText('Show Success');
     fireEvent.click(button);
-    
+
     const toast = screen.getByRole('alert');
     expect(toast).toHaveClass('ui-toast--success');
   });
@@ -96,16 +96,16 @@ describe('Toast', () => {
         <TestComponent />
       </ToastProvider>
     );
-    
+
     const button = screen.getByText('Show Info');
     fireEvent.click(button);
-    
+
     expect(screen.getByText('Info message')).toBeInTheDocument();
-    
+
     act(() => {
       vi.advanceTimersByTime(1000);
     });
-    
+
     await waitFor(() => {
       expect(screen.queryByText('Info message')).not.toBeInTheDocument();
     });
@@ -117,15 +117,15 @@ describe('Toast', () => {
         <TestComponent />
       </ToastProvider>
     );
-    
+
     const button = screen.getByText('Show Success');
     fireEvent.click(button);
-    
+
     expect(screen.getByText('Success!')).toBeInTheDocument();
-    
+
     const closeButton = screen.getByLabelText('Close notification');
     fireEvent.click(closeButton);
-    
+
     expect(screen.queryByText('Success!')).not.toBeInTheDocument();
   });
 
@@ -135,13 +135,13 @@ describe('Toast', () => {
         <TestComponent />
       </ToastProvider>
     );
-    
+
     const successButton = screen.getByText('Show Success');
     const errorButton = screen.getByText('Show Error');
-    
+
     fireEvent.click(successButton);
     fireEvent.click(errorButton);
-    
+
     expect(screen.getByText('Success!')).toBeInTheDocument();
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
   });
@@ -150,11 +150,11 @@ describe('Toast', () => {
     // Suppress console.error for this test
     const originalError = console.error;
     console.error = vi.fn();
-    
+
     expect(() => {
       render(<TestComponent />);
     }).toThrow('useToast must be used within ToastProvider');
-    
+
     console.error = originalError;
   });
 
@@ -164,10 +164,10 @@ describe('Toast', () => {
         <TestComponent />
       </ToastProvider>
     );
-    
+
     const button = screen.getByText('Show Success');
     fireEvent.click(button);
-    
+
     const container = screen.getByLabelText('Notifications');
     expect(container).toHaveAttribute('role', 'region');
     expect(container).toHaveAttribute('aria-live', 'polite');
@@ -179,10 +179,10 @@ describe('Toast', () => {
         <TestComponent />
       </ToastProvider>
     );
-    
+
     const button = screen.getByText('Show Success');
     fireEvent.click(button);
-    
+
     const toast = screen.getByRole('alert');
     expect(toast).toHaveAttribute('aria-live', 'assertive');
   });

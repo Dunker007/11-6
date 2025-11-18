@@ -1,6 +1,6 @@
 /**
  * Workflow Engine Service
- * 
+ *
  * Core service for executing workflows (Project, Build, Deploy, Monitor, Monetize).
  * Handles step-by-step execution, error handling, and state management.
  */
@@ -23,11 +23,11 @@ class WorkflowEngine {
 
   /**
    * Create a new workflow from a configuration object.
-   * 
+   *
    * @param config - The workflow configuration containing type, name, description, steps, and metadata
    * @returns The created workflow object with a unique ID and initial status of 'idle'
    * @throws {Error} If the config is invalid or missing required fields
-   * 
+   *
    * @example
    * ```typescript
    * const workflow = workflowEngine.createWorkflow({
@@ -44,7 +44,7 @@ class WorkflowEngine {
    */
   createWorkflow(config: WorkflowConfig): Workflow {
     const workflowId = `workflow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const workflow: Workflow = {
       id: workflowId,
       type: config.type,
@@ -70,14 +70,14 @@ class WorkflowEngine {
 
   /**
    * Execute a workflow by its ID.
-   * 
+   *
    * This method runs all steps in the workflow sequentially, handling errors and emitting events.
    * The workflow status is updated throughout execution, and notifications are sent for key events.
-   * 
+   *
    * @param workflowId - The unique identifier of the workflow to execute
    * @returns A promise that resolves to a WorkflowExecutionResult containing success status, duration, and step counts
    * @throws {Error} If the workflow is not found or is already running
-   * 
+   *
    * @example
    * ```typescript
    * const result = await workflowEngine.executeWorkflow('workflow_123');
@@ -170,10 +170,10 @@ class WorkflowEngine {
 
   /**
    * Execute all steps in a workflow sequentially.
-   * 
+   *
    * This private method iterates through workflow steps, updating their status and handling errors.
    * If any step fails, the entire workflow fails and the error is propagated.
-   * 
+   *
    * @param workflow - The workflow object containing steps to execute
    * @throws {Error} If any step execution fails, causing the workflow to fail
    */
@@ -205,9 +205,9 @@ class WorkflowEngine {
 
   /**
    * Execute a single workflow step based on the workflow type.
-   * 
+   *
    * Routes to the appropriate step executor based on workflow type (project, build, deploy, monitor, monetize).
-   * 
+   *
    * @param workflow - The workflow containing the step
    * @param step - The step to execute
    * @throws {Error} If the workflow type is unknown or step execution fails
@@ -237,10 +237,10 @@ class WorkflowEngine {
 
   /**
    * Execute a step in a project workflow.
-   * 
+   *
    * Handles project-specific actions like creating projects, analyzing project structure,
    * and generating project code using AI services.
-   * 
+   *
    * @param workflow - The project workflow
    * @param step - The step to execute (supports actions: 'create', 'analyze', 'generate')
    */
@@ -303,15 +303,15 @@ class WorkflowEngine {
 
   /**
    * Execute a step in a build workflow.
-   * 
+   *
    * Handles build-specific actions like executing build commands and compiling code.
-   * 
+   *
    * @param workflow - The build workflow
    * @param step - The step to execute (may contain build commands in metadata)
    */
   private async executeBuildStep(workflow: Workflow, step: WorkflowStep): Promise<void> {
     const config = workflow.metadata as BuildWorkflowConfig['metadata'] & { buildCommand?: string };
-    
+
     // Build steps are typically command execution
     // In a real implementation, this would execute build commands
     if (step.metadata?.command) {
@@ -327,9 +327,9 @@ class WorkflowEngine {
 
   /**
    * Execute a step in a deployment workflow.
-   * 
+   *
    * Handles deployment-specific actions like deploying to various targets (staging, production, etc.).
-   * 
+   *
    * @param _workflow - The deployment workflow
    * @param step - The step to execute (may contain deployment commands in metadata)
    */
@@ -344,16 +344,16 @@ class WorkflowEngine {
 
   /**
    * Execute a step in a monitoring workflow.
-   * 
+   *
    * Handles monitoring-specific actions like checking system health, performance metrics, and LLM status.
-   * 
+   *
    * @param _workflow - The monitoring workflow
    * @param step - The step to execute (supports metrics: 'health', 'performance', 'llm-status')
    */
   private async executeMonitorStep(_workflow: Workflow, step: WorkflowStep): Promise<void> {
     // Monitor steps check system health, metrics, etc.
     const metric = step.metadata?.metric as string;
-    
+
     switch (metric) {
       case 'health':
         // Check system health
@@ -368,15 +368,15 @@ class WorkflowEngine {
         // Generic monitoring
         break;
     }
-    
+
     await new Promise(resolve => setTimeout(resolve, 300));
   }
 
   /**
    * Execute a step in a monetization workflow.
-   * 
+   *
    * Handles monetization-specific actions like setting up revenue streams and pricing strategies.
-   * 
+   *
    * @param _workflow - The monetization workflow
    * @param _step - The step to execute
    */
@@ -387,10 +387,10 @@ class WorkflowEngine {
 
   /**
    * Get a workflow by its unique identifier.
-   * 
+   *
    * @param workflowId - The unique identifier of the workflow
    * @returns The workflow object if found, undefined otherwise
-   * 
+   *
    * @example
    * ```typescript
    * const workflow = workflowEngine.getWorkflow('workflow_123');
@@ -405,9 +405,9 @@ class WorkflowEngine {
 
   /**
    * Get all workflows that have been created.
-   * 
+   *
    * @returns An array of all workflow objects, regardless of their status
-   * 
+   *
    * @example
    * ```typescript
    * const allWorkflows = workflowEngine.getAllWorkflows();
@@ -420,9 +420,9 @@ class WorkflowEngine {
 
   /**
    * Get all workflows that are currently running.
-   * 
+   *
    * @returns An array of workflow objects with status 'running'
-   * 
+   *
    * @example
    * ```typescript
    * const activeWorkflows = workflowEngine.getActiveWorkflows();
@@ -437,13 +437,13 @@ class WorkflowEngine {
 
   /**
    * Cancel a running workflow.
-   * 
+   *
    * Sets the workflow status to 'cancelled' and removes it from active workflows.
    * Only workflows with status 'running' can be cancelled.
-   * 
+   *
    * @param workflowId - The unique identifier of the workflow to cancel
    * @throws {Error} If the workflow is not found
-   * 
+   *
    * @example
    * ```typescript
    * try {
@@ -464,18 +464,18 @@ class WorkflowEngine {
       workflow.status = 'cancelled';
       this.activeWorkflows.delete(workflowId);
       workflow.updatedAt = new Date();
-      
+
       notificationService.warn('Workflow Cancelled', `Workflow "${workflow.name}" was cancelled`);
     }
   }
 
   /**
    * Delete a workflow from the engine.
-   * 
+   *
    * Removes the workflow from storage and active workflows. This operation cannot be undone.
-   * 
+   *
    * @param workflowId - The unique identifier of the workflow to delete
-   * 
+   *
    * @example
    * ```typescript
    * workflowEngine.deleteWorkflow('workflow_123');

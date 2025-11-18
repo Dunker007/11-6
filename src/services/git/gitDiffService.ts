@@ -1,43 +1,43 @@
 /**
  * gitDiffService.ts
- * 
+ *
  * PURPOSE:
  * Service for retrieving Git diff content. Provides methods to get diffs between
  * commits, branches, and working directory changes. Used by GitDiffViewer component.
- * 
+ *
  * ARCHITECTURE:
  * Service layer that wraps simple-git operations for diff retrieval:
  * - Get diff for specific file
  * - Get diff between commits/branches
  * - Get diff summary (statistics)
  * - Parse diff content for display
- * 
+ *
  * Features:
  * - File-level diffs
  * - Commit-to-commit diffs
  * - Branch comparison diffs
  * - Working directory diffs
  * - Diff statistics
- * 
+ *
  * CURRENT STATUS:
  * ✅ File diff retrieval
  * ✅ Commit diff retrieval
  * ✅ Branch diff retrieval
  * ✅ Working directory diff
  * ✅ Diff statistics
- * 
+ *
  * DEPENDENCIES:
  * - simple-git: Git operations
  * - Electron environment: Required for Node.js Git operations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { gitDiffService } from '@/services/git/gitDiffService';
- * 
+ *
  * const diff = await gitDiffService.getFileDiff('/path/to/repo', 'src/file.ts');
  * const stats = await gitDiffService.getDiffStats('/path/to/repo', 'HEAD', 'main');
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/components/GitHub/GitDiffViewer.tsx: Diff viewer component
  * - src/services/github/githubService.ts: Related Git operations
@@ -122,7 +122,7 @@ class GitDiffService {
         filePath,
         `-U${contextLines}`,
       ];
-      
+
       if (options.ignoreWhitespace) {
         diffArgs.push('-w');
       }
@@ -133,14 +133,14 @@ class GitDiffService {
         // File might be new or unchanged
         const status = await git.status();
         const fileStatus = status.files.find(f => f.path === filePath);
-        
+
         if (fileStatus?.working_dir === 'A' || fileStatus?.working_dir === '??') {
           // New file - get current content
           const fs = await import('fs/promises');
           const path = await import('path');
           const fullPath = path.join(repoPath, filePath);
           const content = await fs.readFile(fullPath, 'utf-8');
-          
+
           return {
             path: filePath,
             originalContent: '',
@@ -153,7 +153,7 @@ class GitDiffService {
             },
           };
         }
-        
+
         return null;
       }
 
@@ -255,7 +255,7 @@ class GitDiffService {
       const summary = await git.diffSummary([from, to]);
 
       const files: Array<{ path: string; insertions: number; deletions: number }> = [];
-      
+
       for (const file of summary.files) {
         if ('insertions' in file && 'deletions' in file && typeof file.insertions === 'number' && typeof file.deletions === 'number') {
           files.push({
@@ -269,7 +269,7 @@ class GitDiffService {
       const totalInsertions = typeof summary.insertions === 'object' && summary.insertions && 'total' in summary.insertions
         ? (summary.insertions as { total: number }).total
         : (typeof summary.insertions === 'number' ? summary.insertions : 0);
-      
+
       const totalDeletions = typeof summary.deletions === 'object' && summary.deletions && 'total' in summary.deletions
         ? (summary.deletions as { total: number }).total
         : (typeof summary.deletions === 'number' ? summary.deletions : 0);
@@ -304,15 +304,15 @@ class GitDiffService {
     try {
       const git = await getSimpleGit(repoPath);
       const status = await git.status();
-      
+
       // Get files changed since base
       const diffSummary = await git.diffSummary([base, 'HEAD']);
-      
+
       const files: Array<{ path: string; status: 'modified' | 'added' | 'deleted' | 'renamed' }> = [];
-      
+
       for (const file of diffSummary.files) {
         let status: 'modified' | 'added' | 'deleted' | 'renamed' = 'modified';
-        
+
         if ('insertions' in file && 'deletions' in file) {
           if (file.insertions > 0 && file.deletions === 0) {
             status = 'added';
@@ -322,7 +322,7 @@ class GitDiffService {
             status = 'modified';
           }
         }
-        
+
         files.push({
           path: file.file,
           status,

@@ -76,26 +76,26 @@ function Studio() {
     const initializeWebContainer = async () => {
       try {
         setWebContainerError(null);
-        
+
         // Initialize WebContainer for this project
         await initializeContainer(activeProject.id);
-        
+
         if (cancelled) return;
 
         // Load project files into WebContainer
         const coreProjectService = (await import('../core/project/projectService')).projectService;
         await loadProjectFromService(activeProject.id, coreProjectService);
-        
+
         if (cancelled) return;
 
         logger.info(`WebContainer ready for project: ${activeProject.name}`);
       } catch (error) {
         if (cancelled) return;
-        
+
         const errorMessage = (error as Error).message;
         setWebContainerError(errorMessage);
         logger.error('Failed to initialize WebContainer:', { error });
-        
+
         // Show error in console panel
         setCommandOutput(`⚠️ WebContainer initialization failed: ${errorMessage}\n\nThis may happen if:\n- WebContainer API is not available\n- Project files are missing\n- Browser doesn't support WebContainer\n\nYou can still edit files, but execution features may be limited.`);
         setConsoleVisible(true);

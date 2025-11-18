@@ -14,12 +14,12 @@ export function loadEdAsset(status: EdStatus): string | null {
   try {
     // Try to load asset
     // const assetPath = `${ED_ASSET_BASE}/${status}.png`;
-    
+
     // In production, we'd check if the file exists
     // For now, return null to use placeholder
     // When images are added, this will return the path
     return null; // Placeholder mode
-    
+
     // Uncomment when assets are ready:
     // return assetPath;
   } catch (error) {
@@ -36,12 +36,12 @@ export function loadItorAsset(status: ItorStatus): string | null {
   try {
     // Try to load asset
     // const assetPath = `${ITOR_ASSET_BASE}/${status}.png`;
-    
+
     // In production, we'd check if the file exists
     // For now, return null to use placeholder
     // When images are added, this will return the path
     return null; // Placeholder mode
-    
+
     // Uncomment when assets are ready:
     // return assetPath;
   } catch (error) {

@@ -1,17 +1,17 @@
 /**
  * debuggerService.ts
- * 
+ *
  * PURPOSE:
  * Service for Chrome DevTools Protocol (CDP) debugging operations.
  * Provides methods to connect to CDP, manage breakpoints, step through code,
  * inspect variables, and get call stack information.
- * 
+ *
  * ARCHITECTURE:
  * Renderer-side service that communicates with Electron main process via IPC:
  * - IPC calls to debugger handlers in main process
  * - CDP operations handled in main process
  * - Event-based updates for debugging state
- * 
+ *
  * Features:
  * - CDP connection management
  * - Breakpoint operations
@@ -19,27 +19,27 @@
  * - Variable inspection
  * - Call stack retrieval
  * - Expression evaluation
- * 
+ *
  * CURRENT STATUS:
  * ✅ CDP connection
  * ✅ Breakpoint management
  * ✅ Step debugging
  * ✅ Variable inspection
  * ✅ Call stack
- * 
+ *
  * DEPENDENCIES:
  * - Electron IPC: Communication with main process
  * - chrome-remote-interface: CDP client (in main process)
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { debuggerService } from '@/services/debugging/debuggerService';
- * 
+ *
  * await debuggerService.connect(9222);
  * await debuggerService.setBreakpoint('src/file.ts', 10);
  * await debuggerService.stepOver();
  * ```
- * 
+ *
  * RELATED FILES:
  * - electron/ipc/debuggerHandlers.ts: IPC handlers in main process
  * - src/components/Debugging/DebuggerPanel.tsx: Debugging UI

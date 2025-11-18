@@ -26,7 +26,7 @@ describe('StorageService', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
-    
+
     // Mock IndexedDB open to return a successful request
     const mockRequest = {
       onerror: null,
@@ -55,16 +55,16 @@ describe('StorageService', () => {
       },
       error: null,
     };
-    
+
     mockIndexedDB.open.mockReturnValue(mockRequest);
-    
+
     // Simulate successful open
     setTimeout(() => {
       if (mockRequest.onsuccess) {
         mockRequest.onsuccess({ target: mockRequest } as any);
       }
     }, 0);
-    
+
     storageService = new StorageService();
   });
 
@@ -110,7 +110,7 @@ describe('StorageService', () => {
       await storageService.set('key1', 'value1');
       await storageService.set('key2', 'value2');
       await storageService.clear();
-      
+
       const value1 = await storageService.get('key1');
       const value2 = await storageService.get('key2');
       expect(value1).toBeNull();
@@ -122,7 +122,7 @@ describe('StorageService', () => {
     it('should return storage usage information', async () => {
       await storageService.set('test-key', 'test-value');
       const usage = await storageService.getUsage();
-      
+
       expect(usage).toBeDefined();
       expect(usage.used).toBeGreaterThan(0);
       expect(usage.total).toBeGreaterThan(0);

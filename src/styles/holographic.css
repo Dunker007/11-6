@@ -1,6 +1,6 @@
 /**
  * Holographic Effects & Animations
- * 
+ *
  * Advanced 3D holographic effects matching the DLX Command Center aesthetic
  * - Floating animations with 3D tilt
  * - Glowing pulse effects
@@ -429,7 +429,7 @@
   .holo-panel::before {
     animation: none;
   }
-  
+
   .holo-interactive:hover {
     transform: none;
   }

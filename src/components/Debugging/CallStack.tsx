@@ -1,34 +1,34 @@
 /**
  * CallStack.tsx
- * 
+ *
  * PURPOSE:
  * Component for displaying the call stack during debugging. Shows the
  * execution flow with function names and source locations.
- * 
+ *
  * ARCHITECTURE:
  * React component that uses debuggerService to get call stack information:
  * - debuggerService: Retrieves call stack via CDP
  * - Frame selection for variable inspection
  * - Source location navigation
- * 
+ *
  * Features:
  * - Call stack display
  * - Frame selection
  * - Source location display
  * - Navigation to source
- * 
+ *
  * CURRENT STATUS:
  * ✅ Call stack display
  * ✅ Frame selection
  * ✅ Source location
- * 
+ *
  * DEPENDENCIES:
  * - debuggerService: Debugging operations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import CallStack from '@/components/Debugging/CallStack';
- * 
+ *
  * <CallStack onFrameSelect={(frame) => console.log(frame)} />
  * ```
  */

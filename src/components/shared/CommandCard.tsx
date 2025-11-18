@@ -12,8 +12,8 @@ interface CommandCardProps {
   showGlow?: boolean;
 }
 
-const CommandCard = memo(function CommandCard({ 
-  children, 
+const CommandCard = memo(function CommandCard({
+  children,
   variant = 'cyan',
   clickable = false,
   onClick,
@@ -23,7 +23,7 @@ const CommandCard = memo(function CommandCard({
   showGlow = true
 }: CommandCardProps) {
   return (
-    <div 
+    <div
       className={`command-card ${variant} ${clickable ? 'clickable' : ''} ${className}`}
       onClick={onClick}
     >

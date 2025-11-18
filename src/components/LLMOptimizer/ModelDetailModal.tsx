@@ -44,7 +44,7 @@ const ModelDetailModal = ({ entry, isOpen, onClose }: ModelDetailModalProps) => 
       });
 
       const success = await pullModel(entry.id, entry.pullCommand);
-      
+
       if (success) {
         showToast({
           variant: 'success',

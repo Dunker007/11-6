@@ -1,6 +1,6 @@
 /**
  * Benchmark Service
- * 
+ *
  * Provides benchmarking functionality for LLM models to measure latency and throughput.
  */
 
@@ -102,18 +102,18 @@ export async function runBenchmark(request: BenchmarkRequest): Promise<Benchmark
         // Set preferred provider temporarily for this benchmark
         const originalPreferred = llmRouter.getPreferredProvider();
         llmRouter.setPreferredProvider(entry.provider as 'ollama' | 'lmstudio' | 'gemini');
-        
+
         const response = await provider.generate(prompt, {
           model: actualModelId,
           temperature: 0.91,
           maxTokens: 64,
         });
-        
+
         // Restore original preferred provider
         if (originalPreferred) {
           llmRouter.setPreferredProvider(originalPreferred);
         }
-        
+
         const endTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
         const latency = endTime - startTime;
         const tokens = response.tokensUsed ?? null;
@@ -131,7 +131,7 @@ export async function runBenchmark(request: BenchmarkRequest): Promise<Benchmark
         if (originalPreferred && originalPreferred !== entry.provider) {
           llmRouter.setPreferredProvider(originalPreferred);
         }
-        
+
         const endTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
         const latency = endTime - startTime;
         const reason = (err as Error).message || 'Unknown error';

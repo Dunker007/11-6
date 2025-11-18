@@ -76,7 +76,7 @@ const QuickModelActions: React.FC<QuickModelActionsProps> = ({ model, onClose, c
         temperature: 0.7,
         maxTokens: 50,
       });
-      
+
       showToast({
         variant: 'success',
         title: 'Test successful',
@@ -137,7 +137,7 @@ const QuickModelActions: React.FC<QuickModelActionsProps> = ({ model, onClose, c
           </button>
         )}
       </div>
-      
+
       <div className="actions-content">
         <div className="model-info">
           <div className="info-row">

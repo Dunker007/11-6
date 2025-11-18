@@ -48,7 +48,7 @@ function CodeReview() {
 
     setItorStatus('reviewing');
     addActivity('system', 'completed', 'Code review analysis completed');
-    
+
     setTimeout(() => {
       if (currentReview && currentReview.issues.length === 0) {
         setItorStatus('approved');

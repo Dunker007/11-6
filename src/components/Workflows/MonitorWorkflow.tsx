@@ -1,6 +1,6 @@
 /**
  * Monitor Workflow Component
- * 
+ *
  * Provides UI for Monitor workflow: system health, LLM status, alerts, anomaly detection
  */
 

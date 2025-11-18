@@ -48,7 +48,7 @@ const NotebookLMBrowser: React.FC = () => {
     <div className="notebook-lm-browser">
       <h4>NotebookLM Context</h4>
       <p>Select sources from your NotebookLM notebooks to use as context.</p>
-      
+
       <div className="notebook-controls">
         <button onClick={handleFetchNotebooks} disabled={isLoading}>
           <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />

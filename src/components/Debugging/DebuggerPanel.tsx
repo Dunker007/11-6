@@ -1,40 +1,40 @@
 /**
  * DebuggerPanel.tsx
- * 
+ *
  * PURPOSE:
  * Main debugging panel component that combines breakpoint management,
  * variable inspection, and call stack visualization.
- * 
+ *
  * ARCHITECTURE:
  * React component that orchestrates debugging features:
  * - debuggerService: CDP operations
  * - VariableInspector: Variable display
  * - CallStack: Call stack display
  * - Breakpoint management UI
- * 
+ *
  * Features:
  * - CDP connection management
  * - Breakpoint list and management
  * - Variable inspection
  * - Call stack visualization
  * - Step controls (over, into, out, resume, pause)
- * 
+ *
  * CURRENT STATUS:
  * ✅ CDP connection
  * ✅ Breakpoint management
  * ✅ Variable inspection
  * ✅ Call stack
  * ✅ Step controls
- * 
+ *
  * DEPENDENCIES:
  * - debuggerService: Debugging operations
  * - VariableInspector: Variable display
  * - CallStack: Call stack display
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import DebuggerPanel from '@/components/Debugging/DebuggerPanel';
- * 
+ *
  * <DebuggerPanel />
  * ```
  */
@@ -43,13 +43,13 @@ import { useState, useEffect } from 'react';
 import { debuggerService, type Breakpoint } from '@/services/debugging/debuggerService';
 import VariableInspector from './VariableInspector';
 import CallStack from './CallStack';
-import { 
-  Play, 
-  Pause, 
-  StepOver, 
-  StepInto, 
-  StepOut, 
-  Power, 
+import {
+  Play,
+  Pause,
+  StepOver,
+  StepInto,
+  StepOut,
+  Power,
   PowerOff,
   Circle,
   X

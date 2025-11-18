@@ -104,7 +104,7 @@ export class HealthMonitor {
     if (!si) {
       // Try to detect GPU via WebGL in browser (cached)
       let browserGPU: SystemStats['gpu'] | undefined;
-      
+
       // If we already have a cached GPU context, use it immediately
       if (this.webglContext) {
         try {
@@ -132,8 +132,8 @@ export class HealthMonitor {
               this.webglCanvas = document.createElement('canvas');
               this.webglCanvas.width = 1;
               this.webglCanvas.height = 1;
-              const gl = this.webglCanvas.getContext('webgl', { 
-                failIfMajorPerformanceCaveat: true 
+              const gl = this.webglCanvas.getContext('webgl', {
+                failIfMajorPerformanceCaveat: true
               }) || this.webglCanvas.getContext('experimental-webgl', {
                 failIfMajorPerformanceCaveat: true
               });
@@ -195,7 +195,7 @@ export class HealthMonitor {
 
     const cpuTemp = await si.cpuTemperature().catch(() => ({ main: null }));
     const osInfo = await si.osInfo().catch(() => ({ hostname: null }));
-    
+
     // Get GPU stats
     let gpuStats: SystemStats['gpu'] | undefined;
     try {
@@ -206,12 +206,12 @@ export class HealthMonitor {
         let discreteGPU = graphics.controllers.find((gpu: Systeminformation.GraphicsControllerData) => {
           const vendor = (gpu.vendor || '').toLowerCase();
           const model = (gpu.model || '').toLowerCase();
-          return vendor.includes('nvidia') || 
-                 vendor.includes('amd') || 
+          return vendor.includes('nvidia') ||
+                 vendor.includes('amd') ||
                  vendor.includes('ati') ||
                  (!vendor.includes('intel') && !model.includes('integrated'));
         });
-        
+
           const gpu = discreteGPU || graphics.controllers[0];
         if (gpu) {
           const gpuName = gpu.model || gpu.vendor || 'Unknown GPU';
@@ -219,7 +219,7 @@ export class HealthMonitor {
           const memoryUsedGB = gpu.memoryUsed ? Math.round(gpu.memoryUsed / 1024) : null;
           const utilization = getGpuUtilization(gpu);
           const temperature = getGpuTemperature(gpu);
-          
+
           gpuStats = {
             name: gpuName,
             memoryGB: memoryTotalGB,

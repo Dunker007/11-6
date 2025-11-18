@@ -6,7 +6,7 @@ import { activityService } from '../activity/activityService';
 /**
  * Auto-Repair Service (Future Feature)
  * Automatically suggests and applies fixes for common errors
- * 
+ *
  * This is a stub implementation for future development.
  */
 
@@ -111,7 +111,7 @@ class AutoRepair {
 
     try {
       const result = await fixFn();
-      
+
       // Record the result
       errorPatternDB.recordFixAttempt(pattern.id, result.success);
 
@@ -138,7 +138,7 @@ class AutoRepair {
   getStats(): { totalPatterns: number; autoFixablePatterns: number; totalFixes: number } {
     const patterns = errorPatternDB.getAllPatterns();
     const autoFixableCount = patterns.filter(p => p.autoFixable).length;
-    
+
     let totalFixes = 0;
     patterns.forEach(pattern => {
       const history = errorPatternDB.getFixHistory(pattern.id);

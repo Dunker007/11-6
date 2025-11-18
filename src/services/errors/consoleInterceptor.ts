@@ -21,7 +21,7 @@ class ConsoleInterceptor {
   private constructor() {
     this.originalError = console.error.bind(console);
     this.originalWarn = console.warn.bind(console);
-    
+
     // Expose original methods globally for emergency use (prevent infinite loops)
     if (console.__originalError === undefined) {
       console.__originalError = this.originalError;
@@ -65,7 +65,7 @@ class ConsoleInterceptor {
 
     console.error = this.originalError;
     console.warn = this.originalWarn;
-    
+
     this.isActive = false;
   }
 
@@ -92,7 +92,7 @@ class ConsoleInterceptor {
     this.isProcessing = true;
     try {
       const message = this.formatMessage(args);
-      
+
       // Check if should be ignored
       if (this.shouldIgnore(message)) return;
 
@@ -118,7 +118,7 @@ class ConsoleInterceptor {
     this.isProcessing = true;
     try {
       const message = this.formatMessage(args);
-      
+
       // Check if should be ignored
       if (this.shouldIgnore(message)) return;
 

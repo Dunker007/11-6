@@ -1,6 +1,6 @@
 /**
  * editor.ts
- * 
+ *
  * Type definitions for editor tabs, split views, and editor panes.
  */
 

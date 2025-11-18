@@ -1,36 +1,36 @@
 /**
  * aiRefactoringService.ts
- * 
+ *
  * PURPOSE:
  * AI-powered refactoring suggestion service. Uses LLM to analyze code and suggest
  * refactorings, then integrates with refactoringEngine to apply them.
- * 
+ *
  * ARCHITECTURE:
  * Service that combines AI analysis with refactoring engine:
  * - AI analyzes code and suggests refactorings
  * - Integrates with refactoringEngine for safe application
  * - Provides context-aware suggestions
- * 
+ *
  * Features:
  * - AI-powered refactoring suggestions
  * - Context-aware analysis
  * - Integration with refactoringEngine
  * - Preview before apply
- * 
+ *
  * CURRENT STATUS:
  * ✅ AI refactoring suggestions
  * ✅ Context analysis
  * ✅ Integration with refactoringEngine
- * 
+ *
  * DEPENDENCIES:
  * - llmRouter: LLM provider routing
  * - refactoringEngine: Refactoring operations
  * - multiFileContextService: Project context
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { aiRefactoringService } from '@/services/ai/aiRefactoringService';
- * 
+ *
  * const suggestions = await aiRefactoringService.suggestRefactorings(
  *   filePath,
  *   selection
@@ -153,19 +153,19 @@ class AIRefactoringService {
    */
   private buildRefactoringPrompt(context: RefactoringContext): string {
     let prompt = `You are a code refactoring assistant. Analyze the following code and suggest refactorings.\n\n`;
-    
+
     prompt += `File: ${context.filePath}\n\n`;
-    
+
     if (context.projectContext) {
       prompt += `Project Context:\n${context.projectContext}\n\n`;
     }
-    
+
     prompt += `Code:\n${context.code}\n\n`;
-    
+
     if (context.selection) {
       prompt += `Selected code (lines ${context.selection.startLine}-${context.selection.endLine}):\n${context.selection.text}\n\n`;
     }
-    
+
     prompt += `Suggest 1-3 refactorings that would improve this code. For each suggestion, provide:\n`;
     prompt += `1. Type: extract-function, extract-variable, rename, inline, convert-async, or optimize\n`;
     prompt += `2. Description: Brief description of the refactoring\n`;
@@ -173,7 +173,7 @@ class AIRefactoringService {
     prompt += `4. Code: The refactored code\n`;
     prompt += `5. Preview: A brief preview of the change\n\n`;
     prompt += `Format your response as JSON array of objects with these fields.`;
-    
+
     return prompt;
   }
 
@@ -193,7 +193,7 @@ class AIRefactoringService {
       }
 
       const suggestions = JSON.parse(jsonMatch[0]) as any[];
-      
+
       return suggestions
         .filter(s => s.type && s.description && s.code)
         .map(s => ({

@@ -1,17 +1,17 @@
 /**
  * Type Utilities
- * 
+ *
  * PURPOSE:
  * Shared type utilities and type guards for better type safety across the codebase.
  * Provides SafeAny type alias, type guard utilities, and generic utility types.
- * 
+ *
  * USAGE:
  * ```typescript
  * import { SafeAny, isString, isObject } from '@/types/utils';
- * 
+ *
  * // Safe any with warning
  * const data: SafeAny = someDynamicValue;
- * 
+ *
  * // Type guards
  * if (isString(value)) {
  *   // value is string here
@@ -22,7 +22,7 @@
 /**
  * SafeAny - Use sparingly with justification
  * JSDoc warning to discourage unnecessary use
- * 
+ *
  * @deprecated Prefer specific types or unknown with type guards
  */
 export type SafeAny = any; // eslint-disable-line @typescript-eslint/no-explicit-any

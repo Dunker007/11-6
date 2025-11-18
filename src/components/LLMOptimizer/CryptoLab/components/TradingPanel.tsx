@@ -66,7 +66,7 @@ function TradingPanel({ productId }: TradingPanelProps) {
 
   const handlePercentageClick = (percentage: number) => {
     if (!availableBalance || !currentPrice) return;
-    
+
     if (orderSide === 'BUY' && orderType === 'MARKET') {
       // For market buy, use quote size (USD)
       const quoteSize = (availableBalance * percentage).toFixed(2);
@@ -84,8 +84,8 @@ function TradingPanel({ productId }: TradingPanelProps) {
       return;
     }
     const current = parseFloat(price);
-    const newPrice = direction === 'up' 
-      ? current + priceStep 
+    const newPrice = direction === 'up'
+      ? current + priceStep
       : Math.max(0, current - priceStep);
     setPrice(newPrice.toFixed(2));
   };

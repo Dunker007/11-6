@@ -173,7 +173,7 @@ const UpdateNotification = memo(function UpdateNotification() {
     if (is406Error) {
       return null; // Silently ignore
     }
-    
+
     return (
       <div className="update-notification update-error">
         <div className="update-notification-content">

@@ -1,11 +1,11 @@
 /**
  * errorLogger.ts
- * 
+ *
  * PURPOSE:
  * Centralized error logging and tracking service. Captures, stores, and manages application
  * errors with context, deduplication, and persistence. Provides error analytics and filtering
  * capabilities for debugging and monitoring.
- * 
+ *
  * ARCHITECTURE:
  * Singleton service that:
  * - Captures errors with full context (stack, session, component, etc.)
@@ -14,7 +14,7 @@
  * - Provides error filtering and statistics
  * - Supports error listeners for real-time notifications
  * - Generates error fingerprints for grouping
- * 
+ *
  * CURRENT STATUS:
  * ✅ Error capture with context
  * ✅ Error deduplication
@@ -24,27 +24,27 @@
  * ✅ Error listeners/subscriptions
  * ✅ Session tracking
  * ✅ Error fingerprinting
- * 
+ *
  * DEPENDENCIES:
  * - errorContext: Application context capture
  * - @/types/error: Error type definitions
- * 
+ *
  * STATE MANAGEMENT:
  * - Singleton pattern (no Zustand)
  * - Maintains errors array in memory
  * - Persists to localStorage
  * - Manages error listeners
- * 
+ *
  * PERFORMANCE:
  * - Efficient deduplication
  * - Limited error storage (max 500 errors)
  * - Fast filtering and search
  * - Minimal memory footprint
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { errorLogger } from '@/services/errors/errorLogger';
- * 
+ *
  * try {
  *   // operation
  * } catch (error) {
@@ -54,12 +54,12 @@
  *   });
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/errors/errorContext.ts: Context capture
  * - src/components/ErrorConsole/ErrorConsole.tsx: Error display UI
  * - src/App.tsx: Error boundary integration
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Error reporting to external services
  * - Error auto-repair suggestions
@@ -134,7 +134,7 @@ class ErrorLogger {
 
     // Add new error
     this.errors.unshift(error); // Add to beginning (most recent first)
-    
+
     // Maintain max size
     if (this.errors.length > this.MAX_ERRORS) {
       this.errors = this.errors.slice(0, this.MAX_ERRORS);
@@ -142,10 +142,10 @@ class ErrorLogger {
 
     this.saveErrors();
     this.notifyListeners(error);
-    
+
     // Also log to console for debugging
     this.logToConsole(error);
-    
+
     return error;
   }
 
@@ -307,7 +307,7 @@ class ErrorLogger {
   private findRecentDuplicate(error: CapturedError): CapturedError | undefined {
     const recentWindow = Date.now() - this.DEDUP_WINDOW;
     return this.errors.find(
-      e => e.fingerprint === error.fingerprint && 
+      e => e.fingerprint === error.fingerprint &&
            e.timestamp >= recentWindow &&
            !e.resolved
     );
@@ -355,12 +355,12 @@ class ErrorLogger {
           // Omit heavy context data
         },
       }));
-      
+
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(lightweight));
     } catch (error) {
       // Disable future localStorage attempts
       this.storageDisabled = true;
-      
+
       // Use original console to avoid recursion
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const originalError = (console as { __originalError?: typeof console.error }).__originalError;

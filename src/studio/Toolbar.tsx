@@ -32,10 +32,10 @@ export default function Toolbar({ onOutput }: ToolbarProps) {
 
     setLastAction('Installing dependencies...');
     setActionError(null);
-    
+
     try {
       const result = await installDependencies(activeProject.id);
-      
+
       if (result.success) {
         const output = `✅ Dependencies installed successfully!\n\n${result.output || 'No output'}\n\nDuration: ${(result.duration / 1000).toFixed(2)}s`;
         onOutput?.(output);
@@ -58,10 +58,10 @@ export default function Toolbar({ onOutput }: ToolbarProps) {
 
     setLastAction('Starting dev server...');
     setActionError(null);
-    
+
     try {
       const result = await startDevServer(activeProject.id);
-      
+
       if (result.success) {
         const output = `✅ Dev server started!\n\n${result.output || 'Server is running'}\n\n🌐 Server should be available at http://localhost:3000\n\nDuration: ${(result.duration / 1000).toFixed(2)}s`;
         onOutput?.(output);
@@ -84,10 +84,10 @@ export default function Toolbar({ onOutput }: ToolbarProps) {
 
     setLastAction('Building project...');
     setActionError(null);
-    
+
     try {
       const result = await buildProject(activeProject.id);
-      
+
       if (result.success) {
         const output = `✅ Build completed successfully!\n\n${result.output || 'Build output'}\n\nDuration: ${(result.duration / 1000).toFixed(2)}s`;
         onOutput?.(output);
@@ -110,10 +110,10 @@ export default function Toolbar({ onOutput }: ToolbarProps) {
 
     setLastAction('Running tests...');
     setActionError(null);
-    
+
     try {
       const result = await runTests(activeProject.id);
-      
+
       if (result.success) {
         const output = `✅ Tests passed!\n\n${result.output || 'All tests passed'}\n\nDuration: ${(result.duration / 1000).toFixed(2)}s`;
         onOutput?.(output);

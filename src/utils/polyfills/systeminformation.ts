@@ -1,7 +1,7 @@
 /**
  * Browser polyfill for systeminformation
  * Returns empty/mock implementations since these are Node.js-only
- * 
+ *
  * Provides minimal type definitions matching the systeminformation package
  * structure to prevent type errors in browser contexts.
  */

@@ -1,11 +1,11 @@
 /**
  * refactoringEngine.ts
- * 
+ *
  * PURPOSE:
  * Safe code refactoring engine that performs automated code transformations across projects.
  * Supports rename, extract, inline, move, convert, and optimize operations with safety checks
  * and preview capabilities. Uses project context to ensure refactorings are safe and complete.
- * 
+ *
  * ARCHITECTURE:
  * Refactoring operations that:
  * - Analyze project context before making changes
@@ -14,7 +14,7 @@
  * - Validate changes for safety
  * - Support multiple refactoring types
  * - Track affected files and dependencies
- * 
+ *
  * CURRENT STATUS:
  * ✅ Rename symbol across project
  * ✅ Extract method/function
@@ -24,26 +24,26 @@
  * ✅ Code optimization suggestions
  * ✅ Safety validation
  * ✅ Preview generation
- * 
+ *
  * DEPENDENCIES:
  * - multiFileContextService: Project analysis and dependency tracking
  * - @/types/project: Project type definitions
- * 
+ *
  * STATE MANAGEMENT:
  * - Stateless service (no internal state)
  * - Does not use Zustand
  * - Operates on project data passed as parameters
- * 
+ *
  * PERFORMANCE:
  * - Efficient symbol search using project context
  * - Cached project analysis
  * - Batch operations for multiple files
  * - Regex-based pattern matching
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { refactoringEngine } from '@/services/ai/refactoringEngine';
- * 
+ *
  * // Rename a symbol
  * const operation = await refactoringEngine.renameSymbol(
  *   project,
@@ -51,7 +51,7 @@
  *   'oldName',
  *   'newName'
  * );
- * 
+ *
  * // Extract a method
  * const extractOp = await refactoringEngine.extractMethod(
  *   'src/app.tsx',
@@ -60,11 +60,11 @@
  *   'typescript'
  * );
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/multiFileContextService.ts: Project analysis
  * - src/components/VibeEditor/VibeEditor.tsx: May use refactoring features
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - AST-based refactoring for more accuracy
  * - Undo/redo support
@@ -293,7 +293,7 @@ class RefactoringEngine {
 
     // Update all imports
     const changes: FileChange[] = [];
-    
+
     // Add the file move itself
     changes.push({
       filePath: file.path,
@@ -380,15 +380,15 @@ class RefactoringEngine {
   async optimizeImports(filePath: string, content: string): Promise<RefactoringOperation> {
     const usedSymbols = this.findUsedSymbols(content);
     const imports = this.parseImports(content);
-    
+
     // Remove unused imports
-    const usedImports = imports.filter(imp => 
+    const usedImports = imports.filter(imp =>
       imp.symbols.some(sym => usedSymbols.has(sym))
     );
 
     // Sort and group imports
     const sortedImports = this.sortImports(usedImports);
-    
+
     // Rebuild content
     const newContent = this.rebuildWithImports(content, sortedImports);
 
@@ -519,7 +519,7 @@ class RefactoringEngine {
 
   private updateImportPaths(content: string, fileToMoveOldPath: string, fileToMoveNewPath: string, currentFilePath: string): string {
     const importRegex = /import\s+(?:.+?\s+from\s+)?['"](.+?)['"]/g;
-    
+
     // NOTE: This assumes a 'path' object similar to Node's path module is available.
     const path = {
       dirname: (p: string) => p.substring(0, p.lastIndexOf('/')),
@@ -543,7 +543,7 @@ class RefactoringEngine {
     return content.replace(importRegex, (match, importPath) => {
       if (!importPath.startsWith('.')) return match; // a non-relative import, ignore
       const importAbsolutePath = path.join(path.dirname(currentFilePath), importPath);
-      
+
       if (importAbsolutePath.startsWith(fileToMoveOldPath.replace(/\.(ts|tsx|js|jsx)$/, ''))) {
         const newRelativePath = path.relative(
           path.dirname(currentFilePath),
@@ -551,7 +551,7 @@ class RefactoringEngine {
         );
         return match.replace(importPath, newRelativePath);
       }
-      
+
       return match;
     });
   }
@@ -615,10 +615,10 @@ class RefactoringEngine {
     // Remove old imports
     const importRegex = /import(?:(?:.+?\s+from\s+)?['"].+?['"]|['"].+?['"]);?/g;
     const withoutImports = content.replace(importRegex, '');
-    
+
     // Add sorted imports
     const importLines = imports.map(imp => imp.raw).join('\n');
-    
+
     return importLines + '\n\n' + withoutImports.trim();
   }
 }

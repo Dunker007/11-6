@@ -109,7 +109,7 @@ describe('VibeEditor', () => {
     } as any);
 
     render(<VibeEditor />);
-    
+
     await waitFor(() => {
       expect(mockLoadProjects).toHaveBeenCalled();
     });

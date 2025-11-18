@@ -123,8 +123,8 @@ function MockupPreviewModal({ mockupId, onClose, onNavigate, onApply, children }
             <button className="action-btn secondary" onClick={onClose}>
               Back to Selector
             </button>
-            <button 
-              className="action-btn primary" 
+            <button
+              className="action-btn primary"
               onClick={() => {
                 if (onApply) {
                   onApply(mockupId);

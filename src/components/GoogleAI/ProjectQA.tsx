@@ -39,7 +39,7 @@ const ProjectQA: React.FC = () => {
         question
       );
       setAnswer(result);
-      
+
       // Add to history
       setHistory((prev) => [
         { question, answer: result, timestamp: new Date() },
@@ -54,7 +54,7 @@ const ProjectQA: React.FC = () => {
 
   const handleCopyAnswer = useCallback(async () => {
     if (!answer?.text) return;
-    
+
     try {
       await navigator.clipboard.writeText(answer.text);
       setCopied(true);
@@ -72,21 +72,21 @@ const ProjectQA: React.FC = () => {
 
   const formatAnswer = useMemo(() => {
     if (!answer?.text) return '';
-    
+
     // Simple markdown-like formatting
     let formatted = answer.text;
-    
+
     // Convert code blocks
     formatted = formatted.replace(/```(\w+)?\n([\s\S]*?)```/g, (_match: string, _lang: string, code: string) => {
       return `<pre class="code-block"><code>${code.trim()}</code></pre>`;
     });
-    
+
     // Convert inline code
     formatted = formatted.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
-    
+
     // Convert line breaks
     formatted = formatted.replace(/\n/g, '<br />');
-    
+
     return formatted;
   }, [answer]);
 
@@ -96,7 +96,7 @@ const ProjectQA: React.FC = () => {
     <div className="project-qa-panel">
       <h4>Project Q&A</h4>
       <p>Ask a question about the current project, and get an answer based on its source code.</p>
-      
+
       <div className="qa-input-container">
         <textarea
           value={question}

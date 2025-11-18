@@ -1,6 +1,6 @@
 /**
  * Portfolio Service
- * 
+ *
  * Manages portfolios, positions, and performance calculations
  */
 
@@ -124,10 +124,10 @@ class PortfolioService {
 
     portfolio.holdings.push(position);
     portfolio.updatedAt = new Date();
-    
+
     await this.updatePortfolioPerformance(portfolioId);
     this.saveData();
-    
+
     return position;
   }
 
@@ -140,10 +140,10 @@ class PortfolioService {
 
     portfolio.holdings.splice(index, 1);
     portfolio.updatedAt = new Date();
-    
+
     this.updatePortfolioPerformance(portfolioId);
     this.saveData();
-    
+
     return true;
   }
 
@@ -160,10 +160,10 @@ class PortfolioService {
 
     Object.assign(position, updates);
     portfolio.updatedAt = new Date();
-    
+
     this.updatePortfolioPerformance(portfolioId);
     this.saveData();
-    
+
     return position;
   }
 
@@ -181,10 +181,10 @@ class PortfolioService {
         const currentValue = priceData.price * position.quantity;
         totalCost += position.costBasis * position.quantity;
         totalValue += currentValue;
-        
+
         position.unrealizedPL = (priceData.price - position.costBasis) * position.quantity;
-        position.unrealizedPLPercent = position.costBasis > 0 
-          ? ((priceData.price - position.costBasis) / position.costBasis) * 100 
+        position.unrealizedPLPercent = position.costBasis > 0
+          ? ((priceData.price - position.costBasis) / position.costBasis) * 100
           : 0;
       } catch (error) {
         logger.error(`Failed to update price for ${position.symbol}:`, { error, symbol: position.symbol });
@@ -196,13 +196,13 @@ class PortfolioService {
 
     // Calculate performance
     portfolio.performance.totalReturn = totalValue - totalCost;
-    portfolio.performance.totalReturnPercent = totalCost > 0 
-      ? (portfolio.performance.totalReturn / totalCost) * 100 
+    portfolio.performance.totalReturnPercent = totalCost > 0
+      ? (portfolio.performance.totalReturn / totalCost) * 100
       : 0;
 
     // Update allocation
     this.calculateAllocation(portfolio);
-    
+
     this.saveData();
   }
 
@@ -232,7 +232,7 @@ class PortfolioService {
     for (const position of portfolio.holdings) {
       const positionValue = (position.costBasis + position.unrealizedPL / position.quantity) * position.quantity;
       totalValue += positionValue;
-      
+
       // Determine asset type from symbol (simplified - in production, use asset metadata)
       const assetType = this.inferAssetType(position.symbol);
       valuesByType[assetType] = (valuesByType[assetType] || 0) + positionValue;
@@ -250,11 +250,11 @@ class PortfolioService {
     // Simple inference - in production, use asset metadata
     const cryptoPattern = /^(BTC|ETH|USDT|BNB|SOL|ADA|XRP|DOT|DOGE|AVAX|SHIB|MATIC|LTC|UNI|LINK|ATOM|ETC|XLM|ALGO|VET|ICP|FIL|TRX|EOS|AAVE|MKR|GRT|SAND|MANA|AXS|THETA|XTZ|FLOW|CHZ|ENJ|BAT|ZEC|DASH|ZRX|COMP|SNX|YFI|CRV|1INCH|SUSHI|ALPHA|REN|KNC|BAND|OCEAN|NMR|COTI|ANKR|BAL|STORJ|OMG|PAXG|SKL)$/i;
     if (cryptoPattern.test(symbol)) return 'crypto';
-    
+
     // ETF patterns
     const etfPattern = /^(SPY|QQQ|IWM|VTI|VOO|VEA|VWO|AGG|BND|TLT|GLD|SLV|USO|UNG|DIA|EFA|EEM|IEFA|IEMG|IJH|IJR|IVV|IVW|IVE|IWD|IWF|IWN|IWO|IWP|IWR|IWS|IWV|IYY|IYZ|IYJ|IYK|IYM|IYR|IYT|IYU|IYV|IYW|IYX|IYY|IYZ|BITO|GBTC|ETHE)$/i;
     if (etfPattern.test(symbol)) return 'etf';
-    
+
     return 'stock'; // Default to stock
   }
 
@@ -290,12 +290,12 @@ class PortfolioService {
     }
 
     const benchmarkSymbol = benchmark === 'SP500' ? 'SPY' : benchmark === 'BTC' ? 'BTC' : customSymbol || 'SPY';
-    
+
     try {
       const benchmarkPrice = await wealthMarketDataService.getRealTimePrice(benchmarkSymbol);
       // Simplified - in production, calculate actual benchmark return over period
       const benchmarkReturn = benchmarkPrice.changePercent24h;
-      
+
       return {
         portfolioReturn: portfolio.performance.totalReturnPercent,
         benchmarkReturn,
@@ -373,13 +373,13 @@ class PortfolioService {
     if (!portfolio) return [];
 
     const recommendations: { symbol: string; action: 'buy' | 'sell'; quantity: number }[] = [];
-    
+
     // Calculate current allocation
     this.calculateAllocation(portfolio);
-    
+
     // Compare with target and generate recommendations
     // Simplified - in production, implement full rebalancing logic
-    
+
     return recommendations;
   }
 
@@ -398,7 +398,7 @@ class PortfolioService {
     Object.assign(portfolio, updates);
     portfolio.updatedAt = new Date();
     this.saveData();
-    
+
     return portfolio;
   }
 

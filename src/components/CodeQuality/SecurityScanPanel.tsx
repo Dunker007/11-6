@@ -1,49 +1,49 @@
 /**
  * SecurityScanPanel.tsx
- * 
+ *
  * PURPOSE:
  * Component for displaying npm audit security scan results. Shows vulnerabilities,
  * allows filtering by severity, and provides fix functionality.
- * 
+ *
  * ARCHITECTURE:
  * React component that uses npmAuditService:
  * - npmAuditService: Runs npm audit and fixes vulnerabilities
  * - Vulnerability display with severity indicators
  * - Filter and search functionality
  * - Auto-fix capability
- * 
+ *
  * Features:
  * - Vulnerability scanning
  * - Severity-based filtering
  * - Fix recommendations
  * - Auto-fix with confirmation
  * - Summary statistics
- * 
+ *
  * CURRENT STATUS:
  * ✅ Vulnerability display
  * ✅ Severity filtering
  * ✅ Auto-fix
  * ✅ Summary statistics
- * 
+ *
  * DEPENDENCIES:
  * - npmAuditService: Security scanning operations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import SecurityScanPanel from '@/components/CodeQuality/SecurityScanPanel';
- * 
+ *
  * <SecurityScanPanel projectPath="/path/to/project" />
  * ```
  */
 
 import { useState, useEffect } from 'react';
 import { npmAuditService, type AuditResult, type Vulnerability } from '@/services/codeQuality/npmAuditService';
-import { 
-  Shield, 
-  AlertTriangle, 
-  AlertCircle, 
-  Info, 
-  RefreshCw, 
+import {
+  Shield,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  RefreshCw,
   Wrench,
   CheckCircle,
   XCircle,
@@ -99,7 +99,7 @@ function SecurityScanPanel({ projectPath, onScanComplete }: SecurityScanPanelPro
       setIsFixing(true);
       setError(null);
       const result = await npmAuditService.fixVulnerabilities(projectPath, force);
-      
+
       if (result.success) {
         // Re-scan to get updated results
         await scanProject();
@@ -146,7 +146,7 @@ function SecurityScanPanel({ projectPath, onScanComplete }: SecurityScanPanelPro
 
   const filteredVulnerabilities = auditResult?.vulnerabilities.filter(v => {
     const matchesSeverity = selectedSeverity === 'all' || v.severity === selectedSeverity;
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       v.title.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSeverity && matchesSearch;

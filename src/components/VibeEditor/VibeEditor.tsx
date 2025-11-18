@@ -1,11 +1,11 @@
 /**
  * VibeEditor.tsx
- * 
+ *
  * PURPOSE:
  * Main code editor component with Monaco Editor integration. Provides full IDE experience
  * with file management, syntax highlighting, AI assistance, project search, and Turbo Edit.
  * Central component for the Build workflow (code editing and development).
- * 
+ *
  * ARCHITECTURE:
  * Complex component orchestrating multiple features:
  * - Monaco Editor: Code editing with syntax highlighting
@@ -15,7 +15,7 @@
  * - ProjectSearch: Project-wide search
  * - Proactive agents: Context-aware suggestions
  * - Semantic indexing: Code understanding
- * 
+ *
  * Features:
  * - Auto-save with debouncing
  * - Unsaved changes tracking
@@ -23,7 +23,7 @@
  * - Proactive AI suggestions
  * - Custom VibeDS theme
  * - Project creation and management
- * 
+ *
  * CURRENT STATUS:
  * ✅ Full Monaco Editor integration
  * ✅ File management (create, edit, delete)
@@ -34,7 +34,7 @@
  * ✅ Proactive agent suggestions
  * ✅ Semantic indexing
  * ✅ Error context tracking
- * 
+ *
  * DEPENDENCIES:
  * - useProjectStore: Project and file management
  * - useActivityStore: Activity logging
@@ -43,34 +43,34 @@
  * - semanticIndexService: Code indexing
  * - Monaco Editor: Code editing
  * - Sub-components: FileExplorer, AIAssistant, TurboEdit, ProjectSearch
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: file content, language, UI visibility, unsaved changes
  * - Uses multiple Zustand stores
  * - Editor ref for Monaco instance
  * - Timeout refs for debouncing
- * 
+ *
  * PERFORMANCE:
  * - Debounced auto-save
  * - Lazy component loading
  * - Efficient re-renders
  * - Semantic indexing runs async
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import VibeEditor from '@/components/VibeEditor/VibeEditor';
- * 
+ *
  * function BuildWorkflow() {
  *   return <VibeEditor />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/components/VibeEditor/FileExplorer.tsx: File tree
  * - src/components/VibeEditor/TurboEdit.tsx: AI editing
  * - src/components/AIAssistant/AIAssistant.tsx: AI chat
  * - src/services/project/projectStore.ts: Project state
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Multi-file editing
  * - Split view
@@ -233,7 +233,7 @@ function VibeEditor() {
       setActiveFile(activeFilePath);
       setUnsavedChanges(false);
       setSaveStatus('saved');
-      
+
       // Start semantic indexing for the project
       semanticIndexService.startIndexingForCurrentProject().catch(err => {
         console.warn('Semantic indexing failed:', err);
@@ -254,7 +254,7 @@ function VibeEditor() {
     const tabId = openTab(path);
     setActiveTab(tabId);
     setActiveFilePath(path);
-    
+
     // Scroll to line if provided (will be handled by EditorPane)
     if (line && editorRef.current) {
       setTimeout(() => {
@@ -335,11 +335,11 @@ function VibeEditor() {
     if (activeFilePath) {
       const { updateTabContent } = useTabStore.getState();
       const activeTab = useTabStore.getState().getTab(activeTabId || '');
-      
+
       if (activeTab) {
         updateTabContent(activeTab.id, editedCode, true);
       }
-      
+
       updateFile(activeFilePath, editedCode);
       setUnsavedChanges(true);
       setSaveStatus('saving');
@@ -382,9 +382,9 @@ function VibeEditor() {
       <div className="vibe-editor">
         <div className="welcome-screen">
           <div className="welcome-logo">
-            <img 
-              src="/vibdee-logo.svg" 
-              alt="VibeEditor" 
+            <img
+              src="/vibdee-logo.svg"
+              alt="VibeEditor"
               onError={(e) => {
                 // Fallback if logo fails to load
                 const target = e.target as HTMLImageElement;
@@ -499,7 +499,7 @@ function VibeEditor() {
         <div className="editor-sidebar">
           <div className="sidebar-header">
             <div className="project-selector">
-              <button 
+              <button
                 className="project-dropdown-btn"
                 onClick={() => setShowProjectMenu(!showProjectMenu)}
                 title="Switch project"
@@ -514,7 +514,7 @@ function VibeEditor() {
                   <div className="project-menu">
                     <div className="project-menu-header">
                       <span>Projects</span>
-                      <button 
+                      <button
                         className="new-project-btn"
                         onClick={handleNewProject}
                         title="New Project"

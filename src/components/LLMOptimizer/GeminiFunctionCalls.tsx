@@ -17,8 +17,8 @@ interface GeminiFunctionCallsProps {
   results?: Record<string, any>;
 }
 
-function GeminiFunctionCalls({ 
-  functionCalls = [], 
+function GeminiFunctionCalls({
+  functionCalls = [],
   onExecute,
   results = {},
 }: GeminiFunctionCallsProps) {

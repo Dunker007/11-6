@@ -6,13 +6,13 @@
 import type { CodeVibe, ItorReviewIssue } from './agents';
 import type { PlanStep, PlanStatus } from './plan';
 
-export type InsightType = 
-  | 'agent-activity' 
-  | 'code-vibe' 
-  | 'plan-event' 
-  | 'code-review' 
-  | 'file-change' 
-  | 'command-output' 
+export type InsightType =
+  | 'agent-activity'
+  | 'code-vibe'
+  | 'plan-event'
+  | 'code-review'
+  | 'file-change'
+  | 'command-output'
   | 'system-alert';
 
 export interface Insight {

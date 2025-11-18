@@ -52,7 +52,7 @@ export function BoltExport() {
     try {
       const package_ = await boltService.generateBuildPackage(activeProject.id);
       const validationResult = boltService.validatePackage(package_);
-      
+
       setBuildPackage(package_);
       setValidation(validationResult);
 
@@ -129,7 +129,7 @@ export function BoltExport() {
     setIsSending(true);
     try {
       const response = await boltAPIService.sendBuildPackage(buildPackage);
-      
+
       if (response.success) {
         setBuildId(response.buildId || null);
         setBuildStatus('pending');

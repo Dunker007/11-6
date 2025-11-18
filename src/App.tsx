@@ -1,11 +1,11 @@
 /**
  * App.tsx
- * 
+ *
  * PURPOSE:
  * Root application component with error boundary and global UI elements. Provides error
  * handling, update notifications, window controls, and floating agent widgets. Initializes
  * theme service and sets up global error handling.
- * 
+ *
  * ARCHITECTURE:
  * Root component that:
  * - Wraps app in error boundary
@@ -15,7 +15,7 @@
  * - Renders floating agent widgets (ItorToolbar, InsightsStream)
  * - Initializes theme service
  * - Sets up global error logging
- * 
+ *
  * CURRENT STATUS:
  * ✅ Error boundary implementation
  * ✅ Error logging integration
@@ -24,36 +24,36 @@
  * ✅ Floating agent widgets
  * ✅ Theme initialization
  * ✅ Toast provider
- * 
+ *
  * DEPENDENCIES:
  * - errorLogger: Error capture system
  * - useProjectStore: Project state for error context
  * - themeService: Theme initialization
  * - Sub-components: LLMRevenueCommandCenter, UpdateNotification, WindowControls, etc.
- * 
+ *
  * STATE MANAGEMENT:
  * - Error boundary state: error, errorCount
  * - Uses Zustand stores via hooks
- * 
+ *
  * PERFORMANCE:
  * - Error boundary prevents crashes
  * - Efficient error logging
  * - Lazy component loading
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * // This is the root component, imported in main.tsx
  * import App from './App';
- * 
+ *
  * ReactDOM.render(<App />, document.getElementById('root'));
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/main.tsx: Application entry point
  * - src/services/errors/errorLogger.ts: Error logging
  * - src/services/theme/themeService.ts: Theme management
  * - src/components/LLMOptimizer/LLMRevenueCommandCenter.tsx: Main content
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Error recovery strategies
  * - Error reporting to external services
@@ -177,35 +177,35 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   getRecoverySuggestions = (): string[] => {
     const suggestions: string[] = [];
-    
+
     if (this.state.errorCount > 2) {
       suggestions.push('Multiple retries failed. Try resetting the application.');
     }
-    
+
     if (this.state.error?.message?.includes('network') || this.state.error?.message?.includes('fetch')) {
       suggestions.push('Check your internet connection and try again.');
     }
-    
+
     if (this.state.error?.message?.includes('memory') || this.state.error?.message?.includes('out of memory')) {
       suggestions.push('Close other applications to free up memory.');
     }
-    
+
     if (this.state.error?.message?.includes('module') || this.state.error?.message?.includes('import')) {
       suggestions.push('Try reloading the application to refresh module cache.');
     }
-    
+
     if (suggestions.length === 0) {
       suggestions.push('Try reloading the application.');
       suggestions.push('If the problem persists, reset the application (clears local data).');
     }
-    
+
     return suggestions;
   };
 
   render() {
     if (this.state.hasError) {
       const suggestions = this.getRecoverySuggestions();
-      
+
       return (
         <div className="error-boundary-container">
           <h1 className="error-boundary-title">
@@ -214,7 +214,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           <p className="error-boundary-message">
             {this.state.error?.message || 'An unexpected error occurred'}
           </p>
-          
+
           {suggestions.length > 0 && (
             <div className="error-boundary-suggestions">
               <h3>Recovery Suggestions:</h3>
@@ -225,7 +225,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               </ul>
             </div>
           )}
-          
+
           <div className="error-boundary-actions">
             <button
               onClick={this.handleRetry}

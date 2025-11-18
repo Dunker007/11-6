@@ -54,7 +54,7 @@ const SmartCommentsPanel: React.FC = () => {
 
     try {
       const comments = extractComments(fileContent);
-      
+
       if (comments.length === 0) {
         setError('No comments found in the active file.');
         setIsLoading(false);
@@ -131,7 +131,7 @@ const SmartCommentsPanel: React.FC = () => {
                   <div className="sentiment-score">
                     <span className="sentiment-label">Sentiment:</span>
                     <div className="sentiment-bar-container">
-                      <div 
+                      <div
                         className={`sentiment-bar ${result.sentiment.score > 0 ? 'positive' : result.sentiment.score < 0 ? 'negative' : 'neutral'}`}
                         style={{ width: `${Math.abs(result.sentiment.score) * 100}%` }}
                       />

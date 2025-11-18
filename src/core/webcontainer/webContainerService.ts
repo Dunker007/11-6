@@ -170,7 +170,7 @@ class WebContainerService {
             resolve(value);
           }
         };
-        
+
         // Check if process has error event listener capability
         if (typeof processAny.addEventListener === 'function') {
           const errorHandler = (event: any) => {
@@ -179,7 +179,7 @@ class WebContainerService {
             safeResolve(errorMsg);
           };
           processAny.addEventListener('error', errorHandler);
-          
+
           // Also resolve when process exits (if no error occurred)
           process.exit.then(() => {
             // Small delay to allow error events to fire first
@@ -217,11 +217,11 @@ class WebContainerService {
         ];
 
         const hasErrorPattern = errorPatterns.some(pattern => pattern.test(output));
-        
+
         if (hasErrorPattern) {
           // Extract error lines from output
           const lines = output.split('\n');
-          const errorLines = lines.filter(line => 
+          const errorLines = lines.filter(line =>
             errorPatterns.some(pattern => pattern.test(line))
           );
           errorOutput = errorLines.join('\n') || `Command failed with exit code ${exitCode}`;
@@ -325,7 +325,7 @@ class WebContainerService {
       }
 
       // Get relative path from base
-      const relativePath = basePath 
+      const relativePath = basePath
         ? file.path.replace(basePath, '').replace(/^\//, '')
         : file.path.replace(/^\//, '');
 

@@ -9,7 +9,7 @@ interface BenchmarkStore {
   progress: number;
   error: string | null;
   lastRun: Date | null;
-  
+
   runBenchmarkSuite: () => Promise<void>;
   clearResults: () => void;
 }
@@ -24,12 +24,12 @@ export const useBenchmarkStore = create<BenchmarkStore>((set, get) => ({
 
   runBenchmarkSuite: async () => {
     if (get().isRunning) return;
-    
-    set({ 
-      isRunning: true, 
-      error: null, 
-      currentTest: null, 
-      progress: 0 
+
+    set({
+      isRunning: true,
+      error: null,
+      currentTest: null,
+      progress: 0
     });
 
     try {

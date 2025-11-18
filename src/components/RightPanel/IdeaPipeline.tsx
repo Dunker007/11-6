@@ -95,7 +95,7 @@ const IdeaPipeline = () => {
       default: return 'bg-gray-700';
     }
   };
-  
+
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <div className="idea-pipeline-container">
@@ -104,7 +104,7 @@ const IdeaPipeline = () => {
             <KaiCreativeRoom />
           </div>
           {statusOrder.map(status => (
-            <DroppableColumn 
+            <DroppableColumn
               key={status}
               status={status}
               projects={projectsByStatus[status]}

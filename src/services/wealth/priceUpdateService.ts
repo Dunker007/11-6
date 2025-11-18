@@ -1,6 +1,6 @@
 /**
  * Real-Time Price Update Service
- * 
+ *
  * Manages WebSocket connections for real-time price updates
  * Supports different update intervals for different asset types:
  * - Crypto: 1 second
@@ -131,7 +131,7 @@ class PriceUpdateService {
   private async fetchPrice(symbol: string): Promise<void> {
     try {
       const priceData = await wealthMarketDataService.getRealTimePrice(symbol);
-      
+
       const update: PriceUpdate = {
         symbol,
         price: priceData.price,
@@ -280,7 +280,7 @@ class PriceUpdateService {
    */
   stop(): void {
     // this.isActive = false; // Commented out - reserved for future use
-    
+
     // Clear all intervals
     this.updateIntervals.forEach(interval => clearInterval(interval));
     this.updateIntervals.clear();

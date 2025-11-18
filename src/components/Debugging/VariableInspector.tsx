@@ -1,35 +1,35 @@
 /**
  * VariableInspector.tsx
- * 
+ *
  * PURPOSE:
  * Component for inspecting variables during debugging. Displays variables
  * in the current scope with their values and types.
- * 
+ *
  * ARCHITECTURE:
  * React component that uses debuggerService to get variable information:
  * - debuggerService: Retrieves variable data via CDP
  * - Expandable object/array inspection
  * - Variable value display
- * 
+ *
  * Features:
  * - Current scope variables
  * - Expandable object/array inspection
  * - Variable value editing
  * - Variable search/filter
  * - Copy variable values
- * 
+ *
  * CURRENT STATUS:
  * ✅ Variable display
  * ✅ Expandable inspection
  * ✅ Value formatting
- * 
+ *
  * DEPENDENCIES:
  * - debuggerService: Debugging operations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import VariableInspector from '@/components/Debugging/VariableInspector';
- * 
+ *
  * <VariableInspector callFrameId="frame-1" />
  * ```
  */

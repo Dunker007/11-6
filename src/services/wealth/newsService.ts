@@ -1,6 +1,6 @@
 /**
  * News & Insights Service
- * 
+ *
  * Aggregates news, analyzes sentiment, and generates insights
  */
 
@@ -52,7 +52,7 @@ class NewsService {
 
   async fetchNews(symbols: string[], limit: number = 20): Promise<NewsArticle[]> {
     const cacheKey = `news_${symbols.sort().join(',')}_${limit}`;
-    
+
     // Check cache
     const cached = this.newsCache.get(cacheKey);
     if (cached) {
@@ -104,7 +104,7 @@ Summary: ${article.summary}`;
 
   filterByRelevance(articles: NewsArticle[], portfolio: Portfolio): NewsArticle[] {
     const portfolioSymbols = portfolio.holdings.map(h => h.symbol);
-    
+
     return articles.map(article => {
       const relevanceScore = this.calculateRelevance(article, portfolioSymbols);
       return {
@@ -120,7 +120,7 @@ Summary: ${article.summary}`;
     // Check if article mentions portfolio symbols
     const titleLower = article.title.toLowerCase();
     const summaryLower = article.summary.toLowerCase();
-    
+
     portfolioSymbols.forEach(symbol => {
       if (titleLower.includes(symbol.toLowerCase()) || summaryLower.includes(symbol.toLowerCase())) {
         score += 30;
@@ -179,7 +179,7 @@ Summary: ${article.summary}`;
     // Analyze news sentiment
     const positiveNews = news.filter(n => n.sentiment === 'positive').length;
     const negativeNews = news.filter(n => n.sentiment === 'negative').length;
-    
+
     if (positiveNews > negativeNews * 2) {
       insights.push({
         id: crypto.randomUUID(),
@@ -205,7 +205,7 @@ Summary: ${article.summary}`;
     try {
       const topNews = news.slice(0, 5);
       const newsSummary = topNews.map(n => `- ${n.title}: ${n.summary}`).join('\n');
-      
+
       const prompt = `Based on these financial news articles, provide 2-3 actionable insights for a portfolio holder. Be concise and specific.
 
 ${newsSummary}
@@ -246,7 +246,7 @@ Portfolio performance: ${portfolio.performance.totalReturnPercent.toFixed(2)}%`;
     assets.forEach(asset => {
       if (asset.performance) {
         // Detect strong upward trend
-        if (asset.performance.daily && asset.performance.daily > 5 && 
+        if (asset.performance.daily && asset.performance.daily > 5 &&
             asset.performance.weekly && asset.performance.weekly > 10) {
           insights.push({
             id: crypto.randomUUID(),
@@ -259,7 +259,7 @@ Portfolio performance: ${portfolio.performance.totalReturnPercent.toFixed(2)}%`;
         }
 
         // Detect strong downward trend
-        if (asset.performance.daily && asset.performance.daily < -5 && 
+        if (asset.performance.daily && asset.performance.daily < -5 &&
             asset.performance.weekly && asset.performance.weekly < -10) {
           insights.push({
             id: crypto.randomUUID(),

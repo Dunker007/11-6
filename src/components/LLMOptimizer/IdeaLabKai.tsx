@@ -60,7 +60,7 @@ function IdeaLabKai({ onIdeaSuggest }: IdeaLabKaiProps) {
 
     try {
       const prompt = `${KAI_PERSONA}\n\nUser: ${input.trim()}\n\nKai:`;
-      
+
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',

@@ -1,6 +1,6 @@
 /**
  * Watchlist Service
- * 
+ *
  * Manages watchlists and price/news alerts
  */
 
@@ -182,7 +182,7 @@ class WatchlistService {
         try {
           const priceData = await wealthMarketDataService.getRealTimePrice(alert.symbol);
           const currentPrice = priceData.price;
-          const shouldTrigger = 
+          const shouldTrigger =
             (alert.priceAlert.direction === 'above' && currentPrice >= alert.priceAlert.targetPrice) ||
             (alert.priceAlert.direction === 'below' && currentPrice <= alert.priceAlert.targetPrice);
 

@@ -41,8 +41,8 @@ const StorageDiagnostics: React.FC = () => {
         loadStats();
       }
     } catch (error) {
-      logger.error('Failed to clear storage', { 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('Failed to clear storage', {
+        error: error instanceof Error ? error.message : String(error)
       });
       alert('Failed to clear storage. Check console for details.');
     } finally {
@@ -109,9 +109,9 @@ const StorageDiagnostics: React.FC = () => {
             <span>Usage</span>
           </div>
           <div className="usage-bar-container">
-            <div 
-              className="usage-bar" 
-              style={{ 
+            <div
+              className="usage-bar"
+              style={{
                 width: `${(stats.usage.percentage * 100).toFixed(1)}%`,
                 backgroundColor: getUsageColor(stats.usage.percentage)
               }}
@@ -144,8 +144,8 @@ const StorageDiagnostics: React.FC = () => {
             {stats.indexedDBAvailable ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
             <span>IndexedDB</span>
           </div>
-          <div className="card-value" style={{ 
-            color: stats.indexedDBAvailable ? 'var(--success-color)' : 'var(--warning-color)' 
+          <div className="card-value" style={{
+            color: stats.indexedDBAvailable ? 'var(--success-color)' : 'var(--warning-color)'
           }}>
             {stats.indexedDBAvailable ? 'Available' : 'Not Available'}
           </div>

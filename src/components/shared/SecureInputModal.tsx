@@ -11,13 +11,13 @@ interface SecureInputModalProps {
   placeholder?: string;
 }
 
-function SecureInputModal({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  title, 
-  label, 
-  placeholder = 'Enter value...' 
+function SecureInputModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  label,
+  placeholder = 'Enter value...'
 }: SecureInputModalProps) {
   const [value, setValue] = useState('');
   const [showValue, setShowValue] = useState(false);

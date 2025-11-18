@@ -1,6 +1,6 @@
 /**
  * refactoringService.ts
- * 
+ *
  * Service for refactoring operations, especially rename refactoring with preview.
  */
 
@@ -47,7 +47,7 @@ class RefactoringService {
 
       // Get project context
       const context = await multiFileContextService.getProjectContext(activeProject.id);
-      
+
       // Search for symbol occurrences using LLM
       const prompt = `Find all occurrences of the ${symbolType || 'symbol'} "${symbolName}" in this project.
 
@@ -90,7 +90,7 @@ Return JSON:
       // Parse JSON response
       let parsedResponse: { occurrences: Array<{ path: string; line: number; column: number; context: string }> };
       try {
-        const jsonMatch = response.text.match(/```json\n([\s\S]*?)\n```/) || 
+        const jsonMatch = response.text.match(/```json\n([\s\S]*?)\n```/) ||
                          response.text.match(/```\n([\s\S]*?)\n```/) ||
                          [null, response.text];
         parsedResponse = JSON.parse(jsonMatch[1] || jsonMatch[0]);
@@ -122,14 +122,14 @@ Return JSON:
    */
   async previewRename(params: RenameRefactoringParams): Promise<RefactoringResult> {
     const occurrences = await this.findOccurrences(params);
-    
+
     if (!occurrences.success) {
       return occurrences;
     }
 
     // Generate preview showing what will change
     const preview = `Rename "${params.symbolName}" to "${params.newName}" in ${occurrences.occurrences.length} location(s):\n\n` +
-      occurrences.occurrences.map(occ => 
+      occurrences.occurrences.map(occ =>
         `${occ.path}:${occ.line}:${occ.column}\n${occ.context}`
       ).join('\n\n---\n\n');
 
@@ -144,7 +144,7 @@ Return JSON:
    */
   async applyRename(params: RenameRefactoringParams): Promise<RefactoringResult> {
     const preview = await this.previewRename(params);
-    
+
     if (!preview.success) {
       return preview;
     }
@@ -164,12 +164,12 @@ Return JSON:
     // Update each file
     for (const [path, occurrences] of byFile.entries()) {
       let content = getFileContent(path) || '';
-      
+
       // Replace all occurrences in this file
       // Simple replacement - in production, use AST-based replacement
       const regex = new RegExp(`\\b${symbolName}\\b`, 'g');
       content = content.replace(regex, newName);
-      
+
       updateFile(path, content);
     }
 

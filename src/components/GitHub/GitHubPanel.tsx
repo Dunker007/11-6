@@ -1,18 +1,18 @@
 /**
  * GitHubPanel.tsx
- * 
+ *
  * PURPOSE:
  * Main GitHub integration panel component. Provides UI for Git operations including
  * authentication, repository management, branch operations, commits, pushes, pulls, and
  * pull request management. Integrates with GitHub API and local Git operations.
- * 
+ *
  * ARCHITECTURE:
  * React component that orchestrates GitHub operations:
  * - useGitHubStore: Git operations and repository state
  * - useFileSystemStore: File system operations for repository paths
  * - githubService: Core GitHub API and Git operations
  * - GitWizard: Guided workflow for Git operations
- * 
+ *
  * Features:
  * - GitHub authentication (token-based)
  * - Repository listing and selection
@@ -21,7 +21,7 @@
  * - Pull request creation and merging
  * - Git status display
  * - Clone repository functionality
- * 
+ *
  * CURRENT STATUS:
  * ✅ Full GitHub authentication
  * ✅ Repository management
@@ -30,36 +30,36 @@
  * ✅ Pull request management
  * ✅ Git status display
  * ✅ Clone functionality
- * 
+ *
  * DEPENDENCIES:
  * - useGitHubStore: GitHub state and operations
  * - useFileSystemStore: File system operations
  * - githubService: Core GitHub API service
  * - GitWizard: Guided Git workflows
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: token, commit message, branch name, UI state
  * - Uses Zustand stores for GitHub and file system state
- * 
+ *
  * PERFORMANCE:
  * - Efficient repository loading
  * - Debounced status checks
  * - Lazy loading of branches
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import GitHubPanel from '@/components/GitHub/GitHubPanel';
- * 
+ *
  * function App() {
  *   return <GitHubPanel />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/github/githubStore.ts: GitHub state management
  * - src/services/github/githubService.ts: GitHub API operations
  * - src/components/GitHub/GitWizard.tsx: Git workflow wizard
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Add merge conflict resolution UI
  * - Add diff viewer

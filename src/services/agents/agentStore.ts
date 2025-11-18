@@ -4,7 +4,7 @@ import type { EdStatus, ItorStatus, AgentPairState, AgentPairWorkflow } from '@/
 interface AgentStore extends Omit<AgentPairState, 'currentWorkflow'> {
   currentWorkflow: AgentPairState['currentWorkflow'] | null;
   workflows: AgentPairWorkflow[];
-  
+
   // Actions
   setEdStatus: (status: EdStatus) => void;
   setItorStatus: (status: ItorStatus) => void;

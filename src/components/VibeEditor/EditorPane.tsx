@@ -1,6 +1,6 @@
 /**
  * EditorPane.tsx
- * 
+ *
  * Individual editor pane wrapper that contains tabs and a Monaco editor instance.
  */
 
@@ -30,10 +30,10 @@ function EditorPane({ paneId, onSplitPane }: EditorPaneProps) {
   const { getTabsByPane, activeTabId, getTab, setActiveTab, updateTabContent } = useTabStore();
   const { getFileContent, updateFile } = useProjectStore();
   const { addActivity } = useActivityStore();
-  
+
   const tabs = getTabsByPane(paneId);
   const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0];
-  
+
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [fileContent, setFileContent] = useState<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -61,20 +61,20 @@ function EditorPane({ paneId, onSplitPane }: EditorPaneProps) {
     if (activeTab && value !== undefined) {
       setFileContent(value);
       updateTabContent(activeTab.id, value, true);
-      
+
       // Trigger proactive code analysis
       proactiveAgentService.triggerCodeAnalysis(value, activeTab.path);
-      
+
       // Clear save timeout
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-      
+
       // Debounce save
       saveTimeoutRef.current = setTimeout(() => {
         updateFile(activeTab.path, value);
         updateTabContent(activeTab.id, value, false);
-        
+
         const fileName = activeTab.path.split('/').pop() || activeTab.path;
         addActivity('file', 'saved', `Saved ${fileName}`);
       }, 500);
@@ -99,7 +99,7 @@ function EditorPane({ paneId, onSplitPane }: EditorPaneProps) {
         }
 
         const lintResult = await eslintService.lintFile(activeTab.path, fileContent);
-        
+
         if (editorRef.current && lintResult.results.length > 0) {
           const monaco = (window as any).monaco;
           if (monaco) {
@@ -163,7 +163,7 @@ function EditorPane({ paneId, onSplitPane }: EditorPaneProps) {
         onTabClick={handleTabClick}
         onTabClose={handleTabClose}
       />
-      
+
       <div className="editor-content">
         <Editor
           height="100%"
@@ -173,10 +173,10 @@ function EditorPane({ paneId, onSplitPane }: EditorPaneProps) {
           onMount={(editor: editor.IStandaloneCodeEditor, monaco: typeof import('monaco-editor')) => {
             editorRef.current = editor;
             (window as any).monaco = monaco;
-            
+
             monaco.editor.defineTheme('VibeDSTheme', VibeDSTheme);
             monaco.editor.setTheme('VibeDSTheme');
-            
+
             monacoCompletionsProvider.initialize(monaco);
             aiTabCompletionService.initialize(editor, monaco);
           }}

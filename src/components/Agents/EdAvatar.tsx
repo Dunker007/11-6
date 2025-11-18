@@ -1,11 +1,11 @@
 /**
  * EdAvatar.tsx
- * 
+ *
  * PURPOSE:
  * Avatar component for the Ed AI agent (Vibed Ed). Displays animated avatar with status-based
  * visuals. Shows different states (idle, coding, thinking, success, error) with corresponding
  * animations and assets. Fallback to CSS-based placeholder if assets unavailable.
- * 
+ *
  * ARCHITECTURE:
  * Simple presentational component that:
  * - Displays Ed avatar based on status
@@ -13,7 +13,7 @@
  * - Falls back to CSS placeholder
  * - Supports multiple sizes
  * - Optional animations
- * 
+ *
  * CURRENT STATUS:
  * ✅ Status-based avatar display
  * ✅ Asset loading with fallback
@@ -21,35 +21,35 @@
  * ✅ Multiple size options
  * ✅ Animation support
  * ✅ Status from store or props
- * 
+ *
  * DEPENDENCIES:
  * - useAgentStore: Ed status from store
  * - loadEdAsset: Asset loading utility
  * - @/types/agents: EdStatus type
- * 
+ *
  * STATE MANAGEMENT:
  * - Gets status from Zustand store (or props)
  * - No local state
- * 
+ *
  * PERFORMANCE:
  * - Lightweight component
  * - Efficient asset loading
  * - CSS-based fallback
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import EdAvatar from '@/components/Agents/EdAvatar';
- * 
+ *
  * function AIAssistant() {
  *   return <EdAvatar status="coding" size="lg" animated={true} />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/agents/agentStore.ts: Status source
  * - src/utils/agentAssets.ts: Asset loading
  * - src/components/AIAssistant/AIAssistant.tsx: Uses this component
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - More status animations
  * - Custom avatar themes
@@ -68,11 +68,11 @@ interface EdAvatarProps {
   className?: string;
 }
 
-function EdAvatar({ 
-  status, 
-  size = 'md', 
+function EdAvatar({
+  status,
+  size = 'md',
   animated = true,
-  className = '' 
+  className = ''
 }: EdAvatarProps) {
   // Get status from store if not provided
   const storeStatus = useAgentStore((state) => state.edStatus);
@@ -83,7 +83,7 @@ function EdAvatar({
   const usePlaceholder = !assetPath;
 
   return (
-    <div 
+    <div
       className={`ed-avatar ed-avatar-${size} ed-avatar-${currentStatus} ${animated ? 'animated' : ''} ${className}`}
       title={`Ed - ${currentStatus}`}
     >
@@ -110,8 +110,8 @@ function EdAvatar({
           {currentStatus === 'error' && <div className="ed-concern">😟</div>}
         </div>
       ) : (
-        <img 
-          src={assetPath} 
+        <img
+          src={assetPath}
           alt={`Ed - ${currentStatus}`}
           className="ed-asset-image"
         />

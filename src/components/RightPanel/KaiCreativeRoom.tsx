@@ -28,8 +28,8 @@ const KaiCreativeRoom = () => {
 
     // Mock Kai's response
     setTimeout(() => {
-      const kaiResponse: Message = { 
-        sender: 'kai', 
+      const kaiResponse: Message = {
+        sender: 'kai',
         text: "That's a cool thought. What if we built an 'Auto-Affiliate' workflow around that?",
         idea: { title: 'Auto-Affiliate Site' }
       };
@@ -60,7 +60,7 @@ const KaiCreativeRoom = () => {
               <div className="idea-card">
                 <h5>New Idea</h5>
                 <p>{msg.idea.title}</p>
-                <button 
+                <button
                   className="promote-button"
                   onClick={() => handlePromoteToBacklog(msg.idea!.title)}
                 >
@@ -72,7 +72,7 @@ const KaiCreativeRoom = () => {
         ))}
       </div>
       <div className="kai-chat-input-area">
-        <input 
+        <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}

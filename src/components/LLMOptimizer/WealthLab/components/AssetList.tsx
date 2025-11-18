@@ -8,7 +8,7 @@ const AssetList = memo(function AssetList() {
   const addAsset = useWealthStore((state) => state.addAsset);
   const updateAsset = useWealthStore((state) => state.updateAsset);
   const deleteAsset = useWealthStore((state) => state.deleteAsset);
-  
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 

@@ -1,6 +1,6 @@
 /**
  * Tax Reporting Service
- * 
+ *
  * Tracks tax lots, calculates realized/unrealized gains, and generates tax reports
  * Supports FIFO, LIFO, and specific identification methods
  * Similar to Sharesight's tax reporting features
@@ -179,8 +179,8 @@ class TaxReportingService {
       lot.saleDate = sale.saleDate;
       lot.salePrice = sale.salePrice;
       lot.realizedGain = (sale.salePrice - lot.purchasePrice) * lot.quantity;
-      lot.realizedGainPercent = lot.purchasePrice > 0 
-        ? ((sale.salePrice - lot.purchasePrice) / lot.purchasePrice) * 100 
+      lot.realizedGainPercent = lot.purchasePrice > 0
+        ? ((sale.salePrice - lot.purchasePrice) / lot.purchasePrice) * 100
         : 0;
       lot.holdingPeriod = Math.floor((sale.saleDate.getTime() - lot.purchaseDate.getTime()) / (1000 * 60 * 60 * 24));
       lot.isLongTerm = lot.holdingPeriod > 365;
@@ -225,12 +225,12 @@ class TaxReportingService {
     specificLotIds: string[]
   ): TaxLot[] {
     const availableLots = taxLots.filter(lot => !lot.saleDate);
-    
+
     if (method === 'SPECIFIC_ID' && specificLotIds.length > 0) {
       // Use specific lots
       const selected: TaxLot[] = [];
       let remaining = quantity;
-      
+
       for (const lotId of specificLotIds) {
         if (remaining <= 0) break;
         const lot = availableLots.find(l => l.id === lotId);
@@ -240,11 +240,11 @@ class TaxReportingService {
           remaining -= useQuantity;
         }
       }
-      
+
       if (remaining > 0) {
         throw new Error(`Insufficient quantity in specified lots. Need ${quantity}, got ${quantity - remaining}`);
       }
-      
+
       return selected;
     }
 
@@ -340,7 +340,7 @@ class TaxReportingService {
 
     realizedGains.forEach(gain => {
       const amount = gain.realizedGain;
-      
+
       if (amount > 0) {
         totalRealizedGains += amount;
         if (gain.isLongTerm) {

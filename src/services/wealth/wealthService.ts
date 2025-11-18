@@ -1,12 +1,12 @@
 /**
  * Wealth Service - Personal Net Worth & Financial Planning
- * 
+ *
  * IMPORTANT SEPARATION:
  * - This service tracks PERSONAL wealth, net worth, assets, liabilities, retirement planning
  * - This is SEPARATE from Revenue & Monetization, which tracks BUSINESS income/expenses
  * - Crypto assets held personally (not on exchange) can be tracked here as assets
  * - Crypto trading profits on exchanges stay in Crypto Lab until withdrawn
- * 
+ *
  * Key Distinction:
  * - Wealth = Personal net worth, retirement planning, budgeting, personal assets/liabilities
  * - Revenue/Monetization = Business income/expenses, SaaS revenue, crypto profits (when withdrawn)
@@ -318,13 +318,13 @@ export class WealthService {
 
   /**
    * Calculate personal net worth
-   * 
+   *
    * IMPORTANT: This calculates PERSONAL net worth (assets - liabilities).
    * This is SEPARATE from Revenue & Monetization, which tracks BUSINESS income/expenses.
-   * 
+   *
    * Crypto assets held personally (not on exchange) can be tracked here as assets.
    * Crypto trading profits on exchanges stay in Crypto Lab until withdrawn.
-   * 
+   *
    * @returns Net worth calculation with asset/liability breakdown
    */
   calculateNetWorth(): NetWorth {
@@ -450,7 +450,7 @@ export class WealthService {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-    
+
     const key = `${year}-${month}${name ? `-${name}` : ''}`;
     this.budgets.set(key, budget);
     this.saveBudgets();
@@ -499,7 +499,7 @@ export class WealthService {
     const prevMonth = month === 1 ? 12 : month - 1;
     const prevYear = month === 1 ? year - 1 : year;
     const prevBudget = this.getBudget(prevMonth, prevYear, budgetName);
-    
+
     if (!prevBudget) {
       return budget;
     }
@@ -524,7 +524,7 @@ export class WealthService {
       const budgeted = prevBudget.categories[category] || 0;
       const spent = actualSpending[category] || 0;
       const unspent = Math.max(0, budgeted - spent);
-      
+
       // Add unspent to current month's budget
       updatedCategories[category] = (updatedCategories[category] || 0) + unspent;
     });
@@ -551,7 +551,7 @@ export class WealthService {
       merchant: transaction.merchant,
       accountId: transaction.accountId,
     };
-    
+
     // Access private method via type casting (in real implementation, would be public)
     const categorized = (transactionImportService as any).categorizeTransaction(importedTx);
 
@@ -735,7 +735,7 @@ export class WealthService {
   getTransactionsByMerchant(startDate?: Date, endDate?: Date): Map<string, Transaction[]> {
     const transactions = this.getTransactions(startDate, endDate);
     const grouped = new Map<string, Transaction[]>();
-    
+
     transactions.forEach((tx) => {
       const merchant = tx.merchant || 'Unknown';
       if (!grouped.has(merchant)) {

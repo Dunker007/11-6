@@ -9,14 +9,14 @@ interface LoadingStateProps {
   fullHeight?: boolean;
 }
 
-const LoadingState = memo(function LoadingState({ 
+const LoadingState = memo(function LoadingState({
   message = 'Loading...',
   spinnerSize = 20,
   className = '',
   fullHeight = true
 }: LoadingStateProps) {
   return (
-    <div 
+    <div
       className={`loading-state slide-up-fade ${className}`}
       style={{
         display: 'flex',

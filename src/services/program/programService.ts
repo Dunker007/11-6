@@ -68,7 +68,7 @@ class ProgramService {
     }
 
     const result = await window.program.execute(command, workingDirectory);
-    
+
     if (!result.success || !result.executionId) {
       throw new Error(result.error || 'Failed to execute command');
     }
@@ -93,7 +93,7 @@ class ProgramService {
     }
 
     const result = await window.program.kill(executionId);
-    
+
     if (result.success) {
       const execution = this.executions.get(executionId);
       if (execution) {

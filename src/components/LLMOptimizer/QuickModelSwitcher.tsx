@@ -41,7 +41,7 @@ const QuickModelSwitcher = () => {
 
   const handleModelSelect = async (modelId: string) => {
     if (switching || activeModel?.id === modelId) return;
-    
+
     setSwitching(modelId);
     try {
       const success = await switchToModel(modelId);
@@ -113,12 +113,12 @@ const QuickModelSwitcher = () => {
           title={activeModel ? `Current: ${activeModel.name}` : 'Select model'}
         >
           <span className="switcher-label">
-            {activeModel 
-              ? (activeModel.name.length > 20 
-                  ? `${activeModel.name.substring(0, 20)}...` 
+            {activeModel
+              ? (activeModel.name.length > 20
+                  ? `${activeModel.name.substring(0, 20)}...`
                   : activeModel.name)
-              : selectedProvider === 'all' 
-                ? 'Select Model' 
+              : selectedProvider === 'all'
+                ? 'Select Model'
                 : providers.find((p) => p.id === selectedProvider)?.name}
           </span>
           <ChevronDown size={12} className={`chevron-down ${isOpen ? 'open' : ''}`} />

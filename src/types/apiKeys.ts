@@ -1,4 +1,4 @@
-export type LLMProvider = 
+export type LLMProvider =
   | 'gemini'
   | 'notebooklm'
   | 'openai'

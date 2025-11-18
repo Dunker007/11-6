@@ -11,30 +11,30 @@ function compareVersions(v1: string, v2: string): number {
   // Remove leading 'v' or 'V' if present
   const clean1 = v1.replace(/^[vV]/, '');
   const clean2 = v2.replace(/^[vV]/, '');
-  
+
   // Split into parts and convert to numbers
   const parts1 = clean1.split('.').map(part => {
     // Handle pre-release versions (e.g., "4.18.0-beta")
     const numPart = part.split('-')[0];
     return parseInt(numPart, 10) || 0;
   });
-  
+
   const parts2 = clean2.split('.').map(part => {
     const numPart = part.split('-')[0];
     return parseInt(numPart, 10) || 0;
   });
-  
+
   // Pad arrays to same length
   const maxLength = Math.max(parts1.length, parts2.length);
   while (parts1.length < maxLength) parts1.push(0);
   while (parts2.length < maxLength) parts2.push(0);
-  
+
   // Compare each part
   for (let i = 0; i < maxLength; i++) {
     if (parts1[i] < parts2[i]) return -1;
     if (parts1[i] > parts2[i]) return 1;
   }
-  
+
   return 0;
 }
 
@@ -49,13 +49,13 @@ function extractVersion(versionRange: string): string {
     .replace(/\s+/g, '') // Remove whitespace
     .split('||')[0] // Take first version if multiple (OR)
     .split(' ')[0]; // Take first version if space-separated
-  
+
   // Extract version number (e.g., "4.18.0" from "4.18.0-beta.1")
   const match = cleaned.match(/^(\d+\.\d+\.\d+)/);
   if (match) {
     return match[1];
   }
-  
+
   // Fallback: try to parse as-is
   return cleaned;
 }
@@ -379,7 +379,7 @@ export class CodeReviewService {
         if (packageJsonResult.success && packageJsonResult.data) {
           const packageJson = JSON.parse(packageJsonResult.data);
           const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
-          
+
           // Sample vulnerability check - using semantic version comparison
           if (deps['express'] && isVersionLessThan(deps['express'], '4.18.0')) {
             dependencyVulns.push({

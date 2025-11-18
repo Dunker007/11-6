@@ -86,7 +86,7 @@ export default function ConsolePanel({ output, isVisible = false, onToggle, onCl
 
   const filterOutput = (text: string, filterType: FilterType): string => {
     if (filterType === 'all') return text;
-    
+
     const lines = text.split('\n');
     const filtered = lines.filter(line => {
       const lowerLine = line.toLowerCase();
@@ -97,37 +97,37 @@ export default function ConsolePanel({ output, isVisible = false, onToggle, onCl
       }
       return true;
     });
-    
+
     return filtered.join('\n');
   };
 
   const highlightSearch = (text: string, query: string): string => {
     if (!query) return text;
-    
+
     const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     return text.replace(regex, '<mark>$1</mark>');
   };
 
   const formatOutput = (text: string): string => {
     if (!text) return 'No output yet. Run a command to see results here.';
-    
+
     let formatted = text;
-    
+
     // Apply filter
     formatted = filterOutput(formatted, filter);
-    
+
     // Apply search highlighting
     if (searchQuery) {
       formatted = highlightSearch(formatted, searchQuery);
     }
-    
+
     // Format common patterns
     formatted = formatted
       .replace(/✅|✓/g, '<span class="console-success">$&</span>')
       .replace(/❌|✗/g, '<span class="console-error">$&</span>')
       .replace(/⚠️|⚠/g, '<span class="console-warning">$&</span>')
       .replace(/ℹ️|ℹ/g, '<span class="console-info">$&</span>');
-    
+
     return formatted;
   };
 
@@ -225,7 +225,7 @@ export default function ConsolePanel({ output, isVisible = false, onToggle, onCl
               )}
             </div>
           </div>
-          <pre 
+          <pre
             ref={outputRef}
             className="console-output"
             dangerouslySetInnerHTML={{ __html: filteredOutput }}

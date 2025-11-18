@@ -53,7 +53,7 @@ class StorageService {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         if (!db.objectStoreNames.contains('storage')) {
           const objectStore = db.createObjectStore('storage', { keyPath: 'key' });
           objectStore.createIndex('timestamp', 'timestamp', { unique: false });
@@ -62,8 +62,8 @@ class StorageService {
         }
       };
     } catch (error) {
-      logger.error('IndexedDB initialization failed', { 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('IndexedDB initialization failed', {
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   }
@@ -119,13 +119,13 @@ class StorageService {
       }
 
       keysToRemove.forEach(key => localStorage.removeItem(key));
-      
+
       if (keysToRemove.length > 0) {
         logger.info('Cleaned up expired storage entries', { count: keysToRemove.length });
       }
     } catch (error) {
-      logger.warn('Failed to cleanup expired entries', { 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.warn('Failed to cleanup expired entries', {
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   }
@@ -135,7 +135,7 @@ class StorageService {
    */
   private async freeSpace(targetBytes: number): Promise<boolean> {
     const priorities: Array<'low' | 'normal' | 'high'> = ['low', 'normal'];
-    
+
     for (const priority of priorities) {
       const keysToRemove: string[] = [];
       let freedBytes = 0;
@@ -150,7 +150,7 @@ class StorageService {
                 if (entry.priority === priority) {
                   keysToRemove.push(key);
                   freedBytes += key.length + item.length;
-                  
+
                   if (freedBytes >= targetBytes) {
                     break;
                   }
@@ -164,19 +164,19 @@ class StorageService {
         }
 
         keysToRemove.forEach(key => localStorage.removeItem(key));
-        
+
         if (freedBytes >= targetBytes) {
-          logger.info('Freed space in localStorage', { 
-            freedBytes, 
+          logger.info('Freed space in localStorage', {
+            freedBytes,
             removedItems: keysToRemove.length,
-            priority 
+            priority
           });
           return true;
         }
       } catch (error) {
-        logger.warn('Failed to free space', { 
+        logger.warn('Failed to free space', {
           error: error instanceof Error ? error.message : String(error),
-          priority 
+          priority
         });
       }
     }
@@ -232,10 +232,10 @@ class StorageService {
           error.message.includes('exceeded')
         )) {
           logger.warn('localStorage quota exceeded, attempting to free space');
-          
+
           // Try to free space equal to entry size
           await this.freeSpace(serialized.length * 2);
-          
+
           // Retry
           try {
             localStorage.setItem(fullKey, serialized);
@@ -251,9 +251,9 @@ class StorageService {
         throw error;
       }
     } catch (error) {
-      logger.error('Failed to store data', { 
-        key: fullKey, 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('Failed to store data', {
+        key: fullKey,
+        error: error instanceof Error ? error.message : String(error)
       });
       return false;
     }
@@ -268,16 +268,16 @@ class StorageService {
     try {
       // Try localStorage first
       const item = localStorage.getItem(fullKey);
-      
+
       if (item) {
         const entry = JSON.parse(item) as StorageEntry<T>;
-        
+
         // Check expiration
         if (entry.expiresAt && entry.expiresAt < Date.now()) {
           localStorage.removeItem(fullKey);
           return defaultValue;
         }
-        
+
         return entry.data;
       }
 
@@ -291,9 +291,9 @@ class StorageService {
 
       return defaultValue;
     } catch (error) {
-      logger.error('Failed to retrieve data', { 
-        key: fullKey, 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('Failed to retrieve data', {
+        key: fullKey,
+        error: error instanceof Error ? error.message : String(error)
       });
       return defaultValue;
     }
@@ -307,16 +307,16 @@ class StorageService {
 
     try {
       localStorage.removeItem(fullKey);
-      
+
       if (this.db) {
         await this.removeIndexedDB(fullKey);
       }
-      
+
       return true;
     } catch (error) {
-      logger.error('Failed to remove data', { 
-        key: fullKey, 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('Failed to remove data', {
+        key: fullKey,
+        error: error instanceof Error ? error.message : String(error)
       });
       return false;
     }
@@ -328,15 +328,15 @@ class StorageService {
   async clear(): Promise<boolean> {
     try {
       const keysToRemove: string[] = [];
-      
+
       for (const key in localStorage) {
         if (localStorage.hasOwnProperty(key) && key.startsWith('dlx-')) {
           keysToRemove.push(key);
         }
       }
-      
+
       keysToRemove.forEach(key => localStorage.removeItem(key));
-      
+
       if (this.db) {
         const transaction = this.db.transaction(['storage'], 'readwrite');
         const objectStore = transaction.objectStore('storage');
@@ -346,12 +346,12 @@ class StorageService {
           request.onerror = () => reject(request.error);
         });
       }
-      
+
       logger.info('Cleared all DLX storage', { removedKeys: keysToRemove.length });
       return true;
     } catch (error) {
-      logger.error('Failed to clear storage', { 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('Failed to clear storage', {
+        error: error instanceof Error ? error.message : String(error)
       });
       return false;
     }
@@ -367,13 +367,13 @@ class StorageService {
   } {
     const usage = this.getLocalStorageUsage();
     let itemCount = 0;
-    
+
     for (const key in localStorage) {
       if (localStorage.hasOwnProperty(key) && key.startsWith('dlx-')) {
         itemCount++;
       }
     }
-    
+
     return {
       usage,
       itemCount,
@@ -388,19 +388,19 @@ class StorageService {
     try {
       const transaction = this.db.transaction(['storage'], 'readwrite');
       const objectStore = transaction.objectStore('storage');
-      
+
       await new Promise<void>((resolve, reject) => {
         const request = objectStore.put({ key, ...entry });
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
-      
+
       logger.info('Stored data in IndexedDB', { key });
       return true;
     } catch (error) {
-      logger.error('IndexedDB put failed', { 
-        key, 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('IndexedDB put failed', {
+        key,
+        error: error instanceof Error ? error.message : String(error)
       });
       return false;
     }
@@ -412,13 +412,13 @@ class StorageService {
     try {
       const transaction = this.db.transaction(['storage'], 'readonly');
       const objectStore = transaction.objectStore('storage');
-      
+
       const result = await new Promise<StorageEntry<T> | undefined>((resolve, reject) => {
         const request = objectStore.get(key);
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });
-      
+
       if (result) {
         // Check expiration
         if (result.expiresAt && result.expiresAt < Date.now()) {
@@ -427,12 +427,12 @@ class StorageService {
         }
         return result.data;
       }
-      
+
       return undefined;
     } catch (error) {
-      logger.error('IndexedDB get failed', { 
-        key, 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('IndexedDB get failed', {
+        key,
+        error: error instanceof Error ? error.message : String(error)
       });
       return undefined;
     }
@@ -444,16 +444,16 @@ class StorageService {
     try {
       const transaction = this.db.transaction(['storage'], 'readwrite');
       const objectStore = transaction.objectStore('storage');
-      
+
       await new Promise<void>((resolve, reject) => {
         const request = objectStore.delete(key);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      logger.error('IndexedDB delete failed', { 
-        key, 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('IndexedDB delete failed', {
+        key,
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   }

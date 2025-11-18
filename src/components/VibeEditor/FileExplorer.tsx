@@ -1,11 +1,11 @@
 /**
  * FileExplorer.tsx
- * 
+ *
  * PURPOSE:
  * File tree explorer component for navigating and managing project files. Provides file/folder
  * operations including create, delete, rename, copy/paste, and system file browsing. Includes
  * advanced features like large file detection and recursive directory operations.
- * 
+ *
  * ARCHITECTURE:
  * Complex file management component with:
  * - Project file tree display
@@ -15,7 +15,7 @@
  * - Recursive directory operations
  * - Large file scanning
  * - Directory size calculation
- * 
+ *
  * Features:
  * - Expandable/collapsible directory tree
  * - Right-click context menu
@@ -24,7 +24,7 @@
  * - Large file finder (100MB+)
  * - Directory size display
  * - System drive browsing
- * 
+ *
  * CURRENT STATUS:
  * ✅ Project file tree navigation
  * ✅ System file browsing
@@ -35,40 +35,40 @@
  * ✅ Directory size calculation
  * ✅ Context menu operations
  * ✅ Activity logging
- * 
+ *
  * DEPENDENCIES:
  * - useProjectStore: Project file management
  * - useActivityStore: Activity logging
  * - fileSystemService: File system operations
  * - formatBytes: Size formatting utility
  * - LargeFilesModal: Large files display
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: expanded dirs, context menu, clipboard, renaming, view mode
  * - System state: drives, files, directory sizes
  * - Modal state: large files modal
- * 
+ *
  * PERFORMANCE:
  * - Efficient tree rendering
  * - Lazy directory loading
  * - Debounced operations
  * - Memoized calculations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import FileExplorer from '@/components/VibeEditor/FileExplorer';
- * 
+ *
  * function VibeEditor() {
  *   const { files, activeFile } = useProjectStore();
  *   return <FileExplorer files={files} activeFile={activeFile} onFileSelect={handleSelect} />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/components/VibeEditor/LargeFilesModal.tsx: Large files display
  * - src/services/filesystem/fileSystemService.ts: File operations
  * - src/services/project/projectStore.ts: Project state
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Drag and drop file operations
  * - File search within explorer
@@ -196,7 +196,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
             const relativePath = fileToRename.path.substring(oldPath.length);
             const newFilePath = newPath + relativePath;
             const content = getFileContent(fileToRename.path);
-            
+
             if (content !== null) {
               addFile(newFilePath, content, fileToRename.language);
               deleteFile(fileToRename.path);
@@ -226,7 +226,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
   // Helper function to get all files in a directory recursively
   const getAllFilesInDirectory = (fileList: ProjectFile[], dirPath: string): ProjectFile[] => {
     const result: ProjectFile[] = [];
-    
+
     function traverse(files: ProjectFile[], basePath: string) {
       for (const file of files) {
         if (file.path.startsWith(basePath) && !file.isDirectory) {
@@ -237,7 +237,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
         }
       }
     }
-    
+
     traverse(fileList, dirPath);
     return result;
   };
@@ -282,7 +282,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
           const relativePath = fileToCopy.path.substring(clipboard.path.length);
           const newFilePath = newBasePath + relativePath;
           const content = getFileContent(fileToCopy.path);
-          
+
           if (content !== null) {
             addFile(newFilePath, content, fileToCopy.language);
             copiedCount++;
@@ -299,7 +299,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
 
         setExpandedDirs((prev) => new Set(prev).add(targetDirPath).add(newBasePath));
         addActivity('file', clipboard.operation === 'copy' ? 'copied' : 'moved', `${clipboard.operation === 'copy' ? 'Copied' : 'Moved'} directory ${dirName} (${copiedCount} files)`);
-        
+
         showToast({
           variant: 'success',
           title: clipboard.operation === 'copy' ? 'Directory copied' : 'Directory moved',
@@ -373,8 +373,8 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
 
       // Filter for temporary files
       const tempFilePatterns = ['.tmp', '.temp', '.log', '~'];
-      const tempFiles = result.data.filter(entry => 
-        !entry.isDirectory && tempFilePatterns.some(pattern => 
+      const tempFiles = result.data.filter(entry =>
+        !entry.isDirectory && tempFilePatterns.some(pattern =>
           entry.name.toLowerCase().endsWith(pattern.toLowerCase())
         )
       );
@@ -399,7 +399,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
           // Get file size before deletion
           const statResult = await fileSystemService.stat(file.path);
           const fileSize = statResult.success && statResult.data ? statResult.data.size : 0;
-          
+
           const deleteResult = await fileSystemService.rm(file.path, false);
           if (deleteResult.success) {
             deletedCount++;
@@ -412,7 +412,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
         }
       }
 
-      const errorMessage = errors.length > 0 
+      const errorMessage = errors.length > 0
         ? `Errors: ${errors.slice(0, 3).join(', ')}${errors.length > 3 ? ` and ${errors.length - 3} more` : ''}`
         : '';
       showToast({
@@ -422,7 +422,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
         duration: 5000,
       });
       addActivity('file', 'deleted', `Cleaned ${deletedCount} temp file(s) from ${dirPath}`);
-      
+
       // Refresh directory view if it's currently expanded
       if (systemFiles.has(dirPath)) {
         loadSystemDirectory(dirPath);
@@ -441,7 +441,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
 
   const handleFindLargeFiles = async (dirPath: string) => {
     setContextMenu(null);
-    
+
     try {
       showToast({
         variant: 'info',
@@ -451,17 +451,17 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
       });
 
       const result = await fileSystemService.findLargeFiles(dirPath, 100); // 100MB default
-      
+
       if (result.success && result.data) {
         const files: LargeFile[] = result.data.map((file) => ({
           path: file.path,
           size: file.size,
           lastModified: new Date(file.lastModified),
         }));
-        
+
         setLargeFiles(files);
         setLargeFilesModalOpen(true);
-        
+
         if (files.length === 0) {
           showToast({
             variant: 'info',
@@ -552,7 +552,7 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
   const renderSystemFile = (entry: SystemFileEntry, level: number = 0) => {
     const isExpanded = expandedDirs.has(entry.path);
     const dirSize = directorySizes.get(entry.path);
-    
+
     if (entry.isDirectory) {
       return (
         <div key={entry.path}>
@@ -567,17 +567,17 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
             }}
             onContextMenu={(e) => handleContextMenu(e, entry.path, true)}
           >
-            <TechIcon 
-              icon={isExpanded ? ChevronDown : ChevronRight} 
-              size={14} 
-              glow="none" 
-              className="expand-icon" 
+            <TechIcon
+              icon={isExpanded ? ChevronDown : ChevronRight}
+              size={14}
+              glow="none"
+              className="expand-icon"
             />
-            <TechIcon 
-              icon={isExpanded ? FolderOpen : Folder} 
-              size={16} 
-              glow="none" 
-              className="file-icon" 
+            <TechIcon
+              icon={isExpanded ? FolderOpen : Folder}
+              size={16}
+              glow="none"
+              className="file-icon"
             />
             <span className="file-name">{entry.name}</span>
             {dirSize !== undefined && (
@@ -735,17 +735,17 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
             onClick={() => !isRenaming && toggleDir(file.path)}
             onContextMenu={(e) => handleContextMenu(e, file.path, true)}
           >
-            <TechIcon 
-              icon={isExpanded ? ChevronDown : ChevronRight} 
-              size={14} 
-              glow="none" 
-              className="expand-icon" 
+            <TechIcon
+              icon={isExpanded ? ChevronDown : ChevronRight}
+              size={14}
+              glow="none"
+              className="expand-icon"
             />
-            <TechIcon 
-              icon={isExpanded ? FolderOpen : Folder} 
-              size={16} 
-              glow="none" 
-              className="file-icon" 
+            <TechIcon
+              icon={isExpanded ? FolderOpen : Folder}
+              size={16}
+              glow="none"
+              className="file-icon"
             />
             {isRenaming ? (
               <input
@@ -871,11 +871,11 @@ function FileExplorer({ files, activeFile, onFileSelect }: FileExplorerProps) {
                   }}
                   onContextMenu={(e) => handleContextMenu(e, drive.path, true)}
                 >
-                  <TechIcon 
-                    icon={expandedDirs.has(drive.path) ? ChevronDown : ChevronRight} 
-                    size={14} 
-                    glow="none" 
-                    className="expand-icon" 
+                  <TechIcon
+                    icon={expandedDirs.has(drive.path) ? ChevronDown : ChevronRight}
+                    size={14}
+                    glow="none"
+                    className="expand-icon"
                   />
                   <TechIcon icon={HardDrive} size={16} glow="none" className="file-icon" />
                   <span className="file-name">{drive.name}</span>

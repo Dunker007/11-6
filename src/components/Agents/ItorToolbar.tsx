@@ -1,11 +1,11 @@
 /**
  * ItorToolbar.tsx
- * 
+ *
  * PURPOSE:
  * Floating, draggable toolbar widget for the Itor agent (code review guardian). Displays
  * review status, issue count, and provides quick access to code review features. Position
  * persists across sessions via localStorage.
- * 
+ *
  * ARCHITECTURE:
  * Floating widget component that:
  * - Displays Itor avatar with status
@@ -14,7 +14,7 @@
  * - Position persistence (localStorage)
  * - Popover for details
  * - Debounced position saving
- * 
+ *
  * CURRENT STATUS:
  * ✅ Floating draggable widget
  * ✅ Position persistence
@@ -22,26 +22,26 @@
  * ✅ Issue count display
  * ✅ Popover details
  * ✅ Debounced position saving
- * 
+ *
  * DEPENDENCIES:
  * - useAgentStore: Itor status and review data
  * - useDebouncedCallback: Position saving debounce
  * - ItorAvatar: Avatar component
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: position, dragging, popover visibility
  * - Gets review data from Zustand store
  * - Persists position to localStorage
- * 
+ *
  * PERFORMANCE:
  * - Debounced position saving
  * - Efficient drag handling
  * - Minimal re-renders
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import ItorToolbar from '@/components/Agents/ItorToolbar';
- * 
+ *
  * function App() {
  *   return (
  *     <>
@@ -51,12 +51,12 @@
  *   );
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/agents/agentStore.ts: Review data source
  * - src/components/Agents/ItorAvatar.tsx: Avatar component
  * - src/App.tsx: Renders this component
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Keyboard shortcuts
  * - Customizable position constraints
@@ -74,7 +74,7 @@ function ItorToolbar() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const dragRef = useRef<HTMLDivElement>(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
-  
+
   const itorStatus = useAgentStore((state) => state.itorStatus);
   const reviewCount = useAgentStore((state) => state.reviewCount);
   const issuesFound = useAgentStore((state) => state.issuesFound);
@@ -86,7 +86,7 @@ function ItorToolbar() {
       try {
         const parsed = JSON.parse(savedPosition);
         const { x, y } = parsed;
-        
+
         // Validate that x and y are valid numbers
         if (typeof x === 'number' && typeof y === 'number' && !isNaN(x) && !isNaN(y)) {
           setPosition({ x, y });
@@ -136,7 +136,7 @@ function ItorToolbar() {
     if (target.closest('.itor-toolbar-btn')) {
       return;
     }
-    
+
     e.preventDefault();
     setIsDragging(true);
     dragStartPos.current = {
@@ -155,7 +155,7 @@ function ItorToolbar() {
       // Keep widget within viewport bounds
       const maxX = window.innerWidth - 50;
       const maxY = window.innerHeight - 50;
-      
+
       setPosition({
         x: Math.max(0, Math.min(newX, maxX)),
         y: Math.max(0, Math.min(newY, maxY)),
@@ -192,7 +192,7 @@ function ItorToolbar() {
   }, [itorStatus]);
 
   return (
-    <div 
+    <div
       ref={dragRef}
       className={`itor-toolbar-widget itor-floating ${isDragging ? 'dragging' : ''}`}
       style={{
@@ -220,7 +220,7 @@ function ItorToolbar() {
 
       {showPopover && (
         <>
-          <div 
+          <div
             className="itor-popover-backdrop"
             onClick={() => setShowPopover(false)}
           />

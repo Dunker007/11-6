@@ -67,10 +67,10 @@ function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
         if (project) {
           // Refresh project list to include the new project
           loadProjects();
-          
+
           // Select the newly loaded project
           onProjectSelect(project.id);
-          
+
           logger.info('Successfully loaded project from drive', { projectPath, projectId: project.id });
         } else {
           setDriveProjectError('Failed to load project from disk. The directory may be empty or inaccessible.');
@@ -118,9 +118,9 @@ function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
           </div>
 
           {driveProjectError && (
-            <div className="error-message" style={{ 
-              padding: 'var(--spacing-sm)', 
-              background: 'rgba(239, 68, 68, 0.1)', 
+            <div className="error-message" style={{
+              padding: 'var(--spacing-sm)',
+              background: 'rgba(239, 68, 68, 0.1)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
               borderRadius: 'var(--border-radius-sm)',
               color: 'var(--accent-red)',
@@ -128,12 +128,12 @@ function ProjectPanel({ activeProject, onProjectSelect }: ProjectPanelProps) {
               marginBottom: 'var(--spacing-sm)'
             }}>
               {driveProjectError}
-              <button 
+              <button
                 onClick={() => setDriveProjectError(null)}
-                style={{ 
-                  float: 'right', 
-                  background: 'none', 
-                  border: 'none', 
+                style={{
+                  float: 'right',
+                  background: 'none',
+                  border: 'none',
                   color: 'inherit',
                   cursor: 'pointer'
                 }}

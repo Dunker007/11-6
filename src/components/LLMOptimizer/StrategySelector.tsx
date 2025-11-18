@@ -88,7 +88,7 @@ const StrategySelector = () => {
   const handleStrategyChange = (strategy: ProviderStrategy) => {
     setSelectedStrategy(strategy);
     llmRouter.setStrategy(strategy);
-    
+
     // Save to localStorage for persistence
     try {
       localStorage.setItem('llm-strategy', strategy);

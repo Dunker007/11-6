@@ -1,11 +1,11 @@
 /**
  * router.ts
- * 
+ *
  * PURPOSE:
  * Intelligent routing system for LLM providers. Manages multiple LLM providers (local and cloud),
  * handles provider discovery, health checks, fallback strategies, and token tracking. Routes
  * generation requests to the best available provider based on configured strategy.
- * 
+ *
  * ARCHITECTURE:
  * Central routing hub that abstracts provider differences:
  * - Local providers: Ollama (primary), LM Studio (secondary) - privacy-focused, offline-capable
@@ -13,46 +13,46 @@
  * - Strategy-based selection: local-only, local-first, cloud-fallback, hybrid
  * - Automatic fallback on provider failure
  * - Token usage tracking for cost monitoring
- * 
+ *
  * CURRENT STATUS:
  * ✅ Supports 6 providers (LM Studio, Ollama, Ollama Cloud, Gemini, NotebookLM, OpenRouter)
  * ✅ Multiple routing strategies implemented
  * ✅ Streaming support for all providers
  * ✅ Token tracking integrated
  * ✅ Studio context prioritization (Gemini Flash 2.5)
- * 
+ *
  * DEPENDENCIES:
  * - providers/localLLM.ts: LM Studio and Ollama implementations
  * - providers/cloudLLM.ts: Gemini and NotebookLM implementations
  * - providers/openRouter.ts: OpenRouter unified cloud fallback
  * - tokenTrackingService: Token usage and cost tracking
  * - @/types/llm: LLM type definitions
- * 
+ *
  * STATE MANAGEMENT:
  * - Manages provider registry (Map<string, LLMProvider>)
  * - Tracks preferred provider and strategy
  * - Stores strategy in localStorage for persistence
  * - Does not use Zustand (stateless routing pattern)
- * 
+ *
  * PERFORMANCE:
  * - Parallel provider health checks
  * - Cached provider availability
  * - Efficient fallback logic
  * - Streaming support for real-time responses
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { llmRouter } from '@/services/ai/router';
- * 
+ *
  * // Discover available providers
  * const providers = await llmRouter.discoverProviders();
- * 
+ *
  * // Generate text
  * const response = await llmRouter.generate('Hello, world!', {
  *   temperature: 0.7,
  *   maxTokens: 100
  * });
- * 
+ *
  * // Stream generation
  * for await (const chunk of llmRouter.streamGenerate('Tell me a story')) {
  *   if (chunk.text) {
@@ -60,13 +60,13 @@
  *   }
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/llmStore.ts: Zustand store wrapping router
  * - src/services/ai/providers/localLLM.ts: Local provider implementations
  * - src/services/ai/providers/cloudLLM.ts: Cloud provider implementations
  * - src/services/ai/tokenTrackingService.ts: Token usage tracking
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Task-based routing (use specialized models for different tasks)
  * - Provider performance metrics and auto-selection
@@ -215,7 +215,7 @@ export class LLMRouter {
           } else {
             logger.debug('discoverProviders() called - using cache when available');
           }
-          
+
           const results: { provider: string; available: boolean; models: LLMModel[] }[] = [];
 
           // Run health checks in parallel for better performance
@@ -352,7 +352,7 @@ export class LLMRouter {
       50,
       { strategy: this.strategy, taskType: options?.taskType }
     );
-    
+
     if (!provider) {
       logger.error('No LLM providers available. Please configure Ollama, LM Studio, or OpenRouter.');
       throw new Error('No LLM providers available. Please configure Ollama, LM Studio, or OpenRouter.');
@@ -365,7 +365,7 @@ export class LLMRouter {
         500,
         { model: options?.model, taskType: options?.taskType }
       );
-      
+
       // Track token usage
       if (response.tokensUsed) {
         const providerName = provider.name.toLowerCase().replace(/\s+/g, '-');
@@ -376,7 +376,7 @@ export class LLMRouter {
           options?.model
         );
       }
-      
+
       return response;
     } catch (error) {
       logger.error('Error in LLMRouter generate', { prompt, options, error });
@@ -385,7 +385,7 @@ export class LLMRouter {
         prompt,
         options,
       });
-      
+
       // Try fallback if enabled
       if (this.strategy === 'cloud-fallback' || this.strategy === 'hybrid') {
         const fallback = await this.getFallbackProvider(provider);
@@ -397,7 +397,7 @@ export class LLMRouter {
             500,
             { fallback: true, model: options?.model, taskType: options?.taskType }
           );
-          
+
           // Track token usage for fallback
           if (response.tokensUsed) {
             const providerName = fallback.name.toLowerCase().replace(/\s+/g, '-');
@@ -408,11 +408,11 @@ export class LLMRouter {
               options?.model
             );
           }
-          
+
           return response;
         }
       }
-      
+
       throw error;
     }
   }
@@ -486,7 +486,7 @@ export class LLMRouter {
     logger.debug(`Running fresh health check for ${name}`);
     try {
       // Add 5-second timeout to prevent hanging
-      const timeoutPromise = new Promise<boolean>((_, reject) => 
+      const timeoutPromise = new Promise<boolean>((_, reject) =>
         setTimeout(() => reject(new Error('Health check timeout')), 5000)
       );
       const status = await Promise.race([
@@ -498,7 +498,7 @@ export class LLMRouter {
       return status;
     } catch (error) {
       const isTimeout = error instanceof Error && error.message === 'Health check timeout';
-      logger.warn(`Health check ${isTimeout ? 'timeout' : 'failed'} for provider ${name}:`, { 
+      logger.warn(`Health check ${isTimeout ? 'timeout' : 'failed'} for provider ${name}:`, {
         error: error instanceof Error ? error.message : String(error),
         timeout: isTimeout
       });

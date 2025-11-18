@@ -1,6 +1,6 @@
 /**
  * Workflow Runner Component
- * 
+ *
  * UI component for executing and monitoring workflows.
  * Displays workflow progress, steps, and allows cancellation.
  */
@@ -40,7 +40,7 @@ function WorkflowRunner({ workflowId, onComplete, onError }: WorkflowRunnerProps
 
   useEffect(() => {
     refreshWorkflows();
-    
+
     // Only poll when there are running workflows to reduce resource consumption
     const hasRunningWorkflows = workflows.some(w => w.status === 'running');
     if (!hasRunningWorkflows) return;

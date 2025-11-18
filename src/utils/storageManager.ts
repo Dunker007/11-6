@@ -29,7 +29,7 @@ class StorageManager {
    */
   getStorageInfo(): StorageInfo {
     let used = 0;
-    
+
     // Calculate used space
     for (const key in localStorage) {
       if (localStorage.hasOwnProperty(key)) {
@@ -168,7 +168,7 @@ class StorageManager {
     console.group('📦 LocalStorage Status');
     console.log(`Used: ${this.formatBytes(info.used)} / ${this.formatBytes(info.total)} (${info.usagePercent.toFixed(1)}%)`);
     console.log(`Available: ${this.formatBytes(info.available)}`);
-    
+
     if (breakdown.length > 0) {
       console.group('Storage Breakdown (Top 10):');
       breakdown.slice(0, 10).forEach(({ key, sizeFormatted }) => {
@@ -176,7 +176,7 @@ class StorageManager {
       });
       console.groupEnd();
     }
-    
+
     console.groupEnd();
   }
 }

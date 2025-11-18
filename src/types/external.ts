@@ -1,6 +1,6 @@
 /**
  * Type definitions for external libraries
- * 
+ *
  * This file provides TypeScript type definitions for third-party libraries
  * that may not have complete type definitions or need additional type support.
  */
@@ -36,7 +36,7 @@ export interface ExtendedGraphicsControllerData extends Systeminformation.Graphi
    */
   utilizationGPU?: number;
   utilizationGpu?: number;
-  
+
   /**
    * GPU temperature in Celsius
    * May be available as temperature or temperatureGpu depending on systeminformation version

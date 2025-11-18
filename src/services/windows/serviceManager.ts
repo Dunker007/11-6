@@ -53,7 +53,7 @@ export class ServiceManager {
 
   async getUnusedServices(): Promise<WindowsService[]> {
     const allServices = await this.getAllServices();
-    
+
     // Common unused services that can be safely disabled
     const unusedServiceNames = [
       'Skype',
@@ -81,7 +81,7 @@ export class ServiceManager {
     return allServices.filter(service => {
       const nameLower = service.Name.toLowerCase();
       const displayNameLower = service.DisplayName.toLowerCase();
-      
+
       return unusedServiceNames.some(unused => {
         const unusedLower = unused.toLowerCase();
         return nameLower.includes(unusedLower) || displayNameLower.includes(unusedLower);

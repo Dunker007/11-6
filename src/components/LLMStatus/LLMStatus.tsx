@@ -72,7 +72,7 @@ const LLMStatus = memo(function LLMStatus() {
         {/* Local Providers */}
         <div className="provider-category">
           <div className="category-label">🖥️ Local</div>
-          
+
           <div className="provider-status">
             <div className="provider-header">
               <span className="provider-name">LM Studio</span>
@@ -127,7 +127,7 @@ const LLMStatus = memo(function LLMStatus() {
         {/* Cloud Providers */}
         <div className="provider-category">
           <div className="category-label">☁️ Cloud</div>
-          
+
           <div className="provider-status">
             <div className="provider-header">
               <span className="provider-name">Google Gemini</span>
@@ -163,14 +163,14 @@ const LLMStatus = memo(function LLMStatus() {
                       </div>
                     )}
                     {modelGroups.gemini.map((model) => {
-                      const isProOnly = model.id?.includes('gemini-1.5-pro') || 
+                      const isProOnly = model.id?.includes('gemini-1.5-pro') ||
                                        model.id?.includes('gemini-ultra') ||
                                        model.id?.includes('gemini-2.0');
                       const isAvailable = geminiTier === 'pro' || !isProOnly;
-                      
+
                       return (
-                        <div 
-                          key={model.id} 
+                        <div
+                          key={model.id}
                           className={`model-item ${!isAvailable ? 'model-unavailable' : ''}`}
                         >
                           <span className="model-name">

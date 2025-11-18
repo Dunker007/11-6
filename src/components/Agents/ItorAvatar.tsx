@@ -10,11 +10,11 @@ interface ItorAvatarProps {
   className?: string;
 }
 
-function ItorAvatar({ 
-  status, 
-  size = 'md', 
+function ItorAvatar({
+  status,
+  size = 'md',
   animated = true,
-  className = '' 
+  className = ''
 }: ItorAvatarProps) {
   // Get status from store if not provided
   const storeStatus = useAgentStore((state) => state.itorStatus);
@@ -25,7 +25,7 @@ function ItorAvatar({
   const usePlaceholder = !assetPath;
 
   return (
-    <div 
+    <div
       className={`itor-avatar itor-avatar-${size} itor-avatar-${currentStatus} ${animated ? 'animated' : ''} ${className}`}
       title={`Itor - ${currentStatus}`}
     >
@@ -53,8 +53,8 @@ function ItorAvatar({
           {currentStatus === 'error' && <div className="itor-error-x">✗</div>}
         </div>
       ) : (
-        <img 
-          src={assetPath} 
+        <img
+          src={assetPath}
           alt={`Itor - ${currentStatus}`}
           className="itor-asset-image"
         />

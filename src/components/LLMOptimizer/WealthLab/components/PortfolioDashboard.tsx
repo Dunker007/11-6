@@ -57,7 +57,7 @@ const PortfolioDashboard = memo(function PortfolioDashboard() {
     const maxNetWorth = Math.max(...slicedHistory.map(h => h.netWorth));
     const minNetWorth = Math.min(...slicedHistory.map(h => h.netWorth));
     const range = maxNetWorth - minNetWorth || 1;
-    
+
     const points = slicedHistory
       .map((h, idx) => {
         const dataLength = slicedHistory.length;
@@ -66,7 +66,7 @@ const PortfolioDashboard = memo(function PortfolioDashboard() {
         return `${x},${y}`;
       })
       .join(' ');
-    
+
     return { points, maxNetWorth, minNetWorth, range };
   }, [netWorthHistory]);
 

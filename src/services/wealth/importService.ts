@@ -1,6 +1,6 @@
 /**
  * Import Service
- * 
+ *
  * Imports wealth data from various sources:
  * - CSV (transactions, positions)
  * - Mint exports
@@ -53,7 +53,7 @@ class ImportService {
     options?: CSVImportOptions
   ): Promise<ImportResult> {
     const text = await file.text();
-    
+
     switch (source) {
       case 'csv':
         return this.importFromCSV(text, options);
@@ -84,7 +84,7 @@ class ImportService {
 
     const delimiter = options?.delimiter || ',';
     const lines = text.split('\n').filter(line => line.trim());
-    
+
     if (lines.length === 0) {
       result.success = false;
       result.errorsList.push({ message: 'CSV file is empty' });
@@ -102,7 +102,7 @@ class ImportService {
     for (let i = startIndex; i < lines.length; i++) {
       try {
         const values = this.parseCSVLine(lines[i], delimiter);
-        const row = headers.length > 0 
+        const row = headers.length > 0
           ? this.mapCSVRowToObject(headers, values)
           : this.mapCSVRowToObjectByPosition(values);
 
@@ -376,7 +376,7 @@ class ImportService {
 
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
-      
+
       if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === delimiter && !inQuotes) {
@@ -386,7 +386,7 @@ class ImportService {
         current += char;
       }
     }
-    
+
     result.push(current.trim());
     return result;
   }
@@ -407,8 +407,8 @@ class ImportService {
 
   private isTransactionRow(row: Record<string, string>): boolean {
     const keys = Object.keys(row).map(k => k.toLowerCase());
-    return keys.some(k => 
-      k.includes('date') && 
+    return keys.some(k =>
+      k.includes('date') &&
       (k.includes('amount') || k.includes('price')) &&
       (k.includes('description') || k.includes('memo') || k.includes('note'))
     );
@@ -416,7 +416,7 @@ class ImportService {
 
   private isAssetRow(row: Record<string, string>): boolean {
     const keys = Object.keys(row).map(k => k.toLowerCase());
-    return keys.some(k => 
+    return keys.some(k =>
       (k.includes('symbol') || k.includes('ticker')) &&
       (k.includes('quantity') || k.includes('shares') || k.includes('amount'))
     );
@@ -501,8 +501,8 @@ class ImportService {
 
   private findDescriptionColumn(row: Record<string, string>): string | null {
     for (const [key, value] of Object.entries(row)) {
-      if ((key.toLowerCase().includes('description') || 
-           key.toLowerCase().includes('memo') || 
+      if ((key.toLowerCase().includes('description') ||
+           key.toLowerCase().includes('memo') ||
            key.toLowerCase().includes('note')) && value) {
         return value;
       }
@@ -539,8 +539,8 @@ class ImportService {
 
   private findQuantityColumn(row: Record<string, string>): number | null {
     for (const [key, value] of Object.entries(row)) {
-      if ((key.toLowerCase().includes('quantity') || 
-           key.toLowerCase().includes('shares') || 
+      if ((key.toLowerCase().includes('quantity') ||
+           key.toLowerCase().includes('shares') ||
            key.toLowerCase().includes('amount')) && value) {
         const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
         if (!isNaN(num)) {
@@ -553,8 +553,8 @@ class ImportService {
 
   private findPurchasePriceColumn(row: Record<string, string>): number | null {
     for (const [key, value] of Object.entries(row)) {
-      if ((key.toLowerCase().includes('purchase') || 
-           key.toLowerCase().includes('cost') || 
+      if ((key.toLowerCase().includes('purchase') ||
+           key.toLowerCase().includes('cost') ||
            key.toLowerCase().includes('basis')) && value) {
         const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
         if (!isNaN(num)) {
@@ -567,8 +567,8 @@ class ImportService {
 
   private findCurrentPriceColumn(row: Record<string, string>): number | null {
     for (const [key, value] of Object.entries(row)) {
-      if ((key.toLowerCase().includes('current') || 
-           key.toLowerCase().includes('price') || 
+      if ((key.toLowerCase().includes('current') ||
+           key.toLowerCase().includes('price') ||
            key.toLowerCase().includes('value')) && value) {
         const num = parseFloat(value.replace(/[^0-9.-]/g, ''));
         if (!isNaN(num)) {
@@ -674,7 +674,7 @@ class ImportService {
 
   private findAccountByName(name: string): string | undefined {
     const accounts = wealthService.getAccounts();
-    const account = accounts.find(acc => 
+    const account = accounts.find(acc =>
       acc.name.toLowerCase() === name.toLowerCase() ||
       acc.institution.toLowerCase() === name.toLowerCase()
     );

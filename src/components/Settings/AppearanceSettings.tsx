@@ -18,7 +18,7 @@ function AppearanceSettings() {
     const savedTheme = localStorage.getItem('app-theme') as 'dark' | 'light' | 'auto' | null;
     const savedFontSize = localStorage.getItem('app-font-size');
     const savedAnimations = localStorage.getItem('app-animations');
-    
+
     if (savedTheme) setTheme(savedTheme);
     if (savedFontSize) setFontSize(savedFontSize);
     if (savedAnimations !== null) setAnimationsEnabled(savedAnimations === 'true');
@@ -72,7 +72,7 @@ function AppearanceSettings() {
           <div className="settings-group">
             <div className="setting-item">
               <label>Color Theme</label>
-              <select 
+              <select
                 className="setting-input"
                 value={theme}
                 onChange={(e) => handleThemeChange(e.target.value as 'dark' | 'light' | 'auto')}
@@ -85,7 +85,7 @@ function AppearanceSettings() {
 
             <div className="setting-item">
               <label>Font Size</label>
-              <select 
+              <select
                 className="setting-input"
                 value={fontSize}
                 onChange={(e) => handleFontSizeChange(e.target.value)}
@@ -98,8 +98,8 @@ function AppearanceSettings() {
 
             <div className="setting-item">
               <label>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={animationsEnabled}
                   onChange={(e) => handleAnimationsChange(e.target.checked)}
                 />

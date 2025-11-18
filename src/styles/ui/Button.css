@@ -214,7 +214,7 @@
   .ui-button {
     transition: none;
   }
-  
+
   .ui-button:hover:not(:disabled),
   .ui-button:active:not(:disabled) {
     transform: none;

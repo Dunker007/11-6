@@ -76,13 +76,13 @@ class ActivityService {
    */
   async clearActivities(): Promise<void> {
     this.activities = [];
-    
+
     // Clear any pending saves
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout);
       this.saveTimeout = null;
     }
-    
+
     await storageService.remove(this.STORAGE_KEY);
     // Notify listeners with null to trigger update
     this.listeners.forEach(listener => listener(null as any));
@@ -128,20 +128,20 @@ class ActivityService {
     try {
       // Convert activities to storable format (without icon function)
       const storable = this.activities.map(({ icon, ...rest }) => rest);
-      
+
       // Use storageService with low priority (can be cleared if space needed)
       // Expire after 30 days
       const saved = await storageService.set(this.STORAGE_KEY, storable, {
         priority: 'low',
         expiresIn: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
-      
+
       if (!saved) {
         logger.warn('Failed to save activities, but continuing in-memory');
       }
     } catch (error) {
-      logger.error('Failed to save activities:', { 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('Failed to save activities:', {
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   }
@@ -153,27 +153,27 @@ class ActivityService {
     if (this.isLoading) {
       return; // Prevent concurrent loads
     }
-    
+
     this.isLoading = true;
     try {
       const stored = await storageService.get<Array<Omit<Activity, 'icon' | 'color'>>>(this.STORAGE_KEY);
-      
+
       if (stored && Array.isArray(stored)) {
         // Limit loaded activities to MAX_ACTIVITIES
         const limited = stored.slice(0, this.MAX_ACTIVITIES);
-        
+
         // Restore icons and colors based on activity type and action
         this.activities = limited.map((activity) => ({
           ...activity,
           icon: getActivityIcon(activity.type, activity.action),
           color: getActivityColor(activity.type, activity.action),
         }));
-        
+
         logger.info(`Loaded ${this.activities.length} activities from storage`);
       }
     } catch (error) {
-      logger.error('Failed to load activities:', { 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error('Failed to load activities:', {
+        error: error instanceof Error ? error.message : String(error)
       });
       this.activities = [];
     } finally {

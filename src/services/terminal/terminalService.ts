@@ -1,6 +1,6 @@
 /**
  * terminalService.ts
- * 
+ *
  * Service for terminal command execution.
  * Handles command execution via Electron IPC and output parsing.
  */
@@ -56,7 +56,7 @@ class TerminalService {
 
       // Execute command via IPC
       const result = await (window as any).program.execute(command, workingDirectory);
-      
+
       if (!result.success || !result.executionId) {
         return {
           success: false,
@@ -116,7 +116,7 @@ class TerminalService {
           data: data.data,
           timestamp: Date.now(),
         };
-        
+
         const listeners = this.outputListeners.get(sessionId);
         if (listeners) {
           listeners.forEach(listener => listener(output));
@@ -134,7 +134,7 @@ class TerminalService {
           stdout: result.stdout,
           stderr: result.stderr,
         };
-        
+
         const listeners = this.completionListeners.get(sessionId);
         if (listeners) {
           listeners.forEach(listener => listener(commandResult));

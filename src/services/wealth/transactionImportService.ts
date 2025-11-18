@@ -1,6 +1,6 @@
 /**
  * Transaction Import Service
- * 
+ *
  * Auto-imports transactions from connected accounts
  * Categorizes transactions using ML/rules engine
  * Matches transactions to budgets
@@ -299,15 +299,15 @@ class TransactionImportService {
 
     switch (condition.operator) {
       case 'contains':
-        return typeof value === 'string' && 
+        return typeof value === 'string' &&
                value.toLowerCase().includes(String(condition.value).toLowerCase());
       case 'equals':
         return value === condition.value;
       case 'startsWith':
-        return typeof value === 'string' && 
+        return typeof value === 'string' &&
                value.toLowerCase().startsWith(String(condition.value).toLowerCase());
       case 'endsWith':
-        return typeof value === 'string' && 
+        return typeof value === 'string' &&
                value.toLowerCase().endsWith(String(condition.value).toLowerCase());
       case 'greaterThan':
         return typeof value === 'number' && value > Number(condition.value);

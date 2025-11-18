@@ -64,11 +64,11 @@ function LLMRevenueCommandCenter() {
   const [activeWorkflow, setActiveWorkflow] = useState<WorkflowType>(null);
   const commandPalette = useCommandPalette();
   const screenSize = useScreenSize();
-  
+
   // LLM Store
   const discoverProviders = useLLMStore((state) => state.discoverProviders);
   const discoverLocalProviders = useLLMStore((state) => state.discoverLocalProviders);
-  
+
   // LLM Optimizer Store
   const detectHardware = useLLMOptimizerStore((state) => state.detectHardware);
   const loadCatalog = useLLMOptimizerStore((state) => state.loadCatalog);
@@ -77,10 +77,10 @@ function LLMRevenueCommandCenter() {
   const benchmarks = useLLMOptimizerStore((state) => state.benchmarks);
   const isBenchmarking = useLLMOptimizerStore((state) => state.isBenchmarking);
   const benchmarkError = useLLMOptimizerStore((state) => state.benchmarkError);
-  
+
   // Financial Store
   const { refresh: refreshFinancials } = useFinancialStore();
-  
+
   useEffect(() => {
     detectHardware();
     loadCatalog();
@@ -188,7 +188,7 @@ function LLMRevenueCommandCenter() {
       <a href="#navigation" className="skip-link">
         Skip to navigation
       </a>
-      
+
       {/* Electron Title Bar Spacer */}
       <div className="electron-titlebar-spacer">
         <div className="titlebar-content">
@@ -196,22 +196,22 @@ function LLMRevenueCommandCenter() {
             <span>DLX Studios Ultimate</span>
           </div>
           <div className="titlebar-controls">
-            <button 
-              className="titlebar-button" 
+            <button
+              className="titlebar-button"
               onClick={() => window.windowControls?.minimize()}
               aria-label="Minimize"
             >
               <Minus size={14} />
             </button>
-            <button 
-              className="titlebar-button" 
+            <button
+              className="titlebar-button"
               onClick={() => window.windowControls?.maximize()}
               aria-label="Maximize"
             >
               <Square size={12} />
             </button>
-            <button 
-              className="titlebar-button titlebar-close" 
+            <button
+              className="titlebar-button titlebar-close"
               onClick={() => window.windowControls?.close()}
               aria-label="Close"
             >
@@ -220,7 +220,7 @@ function LLMRevenueCommandCenter() {
           </div>
         </div>
       </div>
-      
+
       {/* Top Status Bar */}
       <div className="mockup-top-bar llm-revenue-bar">
         <div className="tab-selector" role="tablist" aria-label="Main navigation tabs" id="navigation">
@@ -437,10 +437,10 @@ function LLMRevenueCommandCenter() {
               </Suspense>
             </ErrorBoundary>
           ) : (
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               height: '100%',
               color: 'var(--text-muted)',
               fontSize: '1.125rem',
@@ -466,7 +466,7 @@ function LLMRevenueCommandCenter() {
         )}
 
       </div>
-      
+
       {/* Command Palette */}
       <CommandPalette
         isOpen={commandPalette.isOpen}

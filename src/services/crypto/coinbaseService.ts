@@ -159,7 +159,7 @@ class CoinbaseService {
   ): Promise<T> {
     // Ensure credentials are loaded before making requests
     await this.ensureCredentialsLoaded();
-    
+
     if (!this.isConfigured()) {
       throw new Error('Coinbase API not configured. Please add API credentials.');
     }

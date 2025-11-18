@@ -1,6 +1,6 @@
 /**
  * Wealth Lab Market Data Service
- * 
+ *
  * Integrates multiple data sources:
  * - Yahoo Finance API (stocks, ETFs)
  * - CoinGecko API (crypto - via existing service)
@@ -40,13 +40,13 @@ class WealthMarketDataService {
   private getCached<T>(key: string, ttl: number = CACHE_TTL): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
-    
+
     const age = Date.now() - entry.timestamp;
     if (age > ttl) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return entry.data as T;
   }
 
@@ -82,7 +82,7 @@ class WealthMarketDataService {
 
   private async processQueue(): Promise<void> {
     if (this.isProcessingQueue || this.rateLimitQueue.length === 0) return;
-    
+
     this.isProcessingQueue = true;
     while (this.rateLimitQueue.length > 0) {
       const task = this.rateLimitQueue.shift();
@@ -103,7 +103,7 @@ class WealthMarketDataService {
     lastUpdated: Date;
   }> {
     const cryptoPattern = /^(BTC|ETH|USDT|BNB|SOL|ADA|XRP|DOT|DOGE|AVAX|SHIB|MATIC|LTC|UNI|LINK|ATOM|ETC|XLM|ALGO|VET|ICP|FIL|TRX|EOS|AAVE|MKR|GRT|SAND|MANA|AXS|THETA|XTZ|FLOW|CHZ|ENJ|BAT|ZEC|DASH|ZRX|COMP|SNX|YFI|CRV|1INCH|SUSHI|ALPHA|REN|KNC|BAND|OCEAN|NMR|COTI|ANKR|BAL|STORJ|OMG|PAXG|SKL)$/i;
-    
+
     if (cryptoPattern.test(symbol)) {
       try {
         const coins = await coinGeckoService.getTopCoins(250);
@@ -126,14 +126,14 @@ class WealthMarketDataService {
     try {
       const url = `${YAHOO_FINANCE_API_BASE}/${symbol}?interval=1d&range=1d`;
       const data = await this.rateLimitedFetch<YahooFinanceResponse>(`price_${symbol}`, url);
-      
+
       if (data?.chart?.result?.[0]) {
         const result = data.chart.result[0];
         const quote = result.meta;
         const regularMarketPrice = quote.regularMarketPrice || quote.previousClose || 0;
         const regularMarketChange = quote.regularMarketChange || 0;
         const regularMarketChangePercent = quote.regularMarketChangePercent || 0;
-        
+
         return {
           price: regularMarketPrice,
           change24h: regularMarketChange,
@@ -167,12 +167,12 @@ class WealthMarketDataService {
     try {
       const url = `${YAHOO_FINANCE_API_BASE}/${symbol}?interval=${interval}&range=${range}`;
       const data = await this.rateLimitedFetch<YahooFinanceResponse>(`history_${symbol}_${period}`, url, 60000);
-      
+
       if (data?.chart?.result?.[0]) {
         const result = data.chart.result[0];
         const timestamps = result.timestamp || [];
         const indicators = result.indicators?.quote?.[0] || {};
-        
+
         return {
           timestamp: timestamps,
           open: indicators.open || [],
@@ -256,7 +256,7 @@ class WealthMarketDataService {
   async getMarketNews(symbols?: string[], limit: number = 20): Promise<NewsArticle[]> {
     const articles: NewsArticle[] = [];
     const apiKey = ''; // Would come from API key management
-    
+
     if (!apiKey) {
       return this.getMockNews(symbols, limit);
     }
@@ -264,9 +264,9 @@ class WealthMarketDataService {
     try {
       const query = symbols && symbols.length > 0 ? symbols.join(' OR ') : 'finance OR stock OR crypto';
       const url = `${NEWS_API_BASE}/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&pageSize=${limit}&language=en`;
-      
+
       const data = await this.rateLimitedFetch<NewsAPIResponse>(`news_${query}_${limit}`, url, NEWS_CACHE_TTL);
-      
+
       if (data?.articles) {
         data.articles.forEach((article: NewsAPIArticle) => {
           articles.push({
@@ -384,21 +384,21 @@ class WealthMarketDataService {
    */
   async getDividendHistory(symbol: string, startDate?: Date, endDate?: Date): Promise<DividendPayment[]> {
     const dividends: DividendPayment[] = [];
-    
+
     try {
       // Yahoo Finance dividend endpoint
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5y&events=div`;
       const data = await this.rateLimitedFetch<YahooFinanceResponse>(`dividends_${symbol}`, url, 300000); // Cache for 5 minutes
-      
+
       if (data?.chart?.result?.[0]?.events?.dividends) {
         const dividendEvents = data.chart.result[0].events.dividends;
-        
+
         Object.entries(dividendEvents).forEach(([timestamp, div]) => {
           const date = new Date(parseInt(timestamp) * 1000);
-          
+
           if (startDate && date < startDate) return;
           if (endDate && date > endDate) return;
-          
+
           dividends.push({
             id: crypto.randomUUID(),
             assetId: '', // Will be set by caller
@@ -417,7 +417,7 @@ class WealthMarketDataService {
     } catch (error) {
       logger.error(`Failed to fetch dividend history for ${symbol}`, { error });
     }
-    
+
     return dividends.sort((a, b) => b.exDividendDate.getTime() - a.exDividendDate.getTime());
   }
 
@@ -436,18 +436,18 @@ class WealthMarketDataService {
       actual?: number;
       period: string;
     }> = [];
-    
+
     try {
       // Yahoo Finance earnings calendar endpoint
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2y&events=earnings`;
       const data = await this.rateLimitedFetch<YahooFinanceResponse>(`earnings_${symbol}`, url, 300000);
-      
+
       if (data?.chart?.result?.[0]?.events?.earnings) {
         const earningsEvents = data.chart.result[0].events.earnings;
-        
+
         Object.entries(earningsEvents).forEach(([timestamp, earning]) => {
           const date = new Date(parseInt(timestamp) * 1000);
-          
+
           earnings.push({
             date,
             estimate: earning.estimate,
@@ -459,7 +459,7 @@ class WealthMarketDataService {
     } catch (error) {
       logger.error(`Failed to fetch earnings calendar for ${symbol}`, { error });
     }
-    
+
     return earnings.sort((a, b) => b.date.getTime() - a.date.getTime());
   }
 
@@ -500,7 +500,7 @@ class WealthMarketDataService {
         openInterest: number;
       };
     }> = [];
-    
+
     // Implementation would fetch from Yahoo Finance options endpoint
     // For now, return empty array
     return options;

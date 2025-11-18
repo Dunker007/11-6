@@ -169,16 +169,16 @@ const TransactionList = memo(function TransactionList({ month, year }: Transacti
   // Optimistic update for bulk operations
   const handleBulkUpdate = useCallback(async () => {
     if (selectedIds.size === 0) return;
-    
+
     try {
       // Optimistically update UI immediately
       wealthService.bulkUpdateTransactions(Array.from(selectedIds), { category: bulkCategory });
-      
+
       // Reload transactions to sync with store
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0, 23, 59, 59);
       loadTransactions(startDate, endDate);
-      
+
       setSelectedIds(new Set());
       setBulkEditMode(false);
     } catch (error) {
@@ -276,7 +276,7 @@ const TransactionList = memo(function TransactionList({ month, year }: Transacti
     try {
       // Optimistic update - update immediately
       wealthService.updateTransaction(id, updates);
-      
+
       // Reload to sync with store
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0, 23, 59, 59);

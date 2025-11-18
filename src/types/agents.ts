@@ -5,7 +5,7 @@
 
 export type AgentStatus = 'idle' | 'thinking' | 'working' | 'reviewing' | 'success' | 'error';
 
-export type EdStatus = 
+export type EdStatus =
   | 'idle'        // Relaxed, chill pose
   | 'thinking'    // Hand on chin, contemplating
   | 'coding'      // Typing/writing code

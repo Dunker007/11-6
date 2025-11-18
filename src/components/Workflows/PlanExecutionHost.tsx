@@ -1,11 +1,11 @@
 /**
  * PlanExecutionHost.tsx
- * 
+ *
  * PURPOSE:
  * Visual plan execution interface for AI-generated execution plans. Displays plan steps in
  * a timeline format with execution controls, progress tracking, and step-by-step execution.
  * Integrates with planExecutionService for actual plan execution.
- * 
+ *
  * ARCHITECTURE:
  * Plan execution component that:
  * - Displays plan steps in timeline format
@@ -14,7 +14,7 @@
  * - Handles step failures and retries
  * - Displays file diffs for file operations
  * - Provides execution controls (play, pause, stop, reset)
- * 
+ *
  * Features:
  * - Timeline visualization
  * - Step-by-step execution
@@ -23,7 +23,7 @@
  * - File diff preview
  * - Execution state tracking
  * - Error handling and recovery
- * 
+ *
  * CURRENT STATUS:
  * ✅ Plan step display
  * ✅ Sequential execution
@@ -33,37 +33,37 @@
  * ✅ Execution controls
  * ✅ Error handling
  * ✅ Auto-start option
- * 
+ *
  * DEPENDENCIES:
  * - planExecutionService: Plan execution logic
  * - PlanFileDiff: File diff display component
  * - @/types/plan: Plan and PlanStep types
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: execution state, current step, errors
  * - Uses planExecutionService for execution
  * - Tracks execution progress
- * 
+ *
  * PERFORMANCE:
  * - Efficient step rendering
  * - Debounced operations
  * - Optimized diff calculations
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import PlanExecutionHost from '@/components/Workflows/PlanExecutionHost';
- * 
+ *
  * function WorkflowRunner() {
  *   const plan = { steps: [...] };
  *   return <PlanExecutionHost plan={plan} autoStart={true} />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/workflow/planExecutionService.ts: Execution logic
  * - src/components/Workflows/PlanFileDiff.tsx: File diff display
  * - src/types/plan.ts: Plan type definitions
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Parallel step execution
  * - Step rollback

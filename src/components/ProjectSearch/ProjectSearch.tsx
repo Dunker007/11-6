@@ -28,7 +28,7 @@ function ProjectSearch({ onClose, onFileSelect }: ProjectSearchProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [useRegex, setUseRegex] = useState(false);
-  
+
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Semantic search handler
@@ -73,7 +73,7 @@ function ProjectSearch({ onClose, onFileSelect }: ProjectSearchProps) {
         const lines = file.content.split('\n');
         lines.forEach((lineText, index) => {
           let hasMatch = false;
-          
+
           if (useRegex) {
             try {
               const regex = new RegExp(debouncedSearchQuery, caseSensitive ? 'g' : 'gi');
@@ -114,7 +114,7 @@ function ProjectSearch({ onClose, onFileSelect }: ProjectSearchProps) {
 
   const highlightMatch = (text: string, query: string, matchIndex: number) => {
     if (matchIndex === -1) return text;
-    
+
     const before = text.substring(0, matchIndex);
     const match = text.substring(matchIndex, matchIndex + query.length);
     const after = text.substring(matchIndex + query.length);

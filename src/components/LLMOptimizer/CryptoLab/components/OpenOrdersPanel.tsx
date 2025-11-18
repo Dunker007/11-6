@@ -80,7 +80,7 @@ function OpenOrdersPanel({ productId }: OpenOrdersPanelProps) {
 
   const filteredOrders = openOrders.filter((order) => {
     if (productId && order.product_id !== productId) return false;
-    
+
     if (filter === 'all') return true;
     const orderType = getOrderType(order).toLowerCase();
     if (filter === 'market') return orderType === 'market';

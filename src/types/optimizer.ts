@@ -1,11 +1,11 @@
 /**
  * optimizer.ts
- * 
+ *
  * PURPOSE:
  * TypeScript type definitions for LLM optimization system. Defines types for hardware profiling,
  * model catalog entries, recommendations, benchmarks, and optimization state. Used by LLM
  * Optimizer panel and related services.
- * 
+ *
  * ARCHITECTURE:
  * Comprehensive type system for optimization:
  * - LLMUseCase: Use case types (code-generation, chat-assistant, etc.)
@@ -15,7 +15,7 @@
  * - ModelRecommendation: Hardware-based recommendations
  * - BenchmarkResult: Performance benchmark results
  * - OptimizerStateSnapshot: Complete optimizer state
- * 
+ *
  * CURRENT STATUS:
  * ✅ LLM use case types
  * ✅ Optimization priority types
@@ -25,25 +25,25 @@
  * ✅ Benchmark result interface
  * ✅ State snapshot interface
  * ✅ Cleanup result interface
- * 
+ *
  * DEPENDENCIES:
  * - None (standalone type definitions)
- * 
+ *
  * STATE MANAGEMENT:
  * - Type definitions only (no state)
- * 
+ *
  * PERFORMANCE:
  * - Type-only file (no runtime code)
  * - Efficient type checking
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
- * import type { 
- *   HardwareProfile, 
- *   ModelCatalogEntry, 
- *   OptimizationPriority 
+ * import type {
+ *   HardwareProfile,
+ *   ModelCatalogEntry,
+ *   OptimizationPriority
  * } from '@/types/optimizer';
- * 
+ *
  * const profile: HardwareProfile = {
  *   cpuModel: 'Intel i7',
  *   cpuCores: 8,
@@ -51,15 +51,15 @@
  *   systemMemoryGB: 32,
  *   // ...
  * };
- * 
+ *
  * const priority: OptimizationPriority = 'balanced';
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/llmOptimizerService.ts: Uses these types
  * - src/services/ai/llmOptimizerStore.ts: Uses these types
  * - src/components/LLMOptimizer/LLMOptimizerPanel.tsx: Uses these types
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - More use case types
  * - Model performance metrics types

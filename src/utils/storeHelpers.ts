@@ -1,35 +1,35 @@
 /**
  * storeHelpers.ts
- * 
+ *
  * PURPOSE:
  * Shared utility functions for Zustand stores to reduce code duplication.
  * Provides common patterns for async operations, error handling, and loading states.
- * 
+ *
  * ARCHITECTURE:
  * Pure utility functions that:
  * - Wrap async operations with loading/error state management
  * - Provide consistent error handling patterns
  * - Reduce boilerplate in store implementations
- * 
+ *
  * CURRENT STATUS:
  * ✅ Async operation wrapper with loading/error handling
  * ✅ Error extraction utility
  * ✅ Consistent error logging integration
- * 
+ *
  * DEPENDENCIES:
  * - errorLogger: Error logging service
- * 
+ *
  * STATE MANAGEMENT:
  * - Stateless utilities (no state)
- * 
+ *
  * PERFORMANCE:
  * - Lightweight wrappers
  * - No performance overhead
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { withAsyncOperation } from '@/utils/storeHelpers';
- * 
+ *
  * const myAction = async (params) => {
  *   return withAsyncOperation(
  *     async () => {
@@ -41,10 +41,10 @@
  *   );
  * };
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/[domain]/[name]Store.ts: Uses these helpers
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Add retry logic wrapper
  * - Add debounce wrapper for store actions
@@ -68,7 +68,7 @@ export function extractErrorMessage(error: unknown): string {
 
 /**
  * Wraps an async operation with loading and error state management
- * 
+ *
  * @param operation - The async operation to execute
  * @param onError - Callback when error occurs (receives error message)
  * @param onStart - Callback when operation starts (optional)
@@ -96,13 +96,13 @@ export async function withAsyncOperation<T>(
     const errorMessage = extractErrorMessage(error);
     onError(errorMessage);
     onComplete?.();
-    
+
     if (logError) {
       errorLogger.logFromError(errorCategory, error as Error, 'error', {
         source: errorSource || 'store',
       });
     }
-    
+
     return null;
   }
 }

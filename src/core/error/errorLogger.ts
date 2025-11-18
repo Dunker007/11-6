@@ -63,7 +63,7 @@ class ErrorLogger {
 
     // Add new error
     this.errors.unshift(error); // Add to beginning (most recent first)
-    
+
     // Maintain max size
     if (this.errors.length > this.MAX_ERRORS) {
       this.errors = this.errors.slice(0, this.MAX_ERRORS);
@@ -71,10 +71,10 @@ class ErrorLogger {
 
     this.saveErrors();
     this.notifyListeners(error);
-    
+
     // Also log to console for debugging
     this.logToConsole(error);
-    
+
     return error;
   }
 
@@ -222,7 +222,7 @@ class ErrorLogger {
   private findRecentDuplicate(error: CapturedError): CapturedError | undefined {
     const recentWindow = Date.now() - this.DEDUP_WINDOW;
     return this.errors.find(
-      e => e.fingerprint === error.fingerprint && 
+      e => e.fingerprint === error.fingerprint &&
            e.timestamp >= recentWindow &&
            !e.resolved
     );
@@ -265,7 +265,7 @@ class ErrorLogger {
           // Omit heavy context data
         },
       }));
-      
+
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(lightweight));
     } catch (error) {
       console.error('Failed to save errors to localStorage:', error);

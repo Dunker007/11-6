@@ -25,7 +25,7 @@ const ModelSelector = ({ onModelChange }: ModelSelectorProps) => {
   // Calculate fallback chain based on availability
   useEffect(() => {
     const chain: string[] = [];
-    
+
     if (availableProviders.includes('ollama')) {
       chain.push('Ollama');
     }
@@ -35,17 +35,17 @@ const ModelSelector = ({ onModelChange }: ModelSelectorProps) => {
     if (availableProviders.includes('openrouter')) {
       chain.push('OpenRouter');
     }
-    
+
     setFallbackChain(chain);
 
     // Auto-select first available model
     if (!selectedModel && models.length > 0) {
       // Prefer Ollama code models
-      const ollamaCodeModel = models.find(m => 
-        m.provider === 'ollama' && 
+      const ollamaCodeModel = models.find(m =>
+        m.provider === 'ollama' &&
         (m.name.includes('coder') || m.name.includes('code'))
       );
-      
+
       if (ollamaCodeModel) {
         setSelectedModel(ollamaCodeModel.id);
         onModelChange?.(ollamaCodeModel.id, ollamaCodeModel.provider);
@@ -70,7 +70,7 @@ const ModelSelector = ({ onModelChange }: ModelSelectorProps) => {
   const handleModelChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const modelId = event.target.value;
     const model = models.find(m => m.id === modelId);
-    
+
     if (model) {
       setSelectedModel(modelId);
       onModelChange?.(modelId, model.provider);
@@ -103,7 +103,7 @@ const ModelSelector = ({ onModelChange }: ModelSelectorProps) => {
         </span>
       </div>
 
-      <select 
+      <select
         className="model-select"
         value={selectedModel}
         onChange={handleModelChange}

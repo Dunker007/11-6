@@ -1,6 +1,6 @@
 /**
  * Event Type Definitions
- * 
+ *
  * Type-safe event definitions for the event bus system.
  */
 

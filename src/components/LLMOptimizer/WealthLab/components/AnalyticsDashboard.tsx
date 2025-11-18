@@ -1,11 +1,11 @@
 /**
  * AnalyticsDashboard.tsx
- * 
+ *
  * PURPOSE:
  * Comprehensive portfolio analytics dashboard for WealthLab. Displays performance metrics,
  * asset allocation, performance attribution, and benchmark comparisons. Provides detailed
  * financial analytics with visual indicators and formatted data.
- * 
+ *
  * ARCHITECTURE:
  * Analytics visualization component that:
  * - Calculates performance metrics (returns, volatility, Sharpe ratio)
@@ -13,7 +13,7 @@
  * - Performs performance attribution (top contributors)
  * - Compares against benchmarks (SPY, etc.)
  * - Displays data with formatted currency and percentages
- * 
+ *
  * Features:
  * - Time period selection (1M, 3M, 6M, 1Y, 5Y, ALL)
  * - Benchmark selection
@@ -22,7 +22,7 @@
  * - Top contributors list
  * - Benchmark comparison
  * - Memoized for performance
- * 
+ *
  * CURRENT STATUS:
  * ✅ Performance metrics calculation
  * ✅ Asset allocation analysis
@@ -32,37 +32,37 @@
  * ✅ Formatted currency (0 decimals) and percentages (+ signs)
  * ✅ Memoized component
  * ✅ Loading states
- * 
+ *
  * DEPENDENCIES:
  * - useWealthStore: Portfolio data
  * - portfolioAnalyticsService: Analytics calculations
  * - formatCurrency, formatPercent: Centralized formatters
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: period, benchmark, metrics, allocation, attribution, comparison
  * - Uses Zustand store for data
  * - Memoized calculations for performance
- * 
+ *
  * PERFORMANCE:
  * - React.memo wrapper prevents unnecessary re-renders
  * - useMemo for expensive calculations
  * - Parallel data fetching with Promise.all
  * - Efficient filtering and sorting
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import AnalyticsDashboard from '@/components/LLMOptimizer/WealthLab/components/AnalyticsDashboard';
- * 
+ *
  * function WealthLab() {
  *   return <AnalyticsDashboard />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/wealth/portfolioAnalyticsService.ts: Calculation logic
  * - src/services/wealth/wealthStore.ts: Data source
  * - src/utils/formatters.ts: Formatting utilities
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Chart visualizations
  * - Export functionality (CSV, PDF)

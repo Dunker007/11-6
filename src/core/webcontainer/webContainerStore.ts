@@ -91,7 +91,7 @@ export const useWebContainerStore = create<WebContainerState>((set, get) => ({
 
   ensureContainerReady: async (projectId: string) => {
     const containers = get().containers;
-    
+
     // Check if container already exists and is ready
     if (containers.has(projectId)) {
       const instance = containers.get(projectId);
@@ -107,7 +107,7 @@ export const useWebContainerStore = create<WebContainerState>((set, get) => ({
   executeCommand: async (projectId: string, command: string, args: string[] = []) => {
     // Ensure container is ready before executing
     await get().ensureContainerReady(projectId);
-    
+
     set({ isExecuting: true, error: null });
 
     try {

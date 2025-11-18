@@ -17,19 +17,19 @@ interface WorkflowHeroProps {
   children?: ReactNode;
 }
 
-function WorkflowHero({ 
-  title, 
-  subtitle, 
-  showCore = true, 
-  stats, 
+function WorkflowHero({
+  title,
+  subtitle,
+  showCore = true,
+  stats,
   statusIndicators,
-  children 
+  children
 }: WorkflowHeroProps) {
   return (
     <div className="workflow-hero">
       {/* Background grid */}
       <div className="grid-background"></div>
-      
+
       {/* Neural Core - Removed NeuralCore3D component */}
       {showCore && (
         <div className="hero-core">

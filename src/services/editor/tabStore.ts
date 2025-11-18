@@ -1,6 +1,6 @@
 /**
  * tabStore.ts
- * 
+ *
  * Zustand store for managing editor tabs, split views, and multi-file editing state.
  */
 
@@ -14,11 +14,11 @@ interface TabStore {
   openTabs: Set<string>; // Set of open tab IDs
   activeTabId: string | null;
   tabGroups: TabGroup[];
-  
+
   // Split view management
   splitView: SplitViewState | null;
   maxPanes: number;
-  
+
   // Tab operations
   openTab: (path: string) => string; // Returns tab ID
   closeTab: (tabId: string) => void;
@@ -28,17 +28,17 @@ interface TabStore {
   updateTabContent: (tabId: string, content: string, isUnsaved?: boolean) => void;
   pinTab: (tabId: string) => void;
   unpinTab: (tabId: string) => void;
-  
+
   // Pane operations
   splitPane: (paneId: string, direction: SplitDirection) => void;
   closePane: (paneId: string) => void;
   setActivePane: (paneId: string) => void;
   moveTabToPane: (tabId: string, targetPaneId: string) => void;
-  
+
   // Tab group operations
   createTabGroup: (name: string) => string;
   addTabToGroup: (tabId: string, groupId: string) => void;
-  
+
   // Getters
   getTab: (tabId: string) => EditorTab | undefined;
   getActiveTab: () => EditorTab | null;
@@ -78,10 +78,10 @@ export const useTabStore = create<TabStore>((set, get) => ({
   tabGroups: [],
   splitView: null,
   maxPanes: 4,
-  
+
   openTab: (path: string) => {
     const state = get();
-    
+
     // Check if tab already exists
     for (const [tabId, tab] of state.tabs.entries()) {
       if (tab.path === path) {
@@ -89,17 +89,17 @@ export const useTabStore = create<TabStore>((set, get) => ({
         return tabId;
       }
     }
-    
+
     // Create new tab
     const tabId = generateTabId(path);
     const fileName = path.split('/').pop() || path;
     const language = detectLanguage(path);
-    
+
     // Get file content from project store
     const { getFileContent } = useProjectStore.getState();
     const content = getFileContent(path) || '';
     const preview = content.split('\n')[0].substring(0, 50) || '';
-    
+
     const newTab: EditorTab = {
       id: tabId,
       path,
@@ -110,12 +110,12 @@ export const useTabStore = create<TabStore>((set, get) => ({
       preview,
       lastAccessed: Date.now(),
     };
-    
+
     const newTabs = new Map(state.tabs);
     newTabs.set(tabId, newTab);
     const newOpenTabs = new Set(state.openTabs);
     newOpenTabs.add(tabId);
-    
+
     // Initialize split view if not exists
     let newSplitView = state.splitView;
     if (!newSplitView) {
@@ -139,33 +139,33 @@ export const useTabStore = create<TabStore>((set, get) => ({
         activePane.activeTabId = tabId;
       }
     }
-    
+
     set({
       tabs: newTabs,
       openTabs: newOpenTabs,
       activeTabId: tabId,
       splitView: newSplitView,
     });
-    
+
     return tabId;
   },
-  
+
   closeTab: (tabId: string) => {
     const state = get();
     const tab = state.tabs.get(tabId);
     if (!tab) return;
-    
+
     // Check if unsaved
     if (tab.isUnsaved) {
       const confirmed = confirm(`Close unsaved file "${tab.name}"?`);
       if (!confirmed) return;
     }
-    
+
     const newTabs = new Map(state.tabs);
     newTabs.delete(tabId);
     const newOpenTabs = new Set(state.openTabs);
     newOpenTabs.delete(tabId);
-    
+
     // Remove from pane
     if (state.splitView) {
       const removeFromPane = (pane: EditorPane): EditorPane => {
@@ -175,10 +175,10 @@ export const useTabStore = create<TabStore>((set, get) => ({
             children: pane.children.map(removeFromPane),
           };
         }
-        
+
         const newTabs = pane.tabs.filter(t => t.id !== tabId);
         let newActiveTabId = pane.activeTabId;
-        
+
         if (pane.activeTabId === tabId) {
           // Activate another tab in this pane
           if (newTabs.length > 0) {
@@ -192,17 +192,17 @@ export const useTabStore = create<TabStore>((set, get) => ({
             newActiveTabId = null;
           }
         }
-        
+
         return {
           ...pane,
           tabs: newTabs,
           activeTabId: newActiveTabId,
         };
       };
-      
+
       const newRootPane = removeFromPane(state.splitView.rootPane);
       let newActiveTabId = state.activeTabId;
-      
+
       if (state.activeTabId === tabId && newRootPane.tabs.length > 0) {
         // Find next active tab
         const allTabs = getAllTabsFromPane(newRootPane);
@@ -217,7 +217,7 @@ export const useTabStore = create<TabStore>((set, get) => ({
           newActiveTabId = null;
         }
       }
-      
+
       set({
         tabs: newTabs,
         openTabs: newOpenTabs,
@@ -235,16 +235,16 @@ export const useTabStore = create<TabStore>((set, get) => ({
       });
     }
   },
-  
+
   closeAllTabs: () => {
     const state = get();
     const unsavedTabs = Array.from(state.tabs.values()).filter(t => t.isUnsaved);
-    
+
     if (unsavedTabs.length > 0) {
       const confirmed = confirm(`Close ${unsavedTabs.length} unsaved file(s)?`);
       if (!confirmed) return;
     }
-    
+
     set({
       tabs: new Map(),
       openTabs: new Set(),
@@ -252,25 +252,25 @@ export const useTabStore = create<TabStore>((set, get) => ({
       splitView: null,
     });
   },
-  
+
   closeOtherTabs: (keepTabId: string) => {
     const state = get();
     const tabsToClose = Array.from(state.openTabs).filter(id => id !== keepTabId);
     const unsavedTabs = tabsToClose
       .map(id => state.tabs.get(id))
       .filter((tab): tab is EditorTab => tab !== undefined && tab.isUnsaved);
-    
+
     if (unsavedTabs.length > 0) {
       const confirmed = confirm(`Close ${unsavedTabs.length} unsaved file(s)?`);
       if (!confirmed) return;
     }
-    
+
     const newTabs = new Map();
     const tabToKeep = state.tabs.get(keepTabId);
     if (tabToKeep) {
       newTabs.set(keepTabId, tabToKeep);
     }
-    
+
     // Update split view to only have this tab
     if (state.splitView && tabToKeep) {
       const rootPaneId = generatePaneId();
@@ -280,7 +280,7 @@ export const useTabStore = create<TabStore>((set, get) => ({
         activeTabId: keepTabId,
         size: 100,
       };
-      
+
       set({
         tabs: newTabs,
         openTabs: new Set([keepTabId]),
@@ -299,17 +299,17 @@ export const useTabStore = create<TabStore>((set, get) => ({
       });
     }
   },
-  
+
   setActiveTab: (tabId: string) => {
     const state = get();
     const tab = state.tabs.get(tabId);
     if (!tab) return;
-    
+
     // Update last accessed time
     const updatedTab = { ...tab, lastAccessed: Date.now() };
     const newTabs = new Map(state.tabs);
     newTabs.set(tabId, updatedTab);
-    
+
     // Update active tab in pane
     if (state.splitView) {
       const updatePane = (pane: EditorPane): EditorPane => {
@@ -319,24 +319,24 @@ export const useTabStore = create<TabStore>((set, get) => ({
             children: pane.children.map(updatePane),
           };
         }
-        
+
         if (pane.tabs.some(t => t.id === tabId)) {
           return {
             ...pane,
             activeTabId: tabId,
           };
         }
-        
+
         return pane;
       };
-      
+
       const newRootPane = updatePane(state.splitView.rootPane);
       const pane = get().getPaneById(newRootPane.id);
       let activePaneId = state.splitView.activePaneId;
       if (pane && pane.tabs.some(t => t.id === tabId)) {
         activePaneId = pane.id;
       }
-      
+
       set({
         tabs: newTabs,
         activeTabId: tabId,
@@ -353,12 +353,12 @@ export const useTabStore = create<TabStore>((set, get) => ({
       });
     }
   },
-  
+
   updateTabContent: (tabId: string, content: string, isUnsaved = true) => {
     const state = get();
     const tab = state.tabs.get(tabId);
     if (!tab) return;
-    
+
     const preview = content.split('\n')[0].substring(0, 50) || '';
     const updatedTab: EditorTab = {
       ...tab,
@@ -366,62 +366,62 @@ export const useTabStore = create<TabStore>((set, get) => ({
       isUnsaved,
       lastAccessed: Date.now(),
     };
-    
+
     const newTabs = new Map(state.tabs);
     newTabs.set(tabId, updatedTab);
-    
+
     set({ tabs: newTabs });
   },
-  
+
   pinTab: (tabId: string) => {
     const state = get();
     const tab = state.tabs.get(tabId);
     if (!tab) return;
-    
+
     const updatedTab = { ...tab, pinned: true };
     const newTabs = new Map(state.tabs);
     newTabs.set(tabId, updatedTab);
-    
+
     set({ tabs: newTabs });
   },
-  
+
   unpinTab: (tabId: string) => {
     const state = get();
     const tab = state.tabs.get(tabId);
     if (!tab) return;
-    
+
     const updatedTab = { ...tab, pinned: false };
     const newTabs = new Map(state.tabs);
     newTabs.set(tabId, updatedTab);
-    
+
     set({ tabs: newTabs });
   },
-  
+
   splitPane: (paneId: string, direction: SplitDirection) => {
     const state = get();
     if (!state.splitView) return;
-    
+
     // Check max panes
     const paneCount = countPanes(state.splitView.rootPane);
     if (paneCount >= state.maxPanes) {
       console.warn(`Maximum ${state.maxPanes} panes reached`);
       return;
     }
-    
+
     const splitPaneRecursive = (pane: EditorPane): EditorPane => {
       if (pane.id === paneId) {
         // Split this pane
         const newPaneId = generatePaneId();
         const activeTab = pane.tabs.find(t => t.id === pane.activeTabId);
         const otherTabs = pane.tabs.filter(t => t.id !== pane.activeTabId);
-        
+
         const newPane: EditorPane = {
           id: newPaneId,
           tabs: activeTab ? [activeTab] : [],
           activeTabId: activeTab?.id || null,
           size: 50,
         };
-        
+
         return {
           id: pane.id,
           tabs: otherTabs,
@@ -438,19 +438,19 @@ export const useTabStore = create<TabStore>((set, get) => ({
           size: undefined,
         };
       }
-      
+
       if (pane.children) {
         return {
           ...pane,
           children: pane.children.map(splitPaneRecursive),
         };
       }
-      
+
       return pane;
     };
-    
+
     const newRootPane = splitPaneRecursive(state.splitView.rootPane);
-    
+
     set({
       splitView: {
         ...state.splitView,
@@ -458,45 +458,45 @@ export const useTabStore = create<TabStore>((set, get) => ({
       },
     });
   },
-  
+
   closePane: (paneId: string) => {
     const state = get();
     if (!state.splitView) return;
-    
+
     const closePaneRecursive = (pane: EditorPane): EditorPane | null => {
       if (pane.children) {
         const updatedChildren = pane.children
           .map(closePaneRecursive)
           .filter((p): p is EditorPane => p !== null);
-        
+
         if (updatedChildren.length === 0) {
           return null;
         }
-        
+
         if (updatedChildren.length === 1) {
           return updatedChildren[0];
         }
-        
+
         return {
           ...pane,
           children: updatedChildren,
         };
       }
-      
+
       if (pane.id === paneId) {
         return null;
       }
-      
+
       return pane;
     };
-    
+
     const newRootPane = closePaneRecursive(state.splitView.rootPane);
-    
+
     if (!newRootPane) {
       set({ splitView: null });
       return;
     }
-    
+
     set({
       splitView: {
         ...state.splitView,
@@ -504,16 +504,16 @@ export const useTabStore = create<TabStore>((set, get) => ({
       },
     });
   },
-  
+
   setActivePane: (paneId: string) => {
     const state = get();
     if (!state.splitView) return;
-    
+
     const pane = get().getPaneById(paneId);
     if (pane && pane.activeTabId) {
       state.setActiveTab(pane.activeTabId);
     }
-    
+
     set({
       splitView: {
         ...state.splitView,
@@ -521,14 +521,14 @@ export const useTabStore = create<TabStore>((set, get) => ({
       },
     });
   },
-  
+
   moveTabToPane: (tabId: string, targetPaneId: string) => {
     const state = get();
     if (!state.splitView) return;
-    
+
     const tab = state.tabs.get(tabId);
     if (!tab) return;
-    
+
     // Remove from current pane
     const removeFromPane = (pane: EditorPane): EditorPane => {
       if (pane.children) {
@@ -537,14 +537,14 @@ export const useTabStore = create<TabStore>((set, get) => ({
           children: pane.children.map(removeFromPane),
         };
       }
-      
+
       return {
         ...pane,
         tabs: pane.tabs.filter(t => t.id !== tabId),
         activeTabId: pane.activeTabId === tabId ? null : pane.activeTabId,
       };
     };
-    
+
     // Add to target pane
     const addToPane = (pane: EditorPane): EditorPane => {
       if (pane.id === targetPaneId) {
@@ -554,30 +554,30 @@ export const useTabStore = create<TabStore>((set, get) => ({
           activeTabId: tabId,
         };
       }
-      
+
       if (pane.children) {
         return {
           ...pane,
           children: pane.children.map(addToPane),
         };
       }
-      
+
       return pane;
     };
-    
+
     let newRootPane = removeFromPane(state.splitView.rootPane);
     newRootPane = addToPane(newRootPane);
-    
+
     set({
       splitView: {
         ...state.splitView,
         rootPane: newRootPane,
       },
     });
-    
+
     state.setActiveTab(tabId);
   },
-  
+
   createTabGroup: (name: string) => {
     const groupId = `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newGroup: TabGroup = {
@@ -586,51 +586,51 @@ export const useTabStore = create<TabStore>((set, get) => ({
       tabs: [],
       activeTabId: null,
     };
-    
+
     set({
       tabGroups: [...get().tabGroups, newGroup],
     });
-    
+
     return groupId;
   },
-  
+
   addTabToGroup: (tabId: string, groupId: string) => {
     const state = get();
     const tab = state.tabs.get(tabId);
     const group = state.tabGroups.find(g => g.id === groupId);
-    
+
     if (!tab || !group) return;
-    
+
     const updatedGroup = {
       ...group,
       tabs: [...group.tabs, tab],
       activeTabId: tabId,
     };
-    
+
     set({
       tabGroups: state.tabGroups.map(g => g.id === groupId ? updatedGroup : g),
     });
   },
-  
+
   getTab: (tabId: string) => {
     return get().tabs.get(tabId);
   },
-  
+
   getActiveTab: () => {
     const state = get();
     if (!state.activeTabId) return null;
     return state.tabs.get(state.activeTabId) || null;
   },
-  
+
   getTabsByPane: (paneId: string) => {
     const pane = get().getPaneById(paneId);
     return pane?.tabs || [];
   },
-  
+
   getPaneById: (paneId: string) => {
     const state = get();
     if (!state.splitView) return null;
-    
+
     const findPane = (pane: EditorPane): EditorPane | null => {
       if (pane.id === paneId) return pane;
       if (pane.children) {
@@ -641,7 +641,7 @@ export const useTabStore = create<TabStore>((set, get) => ({
       }
       return null;
     };
-    
+
     return findPane(state.splitView.rootPane);
   },
 }));
@@ -649,7 +649,7 @@ export const useTabStore = create<TabStore>((set, get) => ({
 // Helper functions
 function getAllTabsFromPane(pane: EditorPane): EditorTab[] {
   let tabs: EditorTab[] = [];
-  
+
   if (pane.children) {
     for (const child of pane.children) {
       tabs = [...tabs, ...getAllTabsFromPane(child)];
@@ -657,7 +657,7 @@ function getAllTabsFromPane(pane: EditorPane): EditorTab[] {
   } else {
     tabs = [...tabs, ...pane.tabs];
   }
-  
+
   return tabs;
 }
 

@@ -103,7 +103,7 @@ const GoogleAIHub: React.FC = () => {
             <p><strong>Gemini API Key Required</strong></p>
             <p>Configure your API key in settings to use these features.</p>
           </div>
-          <button 
+          <button
             onClick={() => {/* Navigate to settings - would need router */}}
             className="warning-action"
             title="Open Settings"

@@ -1,6 +1,6 @@
 /**
  * Workflow Store
- * 
+ *
  * Zustand store for managing workflow state across the application.
  */
 

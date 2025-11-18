@@ -21,7 +21,7 @@ export class OpenRouterProvider implements LLMProvider {
 
   async healthCheck(): Promise<boolean> {
     if (!this.apiKey) return false;
-    
+
     try {
       const response = await fetch(`${this.baseUrl}/models`, {
         headers: {
@@ -50,7 +50,7 @@ export class OpenRouterProvider implements LLMProvider {
       const models = Array.isArray(data.data) ? data.data : [];
 
       // Return a curated list of popular models
-      const curatedModels = models.filter((model: OpenRouterModel) => 
+      const curatedModels = models.filter((model: OpenRouterModel) =>
         model.id.includes('gpt-4') ||
         model.id.includes('claude') ||
         model.id.includes('llama') ||
@@ -85,7 +85,7 @@ export class OpenRouterProvider implements LLMProvider {
     }
 
     const model = options?.model || 'openai/gpt-3.5-turbo';
-    
+
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -111,7 +111,7 @@ export class OpenRouterProvider implements LLMProvider {
     }
 
     const data = await response.json();
-    
+
     return {
       text: data.choices[0]?.message?.content || '',
       tokensUsed: data.usage?.total_tokens,
@@ -125,7 +125,7 @@ export class OpenRouterProvider implements LLMProvider {
     }
 
     const model = options?.model || 'openai/gpt-3.5-turbo';
-    
+
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {

@@ -11,11 +11,11 @@ import type { AgentPairWorkflow, EdGenerationResult, ItorReviewResult } from '@/
 class AgentPairService {
   /**
    * Execute the full pipeline: Generate code with Ed, review with Itor, and refine if needed.
-   * 
+   *
    * This method orchestrates the Ed → Itor → Ed workflow, where Ed generates code,
    * Itor reviews it, and if not approved, Ed refines based on feedback. The process
    * continues until approval or max iterations is reached.
-   * 
+   *
    * @param prompt - The natural language prompt describing what code to generate
    * @param context - Optional context object containing:
    *   - filePath: Path to the file being edited
@@ -24,7 +24,7 @@ class AgentPairService {
    *   - maxIterations: Maximum number of refinement iterations (default: 3)
    * @returns A promise that resolves to an AgentPairWorkflow containing generation results, review results, and refined code
    * @throws {Error} If generation or review fails
-   * 
+   *
    * @example
    * ```typescript
    * const workflow = await agentPairService.generateAndReview(
@@ -88,13 +88,13 @@ class AgentPairService {
       // maxIterations represents the maximum number of refinement cycles (refine + review pairs)
       while (!itorResult.approved && refinementCycles < maxIterations) {
         const feedback = this.formatFeedback(itorResult.issues);
-        
+
         store.setWorkflow('ed-refining');
         const refined = await edService.refineCode(currentCode, feedback, {
           filePath: context?.filePath,
           language: context?.language,
         });
-        
+
         refinedCode = refined.code;
         workflow.refinedCode = refinedCode;
         currentCode = refinedCode;
@@ -107,7 +107,7 @@ class AgentPairService {
           filePath: context?.filePath,
           language: context?.language,
         });
-        
+
         workflow.itorResult = itorResult;
         iterations++;
       }
@@ -132,11 +132,11 @@ class AgentPairService {
 
   /**
    * Create an iterative feedback loop between Ed and Itor until code meets quality standards.
-   * 
+   *
    * This method implements a more sophisticated workflow where Ed generates code,
    * Itor reviews it, and if the score is below the minimum threshold, Ed refines
    * the code based on feedback. This continues until approval or max iterations.
-   * 
+   *
    * @param prompt - The natural language prompt describing what code to generate
    * @param context - Optional context object containing:
    *   - filePath: Path to the file being edited
@@ -146,7 +146,7 @@ class AgentPairService {
    *   - minScore: Minimum review score to consider approved (default: 80)
    * @returns A promise that resolves to an AgentPairWorkflow with the final code and review results
    * @throws {Error} If generation or review fails
-   * 
+   *
    * @example
    * ```typescript
    * const workflow = await agentPairService.createFeedbackLoop(
@@ -219,7 +219,7 @@ class AgentPairService {
           filePath: context?.filePath,
           language: context?.language,
         });
-        
+
         currentCode = refined.code;
         workflow.refinedCode = currentCode;
         iterations++;

@@ -25,10 +25,10 @@ const QUICK_TEST_PROMPTS = [
   { label: 'Code Generation', prompt: 'Write a TypeScript function that reverses a string.' },
 ];
 
-function QuickTestInterface({ 
-  model, 
+function QuickTestInterface({
+  model,
   onClose,
-  defaultPrompt = QUICK_TEST_PROMPTS[0].prompt 
+  defaultPrompt = QUICK_TEST_PROMPTS[0].prompt
 }: QuickTestInterfaceProps) {
   const { generate, activeModel, isLoading, models } = useLLMStore();
   const { modelCatalog } = useLLMOptimizerStore();
@@ -65,13 +65,13 @@ function QuickTestInterface({
   // Get selected model from catalog or store
   const selectedModel = useMemo(() => {
     if (!selectedModelId) return null;
-    
+
     // Try catalog first
     if (modelCatalog) {
       const catalogModel = modelCatalog.find(m => m.id === selectedModelId);
       if (catalogModel) return catalogModel;
     }
-    
+
     // Fallback to store models
     const storeModel = models.find(m => m.id === selectedModelId);
     if (storeModel) {
@@ -83,7 +83,7 @@ function QuickTestInterface({
         optimizationMethod: undefined,
       } as ModelCatalogEntry;
     }
-    
+
     return null;
   }, [selectedModelId, modelCatalog, models]);
 

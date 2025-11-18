@@ -57,7 +57,7 @@ class OSModeManager {
    */
   subscribe(callback: OSModeListener): () => void {
     this.listeners.add(callback);
-    
+
     // Return unsubscribe function
     return () => {
       this.listeners.delete(callback);

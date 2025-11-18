@@ -25,7 +25,7 @@ window.onerror = (message, source, lineno, colno, error) => {
       componentStack: `at line ${lineno}:${colno}`,
     }
   );
-  
+
   // Return false to let the error propagate to default handler
   return false;
 };
@@ -33,7 +33,7 @@ window.onerror = (message, source, lineno, colno, error) => {
 // Unhandled promise rejection handler
 window.addEventListener('unhandledrejection', (event) => {
   const error = event.reason;
-  
+
   errorLogger.logError(
     'runtime',
     error?.message || String(event.reason),
@@ -50,7 +50,7 @@ window.addEventListener('error', (event) => {
   if (event.target !== window) {
     const target = event.target as HTMLElement;
     const tagName = target.tagName?.toLowerCase();
-    
+
     if (tagName === 'img' || tagName === 'script' || tagName === 'link') {
       errorLogger.logError(
         'network',

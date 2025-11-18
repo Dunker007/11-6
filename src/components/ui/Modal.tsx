@@ -38,7 +38,7 @@ export const Modal: React.FC<ModalProps> = ({
     if (isOpen) {
       previousActiveElement.current = document.activeElement as HTMLElement;
       document.body.style.overflow = 'hidden';
-      
+
       // Focus trap
       const focusableElements = modalRef.current?.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'

@@ -1,6 +1,6 @@
 /**
  * Hardware Detection Service
- * 
+ *
  * Detects and profiles system hardware including CPU, GPU, memory, and storage.
  * Works in both Electron (using systeminformation) and browser contexts.
  */
@@ -47,39 +47,39 @@ async function detectGPUInfo(): Promise<{
     try {
       const si = require('systeminformation');
       const graphics = await si.graphics();
-      
+
       if (graphics && graphics.controllers && graphics.controllers.length > 0) {
         // Find discrete GPU (prefer NVIDIA, AMD, or non-Intel)
         let discreteGPU = graphics.controllers.find((gpu: Systeminformation.GraphicsControllerData) => {
           const vendor = (gpu.vendor || '').toLowerCase();
           const model = (gpu.model || '').toLowerCase();
           // Check for discrete GPU vendors
-          return vendor.includes('nvidia') || 
-                 vendor.includes('amd') || 
+          return vendor.includes('nvidia') ||
+                 vendor.includes('amd') ||
                  vendor.includes('ati') ||
                  (!vendor.includes('intel') && !model.includes('integrated'));
         });
-        
+
         // If no discrete GPU found, use first GPU
         const gpu = discreteGPU || graphics.controllers[0];
-        
+
         if (gpu) {
           const gpuName = gpu.model || gpu.vendor || 'Unknown GPU';
           const memoryGB = gpu.memoryTotal ? Math.round(gpu.memoryTotal / 1024) : null;
-          
+
           // Determine if discrete: check vendor/model or if it's not Intel integrated
           const vendor = (gpu.vendor || '').toLowerCase();
           const model = (gpu.model || '').toLowerCase();
           // Explicitly check for integrated GPUs (Intel integrated, UHD, Iris)
           const isIntegrated = vendor.includes('intel') && (
-            model.includes('integrated') || 
-            model.includes('uhd') || 
+            model.includes('integrated') ||
+            model.includes('uhd') ||
             model.includes('iris') ||
             model.includes('hd graphics')
           );
           // Default to discrete GPU (true) unless explicitly detected as integrated
           const isDiscrete = !isIntegrated;
-          
+
           return {
             name: gpuName,
             memoryGB,
@@ -134,7 +134,7 @@ async function detectGPUInfo(): Promise<{
         const isIntegrated = vendorLower.includes('intel') && rendererLower.includes('integrated');
         // Default to discrete GPU (true) unless explicitly detected as integrated
         const isDiscrete = !isIntegrated;
-        
+
         return {
           name: `${vendor} ${renderer}`.trim(),
           memoryGB: null,
@@ -165,7 +165,7 @@ export async function detectHardwareProfile(): Promise<HardwareProfile> {
       ]);
 
       // Get CPU info
-      const cpuModel = cpu.manufacturer && cpu.brand 
+      const cpuModel = cpu.manufacturer && cpu.brand
         ? `${cpu.manufacturer} ${cpu.brand}`.trim()
         : cpu.brand || cpu.manufacturer || 'Unknown CPU';
       const cpuCores = cpu.cores || cpu.physicalCores || null;
@@ -176,7 +176,7 @@ export async function detectHardwareProfile(): Promise<HardwareProfile> {
 
       // Get GPU info
       const gpuInfo = await detectGPUInfo();
-      
+
       // Determine storage type from disk layout
       let storageType: 'ssd' | 'hdd' | 'nvme' | null = null;
       if (diskLayout && diskLayout.length > 0) {

@@ -103,12 +103,12 @@ class ErrorPatternDatabase {
   recordFixAttempt(patternId: string, success: boolean): void {
     const history = this.fixHistory.get(patternId) || [];
     history.push(success ? 1 : 0);
-    
+
     // Keep only last 100 attempts
     if (history.length > 100) {
       history.shift();
     }
-    
+
     this.fixHistory.set(patternId, history);
 
     // Update success rate

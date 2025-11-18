@@ -61,9 +61,9 @@ const BenchmarkSuite = ({ onClose }: BenchmarkSuiteProps) => {
             <span>{Math.round(progress * 100)}%</span>
           </div>
           <div className="progress-bar-container">
-            <div 
+            <div
               className="progress-bar"
-              style={{ 
+              style={{
                 width: `${progress * 100}%`,
                 background: 'var(--violet-500)'
               }}

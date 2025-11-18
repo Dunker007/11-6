@@ -44,12 +44,12 @@ function Watchlist() {
 
   const refreshPrices = async () => {
     if (!selectedWatchlist) return;
-    
+
     const watchlist = watchlistService.getWatchlist(selectedWatchlist);
     if (!watchlist) return;
 
     const priceMap = new Map<string, { price: number; change: number; changePercent: number }>();
-    
+
     for (const symbol of watchlist.symbols) {
       try {
         const priceData = await wealthMarketDataService.getRealTimePrice(symbol);
@@ -67,7 +67,7 @@ function Watchlist() {
         }
       }
     }
-    
+
     setSymbolPrices(priceMap);
   };
 
@@ -140,7 +140,7 @@ function Watchlist() {
 
     const symbol = newSymbol.trim().toUpperCase();
     const success = watchlistService.addToWatchlist(selectedWatchlist, symbol);
-    
+
     if (success) {
       loadWatchlists();
       setNewSymbol('');

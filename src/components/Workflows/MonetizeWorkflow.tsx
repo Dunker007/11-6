@@ -1,6 +1,6 @@
 /**
  * Monetize Workflow Component
- * 
+ *
  * Provides UI for Monetize workflow: revenue streams, pricing strategies, subscriptions
  */
 

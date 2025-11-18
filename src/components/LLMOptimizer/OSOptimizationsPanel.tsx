@@ -47,7 +47,7 @@ export function OSOptimizationsPanel() {
     setIsLoading(true);
     try {
       const result: OptimizationResult = await windowsOptimizer.applyOptimization(optimizationId);
-      
+
       if (result.success) {
         showToast({
           title: 'Optimization Applied',
@@ -77,7 +77,7 @@ export function OSOptimizationsPanel() {
     setIsLoading(true);
     try {
       const result: OptimizationResult = await windowsOptimizer.revertOptimization(optimizationId);
-      
+
       if (result.success) {
         showToast({
           title: 'Optimization Reverted',

@@ -62,7 +62,7 @@ export class ProjectService {
       // Read project.json if it exists
       const projectJsonPath = `${path}/project.json`;
       const projectJsonExists = await fileSystemService.exists(projectJsonPath);
-      
+
       let project: Project;
       if (projectJsonExists.data) {
         const projectJson = await fileSystemService.readFile(projectJsonPath);
@@ -393,11 +393,11 @@ export class ProjectService {
   private resolveFilePath(rootPath: string, filePath: string): string {
     // Remove leading slash from filePath if present
     const normalizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
-    
+
     // Handle Windows vs Unix path separators
     const separator = rootPath.includes('\\') ? '\\' : '/';
     const normalizedRoot = rootPath.endsWith(separator) ? rootPath.slice(0, -1) : rootPath;
-    
+
     return `${normalizedRoot}${separator}${normalizedPath.replace(/\//g, separator)}`;
   }
 

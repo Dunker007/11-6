@@ -1,11 +1,11 @@
 /**
  * ModelCatalog.tsx
- * 
+ *
  * PURPOSE:
  * Model catalog browser component for LLM Optimizer. Displays curated list of recommended
  * LLM models with filtering, search, and quick actions. Allows users to browse, select,
  * and pull models from the catalog.
- * 
+ *
  * ARCHITECTURE:
  * Catalog display component with:
  * - Model list with metadata (size, quantization, context window)
@@ -14,7 +14,7 @@
  * - Model detail modal
  * - Quick actions (switch, pull, test)
  * - Download link handling
- * 
+ *
  * Features:
  * - Filter by provider
  * - Search by name/description
@@ -22,7 +22,7 @@
  * - Quick model switching
  * - Model pulling (Ollama/LM Studio)
  * - External download links
- * 
+ *
  * CURRENT STATUS:
  * ✅ Model catalog display
  * ✅ Provider filtering
@@ -33,40 +33,40 @@
  * ✅ Model pulling
  * ✅ Download link handling
  * ✅ Memoized component
- * 
+ *
  * DEPENDENCIES:
  * - useLLMStore: Model operations (switch, pull, generate)
  * - useDebounce: Search debouncing
  * - ModelDetailModal: Model details display
  * - QuickModelActions: Quick action buttons
  * - @/types/optimizer: ModelCatalogEntry type
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: providerFilter, searchTerm, selectedEntry, isModalOpen
  * - Uses Zustand store for model operations
  * - Debounced search term
- * 
+ *
  * PERFORMANCE:
  * - Memoized component
  * - Debounced search (300ms)
  * - Efficient filtering
  * - Lazy modal rendering
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import ModelCatalog from '@/components/LLMOptimizer/ModelCatalog';
- * 
+ *
  * function LLMOptimizerPanel() {
  *   const { modelCatalog } = useLLMOptimizerStore();
  *   return <ModelCatalog entries={modelCatalog} />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/llmOptimizerStore.ts: Catalog data source
  * - src/components/LLMOptimizer/ModelDetailModal.tsx: Details display
  * - src/components/LLMOptimizer/QuickModelActions.tsx: Quick actions
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Model comparison view
  * - Favorite models
@@ -114,7 +114,7 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
    */
   const handleDownload = useCallback(async (entry: ModelCatalogEntry) => {
     if (!entry.downloadUrl) return;
-    
+
     try {
       if (window.llm?.openExternalUrl) {
         const result = await window.llm.openExternalUrl(entry.downloadUrl);
@@ -156,7 +156,7 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
    */
   const handlePullModel = useCallback(async (entry: ModelCatalogEntry) => {
     if (!entry.pullCommand) return;
-    
+
     try {
       showToast({
         variant: 'info',
@@ -171,7 +171,7 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
         5000,
         { provider: entry.provider, sizeGB: entry.sizeGB }
       );
-      
+
       if (success) {
         showToast({
           variant: 'success',
@@ -280,8 +280,8 @@ const ModelCatalog = ({ entries = [], onSelect }: ModelCatalogProps) => {
               <div className="header-badges">
                 <span className={`provider-chip ${entry.provider}`}>{entry.provider}</span>
                 {entry.optimizationMethod === 'unsloth-dynamic-2.0' && (
-                  <span 
-                    className="optimization-badge unsloth-badge" 
+                  <span
+                    className="optimization-badge unsloth-badge"
                     title="Unsloth Dynamic 2.0 - Optimized quantization with better accuracy"
                   >
                     <Sparkles size={12} />

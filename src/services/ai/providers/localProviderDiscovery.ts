@@ -61,7 +61,7 @@ export class LocalProviderDiscovery {
     endpoint: string
   ): Promise<LocalProviderState> {
     const startTime = Date.now();
-    const baseUrl = name === 'Ollama' 
+    const baseUrl = name === 'Ollama'
       ? `${endpoint}/api/tags`
       : `${endpoint}/v1/models`;
 

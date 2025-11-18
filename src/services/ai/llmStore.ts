@@ -1,11 +1,11 @@
 /**
  * llmStore.ts
- * 
+ *
  * PURPOSE:
  * Zustand store for LLM state management. Provides reactive state for models, providers,
  * active model selection, and generation operations. Wraps llmRouter with Zustand for
  * React component integration.
- * 
+ *
  * ARCHITECTURE:
  * Zustand store pattern that:
  * - Manages LLM models list and availability
@@ -13,7 +13,7 @@
  * - Provides generation methods (sync and streaming)
  * - Handles model pulling (Ollama/LM Studio)
  * - Integrates with local provider discovery
- * 
+ *
  * CURRENT STATUS:
  * ✅ Full Zustand integration
  * ✅ Model discovery and selection
@@ -21,13 +21,13 @@
  * ✅ Model pulling integration
  * ✅ Local provider discovery
  * ✅ StreamChunk support (includes function calls)
- * 
+ *
  * DEPENDENCIES:
  * - llmRouter: Core LLM routing logic
  * - localProviderDiscovery: Local provider detection
  * - @/types/llm: LLM type definitions
  * - window.llm: Electron IPC for model pulling (optional)
- * 
+ *
  * STATE MANAGEMENT:
  * - models: Available LLM models from all providers
  * - availableProviders: List of online providers
@@ -36,20 +36,20 @@
  * - pullingModels: Set of models being pulled
  * - isLoading: Generation in progress flag
  * - error: Error message if any
- * 
+ *
  * PERFORMANCE:
  * - Reactive updates via Zustand
  * - Streaming doesn't block UI
  * - Efficient model list updates
  * - Provider discovery runs in background
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { useLLMStore } from '@/services/ai/llmStore';
- * 
+ *
  * function MyComponent() {
  *   const { models, activeModel, streamGenerate, isLoading } = useLLMStore();
- *   
+ *
  *   const handleGenerate = async () => {
  *     for await (const chunk of streamGenerate('Hello!')) {
  *       if (chunk.text) {
@@ -62,13 +62,13 @@
  *   };
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/router.ts: Core routing logic
  * - src/services/ai/providers/localProviderDiscovery.ts: Provider detection
  * - src/components/AIAssistant/AIAssistant.tsx: Uses this store
  * - src/components/LLMOptimizer/ModelCatalog.tsx: Displays models from store
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Add model performance metrics
  * - Cache model responses
@@ -180,7 +180,7 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
   switchToModel: async (modelId: string) => {
     const { models } = get();
     const model = models.find((m) => m.id === modelId);
-    
+
     if (!model) {
       set({ error: `Model ${modelId} not found` });
       return false;
@@ -217,7 +217,7 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       // Try Electron IPC first (for future desktop features)
       if (window.llm?.pullModel) {
         const result = await window.llm.pullModel(modelId, pullCommand);
-        
+
           if (result.success) {
             // Force refresh to get updated model list after pulling
             await get().discoverProviders(true);
@@ -243,7 +243,7 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
         pullModel: (modelId: string) => Promise<void>;
       }
       await (ollamaProvider as unknown as ProviderWithPullModel).pullModel(modelId);
-      
+
       // Refresh providers to get updated model list after pulling
       await get().discoverProviders(true);
       set((state) => {
@@ -256,7 +256,7 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       set((state) => {
         const newPulling = new Set(state.pullingModels);
         newPulling.delete(modelId);
-        return { 
+        return {
           pullingModels: newPulling,
           error: (error as Error).message,
         };

@@ -1,6 +1,6 @@
 /**
  * Workflow Type Definitions
- * 
+ *
  * Types for the workflow execution system that orchestrates
  * Project, Build, Deploy, Monitor, and Monetize workflows.
  */

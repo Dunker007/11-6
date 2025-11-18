@@ -1,16 +1,16 @@
 /**
  * GitDiffViewer.tsx
- * 
+ *
  * PURPOSE:
  * Visual diff viewer component using Monaco Editor's built-in diff editor.
  * Displays side-by-side comparison of file changes with syntax highlighting.
- * 
+ *
  * ARCHITECTURE:
  * React component that uses Monaco Editor DiffEditor:
  * - gitDiffService: Retrieves diff content
  * - Monaco DiffEditor: Displays side-by-side diff
  * - File selection: Choose which file to view diff for
- * 
+ *
  * Features:
  * - Side-by-side diff view
  * - Syntax highlighting
@@ -18,29 +18,29 @@
  * - File tree navigation
  * - Diff statistics display
  * - Toggle between unified and side-by-side view
- * 
+ *
  * CURRENT STATUS:
  * ✅ Side-by-side diff display
  * ✅ File selection
  * ✅ Syntax highlighting
  * ✅ Diff statistics
- * 
+ *
  * DEPENDENCIES:
  * - @monaco-editor/react: Monaco Editor React wrapper
  * - gitDiffService: Git diff operations
  * - VibeDSTheme: Editor theme
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import GitDiffViewer from '@/components/GitHub/GitDiffViewer';
- * 
+ *
  * <GitDiffViewer
  *   repoPath="/path/to/repo"
  *   filePath="src/file.ts"
  *   base="HEAD"
  * />
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/git/gitDiffService.ts: Diff service
  * - src/services/github/githubService.ts: Related Git operations

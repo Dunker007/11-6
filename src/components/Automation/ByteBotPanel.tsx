@@ -1,57 +1,57 @@
 /**
  * ByteBotPanel.tsx
- * 
+ *
  * PURPOSE:
  * UI component for ByteBot automation integration. Provides interface for connecting
  * to ByteBot instances, executing automation tasks, and monitoring task status.
  * ByteBot is an automation service for executing commands and scripts remotely.
- * 
+ *
  * ARCHITECTURE:
  * React component that manages ByteBot operations:
  * - useByteBotStore: ByteBot state and operations
  * - Connection management
  * - Task execution and monitoring
  * - Configuration management
- * 
+ *
  * Features:
  * - ByteBot endpoint configuration
  * - Connection management
  * - Task execution
  * - Task status monitoring
  * - Task cancellation
- * 
+ *
  * CURRENT STATUS:
  * ✅ Connection management
  * ✅ Task execution
  * ✅ Task monitoring
  * ✅ Task cancellation
  * ✅ Configuration UI
- * 
+ *
  * DEPENDENCIES:
  * - useByteBotStore: ByteBot state and operations
  * - bytebotService: Core ByteBot API service
- * 
+ *
  * STATE MANAGEMENT:
  * - Local state: endpoint, command, UI state
  * - Uses Zustand store for ByteBot state
- * 
+ *
  * PERFORMANCE:
  * - Efficient task status updates
  * - Real-time task monitoring
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import ByteBotPanel from '@/components/Automation/ByteBotPanel';
- * 
+ *
  * function App() {
  *   return <ByteBotPanel />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/automation/bytebotStore.ts: ByteBot state management
  * - src/services/automation/bytebotService.ts: ByteBot API operations
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Add task history
  * - Add task scheduling

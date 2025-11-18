@@ -13,17 +13,17 @@ export interface ThemeColors {
   cyan500: string;
   cyan600: string;
   amber500: string;
-  
+
   // Background
   bgPrimary: string;
   bgSecondary: string;
   bgTertiary: string;
-  
+
   // Text
   textPrimary: string;
   textSecondary: string;
   textMuted: string;
-  
+
   // Effects
   glowViolet: string;
   glowCyan: string;

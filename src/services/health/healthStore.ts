@@ -85,7 +85,7 @@ export const useHealthStore = create<HealthStore>((set) => ({
 
   cleanup: () => {
     healthMonitor.cleanup();
-    set({ 
+    set({
       isMonitoring: false,
       stats: null,
     });

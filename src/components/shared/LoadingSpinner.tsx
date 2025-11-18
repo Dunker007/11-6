@@ -6,12 +6,12 @@ interface LoadingSpinnerProps {
   className?: string;
 }
 
-const LoadingSpinner = memo(function LoadingSpinner({ 
-  size = 20, 
-  className = '' 
+const LoadingSpinner = memo(function LoadingSpinner({
+  size = 20,
+  className = ''
 }: LoadingSpinnerProps) {
   return (
-    <div 
+    <div
       className={`loading-spinner ${className}`}
       style={{
         width: `${size}px`,

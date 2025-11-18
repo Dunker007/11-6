@@ -1,17 +1,17 @@
 /**
  * CommitHistoryViewer.tsx
- * 
+ *
  * PURPOSE:
  * Visual commit history viewer component. Displays interactive commit graph,
  * commit list with details, and allows filtering/searching commits.
- * 
+ *
  * ARCHITECTURE:
  * React component that displays Git commit history:
  * - commitHistoryService: Retrieves commit data
  * - Interactive commit graph visualization
  * - Commit list with details
  * - Filter and search functionality
- * 
+ *
  * Features:
  * - Interactive commit graph
  * - Commit details panel
@@ -19,27 +19,27 @@
  * - Search commits
  * - Branch visualization
  * - Commit diff preview
- * 
+ *
  * CURRENT STATUS:
  * ✅ Commit list display
  * ✅ Commit graph visualization
  * ✅ Filter and search
  * ✅ Commit details
- * 
+ *
  * DEPENDENCIES:
  * - commitHistoryService: Commit history operations
  * - gitDiffService: Diff operations for commit preview
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import CommitHistoryViewer from '@/components/GitHub/CommitHistoryViewer';
- * 
+ *
  * <CommitHistoryViewer
  *   repoPath="/path/to/repo"
  *   onCommitSelect={(commit) => console.log(commit)}
  * />
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/git/commitHistoryService.ts: Commit history service
  * - src/services/git/gitDiffService.ts: Diff service
@@ -48,15 +48,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { commitHistoryService, type Commit, type CommitGraph } from '@/services/git/commitHistoryService';
 import { gitDiffService } from '@/services/git/gitDiffService';
-import { 
-  GitCommit, 
-  GitBranch, 
-  Tag, 
-  User, 
-  Calendar, 
-  Search, 
-  Filter, 
-  ChevronDown, 
+import {
+  GitCommit,
+  GitBranch,
+  Tag,
+  User,
+  Calendar,
+  Search,
+  Filter,
+  ChevronDown,
   ChevronUp,
   X,
   RefreshCw,
@@ -154,7 +154,7 @@ function CommitHistoryViewer({
   const handleCommitClick = async (commit: Commit) => {
     setSelectedCommit(commit);
     onCommitSelect?.(commit);
-    
+
     // Load commit details with stats
     const details = await commitHistoryService.getCommitDetails(repoPath, commit.sha);
     if (details) {

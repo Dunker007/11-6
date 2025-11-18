@@ -65,7 +65,7 @@ function TradingChart({ productId }: TradingChartProps) {
 
     const slicedData = chartData.slice(-CHART_CONSTANTS.MAX_DATA_POINTS);
     const dataLength = slicedData.length;
-    
+
     if (dataLength === 0) return null;
 
     // Calculate min/max from slicedData (visible data) instead of entire chartData
@@ -159,18 +159,18 @@ function TradingChart({ productId }: TradingChartProps) {
                         strokeWidth="1"
                       />
                     ))}
-                    
+
                     {/* Price line */}
                     {(() => {
                       const { slicedData, dataLength, min, range } = chartCalculations;
                       if (dataLength === 0) return null;
-                      
+
                       return (
                         <polyline
                           points={slicedData
                             .map((candle: CoinbaseCandle, idx: number) => {
-                              const x = dataLength === 1 
-                                ? CHART_CONSTANTS.CHART_WIDTH / 2 
+                              const x = dataLength === 1
+                                ? CHART_CONSTANTS.CHART_WIDTH / 2
                                 : (idx / (dataLength - 1)) * CHART_CONSTANTS.CHART_WIDTH;
                               const close = parseFloat(candle.close);
                               const y = CHART_CONSTANTS.CHART_HEIGHT - ((close - min) / range) * CHART_CONSTANTS.CHART_HEIGHT;
@@ -183,28 +183,28 @@ function TradingChart({ productId }: TradingChartProps) {
                         />
                       );
                     })()}
-                    
+
                     {/* Candlesticks (if candlestick mode) */}
                     {chartType === 'candlestick' && chartCalculations && (() => {
                       const { slicedData, dataLength, min, range } = chartCalculations;
-                      
+
                       return slicedData.map((candle: CoinbaseCandle, idx: number) => {
-                        const x = dataLength === 1 
-                          ? CHART_CONSTANTS.CHART_WIDTH / 2 
+                        const x = dataLength === 1
+                          ? CHART_CONSTANTS.CHART_WIDTH / 2
                           : (idx / (dataLength - 1)) * CHART_CONSTANTS.CHART_WIDTH;
                         const open = parseFloat(candle.open);
                         const close = parseFloat(candle.close);
                         const high = parseFloat(candle.high);
                         const low = parseFloat(candle.low);
-                        
+
                         const yOpen = CHART_CONSTANTS.CHART_HEIGHT - ((open - min) / range) * CHART_CONSTANTS.CHART_HEIGHT;
                         const yClose = CHART_CONSTANTS.CHART_HEIGHT - ((close - min) / range) * CHART_CONSTANTS.CHART_HEIGHT;
                         const yHigh = CHART_CONSTANTS.CHART_HEIGHT - ((high - min) / range) * CHART_CONSTANTS.CHART_HEIGHT;
                         const yLow = CHART_CONSTANTS.CHART_HEIGHT - ((low - min) / range) * CHART_CONSTANTS.CHART_HEIGHT;
-                        
+
                         const isGreen = close >= open;
                         const color = isGreen ? 'var(--emerald-500)' : 'var(--red-500)';
-                        
+
                         return (
                           <g key={`candle-${candle.time}-${idx}`}>
                             {/* Wick */}

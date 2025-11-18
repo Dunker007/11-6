@@ -8,7 +8,7 @@ import { shallow } from 'zustand/shallow';
 /**
  * Shallow equality selector for Zustand stores
  * Prevents unnecessary re-renders when selecting multiple values
- * 
+ *
  * @example
  * ```typescript
  * const { models, isLoading } = useLLMStore(
@@ -30,7 +30,7 @@ export { shallow };
 
 /**
  * Create a memoized selector that only updates when specific fields change
- * 
+ *
  * @example
  * ```typescript
  * const selectModels = createSelector(
@@ -42,14 +42,14 @@ export { shallow };
 export function createSelector<T, U>(selector: (state: T) => U) {
   let lastResult: U | undefined;
   let lastState: T | undefined;
-  
+
   return (state: T): U => {
     if (state === lastState) {
       return lastResult as U;
     }
-    
+
     const result = selector(state);
-    
+
     // Use shallow comparison for objects/arrays
     if (
       result !== lastResult &&
@@ -57,7 +57,7 @@ export function createSelector<T, U>(selector: (state: T) => U) {
     ) {
       const resultKeys = Object.keys(result as any);
       const lastKeys = Object.keys(lastResult as any);
-      
+
       if (
         resultKeys.length === lastKeys.length &&
         resultKeys.every(key => (result as any)[key] === (lastResult as any)[key])
@@ -65,7 +65,7 @@ export function createSelector<T, U>(selector: (state: T) => U) {
         return lastResult as U;
       }
     }
-    
+
     lastState = state;
     lastResult = result;
     return result;

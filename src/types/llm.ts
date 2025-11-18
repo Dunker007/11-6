@@ -1,11 +1,11 @@
 /**
  * llm.ts
- * 
+ *
  * PURPOSE:
  * TypeScript type definitions for LLM (Large Language Model) operations. Defines interfaces
  * for models, generation options, responses, and streaming chunks. Includes provider-specific
  * options (especially Gemini) and function calling support.
- * 
+ *
  * ARCHITECTURE:
  * Core type definitions that:
  * - Define LLMModel interface (provider, size, context window, capabilities)
@@ -13,7 +13,7 @@
  * - Define GenerateResponse (text, tokens, function calls)
  * - Define StreamChunk (text, done flag, function calls)
  * - Import Gemini-specific types for extended options
- * 
+ *
  * CURRENT STATUS:
  * ✅ LLMModel interface with provider support
  * ✅ GenerateOptions with Gemini-specific options
@@ -21,21 +21,21 @@
  * ✅ StreamChunk with function call support (added Jan 2025)
  * ✅ Multi-modal content support
  * ✅ Provider-specific metadata
- * 
+ *
  * DEPENDENCIES:
  * - @/types/gemini: Gemini-specific types
- * 
+ *
  * STATE MANAGEMENT:
  * - Type definitions only (no state)
- * 
+ *
  * PERFORMANCE:
  * - Type-only file (no runtime code)
  * - Efficient type checking
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import type { LLMModel, GenerateOptions, StreamChunk } from '@/types/llm';
- * 
+ *
  * const model: LLMModel = {
  *   id: 'gemini-2.0-flash-exp',
  *   name: 'Gemini Flash 2.0',
@@ -43,20 +43,20 @@
  *   contextWindow: 32768,
  *   isAvailable: true,
  * };
- * 
+ *
  * const options: GenerateOptions = {
  *   temperature: 0.7,
  *   maxTokens: 1000,
  *   tools: [...],
  * };
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/router.ts: Uses these types
  * - src/services/ai/llmStore.ts: Uses these types
  * - src/services/ai/providers/cloudLLM.ts: Implements these interfaces
  * - src/types/gemini.ts: Gemini-specific types
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - More provider-specific options
  * - Streaming metadata types

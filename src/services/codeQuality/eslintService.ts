@@ -1,41 +1,41 @@
 /**
  * eslintService.ts
- * 
+ *
  * PURPOSE:
  * Service for real-time ESLint integration. Provides methods to lint files,
  * get lint results, and apply fixes. Designed to work with Monaco Editor
  * for real-time error/warning display.
- * 
+ *
  * ARCHITECTURE:
  * Service that uses ESLint Node.js API via IPC:
  * - ESLint runs in Electron main process
  * - Results sent to renderer via IPC
  * - Monaco Editor markers updated based on results
- * 
+ *
  * Features:
  * - Real-time file linting
  * - Error and warning detection
  * - Auto-fix capability
  * - Quick fixes
  * - Rule descriptions
- * 
+ *
  * CURRENT STATUS:
  * ✅ File linting
  * ✅ Result parsing
  * ✅ Auto-fix
- * 
+ *
  * DEPENDENCIES:
  * - ESLint: Linting engine (in main process)
  * - Electron IPC: Communication between processes
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { eslintService } from '@/services/codeQuality/eslintService';
- * 
+ *
  * const results = await eslintService.lintFile('/path/to/file.ts', content);
  * const fixed = await eslintService.fixFile('/path/to/file.ts', content);
  * ```
- * 
+ *
  * RELATED FILES:
  * - electron/ipc/eslintHandlers.ts: IPC handlers in main process
  * - src/components/VibeEditor/VibeEditor.tsx: Monaco Editor integration
@@ -170,11 +170,11 @@ class ESLintService {
 
     if (eslintResults && eslintResults.length > 0) {
       const fileResults = eslintResults[0];
-      
+
       if (fileResults.messages) {
         for (const message of fileResults.messages) {
           const severity = message.severity === 2 ? 'error' : message.severity === 1 ? 'warning' : 'info';
-          
+
           const result: ESLintResult = {
             line: message.line || 1,
             column: message.column || 1,

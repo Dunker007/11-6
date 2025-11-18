@@ -306,10 +306,10 @@ function AgentForge() {
                       rows={2}
                     />
                   </div>
-                  
+
                   <div className="agent-actions">
-                    <button 
-                      onClick={handleRunAgent} 
+                    <button
+                      onClick={handleRunAgent}
                       className="run-btn"
                       disabled={isExecuting || isLoading}
                     >

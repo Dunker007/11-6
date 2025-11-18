@@ -101,13 +101,13 @@ class SemanticIndexService {
 
     const db = await this.connect();
     const tableName = 'code_chunks';
-    
+
     try {
       // Try to open existing table
       this.table = await db.openTable(tableName);
     } catch {
       // Table doesn't exist, create it
-      // Schema: { id: vector(float32, 384), file_path: utf8, content: utf8, line_start: int32, line_end: int32, 
+      // Schema: { id: vector(float32, 384), file_path: utf8, content: utf8, line_start: int32, line_end: int32,
       //           embedding: vector(float32, 384), language: utf8, function_name: utf8, class_name: utf8 }
       // MiniLM-L6-v2 produces 384-dim embeddings
       logger.info('Creating new LanceDB table.');
@@ -155,19 +155,19 @@ class SemanticIndexService {
     try {
       const projectPath = activeProject.rootPath;
       const chunks = await this.chunkProjectFiles(projectPath);
-      
+
       this.currentProgress.totalFiles = chunks.length;
       this.notifyProgress();
 
       const table = await this.getOrCreateTable();
-      
+
       // Generate embeddings and insert chunks
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
-        
+
         try {
           const embedding = await EmbeddingService.generateEmbedding(chunk.content);
-          
+
           const row: CodeChunkRow = {
             id: chunk.id,
             filePath: chunk.filePath,
@@ -181,7 +181,7 @@ class SemanticIndexService {
           };
 
           await table.add([row]);
-          
+
           this.currentProgress.indexedFiles = i + 1;
           this.currentProgress.currentFile = chunk.filePath;
           this.notifyProgress();
@@ -198,7 +198,7 @@ class SemanticIndexService {
       this.currentProgress.status = 'error';
       this.currentProgress.error = (error as Error).message;
       this.notifyProgress();
-      
+
       errorLogger.logFromError(
         'runtime',
         error as Error,
@@ -220,7 +220,7 @@ class SemanticIndexService {
 
     try {
       const files = await this.getAllCodeFiles(projectPath);
-      
+
       for (const filePath of files) {
         try {
           const readResult = await fileSystemService.readFile(filePath);
@@ -235,7 +235,7 @@ class SemanticIndexService {
           for (let i = 0; i < lines.length; i += chunkSize - chunkOverlap) {
             const chunkLines = lines.slice(i, i + chunkSize);
             const chunkContent = chunkLines.join('\n');
-            
+
             if (chunkContent.trim().length === 0) continue;
 
             const chunk: CodeChunk = {
@@ -279,10 +279,10 @@ class SemanticIndexService {
         if (!readResult.success || !readResult.data) {
           return;
         }
-        
+
         for (const entry of readResult.data) {
           const fullPath = `${dir}/${entry.name}`;
-          
+
           // Skip node_modules, .git, etc.
           if (entry.name.startsWith('.') || entry.name === 'node_modules') {
             continue;
@@ -362,7 +362,7 @@ class SemanticIndexService {
 
       return (results as CodeChunkRow[]).map((result: CodeChunkRow) => ({
         chunk: {
-          id: result.id, 
+          id: result.id,
           filePath: result.filePath,
           content: result.content,
           lineStart: result.lineStart,

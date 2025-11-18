@@ -12,7 +12,7 @@ export interface FuzzyMatch {
 /**
  * Calculate fuzzy match score between query and target string
  * Higher score = better match
- * 
+ *
  * @param query - Search query
  * @param target - Target string to match against
  * @returns Match result with score and character positions
@@ -38,7 +38,7 @@ export function fuzzyMatch(query: string, target: string): FuzzyMatch {
 
     if (queryChar === targetChar) {
       matches.push(targetIndex);
-      
+
       // Bonus for consecutive matches
       if (targetIndex === lastMatchIndex + 1) {
         consecutiveMatches++;
@@ -86,7 +86,7 @@ export function fuzzyMatch(query: string, target: string): FuzzyMatch {
 
 /**
  * Fuzzy search through array of items
- * 
+ *
  * @param query - Search query
  * @param items - Items to search
  * @param getText - Function to extract searchable text from item
@@ -113,7 +113,7 @@ export function fuzzySearch<T>(
 
 /**
  * Multi-field fuzzy search (searches across multiple fields with weights)
- * 
+ *
  * @param query - Search query
  * @param items - Items to search
  * @param fields - Array of field extractors with weights

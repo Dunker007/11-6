@@ -1,6 +1,6 @@
 /**
  * TurboEdit.tsx
- * 
+ *
  * Enhanced Turbo Edit component with multiple modes: Single File, Multi-File, Refactor, Generate, Test, Document.
  */
 
@@ -41,13 +41,13 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
 
   const handleGenerate = async () => {
     if (!instruction.trim()) return;
-    
+
     setIsProcessing(true);
     setPreview(null);
     setRefactorPreview(null);
     setTestCode('');
     setDocumentCode('');
-    
+
     try {
       switch (mode) {
         case 'single': {
@@ -70,7 +70,7 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
           }
           break;
         }
-        
+
         case 'refactor': {
           // Refactor mode - extract symbol name and new name from instruction
           const match = instruction.match(/rename\s+["']?(\w+)["']?\s+to\s+["']?(\w+)["']?/i);
@@ -86,7 +86,7 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
           }
           break;
         }
-        
+
         case 'test': {
           // Generate tests
           const prompt = `Generate comprehensive test suite for this code:\n\n\`\`\`\n${selectedCode}\n\`\`\`\n\n${instruction}`;
@@ -95,7 +95,7 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
               temperature: 0.7,
               maxTokens: 2000,
             });
-            
+
             if (response.text) {
               // Extract code from markdown
               const codeMatch = response.text.match(/```[\w]*\n([\s\S]*?)\n```/);
@@ -108,7 +108,7 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
           }
           break;
         }
-        
+
         case 'document': {
           // Generate documentation
           const prompt = `Add comprehensive JSDoc/TSDoc comments to this code:\n\n\`\`\`\n${selectedCode}\n\`\`\`\n\n${instruction}`;
@@ -117,7 +117,7 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
               temperature: 0.7,
               maxTokens: 2000,
             });
-            
+
             if (response.text) {
               // Extract code from markdown
               const codeMatch = response.text.match(/```[\w]*\n([\s\S]*?)\n```/);
@@ -130,7 +130,7 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
           }
           break;
         }
-        
+
         case 'generate': {
           // Generate new features
           const prompt = `${instruction}\n\nGenerate complete implementation.`;
@@ -139,7 +139,7 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
               temperature: 0.9,
               maxTokens: 4000,
             });
-            
+
             if (response.text) {
               const codeMatch = response.text.match(/```[\w]*\n([\s\S]*?)\n```/);
               const generatedCode = codeMatch ? codeMatch[1] : response.text;
@@ -194,7 +194,7 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
       });
       return;
     }
-    
+
     if (preview?.editedCode) {
       const out = formatOnApply ? await prettierService.format(preview.editedCode, filePath) : preview.editedCode;
       onApply(out);
@@ -263,10 +263,10 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
         {mode === 'single' && (
           <div className="turbo-edit-agents">
             <div className="agent-status agent-ed">
-              <EdAvatar 
-                status={edStatus} 
-                size="sm" 
-                animated={isProcessing && currentWorkflow === 'ed-generating'} 
+              <EdAvatar
+                status={edStatus}
+                size="sm"
+                animated={isProcessing && currentWorkflow === 'ed-generating'}
               />
               <span className="agent-label">Ed</span>
               {currentWorkflow === 'ed-generating' && <span className="agent-status-text">Generating...</span>}
@@ -274,10 +274,10 @@ function TurboEdit({ selectedCode, filePath, onApply, onCancel }: TurboEditProps
             </div>
             <div className="agent-arrow">→</div>
             <div className="agent-status agent-itor">
-              <ItorAvatar 
-                status={itorStatus} 
-                size="sm" 
-                animated={isProcessing && currentWorkflow === 'itor-reviewing'} 
+              <ItorAvatar
+                status={itorStatus}
+                size="sm"
+                animated={isProcessing && currentWorkflow === 'itor-reviewing'}
               />
               <span className="agent-label">Itor</span>
               {currentWorkflow === 'itor-reviewing' && <span className="agent-status-text">Reviewing...</span>}

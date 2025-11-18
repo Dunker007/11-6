@@ -173,13 +173,13 @@ const WindowsOptimizer = memo(function WindowsOptimizer({ onClose }: WindowsOpti
               <div className="optimization-header">
                 <h5>{opt.name}</h5>
                 <div className="optimization-badges">
-                  <span 
+                  <span
                     className="impact-badge"
                     style={{ color: getImpactColor(opt.impact) }}
                   >
                     {opt.impact} impact
                   </span>
-                  <span 
+                  <span
                     className="risk-badge"
                     style={{ color: getRiskColor(opt.risk) }}
                   >

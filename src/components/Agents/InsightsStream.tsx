@@ -7,16 +7,16 @@ import React, { useEffect, useRef } from 'react';
 import { useInsightsStreamStore } from '@/services/agents/insightsStreamStore';
 import type { Insight } from '@/types/insights';
 import TechIcon from '../Icons/TechIcon';
-import { 
-  Brain, 
-  ShieldCheck, 
-  Play, 
-  CheckCircle, 
-  AlertTriangle, 
-  Lightbulb, 
-  GitPullRequestArrow, 
-  FileText, 
-  Terminal, 
+import {
+  Brain,
+  ShieldCheck,
+  Play,
+  CheckCircle,
+  AlertTriangle,
+  Lightbulb,
+  GitPullRequestArrow,
+  FileText,
+  Terminal,
   MessageSquare,
   Sparkles,
   Loader,
@@ -30,7 +30,7 @@ interface InsightsStreamProps {
   onClose?: () => void;
 }
 
-const InsightsStream: React.FC<InsightsStreamProps> = ({ 
+const InsightsStream: React.FC<InsightsStreamProps> = ({
   maxHeight = '400px',
   showHeader = true,
   onClose,

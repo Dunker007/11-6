@@ -14,12 +14,12 @@ interface WorkflowHeaderProps {
   onBack?: () => void;
 }
 
-function WorkflowHeader({ 
-  title, 
-  breadcrumbs, 
-  actions, 
-  statusBadge, 
-  onBack 
+function WorkflowHeader({
+  title,
+  breadcrumbs,
+  actions,
+  statusBadge,
+  onBack
 }: WorkflowHeaderProps) {
   return (
     <div className="workflow-header">
@@ -30,16 +30,16 @@ function WorkflowHeader({
             <span>Back</span>
           </button>
         )}
-        
+
         <div className="header-title-section">
           {breadcrumbs && breadcrumbs.length > 0 && (
             <div className="breadcrumbs">
               {breadcrumbs.map((crumb, index) => (
                 <span key={index} className="breadcrumb-item">
                   {index > 0 && (
-                    <TechIcon 
-                      icon={ChevronRight} 
-                      size={12} 
+                    <TechIcon
+                      icon={ChevronRight}
+                      size={12}
                       className="breadcrumb-separator"
                     />
                   )}
@@ -48,7 +48,7 @@ function WorkflowHeader({
               ))}
             </div>
           )}
-          
+
           <h2 className="header-title">
             <span className="title-line"></span>
             <span className="title-text">{title}</span>

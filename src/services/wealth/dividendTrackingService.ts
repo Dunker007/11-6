@@ -1,6 +1,6 @@
 /**
  * Dividend Tracking Service
- * 
+ *
  * Tracks dividend payments, calculates yields, and provides dividend calendar
  * Similar to Sharesight's dividend tracking features
  */
@@ -71,8 +71,8 @@ class DividendTrackingService {
     const positions = asset.holdings || [];
     const enrichedDividends = dividends.map(div => {
       // Find position quantity at ex-dividend date
-      const position = positions.find(p => 
-        p.symbol === div.symbol && 
+      const position = positions.find(p =>
+        p.symbol === div.symbol &&
         (!div.exDividendDate || p.purchaseDate <= div.exDividendDate)
       );
 
@@ -242,12 +242,12 @@ class DividendTrackingService {
       }
     }
 
-    const dividendYield = totalCurrentValue > 0 
-      ? (totalDividends / totalCurrentValue) * 100 
+    const dividendYield = totalCurrentValue > 0
+      ? (totalDividends / totalCurrentValue) * 100
       : 0;
-    
-    const yieldOnCost = totalCostBasis > 0 
-      ? (totalDividends / totalCostBasis) * 100 
+
+    const yieldOnCost = totalCostBasis > 0
+      ? (totalDividends / totalCostBasis) * 100
       : 0;
 
     return {
@@ -290,7 +290,7 @@ class DividendTrackingService {
     // Add to asset holdings
     const holdings = asset.holdings || [];
     holdings.push(newPosition);
-    
+
     wealthService.updateAsset(assetId, {
       holdings,
     });

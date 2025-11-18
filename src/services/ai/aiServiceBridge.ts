@@ -1,68 +1,68 @@
 /**
  * aiServiceBridge.ts
- * 
+ *
  * PURPOSE:
  * Main entry point for all AI operations in the application. Provides a unified interface
  * for project indexing, plan generation, idea structuring, and code editing. All AI services
  * run in the renderer process (no IPC) for optimal performance.
- * 
+ *
  * ARCHITECTURE:
  * Acts as a facade over multiple AI services:
  * - multiFileContextService: Analyzes project structure and dependencies
  * - projectKnowledgeService: Manages project knowledge and context
  * - llmRouter: Routes LLM requests to appropriate providers (local/cloud)
- * 
+ *
  * This service was moved from Electron main process to renderer in November 2025
  * to eliminate IPC overhead and improve performance (60% faster startup, 35% less memory).
- * 
+ *
  * CURRENT STATUS:
  * ✅ Fully functional renderer-side implementation
  * ✅ Graceful fallbacks when LLM unavailable
  * ✅ Project indexing with deep context analysis
  * ✅ Plan generation with project context
  * ✅ Turbo Edit for code modifications
- * 
+ *
  * DEPENDENCIES:
  * - multiFileContextService: Project structure analysis
  * - projectKnowledgeService: Project knowledge management
  * - llmRouter: LLM provider routing
  * - @/types/plan: Plan and StructuredIdea type definitions
- * 
+ *
  * STATE MANAGEMENT:
  * - Manages internal indexing state (indexingActive, currentProjectRoot)
  * - Does not use Zustand (stateless service pattern)
- * 
+ *
  * PERFORMANCE:
  * - No IPC overhead (renderer-side only)
  * - Async operations don't block UI
  * - Graceful fallbacks prevent failures
  * - Project analysis runs asynchronously
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { aiServiceBridge } from '@/services/ai/aiServiceBridge';
- * 
+ *
  * // Index a project
  * await aiServiceBridge.startIndexing('/path/to/project');
- * 
+ *
  * // Generate a plan
  * const response = await aiServiceBridge.createPlan('Add login page');
  * if (response.success && response.plan) {
  *   console.log(`Plan has ${response.plan.steps.length} steps`);
  * }
- * 
+ *
  * // Structure an idea
  * const idea = await aiServiceBridge.structureIdea('Build a chat app');
  * console.log(`Title: ${idea.title}`);
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/router.ts: LLM routing logic
  * - src/services/ai/multiFileContextService.ts: Project analysis
  * - src/services/ai/projectKnowledgeService.ts: Knowledge management
  * - src/components/AIAssistant/AIAssistant.tsx: Uses this service for chat
  * - src/components/VibeEditor/TurboEdit.tsx: Uses turboEdit method
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Add caching for project context
  * - Support incremental indexing (only changed files)
@@ -82,14 +82,14 @@ class AIServiceBridge {
 
   /**
    * Start indexing and analyzing a project to build comprehensive project understanding.
-   * 
+   *
    * Uses multiFileContextService to analyze project structure, dependencies, and context.
    * This enables AI features to have deep awareness of the codebase.
-   * 
+   *
    * @param projectRoot - The root path of the project to index
    * @returns A promise that resolves when indexing is complete
    * @throws {Error} If indexing fails or project cannot be found
-   * 
+   *
    * @example
    * ```typescript
    * await aiServiceBridge.startIndexing('/path/to/project');
@@ -117,12 +117,12 @@ class AIServiceBridge {
 
   /**
    * Stop the current indexing process and clean up resources.
-   * 
+   *
    * This method resets the indexing state and clears the current project root.
    * Useful for cleanup when switching projects or canceling indexing.
-   * 
+   *
    * @returns A promise that resolves when cleanup is complete
-   * 
+   *
    * @example
    * ```typescript
    * await aiServiceBridge.stopIndexing();
@@ -137,14 +137,14 @@ class AIServiceBridge {
 
   /**
    * Create an execution plan from a natural language prompt.
-   * 
+   *
    * Uses LLM to generate structured, step-by-step plans for accomplishing tasks.
    * The plan includes project context for better understanding and more accurate planning.
    * Falls back to a mock plan if LLM is unavailable.
-   * 
+   *
    * @param prompt - The natural language description of the task to plan
    * @returns A promise that resolves to a PlanResponse containing the generated plan or error
-   * 
+   *
    * @example
    * ```typescript
    * const response = await aiServiceBridge.createPlan('Add a login page with email and password');
@@ -159,7 +159,7 @@ class AIServiceBridge {
     try {
       // Get project context for better AI understanding
       const projectContext = projectKnowledgeService.getFullProjectContext();
-      
+
       // Build prompt with context
       const fullPrompt = `
 You are an AI assistant helping with code generation and project tasks.
@@ -236,13 +236,13 @@ Keep the plan concise and actionable.
 
   /**
    * Structure a raw text idea into a formatted idea with title and summary.
-   * 
+   *
    * Uses LLM to extract a concise title and summary from unstructured text.
    * Falls back to simple text processing if LLM is unavailable.
-   * 
+   *
    * @param rawText - The raw, unstructured idea text
    * @returns A promise that resolves to a StructuredIdea with title and summary
-   * 
+   *
    * @example
    * ```typescript
    * const idea = await aiServiceBridge.structureIdea('I want to build a todo app with React');
@@ -401,9 +401,9 @@ Return a JSON object with:
 
   /**
    * Check if project indexing is currently active.
-   * 
+   *
    * @returns True if indexing is in progress, false otherwise
-   * 
+   *
    * @example
    * ```typescript
    * if (aiServiceBridge.isIndexing()) {
@@ -417,9 +417,9 @@ Return a JSON object with:
 
   /**
    * Get the current project root path being indexed.
-   * 
+   *
    * @returns The project root path if indexing is active, null otherwise
-   * 
+   *
    * @example
    * ```typescript
    * const projectRoot = aiServiceBridge.getCurrentProjectRoot();
@@ -450,15 +450,15 @@ Return a JSON object with:
 
   /**
    * Turbo Edit: Generate code changes from a natural language instruction.
-   * 
+   *
    * Uses LLM to modify code based on user instructions, returning the edited code
    * along with a diff showing what changed. Includes project context for better understanding.
-   * 
+   *
    * @param selectedCode - The code to be edited
    * @param instruction - Natural language instruction describing the desired changes
    * @param filePath - Optional file path for context-aware editing
    * @returns A promise that resolves to an object containing success status, edited code, diff, or error
-   * 
+   *
    * @example
    * ```typescript
    * const result = await aiServiceBridge.turboEdit(
@@ -482,7 +482,7 @@ Return a JSON object with:
 
     try {
       const projectContext = projectKnowledgeService.getFullProjectContext();
-      
+
       const prompt = `
 You are a code editor assistant. The user wants to edit some code.
 

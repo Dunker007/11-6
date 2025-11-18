@@ -33,7 +33,7 @@ class NotificationService {
     eventBus.on('system:health-alert', (payload) => {
       const severity = payload.severity || 'warning';
       const message = payload.alert || payload.message || 'System health alert';
-      
+
       switch (severity) {
         case 'critical':
         case 'error':

@@ -1,6 +1,6 @@
 /**
  * SplitView.tsx
- * 
+ *
  * Split view container component supporting horizontal/vertical splits with resize handles.
  * Manages multiple editor panes in a tree structure.
  */
@@ -39,10 +39,10 @@ function SplitView({ onSplit }: SplitViewProps) {
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!resizing || !containerRef.current) return;
-    
+
     const container = containerRef.current;
     const rect = container.getBoundingClientRect();
-    
+
     // Find the pane being resized and its sibling
     const findPaneAndSibling = (pane: EditorPane, parent?: EditorPane): { pane: EditorPane; sibling: EditorPane; parent: EditorPane; index: number } | null => {
       if (pane.children) {
@@ -54,7 +54,7 @@ function SplitView({ onSplit }: SplitViewProps) {
           if (child.id === resizing.paneId && i < pane.children.length - 1) {
             return { pane: child, sibling: pane.children[i + 1], parent: pane, index: i };
           }
-          
+
           const result = findPaneAndSibling(child, pane);
           if (result) return result;
         }
@@ -63,7 +63,7 @@ function SplitView({ onSplit }: SplitViewProps) {
     };
 
     if (!splitView) return;
-    
+
     const result = findPaneAndSibling(splitView.rootPane);
     if (!result) return;
 
@@ -72,18 +72,18 @@ function SplitView({ onSplit }: SplitViewProps) {
     const currentPos = isHorizontal ? e.clientY : e.clientX;
     const containerPos = isHorizontal ? rect.top : rect.left;
     const containerSize = isHorizontal ? rect.height : rect.width;
-    
+
     const relativePos = currentPos - containerPos;
     const percentage = (relativePos / containerSize) * 100;
-    
+
     // Update pane sizes
     if (parent.children) {
       const newSizes = [...parent.children];
       const clampedPercentage = Math.max(10, Math.min(90, percentage));
-      
+
       newSizes[index - 1] = { ...newSizes[index - 1], size: clampedPercentage };
       newSizes[index] = { ...newSizes[index], size: 100 - clampedPercentage };
-      
+
       // Update the split view structure
       const updatePane = (pane: EditorPane): EditorPane => {
         if (pane.id === parent.id) {
@@ -92,17 +92,17 @@ function SplitView({ onSplit }: SplitViewProps) {
             children: newSizes,
           };
         }
-        
+
         if (pane.children) {
           return {
             ...pane,
             children: pane.children.map(updatePane),
           };
         }
-        
+
         return pane;
       };
-      
+
       // Update via store
       const currentState = useTabStore.getState();
       if (currentState.splitView) {
@@ -125,7 +125,7 @@ function SplitView({ onSplit }: SplitViewProps) {
     if (resizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      
+
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
@@ -138,13 +138,13 @@ function SplitView({ onSplit }: SplitViewProps) {
       // Split container
       const isHorizontal = pane.splitDirection === 'horizontal';
       const directionClass = isHorizontal ? 'split-horizontal' : 'split-vertical';
-      
+
       return (
         <div key={pane.id} className={`split-container ${directionClass}`}>
           {pane.children.map((child, index) => {
             const childPane = renderPane(child, depth + 1);
             const size = child.size || (100 / pane.children!.length);
-            
+
             return (
               <div key={child.id} style={{ [isHorizontal ? 'height' : 'width']: `${size}%` }}>
                 {childPane}
@@ -166,7 +166,7 @@ function SplitView({ onSplit }: SplitViewProps) {
         </div>
       );
     }
-    
+
     // Leaf pane (editor)
     return (
       <div key={pane.id} className="split-pane">

@@ -44,8 +44,8 @@ class ItorService {
 
       // Calculate score (0-100, higher is better)
       const totalIssues = issues.length;
-      const score = totalIssues === 0 
-        ? 100 
+      const score = totalIssues === 0
+        ? 100
         : Math.max(0, 100 - (criticalIssues * 20) - (highIssues * 10) - (mediumIssues * 5) - (lowIssues * 2));
 
       const approved = criticalIssues === 0 && highIssues === 0 && score >= 80;

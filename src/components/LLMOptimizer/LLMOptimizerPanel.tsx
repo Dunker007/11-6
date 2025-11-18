@@ -1,11 +1,11 @@
 /**
  * LLMOptimizerPanel.tsx
- * 
+ *
  * PURPOSE:
  * Main panel component for LLM optimization and management. Provides comprehensive interface
  * for hardware profiling, model catalog browsing, recommendations, benchmarks, and system
  * health monitoring. Central hub for all LLM optimization features.
- * 
+ *
  * ARCHITECTURE:
  * Orchestrates multiple sub-components:
  * - ConnectionStatus: Provider connection status
@@ -17,7 +17,7 @@
  * - BenchmarkRunner: Model performance benchmarking
  * - SystemHealth: System resource monitoring
  * - LLMRevenueCommandCenter: Revenue tracking (default tab)
- * 
+ *
  * CURRENT STATUS:
  * ✅ Hardware detection and profiling
  * ✅ Model catalog loading and display
@@ -26,37 +26,37 @@
  * ✅ Provider discovery
  * ✅ Tab-based navigation (optimization, health, revenue)
  * ✅ Use case and priority selection
- * 
+ *
  * DEPENDENCIES:
  * - useLLMOptimizerStore: Optimization state
  * - useLLMStore: LLM models and providers
  * - llmOptimizerService: Optimization logic
  * - Sub-components: Various optimization UI components
- * 
+ *
  * STATE MANAGEMENT:
  * - Uses multiple Zustand stores
  * - Local state: activeTab, initialized, preselectedBenchmarkModels
  * - Auto-initializes on mount (hardware detection, catalog loading)
- * 
+ *
  * PERFORMANCE:
  * - Lazy initialization (only once)
  * - Memoized use case options
  * - Efficient store selectors
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import LLMOptimizerPanel from '@/components/LLMOptimizer/LLMOptimizerPanel';
- * 
+ *
  * function App() {
  *   return <LLMOptimizerPanel />;
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/llmOptimizerStore.ts: Optimization state
  * - src/services/ai/llmOptimizerService.ts: Optimization logic
  * - src/components/LLMOptimizer/*: Sub-components
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Real-time hardware monitoring
  * - Model performance history

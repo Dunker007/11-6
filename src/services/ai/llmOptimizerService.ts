@@ -1,9 +1,9 @@
 /**
  * LLM Optimizer Service
- * 
+ *
  * Main entry point for LLM optimization services. Re-exports functionality from
  * specialized service modules for backward compatibility.
- * 
+ *
  * This service has been split into focused modules:
  * - modelCatalogService: Model catalog and recommendations
  * - hardwareDetectionService: Hardware profiling

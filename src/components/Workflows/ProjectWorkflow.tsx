@@ -1,6 +1,6 @@
 /**
  * Project Workflow Component
- * 
+ *
  * Provides UI for Project workflow: create, open, analyze, generate, git-init
  */
 

@@ -56,14 +56,14 @@ function LayoutPlayground() {
     themeService.setTheme(customTheme.id);
     setSelectedTheme(customTheme);
     setIsCustomizing(false);
-    
+
     // Refresh themes list
     setThemes(themeService.getAllThemes());
   };
 
   const handleDeleteCustomTheme = () => {
     if (!selectedTheme || !selectedTheme.id.startsWith('custom-')) return;
-    
+
     if (confirm(`Delete theme "${selectedTheme.name}"?`)) {
       themeService.deleteCustomTheme(selectedTheme.id);
       const allThemes = themeService.getAllThemes();

@@ -1,6 +1,6 @@
 /**
  * terminalAI.ts
- * 
+ *
  * Ed's terminal command execution service.
  * Allows Ed to execute commands based on natural language requests.
  */

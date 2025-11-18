@@ -1,6 +1,6 @@
 /**
  * QuickFileSwitcher.tsx
- * 
+ *
  * Quick file switcher (Ctrl+P) with fuzzy search.
  * Allows quick navigation to any file in the project.
  */
@@ -30,9 +30,9 @@ function QuickFileSwitcher({ isOpen, onClose, onFileSelect }: QuickFileSwitcherP
   // Get all files from project
   const allFiles = useMemo(() => {
     if (!activeProject) return [];
-    
+
     const files: Array<{ path: string; name: string }> = [];
-    
+
     const traverse = (fileList: typeof activeProject.files) => {
       for (const file of fileList) {
         if (!file.isDirectory) {
@@ -46,7 +46,7 @@ function QuickFileSwitcher({ isOpen, onClose, onFileSelect }: QuickFileSwitcherP
         }
       }
     };
-    
+
     traverse(activeProject.files);
     return files;
   }, [activeProject]);
@@ -64,7 +64,7 @@ function QuickFileSwitcher({ isOpen, onClose, onFileSelect }: QuickFileSwitcherP
     if (!query.trim()) {
       return allFiles.slice(0, 20); // Show first 20 files when no query
     }
-    
+
     const results = fuse.search(query);
     return results.map(result => result.item);
   }, [query, fuse, allFiles]);
@@ -132,11 +132,11 @@ function QuickFileSwitcher({ isOpen, onClose, onFileSelect }: QuickFileSwitcherP
   const handleFileSelect = (path: string) => {
     const tabId = openTab(path);
     setActiveTab(tabId);
-    
+
     if (onFileSelect) {
       onFileSelect(path);
     }
-    
+
     onClose();
   };
 
@@ -163,7 +163,7 @@ function QuickFileSwitcher({ isOpen, onClose, onFileSelect }: QuickFileSwitcherP
             <TechIcon icon={X} size={16} glow="none" />
           </button>
         </div>
-        
+
         <div className="quick-file-switcher-results" ref={resultsRef}>
           {searchResults.length === 0 ? (
             <div className="quick-file-switcher-empty">
@@ -185,7 +185,7 @@ function QuickFileSwitcher({ isOpen, onClose, onFileSelect }: QuickFileSwitcherP
             ))
           )}
         </div>
-        
+
         <div className="quick-file-switcher-footer">
           <span className="quick-file-switcher-hint">↑↓ Navigate</span>
           <span className="quick-file-switcher-hint">Enter Open</span>

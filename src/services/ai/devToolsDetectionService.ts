@@ -1,6 +1,6 @@
 /**
  * Dev Tools Detection Service
- * 
+ *
  * Detects installed development tools and storage drivers on the system.
  */
 
@@ -106,7 +106,7 @@ export async function detectStorageDrivers(): Promise<StorageDriversStatus> {
 
       // Check for USB storage drivers
       if (usb && usb.length > 0) {
-        const usbStorage = usb.filter((device: Systeminformation.UsbData) => 
+        const usbStorage = usb.filter((device: Systeminformation.UsbData) =>
           device.type && device.type.toLowerCase().includes('storage')
         );
         if (usbStorage.length > 0) {

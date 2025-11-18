@@ -15,10 +15,10 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
 
   const filteredHistory = useMemo(() => {
     if (!netWorthHistory.length) return [];
-    
+
     const endDate = new Date();
     const startDate = new Date();
-    
+
     switch (period) {
       case '1D':
         startDate.setDate(startDate.getDate() - 1);
@@ -44,21 +44,21 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
       case 'ALL':
         return netWorthHistory;
     }
-    
+
     return netWorthHistory.filter(h => h.date >= startDate && h.date <= endDate);
   }, [netWorthHistory, period]);
 
   const comparisonHistory = useMemo(() => {
     if (!comparePeriod || !filteredHistory.length) return null;
-    
-    const periodDays = filteredHistory.length > 0 
+
+    const periodDays = filteredHistory.length > 0
       ? Math.floor((filteredHistory[filteredHistory.length - 1].date.getTime() - filteredHistory[0].date.getTime()) / (1000 * 60 * 60 * 24))
       : 365;
-    
+
     const comparisonStart = new Date(filteredHistory[0].date);
     comparisonStart.setDate(comparisonStart.getDate() - periodDays);
     const comparisonEnd = new Date(filteredHistory[0].date);
-    
+
     return netWorthHistory.filter(h => h.date >= comparisonStart && h.date <= comparisonEnd);
   }, [filteredHistory, comparePeriod, netWorthHistory]);
 
@@ -86,31 +86,31 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
     const maxNetWorth = Math.max(...filteredHistory.map((h) => h.netWorth));
     const minNetWorth = Math.min(...filteredHistory.map((h) => h.netWorth));
     const range = maxNetWorth - minNetWorth || 1;
-    
+
     const points = filteredHistory
       .map((h, idx) => {
         const dataLength = filteredHistory.length;
-        const x = dataLength === 1 
-          ? 400 
+        const x = dataLength === 1
+          ? 400
           : (idx / (dataLength - 1)) * 800;
         const y = 200 - ((h.netWorth - minNetWorth) / range) * 200;
         return `${x},${y}`;
       })
       .join(' ');
-    
+
     const comparisonPoints = comparisonHistory && comparisonHistory.length > 0
       ? comparisonHistory
           .map((h, idx) => {
             const dataLength = comparisonHistory.length;
-            const x = dataLength === 1 
-              ? 400 
+            const x = dataLength === 1
+              ? 400
               : (idx / (dataLength - 1)) * 800;
             const y = 200 - ((h.netWorth - minNetWorth) / range) * 200;
             return `${x},${y}`;
           })
           .join(' ')
       : null;
-    
+
     return { points, comparisonPoints, maxNetWorth, minNetWorth, range };
   }, [filteredHistory, comparisonHistory]);
 
@@ -191,7 +191,7 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
             </span>
           </div>
         </div>
-        
+
         <div className="net-worth-controls">
           <div className="period-selector-group">
             <Calendar size={16} />
@@ -210,7 +210,7 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
               <option value="ALL">All Time</option>
             </select>
           </div>
-          
+
           <label className="compare-toggle">
             <input
               type="checkbox"
@@ -219,7 +219,7 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
             />
             <span>Compare</span>
           </label>
-          
+
           <div className="export-dropdown">
             <button className="export-button" title="Export">
               <Download size={16} />
@@ -270,7 +270,7 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
                   </linearGradient>
                 )}
               </defs>
-              
+
               {/* Grid lines */}
               {[0, 1, 2, 3, 4].map((i) => (
                 <g key={`grid-${i}`}>
@@ -292,7 +292,7 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
                   </text>
                 </g>
               ))}
-              
+
               {/* Comparison area (if enabled) */}
               {comparePeriod && chartData.comparisonPoints && (
                 <>
@@ -310,7 +310,7 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
                   />
                 </>
               )}
-              
+
               {/* Current period area and line */}
               <polygon
                 points={`0,300 ${chartData.points} 800,300`}
@@ -322,7 +322,7 @@ const NetWorthDashboard = memo(function NetWorthDashboard() {
                 stroke="var(--violet-500)"
                 strokeWidth="3"
               />
-              
+
               {/* Data points */}
               {filteredHistory.map((h, idx) => {
                 const dataLength = filteredHistory.length;

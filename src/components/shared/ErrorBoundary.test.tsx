@@ -58,7 +58,7 @@ describe('ErrorBoundary', () => {
 
   it('should display custom fallback when provided', () => {
     const customFallback = <div>Custom error message</div>;
-    
+
     render(
       <ErrorBoundary fallback={customFallback}>
         <ThrowError shouldThrow={true} />
@@ -70,7 +70,7 @@ describe('ErrorBoundary', () => {
 
   it('should call onError callback when error occurs', () => {
     const onError = vi.fn();
-    
+
     render(
       <ErrorBoundary onError={onError}>
         <ThrowError shouldThrow={true} />
@@ -88,7 +88,7 @@ describe('ErrorBoundary', () => {
     );
 
     expect(screen.getByText(/Try Again/i)).toBeInTheDocument();
-    
+
     // Simulate retry by re-rendering without error
     rerender(
       <ErrorBoundary>

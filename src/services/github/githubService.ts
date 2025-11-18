@@ -172,7 +172,7 @@ export class GitHubService {
   async commit(path: string, message: string, files?: string[]): Promise<{ success: boolean; hash?: string; error?: string }> {
     try {
       const git = await getSimpleGit(path);
-      
+
       if (files && files.length > 0) {
         await git.add(files);
       } else {
@@ -361,7 +361,7 @@ export class GitHubService {
   async smartSync(path: string, remote = 'origin'): Promise<{ success: boolean; error?: string; hasConflicts?: boolean }> {
     try {
       const git = await getSimpleGit(path);
-      
+
       // Check if there are uncommitted changes
       const status = await git.status();
       if (status.files.length > 0) {

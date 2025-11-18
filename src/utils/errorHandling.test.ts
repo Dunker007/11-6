@@ -30,9 +30,9 @@ describe('errorHandling', () => {
     it('should return result from successful async function', async () => {
       const fn = async () => 'success';
       const wrapped = handleAsyncError(fn);
-      
+
       const result = await wrapped();
-      
+
       expect(result).toBe('success');
     });
 
@@ -41,9 +41,9 @@ describe('errorHandling', () => {
         throw new Error('test error');
       };
       const wrapped = handleAsyncError(fn);
-      
+
       const result = await wrapped();
-      
+
       expect(result).toBeNull();
     });
 
@@ -53,9 +53,9 @@ describe('errorHandling', () => {
       };
       const onError = vi.fn();
       const wrapped = handleAsyncError(fn, { onError });
-      
+
       await wrapped();
-      
+
       expect(onError).toHaveBeenCalledWith(expect.any(Error), {});
     });
 
@@ -65,9 +65,9 @@ describe('errorHandling', () => {
         throw new Error('test error');
       };
       const wrapped = handleAsyncError(fn, { logError: true });
-      
+
       await wrapped();
-      
+
       expect(errorLogger.logFromError).toHaveBeenCalled();
     });
 
@@ -77,9 +77,9 @@ describe('errorHandling', () => {
         throw new Error('test error');
       };
       const wrapped = handleAsyncError(fn, { logError: false });
-      
+
       await wrapped();
-      
+
       expect(errorLogger.logFromError).not.toHaveBeenCalled();
     });
 
@@ -90,9 +90,9 @@ describe('errorHandling', () => {
       const onError = vi.fn();
       const context = { userId: '123', action: 'test' };
       const wrapped = handleAsyncError(fn, { onError, context });
-      
+
       await wrapped();
-      
+
       expect(onError).toHaveBeenCalledWith(expect.any(Error), context);
     });
   });
@@ -101,9 +101,9 @@ describe('errorHandling', () => {
     it('should create error handler that logs errors', () => {
       const handler = createErrorHandler('TestSource');
       const error = new Error('test error');
-      
+
       handler(error);
-      
+
       const { errorLogger } = require('@/services/errors/errorLogger');
       expect(errorLogger.logFromError).toHaveBeenCalledWith(
         'runtime',
@@ -117,9 +117,9 @@ describe('errorHandling', () => {
       const customHandler = vi.fn();
       const handler = createErrorHandler('TestSource', customHandler);
       const error = new Error('test error');
-      
+
       handler(error);
-      
+
       expect(customHandler).toHaveBeenCalledWith(error, expect.objectContaining({ source: 'TestSource' }));
     });
 
@@ -127,9 +127,9 @@ describe('errorHandling', () => {
       const handler = createErrorHandler('TestSource');
       const error = new Error('test error');
       const context = { userId: '123' };
-      
+
       handler(error, context);
-      
+
       const { errorLogger } = require('@/services/errors/errorLogger');
       expect(errorLogger.logFromError).toHaveBeenCalledWith(
         'runtime',
@@ -143,13 +143,13 @@ describe('errorHandling', () => {
   describe('isErrorType', () => {
     it('should return true for matching error type', () => {
       const error = new TypeError('test');
-      
+
       expect(isErrorType(error, 'TypeError')).toBe(true);
     });
 
     it('should return false for non-matching error type', () => {
       const error = new TypeError('test');
-      
+
       expect(isErrorType(error, 'ReferenceError')).toBe(false);
     });
 
@@ -163,7 +163,7 @@ describe('errorHandling', () => {
   describe('getErrorMessage', () => {
     it('should extract message from Error object', () => {
       const error = new Error('test error');
-      
+
       expect(getErrorMessage(error)).toBe('test error');
     });
 
@@ -184,7 +184,7 @@ describe('errorHandling', () => {
     it('should handle Error without message', () => {
       const error = new Error();
       error.message = '';
-      
+
       expect(getErrorMessage(error)).toBe('An error occurred');
     });
   });
@@ -192,7 +192,7 @@ describe('errorHandling', () => {
   describe('getErrorStack', () => {
     it('should extract stack from Error object', () => {
       const error = new Error('test error');
-      
+
       expect(getErrorStack(error)).toBeTruthy();
       expect(typeof getErrorStack(error)).toBe('string');
     });
@@ -210,7 +210,7 @@ describe('errorHandling', () => {
         source: 'TestComponent',
         fallbackMessage: 'Test error message',
       });
-      
+
       expect(config.onError).toBeDefined();
       expect(config.fallback).toBeDefined();
     });
@@ -221,12 +221,12 @@ describe('errorHandling', () => {
         source: 'TestComponent',
         onError,
       });
-      
+
       const error = new Error('test error');
       const info = { componentStack: 'at Component' };
-      
+
       config.onError(error, info);
-      
+
       expect(onError).toHaveBeenCalledWith(error, expect.objectContaining({ componentStack: 'at Component' }));
     });
 
@@ -235,9 +235,9 @@ describe('errorHandling', () => {
         source: 'TestComponent',
         fallbackMessage: 'Custom error message',
       });
-      
+
       const Fallback = config.fallback;
-      
+
       // This would normally be rendered by React, but we can check it's a function component
       expect(typeof Fallback).toBe('function');
     });

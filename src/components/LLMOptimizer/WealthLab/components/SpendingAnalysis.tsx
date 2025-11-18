@@ -556,21 +556,21 @@ const SpendingAnalysis = memo(function SpendingAnalysis({ month, year }: Spendin
                     const startAngle = currentAngle;
                     const endAngle = currentAngle + angle;
                     currentAngle = endAngle;
-                    
+
                     const startAngleRad = (startAngle * Math.PI) / 180;
                     const endAngleRad = (endAngle * Math.PI) / 180;
                     const radius = 80;
                     const cx = 200;
                     const cy = 150;
-                    
+
                     const x1 = cx + radius * Math.cos(startAngleRad);
                     const y1 = cy + radius * Math.sin(startAngleRad);
                     const x2 = cx + radius * Math.cos(endAngleRad);
                     const y2 = cy + radius * Math.sin(endAngleRad);
                     const largeArcFlag = angle > 180 ? 1 : 0;
-                    
+
                     const path = `M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
-                    
+
                     return (
                       <g key={`slice-${index}`}>
                         <path

@@ -29,15 +29,15 @@ export type { LoadingProps } from './Loading';
 export { CommandPalette, useCommandPalette } from './CommandPalette';
 export type { CommandPaletteProps, CommandItem } from './CommandPalette';
 
-export { 
-  Skeleton, 
-  SkeletonText, 
-  SkeletonCard, 
-  SkeletonList, 
-  SkeletonTable, 
+export {
+  Skeleton,
+  SkeletonText,
+  SkeletonCard,
+  SkeletonList,
+  SkeletonTable,
   SkeletonDashboard,
   SkeletonActivityItem,
-  SkeletonTransactionItem 
+  SkeletonTransactionItem
 } from './Skeleton';
 export type { SkeletonProps } from './Skeleton';
 

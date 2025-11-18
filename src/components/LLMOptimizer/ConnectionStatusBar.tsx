@@ -129,10 +129,10 @@ const ConnectionStatusBar = () => {
 
       if (isHealthy) {
         // Update latency for this provider
-        setProviderStatuses(prev => prev.map(p => 
+        setProviderStatuses(prev => prev.map(p =>
           p.provider === providerName ? { ...p, latency, isOnline: true } : p
         ));
-        
+
         showToast({
           variant: 'success',
           title: 'Connection test successful',
@@ -185,11 +185,11 @@ const ConnectionStatusBar = () => {
           </span>
         )}
       </div>
-      
+
       <div className="connection-bar-providers">
         {providerStatuses.map((status) => (
-          <div 
-            key={status.provider} 
+          <div
+            key={status.provider}
             className={`connection-bar-item ${status.isOnline ? 'online' : 'offline'} ${status.type}`}
             title={`${status.name}: ${status.isOnline ? `${status.modelCount} models available${status.latency ? ` • ${status.latency.toFixed(0)}ms latency` : ''}` : 'Offline'}`}
           >
@@ -237,7 +237,7 @@ const ConnectionStatusBar = () => {
         ))}
       </div>
 
-      <button 
+      <button
         className="connection-bar-refresh"
         onClick={handleRefresh}
         disabled={isLoading}

@@ -18,12 +18,12 @@
 :root {
   /* Additional legacy variables and overrides */
   --bg-primary-gradient: var(--gradient-bg-primary);
-  
+
   /* Panel Effects - Glassmorphism (legacy aliases) */
   --panel-bg: var(--color-bg-secondary);
   --panel-border: var(--color-border-primary);
   --panel-blur: blur(20px);
-  
+
   /* Holographic Effects (legacy aliases) */
   --glow-violet: var(--glow-primary);
   --glow-cyan: var(--glow-accent-cyan);
@@ -36,7 +36,7 @@
   --border-radius-global: var(--radius-lg);
   --glow-interactive: var(--glow-interactive);
   --shadow-soft: var(--shadow-soft);
-  
+
   /* Gradients (legacy) */
   --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
   --gradient-accent: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-amber-500));
@@ -150,10 +150,10 @@ html {
 }
 
 @keyframes pulseGlow {
-  0%, 100% { 
+  0%, 100% {
     box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
   }
-  50% { 
+  50% {
     box-shadow: 0 8px 48px rgba(168, 85, 247, 0.8);
   }
 }
@@ -230,11 +230,11 @@ select:focus {
 
 /* Global Animations */
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
+  from {
+    opacity: 0;
     transform: translateY(10px);
   }
-  to { 
+  to {
     opacity: 1;
     transform: translateY(0);
   }

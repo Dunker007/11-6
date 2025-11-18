@@ -152,12 +152,12 @@ export class NotebookLMService {
     }
 
     let stats = { added: 0, updated: 0, skipped: 0 };
-    
+
     // Recursively get all files in the project
     const getAllFiles = async (dir: string): Promise<string[]> => {
       const result = await fileSystemService.readdir(dir);
       if (!result.success || !result.data) return [];
-      
+
       const files: string[] = [];
       for (const entry of result.data) {
         if (entry.isDirectory) {
@@ -184,7 +184,7 @@ export class NotebookLMService {
           stats.skipped++;
           return;
         }
-        
+
         const fileContent = fileContentResult.data;
         if (fileContent.length > MAX_FILE_SIZE_BYTES) {
           stats.skipped++;
@@ -268,7 +268,7 @@ export class NotebookLMService {
     // MOCK IMPLEMENTATION
     logger.info('Fetching notebooks from NotebookLM API...');
     await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-    
+
     const mockNotebooks: Notebook[] = [
       { id: 'notebook-1', name: 'Project Titan Research', documents: [], createdAt: new Date(), updatedAt: new Date() },
       { id: 'notebook-2', name: 'Q3 Marketing Strategy', documents: [], createdAt: new Date(), updatedAt: new Date() },
@@ -282,7 +282,7 @@ export class NotebookLMService {
       }
     });
     this.saveNotebooks();
-    
+
     return Array.from(this.notebooks.values());
   }
 
@@ -294,10 +294,10 @@ export class NotebookLMService {
     if (!this.apiKey) {
       throw new Error('NotebookLM API key not configured.');
     }
-    
+
     logger.info(`Fetching sources for notebook ${notebookId}...`);
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-    
+
     // MOCK IMPLEMENTATION
     const mockSources: { [key: string]: Source[] } = {
       'notebook-1': [

@@ -77,7 +77,7 @@ export class LuxRigMemoryAdapter implements MemoryStorageAdapter {
     try {
       const headers = await this.getHeaders();
       const params = new URLSearchParams();
-      
+
       if (options.agent) params.append('agent', options.agent);
       if (options.projectId) params.append('projectId', options.projectId);
       if (options.query) params.append('query', options.query);

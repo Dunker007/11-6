@@ -48,7 +48,7 @@ describe('AIServiceBridge', () => {
     it('should create a plan from a prompt', async () => {
       const prompt = 'Add a login page';
       const response = await aiServiceBridge.createPlan(prompt);
-      
+
       expect(response.success).toBe(true);
       expect(response.plan).toBeDefined();
       if (response.plan) {
@@ -59,7 +59,7 @@ describe('AIServiceBridge', () => {
     it('should handle errors gracefully', async () => {
       const { llmRouter } = await import('./router');
       vi.mocked(llmRouter.generate).mockRejectedValueOnce(new Error('LLM error'));
-      
+
       const response = await aiServiceBridge.createPlan('test');
       expect(response.success).toBe(true); // Should fallback to mock plan
       expect(response.plan).toBeDefined();
@@ -70,7 +70,7 @@ describe('AIServiceBridge', () => {
     it('should structure an idea with title and summary', async () => {
       const rawText = 'Build a todo app with React and TypeScript';
       const idea = await aiServiceBridge.structureIdea(rawText);
-      
+
       expect(idea).toBeDefined();
       expect(idea.title).toBeDefined();
       expect(idea.summary).toBeDefined();
@@ -81,9 +81,9 @@ describe('AIServiceBridge', () => {
     it('should edit code based on instruction', async () => {
       const code = 'function add(a, b) { return a + b; }';
       const instruction = 'Add input validation';
-      
+
       const result = await aiServiceBridge.turboEdit(code, instruction);
-      
+
       expect(result.success).toBeDefined();
       if (result.success) {
         expect(result.editedCode).toBeDefined();

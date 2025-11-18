@@ -1,6 +1,6 @@
 /**
  * Design Tokens - Unified Design System
- * 
+ *
  * This file contains all design tokens for the application:
  * - Colors (primary, secondary, semantic)
  * - Typography scale
@@ -15,7 +15,7 @@
   /* ============================================
      COLOR SYSTEM
      ============================================ */
-  
+
   /* Primary Brand Colors */
   --color-primary-50: #f5f3ff;
   --color-primary-100: #ede9fe;
@@ -27,7 +27,7 @@
   --color-primary-700: #6d28d9;
   --color-primary-800: #5b21b6;
   --color-primary-900: #4c1d95;
-  
+
   /* Secondary Colors (Cyan) */
   --color-secondary-50: #ecfeff;
   --color-secondary-100: #cffafe;
@@ -39,7 +39,7 @@
   --color-secondary-700: #0e7490;
   --color-secondary-800: #155e75;
   --color-secondary-900: #164e63;
-  
+
   /* Accent Colors */
   --color-accent-amber-400: #fcd34d;
   --color-accent-amber-500: #f59e0b;
@@ -47,7 +47,7 @@
   --color-accent-emerald-500: #10b981;
   --color-accent-red-400: #f87171;
   --color-accent-red-500: #ef4444;
-  
+
   /* Semantic Colors */
   --color-success: var(--color-accent-emerald-500);
   --color-success-light: var(--color-accent-emerald-400);
@@ -57,7 +57,7 @@
   --color-error-light: var(--color-accent-red-400);
   --color-info: var(--color-secondary-500);
   --color-info-light: var(--color-secondary-400);
-  
+
   /* Background Colors */
   --color-bg-primary: #000000;
   --color-bg-secondary: rgba(0, 0, 0, 0.6);
@@ -66,20 +66,20 @@
   --color-bg-glass-light: rgba(26, 26, 58, 0.6);
   --color-bg-elevated: rgba(15, 15, 35, 0.9);
   --color-bg-overlay: rgba(0, 0, 0, 0.85);
-  
+
   /* Text Colors */
   --color-text-primary: #f1f5f9;
   --color-text-secondary: #cbd5e1;
   --color-text-muted: #94a3b8;
   --color-text-disabled: #64748b;
   --color-text-inverse: #000000;
-  
+
   /* Border Colors */
   --color-border-primary: rgba(168, 85, 247, 0.3);
   --color-border-secondary: rgba(6, 182, 212, 0.2);
   --color-border-muted: rgba(255, 255, 255, 0.1);
   --color-border-focus: var(--color-primary-500);
-  
+
   /* Legacy Color Aliases (for backward compatibility) */
   --violet-500: var(--color-primary-500);
   --violet-600: var(--color-primary-600);
@@ -93,28 +93,28 @@
   --emerald-400: var(--color-accent-emerald-400);
   --red-500: var(--color-accent-red-500);
   --red-400: var(--color-accent-red-400);
-  
+
   --bg-primary: var(--color-bg-primary);
   --bg-secondary: var(--color-bg-secondary);
   --bg-tertiary: var(--color-bg-tertiary);
   --bg-glass: var(--color-bg-glass);
   --glass-bg: var(--color-bg-glass-light);
-  
+
   --text-primary: var(--color-text-primary);
   --text-secondary: var(--color-text-secondary);
   --text-muted: var(--color-text-muted);
-  
+
   --panel-border: var(--color-border-primary);
   --panel-border-glow: 1px solid var(--color-border-secondary);
-  
+
   /* ============================================
      TYPOGRAPHY SYSTEM
      ============================================ */
-  
+
   /* Font Families */
   --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   --font-family-mono: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
-  
+
   /* Font Sizes */
   --font-size-xs: 0.75rem;      /* 12px */
   --font-size-sm: 0.875rem;     /* 14px */
@@ -125,7 +125,7 @@
   --font-size-3xl: 1.875rem;    /* 30px */
   --font-size-4xl: 2.25rem;     /* 36px */
   --font-size-5xl: 3rem;         /* 48px */
-  
+
   /* Font Weights */
   --font-weight-light: 300;
   --font-weight-normal: 400;
@@ -133,14 +133,14 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
-  
+
   /* Line Heights */
   --line-height-tight: 1.25;
   --line-height-snug: 1.375;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.625;
   --line-height-loose: 2;
-  
+
   /* Letter Spacing */
   --letter-spacing-tighter: -0.05em;
   --letter-spacing-tight: -0.025em;
@@ -148,11 +148,11 @@
   --letter-spacing-wide: 0.025em;
   --letter-spacing-wider: 0.05em;
   --letter-spacing-widest: 0.1em;
-  
+
   /* ============================================
      SPACING SYSTEM (8px base)
      ============================================ */
-  
+
   --spacing-0: 0;
   --spacing-1: 0.25rem;   /* 4px */
   --spacing-2: 0.5rem;    /* 8px */
@@ -166,11 +166,11 @@
   --spacing-16: 4rem;     /* 64px */
   --spacing-20: 5rem;     /* 80px */
   --spacing-24: 6rem;     /* 96px */
-  
+
   /* ============================================
      BORDER RADIUS SYSTEM (Clean & Modern)
      ============================================ */
-  
+
   --radius-none: 0;
   --radius-sm: 0.375rem;    /* 6px */
   --radius-base: 0.5rem;    /* 8px */
@@ -181,11 +181,11 @@
   --radius-full: 9999px;
 
   --border-radius-global: var(--radius-md);
-  
+
   /* ============================================
      SHADOW SYSTEM (Elevation Levels)
      ============================================ */
-  
+
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
@@ -194,7 +194,7 @@
   --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   --shadow-2xl: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
   --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-  
+
   /* Colored Shadows (Subtle Glow Effects) */
   --shadow-glow-primary: 0 0 12px rgba(168, 85, 247, 0.15);
   --shadow-glow-primary-lg: 0 0 20px rgba(168, 85, 247, 0.25);
@@ -209,45 +209,45 @@
   --glow-cyan: var(--shadow-glow-secondary);
   --glow-amber: var(--shadow-glow-warning);
   --glow-interactive: 0 0 8px rgba(6, 182, 212, 0.1);
-  
+
   /* ============================================
      SUBTLE GLOW SYSTEM (Modernized)
      ============================================ */
-  
+
   /* Subtle single-layer glows */
   --glow-primary: 0 0 8px rgba(168, 85, 247, 0.12);
   --glow-primary-intense: 0 0 12px rgba(168, 85, 247, 0.2);
-  
+
   --glow-accent-cyan: 0 0 8px rgba(6, 182, 212, 0.12);
   --glow-accent-cyan-intense: 0 0 12px rgba(6, 182, 212, 0.2);
-  
+
   --glow-accent-magenta: 0 0 8px rgba(217, 70, 239, 0.12);
   --glow-accent-magenta-intense: 0 0 12px rgba(217, 70, 239, 0.2);
-  
+
   --glow-accent-amber: 0 0 8px rgba(245, 158, 11, 0.12);
   --glow-accent-amber-intense: 0 0 12px rgba(245, 158, 11, 0.2);
-  
+
   /* Subtle border glows */
   --border-glow-cyan: 0 0 4px rgba(6, 182, 212, 0.15);
   --border-glow-magenta: 0 0 4px rgba(217, 70, 239, 0.15);
   --border-glow-amber: 0 0 4px rgba(245, 158, 11, 0.15);
-  
+
   /* Remove text glows (not needed for clean design) */
   --text-glow-cyan: none;
   --text-glow-magenta: none;
   --text-glow-amber: none;
-  
+
   /* ============================================
      ANIMATION TIMING FUNCTIONS
      ============================================ */
-  
+
   --ease-linear: linear;
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  
+
   /* Animation Durations */
   --duration-instant: 0ms;
   --duration-fast: 150ms;
@@ -255,11 +255,11 @@
   --duration-slow: 300ms;
   --duration-slower: 500ms;
   --duration-slowest: 1000ms;
-  
+
   /* ============================================
      Z-INDEX SCALE
      ============================================ */
-  
+
   --z-base: 0;
   --z-dropdown: 1000;
   --z-sticky: 1020;
@@ -270,60 +270,60 @@
   --z-tooltip: 1070;
   --z-toast: 1080;
   --z-max: 9999;
-  
+
   /* ============================================
      LAYOUT DIMENSIONS
      ============================================ */
-  
+
   --left-panel-width: 280px;
   --right-panel-width: 450px;
-  
+
   /* ============================================
      GRADIENTS
      ============================================ */
-  
+
   --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
   --gradient-accent: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-amber-500));
   --gradient-glow: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   --gradient-bg-primary: radial-gradient(circle at 50% 50%, #0f0f23 0%, #000000 100%);
-  
+
   --bg-primary-gradient: var(--gradient-bg-primary);
-  
+
   /* Holographic gradients */
   --gradient-holographic: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #d946ef 100%);
   --gradient-holographic-vertical: linear-gradient(180deg, #06b6d4 0%, #8b5cf6 50%, #d946ef 100%);
   --gradient-holographic-radial: radial-gradient(circle, #06b6d4 0%, #8b5cf6 50%, #d946ef 100%);
-  
+
   /* Animated border gradients */
   --gradient-border-cyan-magenta: linear-gradient(90deg, #06b6d4, #d946ef, #06b6d4);
   --gradient-border-full: linear-gradient(90deg, #06b6d4, #8b5cf6, #d946ef, #f59e0b, #06b6d4);
-  
+
   /* HUD scanner gradient */
   --gradient-scanner: linear-gradient(180deg, transparent 0%, rgba(6, 182, 212, 0.4) 50%, transparent 100%);
-  
+
   /* ============================================
      GLASSMORPHISM EFFECTS
      ============================================ */
-  
+
   --glass-blur: 10px;
   --glass-blur-lg: 20px;
   --panel-blur: blur(20px);
-  
+
   /* ============================================
      TRANSITIONS
      ============================================ */
-  
+
   --transition-base: all var(--duration-base) var(--ease-in-out);
   --transition-fast: all var(--duration-fast) var(--ease-out);
   --transition-slow: all var(--duration-slow) var(--ease-in-out);
   --transition-colors: color var(--duration-base) var(--ease-in-out), background-color var(--duration-base) var(--ease-in-out), border-color var(--duration-base) var(--ease-in-out);
   --transition-transform: transform var(--duration-base) var(--ease-out);
   --transition-opacity: opacity var(--duration-base) var(--ease-in-out);
-  
+
   /* ============================================
      HEXAGONAL CLIP PATHS
      ============================================ */
-  
+
   --clip-hexagon: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
   --clip-hexagon-soft: polygon(25% 5%, 75% 5%, 95% 50%, 75% 95%, 25% 95%, 5% 50%);
   --clip-octagon: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);

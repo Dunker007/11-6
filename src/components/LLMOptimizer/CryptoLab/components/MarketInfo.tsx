@@ -23,7 +23,7 @@ function MarketInfo({ selectedProduct, onProductChange }: MarketInfoProps) {
 
   const loadTicker = async () => {
     if (!coinbaseService.isConfigured()) return;
-    
+
     setIsLoading(true);
     try {
       const tickerData = await coinbaseService.getProductTicker(selectedProduct);
@@ -49,8 +49,8 @@ function MarketInfo({ selectedProduct, onProductChange }: MarketInfoProps) {
   };
 
   const currentPrice = ticker?.price ? parseFloat(ticker.price) : 0;
-  const priceChange24h = ticker?.price_percentage_change_24h 
-    ? parseFloat(ticker.price_percentage_change_24h) 
+  const priceChange24h = ticker?.price_percentage_change_24h
+    ? parseFloat(ticker.price_percentage_change_24h)
     : 0;
   const high24h = ticker?.high_24h ? parseFloat(ticker.high_24h) : 0;
   const low24h = ticker?.low_24h ? parseFloat(ticker.low_24h) : 0;
@@ -63,10 +63,10 @@ function MarketInfo({ selectedProduct, onProductChange }: MarketInfoProps) {
     <div className="market-info-bar">
       <div className="market-info-content">
         <TradingModeToggle />
-        
+
         <div className="product-selector">
-          <select 
-            value={selectedProduct} 
+          <select
+            value={selectedProduct}
             onChange={(e) => onProductChange(e.target.value)}
             className="product-select"
           >
@@ -78,7 +78,7 @@ function MarketInfo({ selectedProduct, onProductChange }: MarketInfoProps) {
             <option value="MATIC-USD">MATIC/USD</option>
           </select>
         </div>
-        
+
         <div className="market-stats">
           <div className="stat-item">
             <span className="stat-label">Price</span>
@@ -86,35 +86,35 @@ function MarketInfo({ selectedProduct, onProductChange }: MarketInfoProps) {
               {isLoading ? '...' : currentPrice > 0 ? `$${formatPrice(currentPrice)}` : 'N/A'}
             </span>
           </div>
-          
+
           <div className="stat-item">
             <span className="stat-label">24h Change</span>
             <span className={`stat-value ${priceChange24h >= 0 ? 'positive' : 'negative'}`}>
               {isLoading ? '...' : priceChange24h !== 0 ? `${priceChange24h >= 0 ? '+' : ''}${priceChange24h.toFixed(2)}%` : '0.00%'}
             </span>
           </div>
-          
+
           <div className="stat-item">
             <span className="stat-label">24h High</span>
             <span className="stat-value">
               {isLoading ? '...' : high24h > 0 ? `$${formatPrice(high24h)}` : 'N/A'}
             </span>
           </div>
-          
+
           <div className="stat-item">
             <span className="stat-label">24h Low</span>
             <span className="stat-value">
               {isLoading ? '...' : low24h > 0 ? `$${formatPrice(low24h)}` : 'N/A'}
             </span>
           </div>
-          
+
           <div className="stat-item">
             <span className="stat-label">24h Volume</span>
             <span className="stat-value">
               {isLoading ? '...' : volume24h > 0 ? formatVolume(volume24h) : 'N/A'}
             </span>
           </div>
-          
+
           <div className="stat-item">
             <span className="stat-label">Spread</span>
             <span className="stat-value">

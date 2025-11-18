@@ -1,6 +1,6 @@
 /**
  * Real Estate Service
- * 
+ *
  * Integrates with Zillow API for property value tracking
  * Tracks rental income, expenses, and ROI calculations
  */
@@ -99,14 +99,14 @@ class RealEstateService {
       // Zillow API call (simplified - actual API structure may differ)
       const query = `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
       const url = `${ZILLOW_API_BASE}/zestimate?address=${encodeURIComponent(query)}&zws-id=${this.apiKey}`;
-      
+
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Zillow API error: ${response.status}`);
       }
 
       const data = await response.json();
-      
+
       // Transform Zillow response to our format
       const propertyData: ZillowPropertyData = {
         zpid: data.zpid || '',
@@ -139,10 +139,10 @@ class RealEstateService {
    */
   async updatePropertyValue(asset: RealEstateAsset): Promise<RealEstateAsset> {
     const propertyData = await this.getPropertyData(asset.address);
-    
+
     if (propertyData) {
       asset.currentEstimatedValue = propertyData.zestimate.amount;
-      
+
       if (propertyData.rentZestimate && !asset.rentalIncome) {
         asset.rentalIncome = {
           monthly: propertyData.rentZestimate.amount,
@@ -165,12 +165,12 @@ class RealEstateService {
       return;
     }
 
-    const netOperatingIncome = asset.rentalIncome.annual - 
-      (asset.expenses.propertyTaxes + 
-       asset.expenses.insurance + 
-       asset.expenses.maintenance + 
-       (asset.expenses.management || 0) + 
-       (asset.expenses.utilities || 0) + 
+    const netOperatingIncome = asset.rentalIncome.annual -
+      (asset.expenses.propertyTaxes +
+       asset.expenses.insurance +
+       asset.expenses.maintenance +
+       (asset.expenses.management || 0) +
+       (asset.expenses.utilities || 0) +
        (asset.expenses.hoa || 0));
 
     // Cash-on-cash return (if mortgaged)
@@ -180,8 +180,8 @@ class RealEstateService {
       asset.roi = {
         cashOnCash: cashInvested > 0 ? (cashFlow / cashInvested) * 100 : 0,
         capRate: asset.currentEstimatedValue > 0 ? (netOperatingIncome / asset.currentEstimatedValue) * 100 : 0,
-        totalReturn: asset.currentEstimatedValue > 0 
-          ? ((asset.currentEstimatedValue - asset.purchasePrice + netOperatingIncome) / asset.purchasePrice) * 100 
+        totalReturn: asset.currentEstimatedValue > 0
+          ? ((asset.currentEstimatedValue - asset.purchasePrice + netOperatingIncome) / asset.purchasePrice) * 100
           : 0,
       };
     } else {
@@ -189,8 +189,8 @@ class RealEstateService {
       asset.roi = {
         cashOnCash: 0,
         capRate: asset.currentEstimatedValue > 0 ? (netOperatingIncome / asset.currentEstimatedValue) * 100 : 0,
-        totalReturn: asset.currentEstimatedValue > 0 
-          ? ((asset.currentEstimatedValue - asset.purchasePrice + netOperatingIncome) / asset.purchasePrice) * 100 
+        totalReturn: asset.currentEstimatedValue > 0
+          ? ((asset.currentEstimatedValue - asset.purchasePrice + netOperatingIncome) / asset.purchasePrice) * 100
           : 0,
       };
     }
@@ -211,13 +211,13 @@ class RealEstateService {
     try {
       const url = `${ZILLOW_API_BASE}/search?q=${encodeURIComponent(query)}&zws-id=${this.apiKey}`;
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`Zillow API error: ${response.status}`);
       }
 
       const data = await response.json();
-      
+
       // Transform search results
       return (data.results || []).map((result: any) => ({
         zpid: result.zpid,
@@ -251,13 +251,13 @@ class RealEstateService {
     try {
       const url = `${ZILLOW_API_BASE}/zestimate_history?zpid=${zpid}&zws-id=${this.apiKey}`;
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`Zillow API error: ${response.status}`);
       }
 
       const data = await response.json();
-      
+
       const history = (data.history || []).map((entry: any, index: number) => ({
         date: new Date(entry.date),
         value: entry.value || 0,
@@ -275,13 +275,13 @@ class RealEstateService {
   private getCached<T>(key: string): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
-    
+
     const age = Date.now() - entry.timestamp;
     if (age > CACHE_TTL) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return entry.data as T;
   }
 

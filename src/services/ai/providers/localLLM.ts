@@ -1,22 +1,22 @@
 /**
  * localLLM.ts
- * 
+ *
  * PURPOSE:
  * Local LLM provider implementations for LM Studio and Ollama. Provides privacy-focused,
  * offline-capable LLM access running on the user's machine. Implements the LLMProvider
  * interface for seamless integration with the router.
- * 
+ *
  * ARCHITECTURE:
  * Two provider implementations:
  * - LMStudioProvider: Connects to LM Studio server (default port 1234)
  * - OllamaProvider: Connects to Ollama server (default port 11434)
- * 
+ *
  * Both providers:
  * - Use HTTP fetch API for communication
  * - Support health checks, model discovery, generation, and streaming
  * - Handle timeouts and errors gracefully
  * - Detect model metadata (context window, quantization)
- * 
+ *
  * CURRENT STATUS:
  * ✅ LM Studio provider fully implemented
  * ✅ Ollama provider fully implemented
@@ -26,39 +26,39 @@
  * ✅ Error handling and fallbacks
  * ✅ Context window detection
  * ✅ Quantization detection
- * 
+ *
  * DEPENDENCIES:
  * - @/types/llm: LLM type definitions
- * 
+ *
  * STATE MANAGEMENT:
  * - Stateless providers (no internal state)
  * - Configuration via constructor/baseUrl
  * - Does not use Zustand
- * 
+ *
  * PERFORMANCE:
  * - Request timeouts prevent hanging
  * - Efficient model metadata parsing
  * - Streaming for real-time responses
  * - Health check caching (via router)
- * 
+ *
  * USAGE EXAMPLE:
  * ```typescript
  * import { LMStudioProvider, OllamaProvider } from '@/services/ai/providers/localLLM';
- * 
+ *
  * const lmStudio = new LMStudioProvider();
  * const isHealthy = await lmStudio.healthCheck();
- * 
+ *
  * if (isHealthy) {
  *   const models = await lmStudio.getModels();
  *   const response = await lmStudio.generate('Hello!');
  * }
  * ```
- * 
+ *
  * RELATED FILES:
  * - src/services/ai/router.ts: Uses these providers
  * - src/services/ai/providers/cloudLLM.ts: Cloud provider implementations
  * - src/services/ai/llmStore.ts: Integrates providers via router
- * 
+ *
  * TODO / FUTURE ENHANCEMENTS:
  * - Support for more local LLM servers
  * - Model performance metrics
@@ -92,14 +92,14 @@ export class LMStudioProvider implements LLMProvider {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
-      
+
       logger.info(`Checking LM Studio at ${url}`);
       const response = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
       const isHealthy = response.ok;
       logger.info(`LM Studio health check: ${isHealthy ? 'online' : 'offline'} (status: ${response.status})`);
@@ -114,7 +114,7 @@ export class LMStudioProvider implements LLMProvider {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
-      
+
       const response = await fetch(`${this.baseUrl}/models`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -153,14 +153,14 @@ export class LMStudioProvider implements LLMProvider {
     if ('context_length' in model && model.context_length) return model.context_length;
     if ('contextLength' in model && model.contextLength) return model.contextLength;
     if ('details' in model && model.details?.context_length) return model.details.context_length;
-    
+
     // Fallback to name-based detection
     const name = ('id' in model ? (model.name || model.id) : model.name || '').toLowerCase();
     if (name.includes('32b')) return 32768;
     if (name.includes('16b') || name.includes('14b')) return 16384;
     if (name.includes('7b') || name.includes('8b')) return 8192;
     if (name.includes('3b') || name.includes('1b')) return 4096;
-    
+
     return 4096; // Default
   }
 
@@ -337,13 +337,13 @@ export class OllamaProvider implements LLMProvider {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
-      
+
       logger.info(`Checking Ollama at ${url}`);
       const response = await fetch(url, {
         method: 'GET',
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
       const isHealthy = response.ok;
       logger.info(`Ollama health check: ${isHealthy ? 'online' : 'offline'} (status: ${response.status})`);
@@ -358,7 +358,7 @@ export class OllamaProvider implements LLMProvider {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.healthCheckTimeout);
-      
+
       const response = await fetch(`${this.baseUrl}/tags`, {
         method: 'GET',
         signal: controller.signal,
@@ -394,14 +394,14 @@ export class OllamaProvider implements LLMProvider {
 
   async generate(prompt: string, options?: GenerateOptions): Promise<GenerateResponse> {
     const model = options?.model || await this.getDefaultModel();
-    
+
     if (!model) {
       throw new Error('No Ollama models available. Run "ollama pull <model>" first.');
     }
 
     // Retry logic for transient failures
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
@@ -432,7 +432,7 @@ export class OllamaProvider implements LLMProvider {
         }
 
         const data: OllamaCompletionResponse = await response.json();
-        
+
         return {
           text: data.response || '',
           tokensUsed: data.eval_count || 0,
@@ -441,12 +441,12 @@ export class OllamaProvider implements LLMProvider {
       } catch (error) {
         clearTimeout(timeoutId);
         lastError = error as Error;
-        
+
         // Don't retry on abort/timeout errors
         if (error instanceof Error && error.name === 'AbortError') {
           throw new Error('Ollama request timed out');
         }
-        
+
         if (attempt < this.maxRetries - 1) {
           // Exponential backoff
           await this.sleep(this.retryDelay * Math.pow(2, attempt));
@@ -461,15 +461,15 @@ export class OllamaProvider implements LLMProvider {
   private async getDefaultModel(): Promise<string | null> {
     const models = await this.getModels();
     if (models.length === 0) return null;
-    
+
     // Prefer code models, then chat models
-    const codeModel = models.find(m => 
-      m.name.includes('coder') || 
+    const codeModel = models.find(m =>
+      m.name.includes('coder') ||
       m.name.includes('code') ||
       m.name.includes('deepseek')
     );
     if (codeModel) return codeModel.id;
-    
+
     return models[0].id;
   }
 
@@ -478,14 +478,14 @@ export class OllamaProvider implements LLMProvider {
     if ('details' in model && model.details?.context_length) return model.details.context_length;
     if ('context_length' in model && model.context_length) return model.context_length;
     if ('contextLength' in model && model.contextLength) return model.contextLength;
-    
+
     // Fallback to name-based detection
     const name = (model.name || '').toLowerCase();
     if (name.includes('32b')) return 32768;
     if (name.includes('16b') || name.includes('14b')) return 16384;
     if (name.includes('7b') || name.includes('8b')) return 8192;
     if (name.includes('3b') || name.includes('1b')) return 4096;
-    
+
     return 4096; // Default
   }
 
@@ -610,7 +610,7 @@ export class OllamaProvider implements LLMProvider {
    * @returns Promise that resolves when pull is complete
    */
   async pullModel(
-    modelName: string, 
+    modelName: string,
     onProgress?: (progress: { status: string; completed?: number; total?: number }) => void
   ): Promise<void> {
     try {
@@ -651,9 +651,9 @@ export class OllamaProvider implements LLMProvider {
                   total: progress.total,
                 });
               }
-              logger.info(`Ollama pull progress for ${modelName}:`, { 
+              logger.info(`Ollama pull progress for ${modelName}:`, {
                 status: progress.status,
-                percent: progress.total ? Math.round((progress.completed / progress.total) * 100) : undefined 
+                percent: progress.total ? Math.round((progress.completed / progress.total) * 100) : undefined
               });
             } catch {
               // Skip invalid JSON
@@ -666,8 +666,8 @@ export class OllamaProvider implements LLMProvider {
 
       logger.info(`Successfully pulled model: ${modelName}`);
     } catch (error) {
-      logger.error(`Failed to pull model ${modelName}:`, { 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error(`Failed to pull model ${modelName}:`, {
+        error: error instanceof Error ? error.message : String(error)
       });
       throw error;
     }

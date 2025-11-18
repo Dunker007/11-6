@@ -366,7 +366,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 {categoryCommands.map((command) => {
                   const flatIndex = flatCommands.indexOf(command);
                   const isSelected = flatIndex === selectedIndex;
-                  
+
                   return (
                     <div
                       key={command.id}

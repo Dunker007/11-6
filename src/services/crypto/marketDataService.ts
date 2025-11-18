@@ -24,13 +24,13 @@ class MarketDataService {
   private getCached<T>(key: string): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
-    
+
     const age = Date.now() - entry.timestamp;
     if (age > CACHE_TTL) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return entry.data as T;
   }
 
@@ -78,10 +78,10 @@ class MarketDataService {
         throw new Error(`CoinGecko API error: ${response.status}`);
       }
       const data = await response.json();
-      
+
       // Extract coin IDs from trending data
       const coinIds = data.coins.map((coin: any) => coin.item.id).join(',');
-      
+
       // Fetch full coin data
       const coinsUrl = `${COINGECKO_API_BASE}/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d`;
       return this.fetchWithCache<Coin[]>(`trending_coins`, coinsUrl);
@@ -137,7 +137,7 @@ class MarketDataService {
         throw new Error(`CoinGecko API error: ${response.status}`);
       }
       const data = await response.json();
-      
+
       if (!data.coins || data.coins.length === 0) {
         return [];
       }
@@ -145,7 +145,7 @@ class MarketDataService {
       // Get full coin data for first 10 results
       const coinIds = data.coins.slice(0, 10).map((coin: any) => coin.id).join(',');
       const coinsUrl = `${COINGECKO_API_BASE}/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&per_page=10&page=1&sparkline=false`;
-      
+
       return this.fetchWithCache<Coin[]>(`search_${query}`, coinsUrl);
     } catch (error) {
       console.error(`Failed to search coins:`, error);
@@ -169,7 +169,7 @@ class MarketDataService {
         throw new Error(`CoinGecko API error: ${response.status}`);
       }
       const data = await response.json();
-      
+
       return {
         totalMarketCap: data.data.total_market_cap?.usd || 0,
         totalVolume: data.data.total_volume?.usd || 0,

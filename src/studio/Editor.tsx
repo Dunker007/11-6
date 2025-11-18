@@ -52,12 +52,12 @@ function CodeEditor(_props: EditorProps) {
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined && activeFile) {
       setContent(value);
-      
+
       // Clear existing timeout
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      
+
       // Debounced save
       timeoutRef.current = setTimeout(() => {
         updateFile(activeFile, value);

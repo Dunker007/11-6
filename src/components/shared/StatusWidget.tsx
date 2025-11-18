@@ -9,12 +9,12 @@ interface StatusWidgetProps {
   compact?: boolean;
 }
 
-const StatusWidget = memo(function StatusWidget({ 
-  label, 
-  status, 
-  value, 
-  sublabel, 
-  compact = false 
+const StatusWidget = memo(function StatusWidget({
+  label,
+  status,
+  value,
+  sublabel,
+  compact = false
 }: StatusWidgetProps) {
   return (
     <div className={`status-widget ${status} ${compact ? 'compact' : ''}`}>
@@ -22,7 +22,7 @@ const StatusWidget = memo(function StatusWidget({
         <span className="led-ring"></span>
         <span className="led-core"></span>
       </div>
-      
+
       <div className="widget-content">
         <div className="widget-label">{label}</div>
         {value !== undefined && (

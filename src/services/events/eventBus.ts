@@ -1,6 +1,6 @@
 /**
  * Event Bus Service
- * 
+ *
  * Centralized event system for cross-tab communication.
  * Allows components to emit and subscribe to events without direct coupling.
  */
@@ -53,20 +53,20 @@ class EventBus {
 
   /**
    * Subscribe to an event type.
-   * 
+   *
    * Registers a handler function that will be called whenever the specified event is emitted.
    * Returns an unsubscribe function that can be called to remove the handler.
-   * 
+   *
    * @param eventType - The event type to listen for (e.g., 'idea:created', 'workflow:completed')
    * @param handler - The callback function to execute when the event fires. Receives the event payload.
    * @returns An unsubscribe function that removes the handler when called
-   * 
+   *
    * @example
    * ```typescript
    * const unsubscribe = eventBus.on('idea:created', (payload) => {
    *   console.log('New idea created:', payload);
    * });
-   * 
+   *
    * // Later, to unsubscribe:
    * unsubscribe();
    * ```
@@ -91,13 +91,13 @@ class EventBus {
 
   /**
    * Subscribe to an event type for one-time execution only.
-   * 
+   *
    * The handler will be automatically unsubscribed after the first event is received.
    * Useful for one-time operations like initialization or cleanup.
-   * 
+   *
    * @param eventType - The event type to listen for
    * @param handler - The callback function to execute when the event fires
-   * 
+   *
    * @example
    * ```typescript
    * eventBus.once('workflow:completed', (payload) => {
@@ -116,17 +116,17 @@ class EventBus {
 
   /**
    * Unsubscribe from an event type.
-   * 
+   *
    * Removes a specific handler or all handlers for the specified event type.
-   * 
+   *
    * @param eventType - The event type to unsubscribe from
    * @param handler - Optional specific handler to remove. If not provided, removes all handlers for this event type
-   * 
+   *
    * @example
    * ```typescript
    * // Remove a specific handler
    * eventBus.off('idea:created', myHandler);
-   * 
+   *
    * // Remove all handlers for an event type
    * eventBus.off('idea:created');
    * ```
@@ -148,13 +148,13 @@ class EventBus {
 
   /**
    * Emit an event to all registered handlers.
-   * 
+   *
    * Triggers all handlers subscribed to the specified event type with the provided payload.
    * Errors in handlers are caught and logged but do not prevent other handlers from executing.
-   * 
+   *
    * @param eventType - The event type to emit
    * @param payload - The data to pass to handlers (default: empty object)
-   * 
+   *
    * @example
    * ```typescript
    * eventBus.emit('idea:created', {
@@ -179,9 +179,9 @@ class EventBus {
 
   /**
    * Get all registered event types.
-   * 
+   *
    * @returns An array of all event types that have at least one registered handler
-   * 
+   *
    * @example
    * ```typescript
    * const eventTypes = eventBus.getEventTypes();
@@ -194,10 +194,10 @@ class EventBus {
 
   /**
    * Get the number of handlers registered for a specific event type.
-   * 
+   *
    * @param eventType - The event type to check
    * @returns The number of handlers registered for this event type, or 0 if none
-   * 
+   *
    * @example
    * ```typescript
    * const count = eventBus.getHandlerCount('idea:created');
@@ -210,10 +210,10 @@ class EventBus {
 
   /**
    * Clear all event handlers (useful for testing or cleanup).
-   * 
+   *
    * Removes all registered handlers for all event types. Use with caution as this
    * will break all event subscriptions throughout the application.
-   * 
+   *
    * @example
    * ```typescript
    * // In tests, clean up before each test

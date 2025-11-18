@@ -40,7 +40,7 @@ export class RegistryManager {
     const subkey = hkeyMatch[2];
 
     // Normalize HKEY names
-    const normalizedHkey = hkey.startsWith('HKEY_') ? hkey : 
+    const normalizedHkey = hkey.startsWith('HKEY_') ? hkey :
       hkey === 'HKLM' ? 'HKEY_LOCAL_MACHINE' : 'HKEY_CURRENT_USER';
 
     return { hkey: normalizedHkey, subkey };
@@ -95,7 +95,7 @@ export class RegistryManager {
 
   async backupRegistryValue(path: string, value: string): Promise<void> {
     const backupKey = `${path}\\${value}`;
-    
+
     // Only backup if not already backed up
     if (this.backups.has(backupKey)) {
       return;
@@ -106,7 +106,7 @@ export class RegistryManager {
       if (readResult.success && readResult.value) {
         // Determine type from existing value (simplified - in production, read type from registry)
         const type: 'DWORD' | 'STRING' | 'BINARY' = /^\d+$/.test(readResult.value) ? 'DWORD' : 'STRING';
-        
+
         this.backups.set(backupKey, {
           path,
           value,

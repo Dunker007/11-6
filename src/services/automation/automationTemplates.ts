@@ -379,11 +379,11 @@ class AutomationTemplatesService {
       id: `custom-${crypto.randomUUID()}`,
       category: 'custom',
     };
-    
+
     this.templates.set(newTemplate.id, newTemplate);
     this.customTemplates.push(newTemplate);
     this.saveCustomTemplates();
-    
+
     return newTemplate;
   }
 
@@ -395,7 +395,7 @@ class AutomationTemplatesService {
 
     const updated = { ...template, ...updates, id };
     this.templates.set(id, updated);
-    
+
     const index = this.customTemplates.findIndex(t => t.id === id);
     if (index >= 0) {
       this.customTemplates[index] = updated;
@@ -413,7 +413,7 @@ class AutomationTemplatesService {
     this.templates.delete(id);
     this.customTemplates = this.customTemplates.filter(t => t.id !== id);
     this.saveCustomTemplates();
-    
+
     return true;
   }
 
@@ -433,7 +433,7 @@ class AutomationTemplatesService {
     const missing = template.variables
       .filter(v => v.required && !(v.name in variables))
       .map(v => v.name);
-    
+
     if (missing.length > 0) {
       throw new Error(`Missing required variables: ${missing.join(', ')}`);
     }

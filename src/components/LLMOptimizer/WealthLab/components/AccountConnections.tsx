@@ -343,7 +343,7 @@ const AccountConnections = memo(function AccountConnections() {
       });
 
       refresh();
-      
+
       showToast({
         variant: 'success',
         title: 'Account added',

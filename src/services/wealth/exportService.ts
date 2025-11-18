@@ -1,6 +1,6 @@
 /**
  * Export Service
- * 
+ *
  * Exports wealth data to various formats:
  * - CSV (transactions, assets, net worth history)
  * - Excel (comprehensive reports)
@@ -26,7 +26,7 @@ export interface Form1099BEntry {
 }
 
 export type ExportFormat = 'csv' | 'excel' | 'pdf';
-export type ExportType = 
+export type ExportType =
   | 'transactions'
   | 'assets'
   | 'net_worth_history'
@@ -85,7 +85,7 @@ class ExportService {
    */
   private async exportTransactions(options: ExportOptions): Promise<Blob> {
     const transactions = wealthService.getTransactions(options.startDate, options.endDate);
-    
+
     if (options.format === 'csv') {
       return this.toCSV(
         transactions.map(tx => ({
@@ -126,7 +126,7 @@ class ExportService {
    */
   private async exportAssets(options: ExportOptions): Promise<Blob> {
     const assets = wealthService.getAssets();
-    
+
     if (options.format === 'csv') {
       return this.toCSV(
         assets.map(asset => ({
@@ -205,7 +205,7 @@ class ExportService {
     const now = new Date();
     const month = options.startDate?.getMonth() || now.getMonth() + 1;
     const year = options.startDate?.getFullYear() || now.getFullYear();
-    
+
     const budget = wealthService.getBudget(month, year);
     if (!budget) {
       throw new Error(`Budget not found for ${month}/${year}`);

@@ -42,7 +42,7 @@ describe('ProjectService', () => {
   describe('createProject', () => {
     it('should create a new project', () => {
       const project = projectService.createProject('Test Project', '/test/path');
-      
+
       expect(project).toBeDefined();
       expect(project.name).toBe('Test Project');
       expect(project.rootPath).toBe('/test/path');
@@ -52,7 +52,7 @@ describe('ProjectService', () => {
     it('should save project to storage', () => {
       const project = projectService.createProject('Test Project', '/test/path');
       const saved = projectService.getProject(project.id);
-      
+
       expect(saved).toBeDefined();
       expect(saved?.id).toBe(project.id);
     });
@@ -62,7 +62,7 @@ describe('ProjectService', () => {
     it('should return project by id', () => {
       const project = projectService.createProject('Test Project', '/test/path');
       const retrieved = projectService.getProject(project.id);
-      
+
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe(project.id);
     });
@@ -77,7 +77,7 @@ describe('ProjectService', () => {
     it('should return all projects', () => {
       projectService.createProject('Project 1', '/path1');
       projectService.createProject('Project 2', '/path2');
-      
+
       const projects = projectService.getAllProjects();
       expect(projects.length).toBeGreaterThanOrEqual(2);
     });
@@ -87,7 +87,7 @@ describe('ProjectService', () => {
     it('should set active project', () => {
       const project = projectService.createProject('Test Project', '/test/path');
       projectService.setActiveProject(project.id);
-      
+
       const active = projectService.getActiveProject();
       expect(active?.id).toBe(project.id);
     });
@@ -97,7 +97,7 @@ describe('ProjectService', () => {
     it('should delete a project', () => {
       const project = projectService.createProject('Test Project', '/test/path');
       projectService.deleteProject(project.id);
-      
+
       const retrieved = projectService.getProject(project.id);
       expect(retrieved).toBeNull();
     });
