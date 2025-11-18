@@ -2,6 +2,7 @@ import React, { useState, lazy, Suspense, memo } from 'react';
 import { CyberCard } from '../ui/CyberCard';
 import { CyberButton } from '../ui/CyberButton';
 import { CyberLoader } from '../ui/CyberLoader';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 import './UnifiedDashboard.css';
 
 // Lazy load all heavy components for optimal bundle splitting
@@ -54,31 +55,83 @@ export const UnifiedDashboard: React.FC = memo(() => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewTab setActiveTab={setActiveTab} />;
+        return (
+          <ErrorBoundary sectionName="Overview Tab">
+            <OverviewTab setActiveTab={setActiveTab} />
+          </ErrorBoundary>
+        );
       case 'revenue':
-        return <Suspense fallback={<TabLoadingFallback />}><MasterRevenueDashboard /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="Revenue Intelligence">
+            <Suspense fallback={<TabLoadingFallback />}><MasterRevenueDashboard /></Suspense>
+          </ErrorBoundary>
+        );
       case 'backoffice':
-        return <Suspense fallback={<TabLoadingFallback />}><FinancialDashboard /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="Back Office Dashboard">
+            <Suspense fallback={<TabLoadingFallback />}><FinancialDashboard /></Suspense>
+          </ErrorBoundary>
+        );
       case 'wealth':
-        return <Suspense fallback={<TabLoadingFallback />}><WealthLab /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="Wealth Lab">
+            <Suspense fallback={<TabLoadingFallback />}><WealthLab /></Suspense>
+          </ErrorBoundary>
+        );
       case 'ideas':
-        return <Suspense fallback={<TabLoadingFallback />}><IdeaLab /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="Idea Lab">
+            <Suspense fallback={<TabLoadingFallback />}><IdeaLab /></Suspense>
+          </ErrorBoundary>
+        );
       case 'googleai':
-        return <Suspense fallback={<TabLoadingFallback />}><GoogleAIHub /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="Google AI Hub">
+            <Suspense fallback={<TabLoadingFallback />}><GoogleAIHub /></Suspense>
+          </ErrorBoundary>
+        );
       case 'intelligence':
-        return <Suspense fallback={<TabLoadingFallback />}><AIIntelligenceDashboard /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="AI Intelligence">
+            <Suspense fallback={<TabLoadingFallback />}><AIIntelligenceDashboard /></Suspense>
+          </ErrorBoundary>
+        );
       case 'credentials':
-        return <Suspense fallback={<TabLoadingFallback />}><CredentialVault /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="Credential Vault">
+            <Suspense fallback={<TabLoadingFallback />}><CredentialVault /></Suspense>
+          </ErrorBoundary>
+        );
       case 'idle':
-        return <Suspense fallback={<TabLoadingFallback />}><IdleRevenueDashboard /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="Idle Computing">
+            <Suspense fallback={<TabLoadingFallback />}><IdleRevenueDashboard /></Suspense>
+          </ErrorBoundary>
+        );
       case 'agents':
-        return <Suspense fallback={<TabLoadingFallback />}><AgentGrid /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="AI Agents">
+            <Suspense fallback={<TabLoadingFallback />}><AgentGrid /></Suspense>
+          </ErrorBoundary>
+        );
       case 'testing':
-        return <Suspense fallback={<TabLoadingFallback />}><IntegrationTestDashboard /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="Integration Tests">
+            <Suspense fallback={<TabLoadingFallback />}><IntegrationTestDashboard /></Suspense>
+          </ErrorBoundary>
+        );
       case 'setup':
-        return <Suspense fallback={<TabLoadingFallback />}><SetupLauncher /></Suspense>;
+        return (
+          <ErrorBoundary sectionName="Setup Wizard">
+            <Suspense fallback={<TabLoadingFallback />}><SetupLauncher /></Suspense>
+          </ErrorBoundary>
+        );
       default:
-        return <OverviewTab setActiveTab={setActiveTab} />;
+        return (
+          <ErrorBoundary sectionName="Overview Tab">
+            <OverviewTab setActiveTab={setActiveTab} />
+          </ErrorBoundary>
+        );
     }
   };
 
