@@ -93,7 +93,7 @@ export interface PerformanceRegression {
   currentValue: number;
   degradation: number; // percentage
   threshold: number; // percentage threshold for alerts
-  detected At: Date;
+  detectedAt: Date;
   severity: 'low' | 'medium' | 'high' | 'critical';
 }
 

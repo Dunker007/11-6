@@ -88,7 +88,7 @@ export interface ResultSummary {
     variantId: string;
     variantName: string;
     metricValue: number;
-    confidence Interval: [number, number];
+    confidenceInterval: [number, number];
     isWinner: boolean;
   }>;
 }

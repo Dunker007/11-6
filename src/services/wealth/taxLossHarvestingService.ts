@@ -40,7 +40,7 @@ export interface ReplacementSecurity {
   correlation: number; // 0-1, how similar to original
   reason: string;
   currentPrice?: number;
-  expense Ratio?: number;
+  expenseRatio?: number;
 }
 
 export interface TaxLossHarvestingSettings {
@@ -326,7 +326,7 @@ class TaxLossHarvestingService {
     // Fetch current prices for suggestions
     for (const suggestion of suggestions) {
       try {
-        const quote = await wealthMarketDataService.getQuote(suggestion.symbol);
+        const quote = await wealthMarketDataService.getRealTimePrice(suggestion.symbol);
         suggestion.currentPrice = quote.price;
       } catch (error) {
         logger.debug('Failed to fetch replacement security price', { symbol: suggestion.symbol });
