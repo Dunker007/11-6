@@ -50,6 +50,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Activity size={18} />,
       category: 'navigation',
       keywords: ['home', 'dashboard', 'main'],
+      shortcut: 'G then O',
       action: () => {
         onNavigate?.('overview');
         onClose();
@@ -62,6 +63,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Zap size={18} />,
       category: 'navigation',
       keywords: ['ai', 'intelligence', 'status'],
+      shortcut: 'G then I',
       action: () => {
         onNavigate?.('intelligence');
         onClose();
@@ -74,6 +76,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <TrendingUp size={18} />,
       category: 'navigation',
       keywords: ['revenue', 'financial', 'money', 'stripe'],
+      shortcut: 'G then R',
       action: () => {
         onNavigate?.('revenue');
         onClose();
@@ -86,6 +89,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Bitcoin size={18} />,
       category: 'navigation',
       keywords: ['wealth', 'finance', 'crypto', 'budget'],
+      shortcut: 'G then W',
       action: () => {
         onNavigate?.('wealth');
         onClose();
@@ -98,6 +102,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Lightbulb size={18} />,
       category: 'navigation',
       keywords: ['idea', 'planning', 'brainstorm', 'canvas'],
+      shortcut: 'G then L',
       action: () => {
         onNavigate?.('ideas');
         onClose();
@@ -110,6 +115,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Code size={18} />,
       category: 'navigation',
       keywords: ['google', 'gemini', 'ai', 'studio'],
+      shortcut: 'G then G',
       action: () => {
         onNavigate?.('googleai');
         onClose();
@@ -122,6 +128,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Rocket size={18} />,
       category: 'navigation',
       keywords: ['agents', 'bots', 'automation'],
+      shortcut: 'G then A',
       action: () => {
         onNavigate?.('agents');
         onClose();
@@ -134,6 +141,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Settings size={18} />,
       category: 'settings',
       keywords: ['credentials', 'keys', 'secrets', 'auth'],
+      shortcut: 'G then C',
       action: () => {
         onNavigate?.('credentials');
         onClose();
@@ -146,6 +154,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Activity size={18} />,
       category: 'settings',
       keywords: ['test', 'integration', 'debug'],
+      shortcut: 'G then T',
       action: () => {
         onNavigate?.('testing');
         onClose();
@@ -158,6 +167,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Clock size={18} />,
       category: 'navigation',
       keywords: ['idle', 'mining', 'compute', 'golem'],
+      shortcut: 'G then D',
       action: () => {
         onNavigate?.('idle');
         onClose();

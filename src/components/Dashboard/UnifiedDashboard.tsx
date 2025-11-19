@@ -209,7 +209,9 @@ export const UnifiedDashboard: React.FC = memo(() => {
 
         {/* Content Area */}
         <main className="cyber-content">
-          {renderTabContent()}
+          <div key={activeTab} className="page-transition">
+            {renderTabContent()}
+          </div>
         </main>
       </div>
     </div>
