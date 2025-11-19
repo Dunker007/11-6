@@ -14,6 +14,7 @@ import type {
   ProviderDetectionResult,
 } from '../../types/ai';
 import { logger } from '../foundation/logger';
+import { useCredentialVault } from '../integration/credential-vault';
 
 interface AIState {
   activeProvider: AIProvider;
@@ -286,59 +287,471 @@ export const useAIStore = create<AIState>()(
   )
 );
 
-// Provider-specific implementations (stubs for now - will be completed later)
+// Provider-specific implementations
 
-async function generateWithGemini(messages: AIMessage[], _options: AIGenerateOptions): Promise<string> {
-  // TODO: Implement Gemini API call
-  logger.info('Generating with Gemini (stubbed)', { messages: messages.length });
-  return 'Gemini response (stub - API integration needed)';
+async function generateWithGemini(messages: AIMessage[], options: AIGenerateOptions): Promise<string> {
+  const vault = useCredentialVault.getState();
+  const credential = vault.getCredential('gemini', 'api-key');
+
+  if (!credential) {
+    throw new Error('Gemini API key not configured');
+  }
+
+  logger.info('🤖 Generating with Gemini', { messages: messages.length });
+
+  try {
+    const requestBody = {
+      contents: messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      })),
+      generationConfig: {
+        temperature: options.temperature ?? 0.7,
+        maxOutputTokens: options.maxTokens ?? 2048,
+        topP: 0.95,
+        topK: 40,
+      },
+    };
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${credential.value}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error('Gemini API error', { status: response.status, error: errorText });
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.candidates || data.candidates.length === 0) {
+      throw new Error('No response from Gemini');
+    }
+
+    const text = data.candidates[0].content.parts[0].text;
+    logger.info('✅ Gemini response received', { length: text.length });
+
+    return text;
+  } catch (error) {
+    logger.error('Gemini generation failed', { error });
+    throw error;
+  }
 }
 
-async function generateWithClaude(messages: AIMessage[], _options: AIGenerateOptions): Promise<string> {
-  // TODO: Implement Claude API call
-  logger.info('Generating with Claude (stubbed)', { messages: messages.length });
-  return 'Claude response (stub - API integration needed)';
+async function generateWithClaude(messages: AIMessage[], options: AIGenerateOptions): Promise<string> {
+  const vault = useCredentialVault.getState();
+  const credential = vault.getCredential('claude', 'api-key');
+
+  if (!credential) {
+    throw new Error('Claude API key not configured');
+  }
+
+  logger.info('🤖 Generating with Claude', { messages: messages.length });
+
+  try {
+    // Extract system message if present
+    const systemMessage = messages.find(m => m.role === 'system');
+    const conversationMessages = messages.filter(m => m.role !== 'system');
+
+    const requestBody: any = {
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: options.maxTokens ?? 4096,
+      temperature: options.temperature ?? 0.7,
+      messages: conversationMessages.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content
+      })),
+    };
+
+    if (systemMessage) {
+      requestBody.system = systemMessage.content;
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': credential.value,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error('Claude API error', { status: response.status, error: errorText });
+      throw new Error(`Claude API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.content || data.content.length === 0) {
+      throw new Error('No response from Claude');
+    }
+
+    const text = data.content[0].text;
+    logger.info('✅ Claude response received', { length: text.length });
+
+    return text;
+  } catch (error) {
+    logger.error('Claude generation failed', { error });
+    throw error;
+  }
 }
 
 async function generateWithLocal(
   provider: 'ollama' | 'lmstudio',
   modelId: string,
-  _messages: AIMessage[],
-  _options: AIGenerateOptions
+  messages: AIMessage[],
+  options: AIGenerateOptions
 ): Promise<string> {
-  // TODO: Implement local model API call
-  logger.info(`Generating with ${provider} (stubbed)`, { model: modelId });
-  return `${provider} response (stub - API integration needed)`;
+  logger.info(`🤖 Generating with ${provider}`, { model: modelId });
+
+  const modelName = modelId.replace(`${provider}-`, '');
+
+  try {
+    if (provider === 'ollama') {
+      const response = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelName,
+          prompt: messages.map(m => `${m.role}: ${m.content}`).join('\n\n'),
+          stream: false,
+          options: {
+            temperature: options.temperature ?? 0.7,
+            num_predict: options.maxTokens ?? 2048,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      logger.info('✅ Ollama response received');
+      return data.response;
+    } else {
+      // LM Studio (OpenAI-compatible)
+      const response = await fetch('http://localhost:1234/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelName,
+          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          temperature: options.temperature ?? 0.7,
+          max_tokens: options.maxTokens ?? 2048,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`LM Studio error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      logger.info('✅ LM Studio response received');
+      return data.choices[0].message.content;
+    }
+  } catch (error) {
+    logger.error(`${provider} generation failed`, { error });
+    throw error;
+  }
 }
 
 async function streamWithGemini(
-  _messages: AIMessage[],
+  messages: AIMessage[],
   onChunk: (chunk: AIStreamChunk) => void,
-  _options: AIGenerateOptions
+  options: AIGenerateOptions
 ): Promise<void> {
-  // TODO: Implement streaming
-  logger.info('Streaming with Gemini (stubbed)');
-  onChunk({ content: 'Gemini streaming response (stub)', done: true });
+  const vault = useCredentialVault.getState();
+  const credential = vault.getCredential('gemini', 'api-key');
+
+  if (!credential) {
+    throw new Error('Gemini API key not configured');
+  }
+
+  logger.info('🌊 Streaming with Gemini', { messages: messages.length });
+
+  try {
+    const requestBody = {
+      contents: messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      })),
+      generationConfig: {
+        temperature: options.temperature ?? 0.7,
+        maxOutputTokens: options.maxTokens ?? 2048,
+      },
+    };
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=${credential.value}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Gemini streaming error: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        onChunk({ content: '', done: true });
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.trim() && line.startsWith('{')) {
+          try {
+            const data = JSON.parse(line);
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              onChunk({ content: text, done: false });
+            }
+          } catch {
+            // Skip invalid JSON
+          }
+        }
+      }
+    }
+
+    logger.info('✅ Gemini streaming complete');
+  } catch (error) {
+    logger.error('Gemini streaming failed', { error });
+    throw error;
+  }
 }
 
 async function streamWithClaude(
-  _messages: AIMessage[],
+  messages: AIMessage[],
   onChunk: (chunk: AIStreamChunk) => void,
-  _options: AIGenerateOptions
+  options: AIGenerateOptions
 ): Promise<void> {
-  // TODO: Implement streaming
-  logger.info('Streaming with Claude (stubbed)');
-  onChunk({ content: 'Claude streaming response (stub)', done: true });
+  const vault = useCredentialVault.getState();
+  const credential = vault.getCredential('claude', 'api-key');
+
+  if (!credential) {
+    throw new Error('Claude API key not configured');
+  }
+
+  logger.info('🌊 Streaming with Claude', { messages: messages.length });
+
+  try {
+    const systemMessage = messages.find(m => m.role === 'system');
+    const conversationMessages = messages.filter(m => m.role !== 'system');
+
+    const requestBody: any = {
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: options.maxTokens ?? 4096,
+      temperature: options.temperature ?? 0.7,
+      messages: conversationMessages.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content
+      })),
+      stream: true,
+    };
+
+    if (systemMessage) {
+      requestBody.system = systemMessage.content;
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': credential.value,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Claude streaming error: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        onChunk({ content: '', done: true });
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+              onChunk({ content: parsed.delta.text, done: false });
+            }
+          } catch {
+            // Skip invalid JSON
+          }
+        }
+      }
+    }
+
+    logger.info('✅ Claude streaming complete');
+  } catch (error) {
+    logger.error('Claude streaming failed', { error });
+    throw error;
+  }
 }
 
 async function streamWithLocal(
   provider: 'ollama' | 'lmstudio',
-  _modelId: string,
-  _messages: AIMessage[],
+  modelId: string,
+  messages: AIMessage[],
   onChunk: (chunk: AIStreamChunk) => void,
-  _options: AIGenerateOptions
+  options: AIGenerateOptions
 ): Promise<void> {
-  // TODO: Implement streaming
-  logger.info(`Streaming with ${provider} (stubbed)`);
-  onChunk({ content: `${provider} streaming response (stub)`, done: true });
+  logger.info(`🌊 Streaming with ${provider}`, { model: modelId });
+
+  const modelName = modelId.replace(`${provider}-`, '');
+
+  try {
+    if (provider === 'ollama') {
+      const response = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelName,
+          prompt: messages.map(m => `${m.role}: ${m.content}`).join('\n\n'),
+          stream: true,
+          options: {
+            temperature: options.temperature ?? 0.7,
+            num_predict: options.maxTokens ?? 2048,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama error: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          onChunk({ content: '', done: true });
+          break;
+        }
+
+        const text = decoder.decode(value);
+        const lines = text.split('\n').filter(Boolean);
+
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            if (data.response) {
+              onChunk({ content: data.response, done: data.done || false });
+            }
+          } catch {
+            // Skip invalid JSON
+          }
+        }
+      }
+    } else {
+      // LM Studio streaming
+      const response = await fetch('http://localhost:1234/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelName,
+          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          temperature: options.temperature ?? 0.7,
+          max_tokens: options.maxTokens ?? 2048,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`LM Studio error: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          onChunk({ content: '', done: true });
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                onChunk({ content, done: false });
+              }
+            } catch {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+    }
+
+    logger.info(`✅ ${provider} streaming complete`);
+  } catch (error) {
+    logger.error(`${provider} streaming failed`, { error });
+    throw error;
+  }
 }
