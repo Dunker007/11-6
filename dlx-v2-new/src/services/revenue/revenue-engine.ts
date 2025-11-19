@@ -214,8 +214,33 @@ export const useRevenueStore = create<RevenueState>()(
         set({ alerts });
       },
 
-      loadOpportunities: () => {
-        // Load revenue opportunities based on current state
+      loadOpportunities: async () => {
+        // Load revenue opportunities using AI detector
+        const { detectOpportunities } = await import('../ai/opportunity-detector');
+        const { stats } = get();
+
+        const context = {
+          currentRevenue: stats?.breakdown || {
+            stripe: 0,
+            'idle-compute': 0,
+            content: 0,
+            crypto: 0,
+            affiliate: 0,
+            ads: 0,
+            manual: 0,
+          },
+          activeStreams: Object.values(stats?.breakdown || {}).filter(v => v > 0).length,
+          hasStripe: false, // Will be updated when Stripe connects
+          hasContentPipeline: false,
+          hasIdleCompute: false,
+        };
+
+        const opportunities = await detectOpportunities(context);
+        set({ opportunities });
+      },
+
+      _loadOpportunitiesOld: () => {
+        // Old static implementation (kept for reference)
         const opportunities: RevenueOpportunity[] = [
           {
             id: '1',
