@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  background-color: #050508;
+  color: #ffffff;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+}
+
+* {
+  border-color: #374151;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #050508;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 240, 255, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 240, 255, 0.5);
+}
+
+/* Cyber glow effect */
+.cyber-glow {
+  box-shadow:
+    0 0 5px #00f0ff,
+    0 0 10px #00f0ff,
+    0 0 20px #00f0ff;
+}
+
+/* Revenue card */
+.revenue-card {
+  background-color: rgba(10, 10, 15, 0.5);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s;
+}
+
+.revenue-card:hover {
+  border-color: rgba(0, 240, 255, 0.4);
+  box-shadow:
+    0 0 5px #00f0ff,
+    0 0 10px #00f0ff,
+    0 0 20px #00f0ff;
+}
+
+/* Animated gradient text */
+.gradient-text {
+  background: linear-gradient(90deg, #00f0ff, #ff00f7, #7000ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 3s ease infinite;
+  background-size: 200% 200%;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Neon button */
+.neon-button {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  background-color: rgba(0, 240, 255, 0.1);
+  border: 1px solid #00f0ff;
+  color: #00f0ff;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.neon-button:hover {
+  background-color: #00f0ff;
+  color: #050508;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+}
+
+/* Data stream effect */
+.data-stream {
+  position: relative;
+  overflow: hidden;
+}
+
+.data-stream::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(0, 240, 255, 0.1), transparent);
+  animation: stream 2s linear infinite;
+}
+
+@keyframes stream {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
