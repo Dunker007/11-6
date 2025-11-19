@@ -9,6 +9,7 @@ import { RevenueHUD } from './components/revenue/RevenueHUD';
 import { useAIStore } from './services/ai/ai-router';
 import { useCredentialVault } from './services/integration/credential-vault';
 import { logger } from './services/foundation/logger';
+import { Toaster } from './components/ui/Toast';
 
 function App() {
   const { detectProviders } = useAIStore();
@@ -38,6 +39,9 @@ function App() {
 
       {/* Main content */}
       <RevenueHUD />
+
+      {/* Toast notifications */}
+      <Toaster />
     </div>
   );
 }
