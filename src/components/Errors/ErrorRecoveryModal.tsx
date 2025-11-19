@@ -16,10 +16,8 @@ import React, { useState } from 'react';
 import {
   useSmartErrorHandlerStore,
   smartErrorHandlerService,
-  SmartError,
 } from '../../services/errors/smartErrorHandlerService';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
 import './ErrorRecoveryModal.css';
 
 export const ErrorRecoveryModal: React.FC = () => {
