@@ -29,6 +29,7 @@ const shortcuts: Shortcut[] = [
   { keys: ['⌘', 'N'], description: 'Add new revenue', category: 'Actions' },
   { keys: ['⌘', 'A'], description: 'Open AI assistant', category: 'Actions' },
   { keys: ['⌘', 'G'], description: 'Open revenue goals', category: 'Actions' },
+  { keys: ['⌘', 'I'], description: 'Open integrations', category: 'Actions' },
   { keys: ['⌘', 'E'], description: 'Export data', category: 'Actions' },
 
   // View

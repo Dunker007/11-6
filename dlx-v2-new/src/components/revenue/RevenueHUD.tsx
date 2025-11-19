@@ -29,6 +29,7 @@ import { SettingsPanel } from '../settings/SettingsPanel';
 import { KeyboardShortcuts } from '../ui/KeyboardShortcuts';
 import { AIAssistant } from '../ai/AIAssistant';
 import { GoalsPanel } from './GoalsPanel';
+import { IntegrationHub } from '../integration/IntegrationHub';
 import { useGoalsStore } from '../../services/revenue/goals';
 
 export function RevenueHUD() {
@@ -44,6 +45,7 @@ export function RevenueHUD() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
+  const [showIntegrations, setShowIntegrations] = useState(false);
   const [chartType, setChartType] = useState<'line' | 'pie'>('line');
 
   // Memoized callbacks for better performance
@@ -59,6 +61,8 @@ export function RevenueHUD() {
   const handleCloseAIAssistant = useCallback(() => setShowAIAssistant(false), []);
   const handleOpenGoals = useCallback(() => setShowGoals(true), []);
   const handleCloseGoals = useCallback(() => setShowGoals(false), []);
+  const handleOpenIntegrations = useCallback(() => setShowIntegrations(true), []);
+  const handleCloseIntegrations = useCallback(() => setShowIntegrations(false), []);
   const handleSetLineChart = useCallback(() => setChartType('line'), []);
   const handleSetPieChart = useCallback(() => setChartType('pie'), []);
 
@@ -107,6 +111,10 @@ export function RevenueHUD() {
         e.preventDefault();
         handleOpenGoals();
       }
+      if (e.key === 'i' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleOpenIntegrations();
+      }
       if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
         e.preventDefault();
         handleOpenKeyboardShortcuts();
@@ -121,7 +129,7 @@ export function RevenueHUD() {
 
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, [handleOpenCommandPalette, handleOpenAddRevenue, handleOpenSettings, handleOpenKeyboardShortcuts, handleOpenAIAssistant, handleOpenGoals, handleSetLineChart, handleSetPieChart]);
+  }, [handleOpenCommandPalette, handleOpenAddRevenue, handleOpenSettings, handleOpenKeyboardShortcuts, handleOpenAIAssistant, handleOpenGoals, handleOpenIntegrations, handleSetLineChart, handleSetPieChart]);
 
   const activeAIModel = models.find((m) => m.id === activeModel);
   const unreadAlerts = alerts.filter(a => !a.dismissed);
@@ -453,6 +461,7 @@ export function RevenueHUD() {
       <KeyboardShortcuts isOpen={showKeyboardShortcuts} onClose={handleCloseKeyboardShortcuts} />
       <AIAssistant isOpen={showAIAssistant} onClose={handleCloseAIAssistant} />
       <GoalsPanel isOpen={showGoals} onClose={handleCloseGoals} />
+      <IntegrationHub isOpen={showIntegrations} onClose={handleCloseIntegrations} />
     </div>
   );
 }
