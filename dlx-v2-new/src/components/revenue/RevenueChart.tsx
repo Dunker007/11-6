@@ -3,7 +3,7 @@
  * Visual revenue breakdown with cyberpunk styling
  */
 
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useRevenueStore } from '../../services/revenue/revenue-engine';
 import { useAnalyticsStore } from '../../services/revenue/analytics';
@@ -24,7 +24,7 @@ const COLORS = {
   manual: '#888899',
 };
 
-export function RevenueChart({ period = 'week', type = 'line' }: RevenueChartProps) {
+export const RevenueChart = memo(function RevenueChart({ period = 'week', type = 'line' }: RevenueChartProps) {
   const { streams } = useRevenueStore();
   const { getTimeSeries, sourceMetrics } = useAnalyticsStore();
 
@@ -114,4 +114,4 @@ export function RevenueChart({ period = 'week', type = 'line' }: RevenueChartPro
       </AreaChart>
     </ResponsiveContainer>
   );
-}
+});

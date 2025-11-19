@@ -3,7 +3,7 @@
  * Main dashboard showing revenue stats, trends, and opportunities
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   TrendingUp,
@@ -25,6 +25,8 @@ import { useAlertStore } from '../../services/revenue/alert-system';
 import { RevenueChart } from './RevenueChart';
 import { AddRevenueModal } from './AddRevenueModal';
 import { CommandPalette } from '../ui/CommandPalette';
+import { SettingsPanel } from '../settings/SettingsPanel';
+import { KeyboardShortcuts } from '../ui/KeyboardShortcuts';
 
 export function RevenueHUD() {
   const { stats, opportunities, streams, updateStats, loadOpportunities } = useRevenueStore();
@@ -34,7 +36,21 @@ export function RevenueHUD() {
 
   const [showAddRevenue, setShowAddRevenue] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [chartType, setChartType] = useState<'line' | 'pie'>('line');
+
+  // Memoized callbacks for better performance
+  const handleOpenAddRevenue = useCallback(() => setShowAddRevenue(true), []);
+  const handleCloseAddRevenue = useCallback(() => setShowAddRevenue(false), []);
+  const handleOpenCommandPalette = useCallback(() => setShowCommandPalette(true), []);
+  const handleCloseCommandPalette = useCallback(() => setShowCommandPalette(false), []);
+  const handleOpenSettings = useCallback(() => setShowSettings(true), []);
+  const handleCloseSettings = useCallback(() => setShowSettings(false), []);
+  const handleOpenKeyboardShortcuts = useCallback(() => setShowKeyboardShortcuts(true), []);
+  const handleCloseKeyboardShortcuts = useCallback(() => setShowKeyboardShortcuts(false), []);
+  const handleSetLineChart = useCallback(() => setChartType('line'), []);
+  const handleSetPieChart = useCallback(() => setChartType('pie'), []);
 
   useEffect(() => {
     updateStats('month');
@@ -44,21 +60,35 @@ export function RevenueHUD() {
   }, [streams.length]);
 
   useEffect(() => {
-    // Keyboard shortcut for command palette
+    // Keyboard shortcuts
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setShowCommandPalette(true);
+        handleOpenCommandPalette();
       }
       if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setShowAddRevenue(true);
+        handleOpenAddRevenue();
+      }
+      if (e.key === ',' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleOpenSettings();
+      }
+      if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+        e.preventDefault();
+        handleOpenKeyboardShortcuts();
+      }
+      if (e.key === '1' && !e.metaKey && !e.ctrlKey) {
+        handleSetLineChart();
+      }
+      if (e.key === '2' && !e.metaKey && !e.ctrlKey) {
+        handleSetPieChart();
       }
     };
 
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, []);
+  }, [handleOpenCommandPalette, handleOpenAddRevenue, handleOpenSettings, handleOpenKeyboardShortcuts, handleSetLineChart, handleSetPieChart]);
 
   const activeAIModel = models.find((m) => m.id === activeModel);
   const unreadAlerts = alerts.filter(a => !a.dismissed);
@@ -85,14 +115,14 @@ export function RevenueHUD() {
             </button>
           )}
           <button
-            onClick={() => setShowCommandPalette(true)}
+            onClick={handleOpenCommandPalette}
             className="flex items-center gap-2 px-4 py-3 rounded-lg bg-cyber-dark border border-cyber-primary/30 hover:border-cyber-primary/50 transition-colors"
           >
             <CommandIcon className="w-5 h-5" />
             <span>⌘K</span>
           </button>
           <button
-            onClick={() => setShowAddRevenue(true)}
+            onClick={handleOpenAddRevenue}
             className="flex items-center gap-2 px-4 py-3 rounded-lg bg-cyber-primary text-cyber-darker font-bold hover:bg-cyber-primary/90 transition-colors"
           >
             <Plus className="w-5 h-5" />
@@ -210,7 +240,7 @@ export function RevenueHUD() {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => setChartType('line')}
+                onClick={handleSetLineChart}
                 className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                   chartType === 'line'
                     ? 'bg-cyber-primary text-cyber-darker font-bold'
@@ -220,7 +250,7 @@ export function RevenueHUD() {
                 Timeline
               </button>
               <button
-                onClick={() => setChartType('pie')}
+                onClick={handleSetPieChart}
                 className={`px-3 py-1 rounded-lg text-sm transition-colors ${
                   chartType === 'pie'
                     ? 'bg-cyber-primary text-cyber-darker font-bold'
@@ -368,7 +398,7 @@ export function RevenueHUD() {
           <h3 className="text-xl font-semibold text-gray-400 mb-2">No revenue tracked yet</h3>
           <p className="text-gray-500 mb-6">Add your first revenue entry to get started</p>
           <button
-            onClick={() => setShowAddRevenue(true)}
+            onClick={handleOpenAddRevenue}
             className="px-6 py-3 bg-cyber-primary text-cyber-darker font-bold rounded-lg hover:bg-cyber-primary/90 transition-colors"
           >
             Add Revenue
@@ -377,13 +407,16 @@ export function RevenueHUD() {
       )}
 
       {/* Modals */}
-      <AddRevenueModal isOpen={showAddRevenue} onClose={() => setShowAddRevenue(false)} />
+      <AddRevenueModal isOpen={showAddRevenue} onClose={handleCloseAddRevenue} />
       <CommandPalette
         isOpen={showCommandPalette}
-        onClose={() => setShowCommandPalette(false)}
-        onOpenAddRevenue={() => setShowAddRevenue(true)}
-        onOpenSettings={() => {/* Settings coming soon */}}
+        onClose={handleCloseCommandPalette}
+        onOpenAddRevenue={handleOpenAddRevenue}
+        onOpenSettings={handleOpenSettings}
+        onOpenKeyboardShortcuts={handleOpenKeyboardShortcuts}
       />
+      <SettingsPanel isOpen={showSettings} onClose={handleCloseSettings} />
+      <KeyboardShortcuts isOpen={showKeyboardShortcuts} onClose={handleCloseKeyboardShortcuts} />
     </div>
   );
 }

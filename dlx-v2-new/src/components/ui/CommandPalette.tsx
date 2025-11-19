@@ -16,6 +16,7 @@ import {
   BarChart3,
   Bell,
   Key,
+  Keyboard,
 } from 'lucide-react';
 import { useRevenueStore } from '../../services/revenue/revenue-engine';
 import { useAIStore } from '../../services/ai/ai-router';
@@ -26,9 +27,10 @@ interface CommandPaletteProps {
   onClose: () => void;
   onOpenAddRevenue: () => void;
   onOpenSettings: () => void;
+  onOpenKeyboardShortcuts?: () => void;
 }
 
-export function CommandPalette({ isOpen, onClose, onOpenAddRevenue, onOpenSettings }: CommandPaletteProps) {
+export function CommandPalette({ isOpen, onClose, onOpenAddRevenue, onOpenSettings, onOpenKeyboardShortcuts }: CommandPaletteProps) {
   const [search, setSearch] = useState('');
   const { stats } = useRevenueStore();
   const { activeProvider, models, setProvider } = useAIStore();
@@ -59,6 +61,9 @@ export function CommandPalette({ isOpen, onClose, onOpenAddRevenue, onOpenSettin
         break;
       case 'settings':
         onOpenSettings();
+        break;
+      case 'keyboard-shortcuts':
+        onOpenKeyboardShortcuts?.();
         break;
       case 'copy-total':
         if (stats) {
@@ -162,6 +167,12 @@ export function CommandPalette({ isOpen, onClose, onOpenAddRevenue, onOpenSettin
               label="Open Settings"
               shortcut="⌘,"
               onSelect={() => handleAction('settings')}
+            />
+            <CommandItem
+              icon={<Keyboard className="w-5 h-5" />}
+              label="Keyboard Shortcuts"
+              shortcut="?"
+              onSelect={() => handleAction('keyboard-shortcuts')}
             />
             <CommandItem
               icon={<Key className="w-5 h-5" />}
