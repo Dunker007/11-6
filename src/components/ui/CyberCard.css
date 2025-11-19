@@ -65,9 +65,11 @@
   background: var(--gradient-accent);
   border-radius: inherit;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0.25;
+  pointer-events: none;
   transition: opacity var(--transition-base);
   z-index: -1;
 }
@@ -91,12 +93,10 @@
 .cyber-card__glow {
   position: absolute;
   inset: -40px;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(6, 182, 212, 0.2) 0%,
-    rgba(168, 85, 247, 0.15) 50%,
-    transparent 70%
-  );
+  background: radial-gradient(circle at 50% 50%,
+      rgba(6, 182, 212, 0.2) 0%,
+      rgba(168, 85, 247, 0.15) 50%,
+      transparent 70%);
   filter: blur(40px);
   opacity: 0;
   transition: opacity var(--transition-slow);
@@ -153,6 +153,7 @@
   opacity: 0.4;
   transition: opacity var(--transition-base), box-shadow var(--transition-base);
   z-index: 10;
+  pointer-events: none;
 }
 
 .cyber-card--corner-accents:hover .cyber-card__corner {
@@ -199,7 +200,7 @@
 }
 
 /* Compact variant */
-.cyber-card--compact .cyber-card__content {
+.cyber-card--compact .cyber-card__body {
   padding: var(--space-4);
 }
 
@@ -212,24 +213,22 @@
    CARD HEADER
    ======================================== */
 
-.cyber-card-header {
+.cyber-card__header {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-muted);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border-default);
 }
 
 .cyber-card-header__title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
   color: var(--text-primary);
   margin: 0;
 }
 
 .cyber-card-header__subtitle {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   margin: var(--space-1) 0 0;
 }
@@ -288,8 +287,8 @@
 }
 
 .cyber-card--stat .cyber-stat-value {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-black);
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-black);
   background: var(--gradient-cyber);
   background-clip: text;
   -webkit-background-clip: text;
@@ -298,7 +297,7 @@
 }
 
 .cyber-card--stat .cyber-stat-label {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -332,12 +331,10 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(0, 255, 229, 0.1) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(0, 255, 229, 0.1) 50%,
+      transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
   z-index: 100;
@@ -348,7 +345,7 @@
    ======================================== */
 
 .cyber-card--clickable:focus-visible {
-  outline: 2px solid var(--cyber-cyan-500);
+  outline: 2px solid var(--primary-500);
   outline-offset: 4px;
 }
 
@@ -357,6 +354,7 @@
    ======================================== */
 
 @media (prefers-reduced-motion: reduce) {
+
   .cyber-card,
   .cyber-card--hover,
   .cyber-card--interactive {

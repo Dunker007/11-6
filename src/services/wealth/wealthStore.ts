@@ -12,7 +12,7 @@
  * - portfolioService: Portfolio management
  * - watchlistService: Watchlist and alerts
  * - newsService: Financial news and insights
- * - wealthMarketDataService: Market data
+ * - marketDataService: Market data
  *
  * Organizes state by domain:
  * - Accounts, Assets, Liabilities
@@ -37,7 +37,7 @@
  * - portfolioService: Portfolio management
  * - watchlistService: Watchlist operations
  * - newsService: News and insights
- * - wealthMarketDataService: Market data
+ * - marketDataService: Market data
  * - @/types/wealth: Wealth type definitions
  *
  * STATE MANAGEMENT:
@@ -89,7 +89,7 @@ import { wealthService } from './wealthService';
 import { portfolioService } from './portfolioService';
 import { watchlistService } from './watchlistService';
 import { newsService } from './newsService';
-import { wealthMarketDataService } from './marketDataService';
+import { marketDataService } from './marketDataService';
 import type {
   Account,
   Asset,
@@ -705,7 +705,7 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
   loadCryptoETFs: async () => {
     set({ isLoading: true });
     try {
-      const etfs = await wealthMarketDataService.getCryptoETFs();
+      const etfs = await marketDataService.getCryptoETFs();
       set({ cryptoETFs: etfs, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
@@ -715,7 +715,7 @@ export const useWealthStore = create<WealthStore>((set, get) => ({
   loadUpcomingETFs: async () => {
     set({ isLoading: true });
     try {
-      const etfs = await wealthMarketDataService.getUpcomingETFs();
+      const etfs = await marketDataService.getUpcomingETFs();
       set({ upcomingETFs: etfs, isLoading: false });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });

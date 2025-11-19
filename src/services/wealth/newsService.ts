@@ -4,7 +4,7 @@
  * Aggregates news, analyzes sentiment, and generates insights
  */
 
-import { wealthMarketDataService } from './marketDataService';
+import { marketDataService } from './marketDataService';
 import { aiServiceBridge } from '@/services/ai/aiServiceBridge';
 import { logger } from '../logging/loggerService';
 import type { NewsArticle, MarketInsight, Portfolio } from '@/types/wealth';
@@ -63,7 +63,7 @@ class NewsService {
     }
 
     try {
-      const articles = await wealthMarketDataService.getMarketNews(symbols, limit);
+      const articles = await marketDataService.getMarketNews(symbols, limit);
       this.newsCache.set(cacheKey, articles);
       return articles;
     } catch (error) {
@@ -73,7 +73,7 @@ class NewsService {
   }
 
   async fetchCryptoETFNews(): Promise<NewsArticle[]> {
-    const etfs = await wealthMarketDataService.getCryptoETFs();
+    const etfs = await marketDataService.getCryptoETFs();
     const symbols = etfs.map(etf => etf.ticker);
     return this.fetchNews(symbols, 30);
   }
@@ -247,7 +247,7 @@ Portfolio performance: ${portfolio.performance.totalReturnPercent.toFixed(2)}%`;
       if (asset.performance) {
         // Detect strong upward trend
         if (asset.performance.daily && asset.performance.daily > 5 &&
-            asset.performance.weekly && asset.performance.weekly > 10) {
+          asset.performance.weekly && asset.performance.weekly > 10) {
           insights.push({
             id: crypto.randomUUID(),
             type: 'trend',
@@ -260,7 +260,7 @@ Portfolio performance: ${portfolio.performance.totalReturnPercent.toFixed(2)}%`;
 
         // Detect strong downward trend
         if (asset.performance.daily && asset.performance.daily < -5 &&
-            asset.performance.weekly && asset.performance.weekly < -10) {
+          asset.performance.weekly && asset.performance.weekly < -10) {
           insights.push({
             id: crypto.randomUUID(),
             type: 'alert',

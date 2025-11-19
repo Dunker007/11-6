@@ -14,10 +14,25 @@
   overflow: visible;
 }
 
-.ed-avatar-sm { width: 32px; height: 32px; }
-.ed-avatar-md { width: 64px; height: 64px; }
-.ed-avatar-lg { width: 96px; height: 96px; }
-.ed-avatar-xl { width: 128px; height: 128px; }
+.ed-avatar-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.ed-avatar-md {
+  width: 64px;
+  height: 64px;
+}
+
+.ed-avatar-lg {
+  width: 96px;
+  height: 96px;
+}
+
+.ed-avatar-xl {
+  width: 128px;
+  height: 128px;
+}
 
 .ed-placeholder {
   width: 100%;
@@ -70,8 +85,13 @@
   top: 35%;
 }
 
-.ed-eye-left { left: 30%; }
-.ed-eye-right { right: 30%; }
+.ed-eye-left {
+  left: 30%;
+}
+
+.ed-eye-right {
+  right: 30%;
+}
 
 .ed-mouth {
   position: absolute;
@@ -154,13 +174,11 @@
   transform: translateX(-50%);
   width: 40px;
   height: 20px;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.3) 0px,
-    rgba(255, 255, 255, 0.3) 2px,
-    transparent 2px,
-    transparent 4px
-  );
+  background: repeating-linear-gradient(to bottom,
+      rgba(255, 255, 255, 0.3) 0px,
+      rgba(255, 255, 255, 0.3) 2px,
+      transparent 2px,
+      transparent 4px);
   animation: edCodeFlow 1s linear infinite;
 }
 
@@ -198,51 +216,123 @@
 
 /* Ed Keyframes */
 @keyframes edHairFlow {
-  0%, 100% { transform: translateX(-50%) rotate(0deg); }
-  50% { transform: translateX(-50%) rotate(5deg); }
+
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+
+  50% {
+    transform: translateX(-50%) rotate(5deg);
+  }
 }
 
 @keyframes edIdleArms {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-10deg); }
-  75% { transform: rotate(10deg); }
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-10deg);
+  }
+
+  75% {
+    transform: rotate(10deg);
+  }
 }
 
 @keyframes edThinking {
-  0%, 100% { transform: translateX(-50%) rotate(0deg); }
-  50% { transform: translateX(-50%) rotate(-5deg); }
+
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+
+  50% {
+    transform: translateX(-50%) rotate(-5deg);
+  }
 }
 
 @keyframes edBubbleFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 @keyframes edTyping {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(15deg); }
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(15deg);
+  }
 }
 
 @keyframes edCodeFlow {
-  0% { opacity: 0.3; transform: translateX(-50%) translateY(0px); }
-  100% { opacity: 1; transform: translateX(-50%) translateY(10px); }
+  0% {
+    opacity: 0.3;
+    transform: translateX(-50%) translateY(0px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(10px);
+  }
 }
 
 @keyframes edSuccessBounce {
-  0% { transform: scale(0) rotate(0deg); }
-  50% { transform: scale(1.2) rotate(180deg); }
-  100% { transform: scale(1) rotate(360deg); }
+  0% {
+    transform: scale(0) rotate(0deg);
+  }
+
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
 }
 
 @keyframes edErrorShake {
-  0%, 100% { transform: translateX(0px); }
-  25% { transform: translateX(-3px); }
-  75% { transform: translateX(3px); }
+
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+
+  25% {
+    transform: translateX(-3px);
+  }
+
+  75% {
+    transform: translateX(3px);
+  }
 }
 
 @keyframes edGlowPulse {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.1); }
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 /* ===== ITOR AVATAR ===== */
@@ -255,10 +345,25 @@
   overflow: visible;
 }
 
-.itor-avatar-sm { width: 32px; height: 32px; }
-.itor-avatar-md { width: 64px; height: 64px; }
-.itor-avatar-lg { width: 96px; height: 96px; }
-.itor-avatar-xl { width: 128px; height: 128px; }
+.itor-avatar-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.itor-avatar-md {
+  width: 64px;
+  height: 64px;
+}
+
+.itor-avatar-lg {
+  width: 96px;
+  height: 96px;
+}
+
+.itor-avatar-xl {
+  width: 128px;
+  height: 128px;
+}
 
 .itor-placeholder {
   width: 100%;
@@ -309,8 +414,13 @@
   border: 1px solid #ffffff;
 }
 
-.itor-eye-left { left: 25%; }
-.itor-eye-right { right: 25%; }
+.itor-eye-left {
+  left: 25%;
+}
+
+.itor-eye-right {
+  right: 25%;
+}
 
 .itor-crest {
   position: absolute;
@@ -364,8 +474,13 @@
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
-.itor-talon-left { left: 35%; }
-.itor-talon-right { right: 35%; }
+.itor-talon-left {
+  left: 35%;
+}
+
+.itor-talon-right {
+  right: 35%;
+}
 
 /* Itor Status Animations */
 .itor-avatar-idle .itor-head {
@@ -381,12 +496,10 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    transparent 0px,
-    rgba(34, 211, 238, 0.3) 1px,
-    transparent 2px
-  );
+  background: repeating-linear-gradient(90deg,
+      transparent 0px,
+      rgba(34, 211, 238, 0.3) 1px,
+      transparent 2px);
   animation: itorScanMove 1s linear infinite;
 }
 
@@ -494,56 +607,137 @@
 
 /* Itor Keyframes */
 @keyframes itorIdleHead {
-  0%, 100% { transform: translateX(-50%) rotate(0deg); }
-  50% { transform: translateX(-50%) rotate(5deg); }
+
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+
+  50% {
+    transform: translateX(-50%) rotate(5deg);
+  }
 }
 
 @keyframes itorScanEyes {
-  0%, 100% { transform: translateX(0px); }
-  50% { transform: translateX(2px); }
+
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+
+  50% {
+    transform: translateX(2px);
+  }
 }
 
 @keyframes itorScanMove {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes itorReviewHead {
-  0%, 100% { transform: translateX(-50%) rotate(0deg); }
-  25% { transform: translateX(-50%) rotate(-10deg); }
-  75% { transform: translateX(-50%) rotate(10deg); }
+
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+
+  25% {
+    transform: translateX(-50%) rotate(-10deg);
+  }
+
+  75% {
+    transform: translateX(-50%) rotate(10deg);
+  }
 }
 
 @keyframes itorParticleFloat {
-  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.7; }
-  50% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: translateY(-10px) scale(1.2);
+    opacity: 1;
+  }
 }
 
 @keyframes itorAlertWings {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(15deg); }
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(15deg);
+  }
 }
 
 @keyframes itorAlertPulse {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
 
 @keyframes itorApprovedPop {
-  0% { transform: scale(0) rotate(0deg); }
-  50% { transform: scale(1.2) rotate(180deg); }
-  100% { transform: scale(1) rotate(360deg); }
+  0% {
+    transform: scale(0) rotate(0deg);
+  }
+
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
 }
 
 @keyframes itorErrorShake {
-  0%, 100% { transform: translateX(0px) rotate(0deg); }
-  25% { transform: translateX(-3px) rotate(-5deg); }
-  75% { transform: translateX(3px) rotate(5deg); }
+
+  0%,
+  100% {
+    transform: translateX(0px) rotate(0deg);
+  }
+
+  25% {
+    transform: translateX(-3px) rotate(-5deg);
+  }
+
+  75% {
+    transform: translateX(3px) rotate(5deg);
+  }
 }
 
 @keyframes itorGlowPulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.1); }
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
 }
 
 /* Asset Images */
@@ -567,29 +761,29 @@
 .itor-floating {
   cursor: move;
   user-select: none;
-  transition: transform 0.1s ease-out, box-shadow 0.2s ease;
+  transition: transform var(--transition-fast), box-shadow var(--transition-base);
   display: flex;
   align-items: center;
-  padding: var(--spacing-2);
+  padding: var(--space-2);
   border-radius: var(--radius-lg);
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(34, 211, 238, 0.2);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(var(--blur-md));
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-lg);
 }
 
 .itor-floating:hover {
   transform: scale(1.05);
-  border-color: rgba(34, 211, 238, 0.4);
-  box-shadow: 0 6px 24px rgba(34, 211, 238, 0.3);
+  border-color: var(--primary-400);
+  box-shadow: var(--shadow-cyber);
 }
 
 .itor-floating.dragging {
   cursor: grabbing;
   transform: scale(1.1);
-  box-shadow: 0 8px 32px rgba(34, 211, 238, 0.5);
-  z-index: 10003 !important;
-  border-color: rgba(34, 211, 238, 0.6);
+  box-shadow: var(--shadow-cyber-strong);
+  z-index: var(--z-popover) !important;
+  border-color: var(--primary-300);
 }
 
 .itor-floating.dragging .itor-toolbar-btn {
@@ -606,13 +800,13 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
   padding: 0;
 }
 
 .itor-toolbar-btn:hover {
-  background: rgba(34, 211, 238, 0.1);
+  background: rgba(6, 182, 212, 0.15);
 }
 
 .itor-toolbar-btn::before {
@@ -620,8 +814,8 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  border-radius: 4px;
-  background: radial-gradient(circle, var(--itor-glow-color, var(--primary-500)) 0%, transparent 70%);
+  border-radius: var(--radius-sm);
+  background: radial-gradient(circle, var(--primary-500) 0%, transparent 70%);
   opacity: 0.3;
   animation: itorToolbarGlow 2s ease-in-out infinite;
   pointer-events: none;
@@ -634,9 +828,9 @@
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  background: var(--red-500);
+  background: var(--status-error);
   color: white;
-  border-radius: 8px;
+  border-radius: var(--radius-full);
   font-size: 10px;
   font-weight: bold;
   display: flex;
@@ -653,7 +847,7 @@
   right: 0;
   bottom: 0;
   background: transparent;
-  z-index: 10001;
+  z-index: var(--z-popover);
 }
 
 .itor-popover {
@@ -661,49 +855,49 @@
   top: calc(100% + 8px);
   right: 0;
   min-width: 240px;
-  background: var(--panel-bg);
-  backdrop-filter: var(--panel-blur);
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-  z-index: 10002;
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--blur-lg));
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-tooltip);
   animation: itorPopoverSlide 0.2s ease-out;
 }
 
 .itor-popover-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--panel-border);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .itor-popover-info h4 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
 }
 
 .itor-status-text {
   margin: 4px 0 0 0;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   text-transform: capitalize;
 }
 
 .itor-popover-stats {
   display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .itor-stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .itor-stat-label {
@@ -714,38 +908,67 @@
 }
 
 .itor-stat-value {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
   color: var(--primary-400);
 }
 
 .itor-popover-alert {
-  padding: 8px 12px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 4px;
-  color: var(--red-400);
-  font-size: 12px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--status-error-bg);
+  border: 1px solid var(--status-error-border);
+  border-radius: var(--radius-sm);
+  color: var(--status-error);
+  font-size: var(--text-xs);
   animation: itorAlertFlash 1s ease-in-out infinite;
 }
 
 @keyframes itorToolbarGlow {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.05); }
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
 }
 
 @keyframes itorBadgePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 @keyframes itorPopoverSlide {
-  0% { opacity: 0; transform: translateY(-8px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes itorAlertFlash {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
 
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}

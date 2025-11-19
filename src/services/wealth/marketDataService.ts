@@ -1,43 +1,49 @@
 /**
- * Wealth Lab Market Data Service
+ * Unified Market Data Service
  *
  * Integrates multiple data sources:
- * - Yahoo Finance API (stocks, ETFs)
- * - CoinGecko API (crypto - via existing service)
- * - News APIs (NewsAPI.org, Alpha Vantage, CryptoCompare)
+ * - CoinGecko API (Crypto)
+ * - Yahoo Finance API (Stocks, ETFs)
+ * - News APIs (NewsAPI.org, Alpha Vantage)
  */
 
-import { marketDataService as coinGeckoService } from '@/services/crypto/marketDataService';
+import type { Coin, MarketData } from '@/types/crypto';
 import type { CryptoETF, NewsArticle, DividendPayment } from '@/types/wealth';
 import type { YahooFinanceResponse, NewsAPIResponse, NewsAPIArticle } from '@/types/marketData';
 import { logger } from '../logging/loggerService';
 
+// --- Constants ---
+const COINGECKO_API_BASE = 'https://api.coingecko.com/api/v3';
 const YAHOO_FINANCE_API_BASE = 'https://query1.finance.yahoo.com/v8/finance/chart';
 const NEWS_API_BASE = 'https://newsapi.org/v2';
-const CACHE_TTL = 30000; // 30 seconds for market data
-const NEWS_CACHE_TTL = 300000; // 5 minutes for news
+
+const CACHE_TTL_CRYPTO = 60000; // 1 minute
+const CACHE_TTL_STOCKS = 30000; // 30 seconds
+const CACHE_TTL_NEWS = 300000; // 5 minutes
 
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
 }
 
-class WealthMarketDataService {
-  private static instance: WealthMarketDataService;
-  private cache: Map<string, CacheEntry<unknown>> = new Map();
-  private rateLimitQueue: Array<() => Promise<unknown>> = [];
+class MarketDataService {
+  private static instance: MarketDataService;
+  private cache: Map<string, CacheEntry<any>> = new Map();
+  private rateLimitQueue: Array<() => Promise<any>> = [];
   private isProcessingQueue = false;
 
-  private constructor() {}
+  private constructor() { }
 
-  static getInstance(): WealthMarketDataService {
-    if (!WealthMarketDataService.instance) {
-      WealthMarketDataService.instance = new WealthMarketDataService();
+  static getInstance(): MarketDataService {
+    if (!MarketDataService.instance) {
+      MarketDataService.instance = new MarketDataService();
     }
-    return WealthMarketDataService.instance;
+    return MarketDataService.instance;
   }
 
-  private getCached<T>(key: string, ttl: number = CACHE_TTL): T | null {
+  // --- Caching & Rate Limiting ---
+
+  private getCached<T>(key: string, ttl: number): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
 
@@ -57,7 +63,7 @@ class WealthMarketDataService {
     });
   }
 
-  private async rateLimitedFetch<T>(key: string, url: string, ttl: number = CACHE_TTL): Promise<T> {
+  private async rateLimitedFetch<T>(key: string, url: string, ttl: number): Promise<T> {
     const cached = this.getCached<T>(key, ttl);
     if (cached) return cached;
 
@@ -88,11 +94,90 @@ class WealthMarketDataService {
       const task = this.rateLimitQueue.shift();
       if (task) {
         await task();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
     this.isProcessingQueue = false;
   }
+
+  // ==================================================================================
+  // 🪙 CRYPTO DATA (CoinGecko)
+  // ==================================================================================
+
+  async getTopCoins(limit: number = 100): Promise<Coin[]> {
+    const url = `${COINGECKO_API_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d`;
+    return this.rateLimitedFetch<Coin[]>(`top_coins_${limit}`, url, CACHE_TTL_CRYPTO);
+  }
+
+  async getTrendingCoins(): Promise<Coin[]> {
+    try {
+      const url = `${COINGECKO_API_BASE}/search/trending`;
+      // Direct fetch for trending to get IDs first
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`CoinGecko API error: ${response.status}`);
+      const data = await response.json();
+
+      const coinIds = data.coins.map((coin: any) => coin.item.id).join(',');
+      const coinsUrl = `${COINGECKO_API_BASE}/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d`;
+
+      return this.rateLimitedFetch<Coin[]>(`trending_coins`, coinsUrl, CACHE_TTL_CRYPTO);
+    } catch (error) {
+      logger.error('Failed to fetch trending coins:', { error });
+      throw error;
+    }
+  }
+
+  async getPriceHistory(coinId: string, days: number = 7): Promise<number[][]> {
+    const url = `${COINGECKO_API_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`;
+    try {
+      const data = await this.rateLimitedFetch<any>(`price_history_${coinId}_${days}`, url, CACHE_TTL_CRYPTO);
+      return data.prices || [];
+    } catch (error) {
+      logger.error(`Failed to fetch price history for ${coinId}:`, { error });
+      return [];
+    }
+  }
+
+  async getMarketData(): Promise<MarketData> {
+    try {
+      const [coins, trending] = await Promise.all([
+        this.getTopCoins(100),
+        this.getTrendingCoins(),
+      ]);
+
+      return {
+        coins,
+        trending,
+        lastUpdated: new Date(),
+      };
+    } catch (error) {
+      logger.error('Failed to fetch market data:', { error });
+      throw error;
+    }
+  }
+
+  async searchCoins(query: string): Promise<Coin[]> {
+    try {
+      const url = `${COINGECKO_API_BASE}/search?query=${encodeURIComponent(query)}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`CoinGecko API error: ${response.status}`);
+      const data = await response.json();
+
+      if (!data.coins || data.coins.length === 0) return [];
+
+      const coinIds = data.coins.slice(0, 10).map((coin: any) => coin.id).join(',');
+      const coinsUrl = `${COINGECKO_API_BASE}/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&per_page=10&page=1&sparkline=false`;
+
+      return this.rateLimitedFetch<Coin[]>(`search_${query}`, coinsUrl, CACHE_TTL_CRYPTO);
+    } catch (error) {
+      logger.error(`Failed to search coins:`, { error });
+      return [];
+    }
+  }
+
+  // ==================================================================================
+  // 📈 STOCK & ETF DATA (Yahoo Finance)
+  // ==================================================================================
 
   async getRealTimePrice(symbol: string): Promise<{
     price: number;
@@ -102,12 +187,13 @@ class WealthMarketDataService {
     marketCap?: number;
     lastUpdated: Date;
   }> {
+    // Check if it's a crypto symbol first
     const cryptoPattern = /^(BTC|ETH|USDT|BNB|SOL|ADA|XRP|DOT|DOGE|AVAX|SHIB|MATIC|LTC|UNI|LINK|ATOM|ETC|XLM|ALGO|VET|ICP|FIL|TRX|EOS|AAVE|MKR|GRT|SAND|MANA|AXS|THETA|XTZ|FLOW|CHZ|ENJ|BAT|ZEC|DASH|ZRX|COMP|SNX|YFI|CRV|1INCH|SUSHI|ALPHA|REN|KNC|BAND|OCEAN|NMR|COTI|ANKR|BAL|STORJ|OMG|PAXG|SKL)$/i;
 
     if (cryptoPattern.test(symbol)) {
       try {
-        const coins = await coinGeckoService.getTopCoins(250);
-        const coin = coins.find(c => c.symbol.toUpperCase() === symbol.toUpperCase());
+        const coins = await this.getTopCoins(250);
+        const coin = coins.find((c) => c.symbol.toUpperCase() === symbol.toUpperCase());
         if (coin) {
           return {
             price: coin.current_price,
@@ -123,9 +209,10 @@ class WealthMarketDataService {
       }
     }
 
+    // Fallback to Yahoo Finance
     try {
       const url = `${YAHOO_FINANCE_API_BASE}/${symbol}?interval=1d&range=1d`;
-      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`price_${symbol}`, url);
+      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`price_${symbol}`, url, CACHE_TTL_STOCKS);
 
       if (data?.chart?.result?.[0]) {
         const result = data.chart.result[0];
@@ -161,12 +248,12 @@ class WealthMarketDataService {
     close: number[];
     volume: number[];
   }> {
-    const range = period === '1d' ? '1d' : period === '5d' ? '5d' : period === '1mo' ? '1mo' : period === '3mo' ? '3mo' : period === '6mo' ? '6mo' : period === '1y' ? '1y' : period === '2y' ? '2y' : period === '5y' ? '5y' : period === '10y' ? '10y' : period === 'ytd' ? 'ytd' : 'max';
+    const range = period;
     const interval = period === '1d' || period === '5d' ? '5m' : period === '1mo' ? '1d' : '1d';
 
     try {
       const url = `${YAHOO_FINANCE_API_BASE}/${symbol}?interval=${interval}&range=${range}`;
-      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`history_${symbol}_${period}`, url, 60000);
+      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`history_${symbol}_${period}`, url, CACHE_TTL_STOCKS * 2);
 
       if (data?.chart?.result?.[0]) {
         const result = data.chart.result[0];
@@ -205,8 +292,8 @@ class WealthMarketDataService {
     const results: Array<{ symbol: string; name: string; type: 'stock' | 'etf' | 'crypto'; exchange?: string }> = [];
 
     try {
-      const cryptoResults = await coinGeckoService.searchCoins(query);
-      cryptoResults.forEach(coin => {
+      const cryptoResults = await this.searchCoins(query);
+      cryptoResults.forEach((coin) => {
         results.push({
           symbol: coin.symbol.toUpperCase(),
           name: coin.name,
@@ -231,8 +318,8 @@ class WealthMarketDataService {
     website?: string;
   }> {
     try {
-      const coins = await coinGeckoService.getTopCoins(250);
-      const coin = coins.find(c => c.symbol.toUpperCase() === symbol.toUpperCase());
+      const coins = await this.getTopCoins(250);
+      const coin = coins.find((c) => c.symbol.toUpperCase() === symbol.toUpperCase());
       if (coin) {
         return {
           symbol: coin.symbol.toUpperCase(),
@@ -253,6 +340,10 @@ class WealthMarketDataService {
     };
   }
 
+  // ==================================================================================
+  // 📰 NEWS & EVENTS
+  // ==================================================================================
+
   async getMarketNews(symbols?: string[], limit: number = 20): Promise<NewsArticle[]> {
     const articles: NewsArticle[] = [];
     const apiKey = ''; // Would come from API key management
@@ -265,7 +356,7 @@ class WealthMarketDataService {
       const query = symbols && symbols.length > 0 ? symbols.join(' OR ') : 'finance OR stock OR crypto';
       const url = `${NEWS_API_BASE}/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&pageSize=${limit}&language=en`;
 
-      const data = await this.rateLimitedFetch<NewsAPIResponse>(`news_${query}_${limit}`, url, NEWS_CACHE_TTL);
+      const data = await this.rateLimitedFetch<NewsAPIResponse>(`news_${query}_${limit}`, url, CACHE_TTL_NEWS);
 
       if (data?.articles) {
         data.articles.forEach((article: NewsAPIArticle) => {
@@ -293,8 +384,106 @@ class WealthMarketDataService {
     return articles;
   }
 
+  private getMockNews(symbols?: string[], limit: number = 20): NewsArticle[] {
+    const sources = ['Yahoo Finance', 'Seeking Alpha', 'Bloomberg', 'Reuters', 'CoinDesk'];
+    const articles: NewsArticle[] = [];
+
+    for (let i = 0; i < limit; i++) {
+      articles.push({
+        id: crypto.randomUUID(),
+        title: `Market Update ${i + 1}`,
+        summary: `Latest market news and analysis${symbols ? ` related to ${symbols.join(', ')}` : ''}`,
+        source: sources[i % sources.length],
+        sourceUrl: `https://example.com/news/${i}`,
+        publishedAt: new Date(Date.now() - i * 3600000),
+        tags: symbols || [],
+        sentiment: i % 3 === 0 ? 'positive' : i % 3 === 1 ? 'negative' : 'neutral',
+        relatedAssets: symbols || [],
+        impactScore: Math.floor(Math.random() * 100),
+      });
+    }
+
+    return articles;
+  }
+
+  async getDividendHistory(symbol: string, startDate?: Date, endDate?: Date): Promise<DividendPayment[]> {
+    const dividends: DividendPayment[] = [];
+
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5y&events=div`;
+      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`dividends_${symbol}`, url, CACHE_TTL_NEWS);
+
+      if (data?.chart?.result?.[0]?.events?.dividends) {
+        const dividendEvents = data.chart.result[0].events.dividends;
+
+        Object.entries(dividendEvents).forEach(([timestamp, div]) => {
+          const date = new Date(parseInt(timestamp) * 1000);
+
+          if (startDate && date < startDate) return;
+          if (endDate && date > endDate) return;
+
+          dividends.push({
+            id: crypto.randomUUID(),
+            assetId: '',
+            symbol,
+            amount: div.amount || 0,
+            totalAmount: div.amount || 0,
+            quantity: 0,
+            exDividendDate: date,
+            paymentDate: date,
+            recordDate: undefined,
+            taxWithheld: undefined,
+            qualified: undefined,
+          });
+        });
+      }
+    } catch (error) {
+      logger.error(`Failed to fetch dividend history for ${symbol}`, { error });
+    }
+
+    return dividends.sort((a, b) => b.exDividendDate.getTime() - a.exDividendDate.getTime());
+  }
+
+  async getEarningsCalendar(symbol: string): Promise<Array<{
+    date: Date;
+    estimate?: number;
+    actual?: number;
+    period: string;
+  }>> {
+    const earnings: Array<{
+      date: Date;
+      estimate?: number;
+      actual?: number;
+      period: string;
+    }> = [];
+
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2y&events=earnings`;
+      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`earnings_${symbol}`, url, CACHE_TTL_NEWS);
+
+      if (data?.chart?.result?.[0]?.events?.earnings) {
+        const earningsEvents = data.chart.result[0].events.earnings;
+
+        Object.entries(earningsEvents).forEach(([timestamp, earning]) => {
+          const date = new Date(parseInt(timestamp) * 1000);
+
+          earnings.push({
+            date,
+            estimate: earning.estimate,
+            actual: earning.actual,
+            period: earning.period || `${date.getFullYear()} Q${Math.floor(date.getMonth() / 3) + 1}`,
+          });
+        });
+      }
+    } catch (error) {
+      logger.error(`Failed to fetch earnings calendar for ${symbol}`, { error });
+    }
+
+    return earnings.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
+
   async getCryptoETFs(): Promise<CryptoETF[]> {
-    const etfs: CryptoETF[] = [
+    return [
       {
         ticker: 'BITO',
         name: 'ProShares Bitcoin Strategy ETF',
@@ -335,8 +524,6 @@ class WealthMarketDataService {
         description: 'Ethereum trust',
       },
     ];
-
-    return etfs;
   }
 
   async getUpcomingETFs(): Promise<CryptoETF[]> {
@@ -357,188 +544,33 @@ class WealthMarketDataService {
     ];
   }
 
-  private getMockNews(symbols?: string[], limit: number = 20): NewsArticle[] {
-    const sources = ['Yahoo Finance', 'Seeking Alpha', 'Bloomberg', 'Reuters', 'CoinDesk'];
-    const articles: NewsArticle[] = [];
-
-    for (let i = 0; i < limit; i++) {
-      articles.push({
-        id: crypto.randomUUID(),
-        title: `Market Update ${i + 1}`,
-        summary: `Latest market news and analysis${symbols ? ` related to ${symbols.join(', ')}` : ''}`,
-        source: sources[i % sources.length],
-        sourceUrl: `https://example.com/news/${i}`,
-        publishedAt: new Date(Date.now() - i * 3600000),
-        tags: symbols || [],
-        sentiment: i % 3 === 0 ? 'positive' : i % 3 === 1 ? 'negative' : 'neutral',
-        relatedAssets: symbols || [],
-        impactScore: Math.floor(Math.random() * 100),
-      });
-    }
-
-    return articles;
-  }
-
-  /**
-   * Get dividend history for a stock/ETF
-   */
-  async getDividendHistory(symbol: string, startDate?: Date, endDate?: Date): Promise<DividendPayment[]> {
-    const dividends: DividendPayment[] = [];
-
-    try {
-      // Yahoo Finance dividend endpoint
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5y&events=div`;
-      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`dividends_${symbol}`, url, 300000); // Cache for 5 minutes
-
-      if (data?.chart?.result?.[0]?.events?.dividends) {
-        const dividendEvents = data.chart.result[0].events.dividends;
-
-        Object.entries(dividendEvents).forEach(([timestamp, div]) => {
-          const date = new Date(parseInt(timestamp) * 1000);
-
-          if (startDate && date < startDate) return;
-          if (endDate && date > endDate) return;
-
-          dividends.push({
-            id: crypto.randomUUID(),
-            assetId: '', // Will be set by caller
-            symbol,
-            amount: div.amount || 0,
-            totalAmount: div.amount || 0, // Will be calculated based on shares held
-            quantity: 0, // Will be set by caller based on position
-            exDividendDate: date,
-            paymentDate: date, // Yahoo Finance doesn't always provide payment date separately
-            recordDate: undefined,
-            taxWithheld: undefined,
-            qualified: undefined, // Would need additional data source
-          });
-        });
-      }
-    } catch (error) {
-      logger.error(`Failed to fetch dividend history for ${symbol}`, { error });
-    }
-
-    return dividends.sort((a, b) => b.exDividendDate.getTime() - a.exDividendDate.getTime());
-  }
-
-  /**
-   * Get earnings calendar for a symbol
-   */
-  async getEarningsCalendar(symbol: string): Promise<Array<{
-    date: Date;
-    estimate?: number;
-    actual?: number;
-    period: string; // e.g., "Q1 2024"
-  }>> {
-    const earnings: Array<{
-      date: Date;
-      estimate?: number;
-      actual?: number;
-      period: string;
-    }> = [];
-
-    try {
-      // Yahoo Finance earnings calendar endpoint
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2y&events=earnings`;
-      const data = await this.rateLimitedFetch<YahooFinanceResponse>(`earnings_${symbol}`, url, 300000);
-
-      if (data?.chart?.result?.[0]?.events?.earnings) {
-        const earningsEvents = data.chart.result[0].events.earnings;
-
-        Object.entries(earningsEvents).forEach(([timestamp, earning]) => {
-          const date = new Date(parseInt(timestamp) * 1000);
-
-          earnings.push({
-            date,
-            estimate: earning.estimate,
-            actual: earning.actual,
-            period: earning.period || `${date.getFullYear()} Q${Math.floor(date.getMonth() / 3) + 1}`,
-          });
-        });
-      }
-    } catch (error) {
-      logger.error(`Failed to fetch earnings calendar for ${symbol}`, { error });
-    }
-
-    return earnings.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }
-
-  /**
-   * Get options chain data (for advanced users)
-   */
-  async getOptionsChain(_symbol: string, _expirationDate?: Date): Promise<Array<{
-    strike: number;
-    expirationDate: Date;
-    calls?: {
-      bid: number;
-      ask: number;
-      volume: number;
-      openInterest: number;
-    };
-    puts?: {
-      bid: number;
-      ask: number;
-      volume: number;
-      openInterest: number;
-    };
-  }>> {
-    // Note: Yahoo Finance options data requires a different endpoint
-    // This is a placeholder implementation
-    const options: Array<{
-      strike: number;
-      expirationDate: Date;
-      calls?: {
-        bid: number;
-        ask: number;
-        volume: number;
-        openInterest: number;
-      };
-      puts?: {
-        bid: number;
-        ask: number;
-        volume: number;
-        openInterest: number;
-      };
-    }> = [];
-
-    // Implementation would fetch from Yahoo Finance options endpoint
-    // For now, return empty array
-    return options;
-  }
-
-  /**
-   * Get list of supported international exchanges
-   */
-  getSupportedExchanges(): Array<{
-    code: string;
-    name: string;
-    country: string;
-    timezone: string;
+  async getGlobalMetrics(): Promise<{
+    totalMarketCap: number;
+    totalVolume: number;
+    bitcoinDominance: number;
+    ethereumDominance: number;
   }> {
-    // List of 50+ international exchanges (like Sharesight)
-    return [
-      { code: 'NYSE', name: 'New York Stock Exchange', country: 'US', timezone: 'America/New_York' },
-      { code: 'NASDAQ', name: 'NASDAQ', country: 'US', timezone: 'America/New_York' },
-      { code: 'LSE', name: 'London Stock Exchange', country: 'GB', timezone: 'Europe/London' },
-      { code: 'TSE', name: 'Tokyo Stock Exchange', country: 'JP', timezone: 'Asia/Tokyo' },
-      { code: 'SSE', name: 'Shanghai Stock Exchange', country: 'CN', timezone: 'Asia/Shanghai' },
-      { code: 'SZSE', name: 'Shenzhen Stock Exchange', country: 'CN', timezone: 'Asia/Shanghai' },
-      { code: 'HKEX', name: 'Hong Kong Stock Exchange', country: 'HK', timezone: 'Asia/Hong_Kong' },
-      { code: 'ASX', name: 'Australian Securities Exchange', country: 'AU', timezone: 'Australia/Sydney' },
-      { code: 'TSX', name: 'Toronto Stock Exchange', country: 'CA', timezone: 'America/Toronto' },
-      { code: 'BSE', name: 'Bombay Stock Exchange', country: 'IN', timezone: 'Asia/Kolkata' },
-      { code: 'NSE', name: 'National Stock Exchange of India', country: 'IN', timezone: 'Asia/Kolkata' },
-      { code: 'FWB', name: 'Frankfurt Stock Exchange', country: 'DE', timezone: 'Europe/Berlin' },
-      { code: 'XETR', name: 'XETRA', country: 'DE', timezone: 'Europe/Berlin' },
-      { code: 'EURONEXT', name: 'Euronext', country: 'EU', timezone: 'Europe/Paris' },
-      { code: 'SWX', name: 'SIX Swiss Exchange', country: 'CH', timezone: 'Europe/Zurich' },
-      { code: 'KRX', name: 'Korea Exchange', country: 'KR', timezone: 'Asia/Seoul' },
-      { code: 'SGX', name: 'Singapore Exchange', country: 'SG', timezone: 'Asia/Singapore' },
-      { code: 'B3', name: 'B3 - Brasil Bolsa Balcão', country: 'BR', timezone: 'America/Sao_Paulo' },
-      { code: 'BMV', name: 'Bolsa Mexicana de Valores', country: 'MX', timezone: 'America/Mexico_City' },
-      { code: 'JSE', name: 'Johannesburg Stock Exchange', country: 'ZA', timezone: 'Africa/Johannesburg' },
-      // Add more exchanges as needed
-    ];
+    try {
+      const url = `${COINGECKO_API_BASE}/global`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`CoinGecko API error: ${response.status}`);
+      const data = await response.json();
+
+      return {
+        totalMarketCap: data.data.total_market_cap?.usd || 0,
+        totalVolume: data.data.total_volume?.usd || 0,
+        bitcoinDominance: data.data.market_cap_percentage?.btc || 0,
+        ethereumDominance: data.data.market_cap_percentage?.eth || 0,
+      };
+    } catch (error) {
+      logger.error('Failed to fetch global metrics:', { error });
+      return {
+        totalMarketCap: 0,
+        totalVolume: 0,
+        bitcoinDominance: 0,
+        ethereumDominance: 0,
+      };
+    }
   }
 
   clearCache(): void {
@@ -546,4 +578,4 @@ class WealthMarketDataService {
   }
 }
 
-export const wealthMarketDataService = WealthMarketDataService.getInstance();
+export const marketDataService = MarketDataService.getInstance();

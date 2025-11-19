@@ -10,7 +10,7 @@
 
 import { logger } from '../logging/loggerService';
 import { wealthService } from './wealthService';
-import { wealthMarketDataService } from './marketDataService';
+import { marketDataService } from './marketDataService';
 import type { Position } from '@/types/wealth';
 
 export interface TaxLossHarvestOpportunity {
@@ -90,7 +90,7 @@ class TaxLossHarvestingService {
   // Wash sale window (30 days before and after)
   private readonly WASH_SALE_DAYS = 30;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): TaxLossHarvestingService {
     if (!TaxLossHarvestingService.instance) {
@@ -326,7 +326,7 @@ class TaxLossHarvestingService {
     // Fetch current prices for suggestions
     for (const suggestion of suggestions) {
       try {
-        const quote = await wealthMarketDataService.getRealTimePrice(suggestion.symbol);
+        const quote = await marketDataService.getRealTimePrice(suggestion.symbol);
         suggestion.currentPrice = quote.price;
       } catch (error) {
         logger.debug('Failed to fetch replacement security price', { symbol: suggestion.symbol });

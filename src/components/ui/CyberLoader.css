@@ -12,7 +12,7 @@
 .cyber-loader-container--fullscreen {
   position: fixed;
   inset: 0;
-  background: rgba(10, 14, 39, 0.95);
+  background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(var(--blur-lg));
   z-index: var(--z-modal);
 }
@@ -36,23 +36,23 @@
    ======================================== */
 
 .cyber-loader--sm {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
 }
 
 .cyber-loader--md {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
 }
 
 .cyber-loader--lg {
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
 }
 
 .cyber-loader--xl {
-  width: 160px;
-  height: 160px;
+  width: 128px;
+  height: 128px;
 }
 
 /* ========================================
@@ -72,7 +72,7 @@
   width: 60%;
   height: 60%;
   object-fit: contain;
-  filter: drop-shadow(0 0 20px rgba(0, 255, 229, 0.6));
+  filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.6));
   animation: glowPulseCyan 2s ease-in-out infinite;
   position: relative;
   z-index: 2;
@@ -94,30 +94,45 @@
 }
 
 .cyber-loader-brain__ring--1 {
-  border-color: var(--cyber-cyan-500);
+  border-color: var(--primary-500);
   animation-delay: 0s;
 }
 
 .cyber-loader-brain__ring--2 {
-  border-color: var(--cyber-purple-500);
+  border-color: var(--secondary-500);
   animation-delay: 1s;
   transform: scale(0.8);
 }
 
 .cyber-loader-brain__ring--3 {
-  border-color: var(--cyber-cyan-500);
+  border-color: var(--primary-500);
   animation-delay: 2s;
   transform: scale(0.6);
 }
 
 @keyframes ringPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 0;
   }
+
   50% {
     transform: scale(1.5);
     opacity: 0.6;
+  }
+}
+
+@keyframes glowPulseCyan {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 25px rgba(6, 182, 212, 0.8));
   }
 }
 
@@ -138,28 +153,34 @@
 
 .cyber-loader-hexagon__shape {
   fill: none;
-  stroke: url(#hexagonGradient);
+  stroke: var(--primary-500);
   stroke-width: 3;
-  filter: drop-shadow(0 0 10px var(--cyber-cyan-500));
+  filter: drop-shadow(0 0 10px var(--primary-500));
   animation: hexagonStroke 2s ease-in-out infinite;
 }
 
 @keyframes hexagonStroke {
-  0%, 100% {
+
+  0%,
+  100% {
     stroke-dasharray: 300;
     stroke-dashoffset: 600;
   }
+
   50% {
     stroke-dasharray: 300;
     stroke-dashoffset: 0;
   }
 }
 
-/* SVG Gradient Definition */
-svg {
-  position: absolute;
-  width: 0;
-  height: 0;
+@keyframes hexagonSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* ========================================
@@ -175,12 +196,18 @@ svg {
 .cyber-loader-spinner__circle {
   width: 100%;
   height: 100%;
-  border: 3px solid rgba(0, 255, 229, 0.1);
-  border-top-color: var(--cyber-cyan-500);
-  border-right-color: var(--cyber-purple-500);
+  border: 3px solid rgba(6, 182, 212, 0.1);
+  border-top-color: var(--primary-500);
+  border-right-color: var(--secondary-500);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  box-shadow: 0 0 20px rgba(0, 255, 229, 0.3);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ========================================
@@ -197,10 +224,10 @@ svg {
 .cyber-loader-dots__dot {
   width: 12px;
   height: 12px;
-  background: var(--cyber-cyan-500);
+  background: var(--primary-500);
   border-radius: 50%;
   animation: dotPulse 1.4s ease-in-out infinite;
-  box-shadow: 0 0 10px var(--cyber-cyan-500);
+  box-shadow: 0 0 10px var(--primary-500);
 }
 
 .cyber-loader-dots__dot:nth-child(1) {
@@ -209,8 +236,8 @@ svg {
 
 .cyber-loader-dots__dot:nth-child(2) {
   animation-delay: 0.2s;
-  background: var(--cyber-purple-500);
-  box-shadow: 0 0 10px var(--cyber-purple-500);
+  background: var(--secondary-500);
+  box-shadow: 0 0 10px var(--secondary-500);
 }
 
 .cyber-loader-dots__dot:nth-child(3) {
@@ -218,10 +245,13 @@ svg {
 }
 
 @keyframes dotPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(1.5);
     opacity: 0.5;
@@ -258,7 +288,7 @@ svg {
 
 .cyber-loader-pulse__circle {
   position: absolute;
-  border: 2px solid var(--cyber-cyan-500);
+  border: 2px solid var(--primary-500);
   border-radius: 50%;
   animation: pulsate 2s ease-out infinite;
 }
@@ -273,7 +303,7 @@ svg {
   width: 100%;
   height: 100%;
   animation-delay: 0.7s;
-  border-color: var(--cyber-purple-500);
+  border-color: var(--secondary-500);
 }
 
 .cyber-loader-pulse__circle--3 {
@@ -287,9 +317,11 @@ svg {
     transform: scale(0.1);
     opacity: 0;
   }
+
   50% {
     opacity: 1;
   }
+
   100% {
     transform: scale(1);
     opacity: 0;
@@ -306,7 +338,7 @@ svg {
 }
 
 .cyber-loader-message__text {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -321,17 +353,35 @@ svg {
 }
 
 @keyframes loadingDots {
-  0%, 20% {
+
+  0%,
+  20% {
     content: '';
   }
+
   40% {
     content: '.';
   }
+
   60% {
     content: '..';
   }
-  80%, 100% {
+
+  80%,
+  100% {
     content: '...';
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -340,6 +390,7 @@ svg {
    ======================================== */
 
 @media (prefers-reduced-motion: reduce) {
+
   .cyber-loader-brain__image,
   .cyber-loader-brain__ring,
   .cyber-loader-hexagon,
@@ -350,18 +401,7 @@ svg {
   }
 
   .cyber-loader-spinner__circle {
-    border-top-color: var(--cyber-cyan-500);
+    border-top-color: var(--primary-500);
     opacity: 0.5;
   }
-}
-
-/* ========================================
-   SVG GRADIENT DEFINITIONS
-   ======================================== */
-
-.cyber-loader-svg-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
 }

@@ -12,7 +12,7 @@
 import { logger } from '../logging/loggerService';
 
 import { wealthService } from './wealthService';
-import { wealthMarketDataService } from './marketDataService';
+import { marketDataService } from './marketDataService';
 import type { Position, AssetType } from '@/types/wealth';
 
 export type TimePeriod = '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | '5Y' | 'ALL';
@@ -67,7 +67,7 @@ class PortfolioAnalyticsService {
   private static instance: PortfolioAnalyticsService;
   private riskFreeRate = 0.02; // 2% annual risk-free rate (can be configured)
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): PortfolioAnalyticsService {
     if (!PortfolioAnalyticsService.instance) {
@@ -317,7 +317,7 @@ class PortfolioAnalyticsService {
     const startDate = this.getStartDate(period, new Date());
 
     try {
-      const benchmarkData = await wealthMarketDataService.getHistoricalData(benchmarkSymbol, this.periodToRange(period));
+      const benchmarkData = await marketDataService.getHistoricalData(benchmarkSymbol, this.periodToRange(period));
       const portfolioData = await this.getPortfolioHistoricalData(positions, startDate);
 
       if (benchmarkData.close.length === 0 || portfolioData.length === 0) {
