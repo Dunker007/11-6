@@ -28,9 +28,10 @@ interface CommandPaletteProps {
   onOpenAddRevenue: () => void;
   onOpenSettings: () => void;
   onOpenKeyboardShortcuts?: () => void;
+  onOpenAIAssistant?: () => void;
 }
 
-export function CommandPalette({ isOpen, onClose, onOpenAddRevenue, onOpenSettings, onOpenKeyboardShortcuts }: CommandPaletteProps) {
+export function CommandPalette({ isOpen, onClose, onOpenAddRevenue, onOpenSettings, onOpenKeyboardShortcuts, onOpenAIAssistant }: CommandPaletteProps) {
   const [search, setSearch] = useState('');
   const { stats } = useRevenueStore();
   const { activeProvider, models, setProvider } = useAIStore();
@@ -65,14 +66,14 @@ export function CommandPalette({ isOpen, onClose, onOpenAddRevenue, onOpenSettin
       case 'keyboard-shortcuts':
         onOpenKeyboardShortcuts?.();
         break;
+      case 'ask-ai':
+        onOpenAIAssistant?.();
+        break;
       case 'copy-total':
         if (stats) {
           navigator.clipboard.writeText(`$${(stats.total / 100).toFixed(2)}`);
           toast.success('Copied to clipboard!', { description: `$${(stats.total / 100).toFixed(2)}` });
         }
-        break;
-      case 'ask-ai':
-        toast.info('AI Assistant coming soon!', { description: 'This feature is under development' });
         break;
       default:
         if (action.startsWith('switch-provider-')) {

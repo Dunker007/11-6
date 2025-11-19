@@ -27,17 +27,23 @@ import { AddRevenueModal } from './AddRevenueModal';
 import { CommandPalette } from '../ui/CommandPalette';
 import { SettingsPanel } from '../settings/SettingsPanel';
 import { KeyboardShortcuts } from '../ui/KeyboardShortcuts';
+import { AIAssistant } from '../ai/AIAssistant';
+import { GoalsPanel } from './GoalsPanel';
+import { useGoalsStore } from '../../services/revenue/goals';
 
 export function RevenueHUD() {
   const { stats, opportunities, streams, updateStats, loadOpportunities } = useRevenueStore();
   const { activeProvider, activeModel, models } = useAIStore();
   const { analyze, insights } = useAnalyticsStore();
   const { alerts, checkRevenue, dismissAlert } = useAlertStore();
+  const { updateProgress } = useGoalsStore();
 
   const [showAddRevenue, setShowAddRevenue] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
   const [chartType, setChartType] = useState<'line' | 'pie'>('line');
 
   // Memoized callbacks for better performance
@@ -49,6 +55,10 @@ export function RevenueHUD() {
   const handleCloseSettings = useCallback(() => setShowSettings(false), []);
   const handleOpenKeyboardShortcuts = useCallback(() => setShowKeyboardShortcuts(true), []);
   const handleCloseKeyboardShortcuts = useCallback(() => setShowKeyboardShortcuts(false), []);
+  const handleOpenAIAssistant = useCallback(() => setShowAIAssistant(true), []);
+  const handleCloseAIAssistant = useCallback(() => setShowAIAssistant(false), []);
+  const handleOpenGoals = useCallback(() => setShowGoals(true), []);
+  const handleCloseGoals = useCallback(() => setShowGoals(false), []);
   const handleSetLineChart = useCallback(() => setChartType('line'), []);
   const handleSetPieChart = useCallback(() => setChartType('pie'), []);
 
@@ -57,6 +67,21 @@ export function RevenueHUD() {
     loadOpportunities();
     analyze(streams);
     checkRevenue(streams);
+
+    // Update goal progress
+    const now = new Date();
+    const totalRevenue = streams.reduce((sum, s) => sum + s.amount, 0);
+
+    // Calculate revenue by period
+    const revenueByPeriod = {
+      day: streams.filter(s => now.getTime() - new Date(s.timestamp).getTime() <= 24 * 60 * 60 * 1000).reduce((sum, s) => sum + s.amount, 0),
+      week: streams.filter(s => now.getTime() - new Date(s.timestamp).getTime() <= 7 * 24 * 60 * 60 * 1000).reduce((sum, s) => sum + s.amount, 0),
+      month: streams.filter(s => now.getTime() - new Date(s.timestamp).getTime() <= 30 * 24 * 60 * 60 * 1000).reduce((sum, s) => sum + s.amount, 0),
+      quarter: streams.filter(s => now.getTime() - new Date(s.timestamp).getTime() <= 90 * 24 * 60 * 60 * 1000).reduce((sum, s) => sum + s.amount, 0),
+      year: streams.filter(s => now.getTime() - new Date(s.timestamp).getTime() <= 365 * 24 * 60 * 60 * 1000).reduce((sum, s) => sum + s.amount, 0),
+    };
+
+    updateProgress(totalRevenue, revenueByPeriod);
   }, [streams.length]);
 
   useEffect(() => {
@@ -74,6 +99,14 @@ export function RevenueHUD() {
         e.preventDefault();
         handleOpenSettings();
       }
+      if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleOpenAIAssistant();
+      }
+      if (e.key === 'g' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleOpenGoals();
+      }
       if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
         e.preventDefault();
         handleOpenKeyboardShortcuts();
@@ -88,7 +121,7 @@ export function RevenueHUD() {
 
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, [handleOpenCommandPalette, handleOpenAddRevenue, handleOpenSettings, handleOpenKeyboardShortcuts, handleSetLineChart, handleSetPieChart]);
+  }, [handleOpenCommandPalette, handleOpenAddRevenue, handleOpenSettings, handleOpenKeyboardShortcuts, handleOpenAIAssistant, handleOpenGoals, handleSetLineChart, handleSetPieChart]);
 
   const activeAIModel = models.find((m) => m.id === activeModel);
   const unreadAlerts = alerts.filter(a => !a.dismissed);
@@ -414,9 +447,12 @@ export function RevenueHUD() {
         onOpenAddRevenue={handleOpenAddRevenue}
         onOpenSettings={handleOpenSettings}
         onOpenKeyboardShortcuts={handleOpenKeyboardShortcuts}
+        onOpenAIAssistant={handleOpenAIAssistant}
       />
       <SettingsPanel isOpen={showSettings} onClose={handleCloseSettings} />
       <KeyboardShortcuts isOpen={showKeyboardShortcuts} onClose={handleCloseKeyboardShortcuts} />
+      <AIAssistant isOpen={showAIAssistant} onClose={handleCloseAIAssistant} />
+      <GoalsPanel isOpen={showGoals} onClose={handleCloseGoals} />
     </div>
   );
 }
