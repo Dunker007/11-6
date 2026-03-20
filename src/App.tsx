@@ -82,13 +82,10 @@ import { FeedbackWidget } from './components/Feedback/FeedbackWidget';
 import { useOnboardingStore } from './services/onboarding/welcomeWizardService';
 import { useHelpSystemStore } from './services/help/helpSystemService';
 import { useSmartErrorHandlerStore } from './services/errors/smartErrorHandlerService';
-import './styles/index.css';
+import './styles/index.css'; // Core system (includes foundations.css with all animations)
 import './styles/dark-mode.css'; // Dark mode (default)
 import './styles/cyberpunk-theme.css'; // Cyberpunk Command Center theme
-import './styles/cyber-animations.css'; // Cyberpunk animations
-import './styles/themes.css';
 import './styles/themes-clean.css'; // Clean modern theme
-import './styles/animations.css';
 import './styles/responsive.css'; // Mobile responsive styles
 import './styles/App.css'; // App-specific styles
 import './styles/WindowControls.css';

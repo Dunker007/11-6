@@ -13,11 +13,12 @@
   border: 1px solid transparent;
   border-radius: var(--radius-base);
   cursor: pointer;
-  transition: all var(--clean-transition-base, var(--transition-base));
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
   position: relative;
   user-select: none;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 /* Focus States */
@@ -32,18 +33,35 @@
   background: var(--clean-accent-primary, var(--accent-primary));
   color: white;
   border-color: transparent;
-  box-shadow: var(--clean-shadow-sm, var(--shadow-sm));
+  box-shadow: var(--clean-shadow-sm, var(--shadow-sm)), 0 0 0 rgba(139, 124, 232, 0);
+  position: relative;
+}
+
+.ui-button--primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
 }
 
 .ui-button--primary:hover:not(:disabled) {
   background: var(--clean-accent-primary-hover, var(--accent-primary));
-  box-shadow: var(--clean-shadow-md, var(--shadow-md));
-  transform: translateY(-1px);
+  box-shadow: var(--clean-shadow-md, var(--shadow-md)), 0 0 12px rgba(139, 124, 232, 0.4);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.ui-button--primary:hover:not(:disabled)::before {
+  opacity: 1;
 }
 
 .ui-button--primary:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: var(--clean-shadow-sm, var(--shadow-sm));
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--clean-shadow-sm, var(--shadow-sm)), 0 0 8px rgba(139, 124, 232, 0.3);
 }
 
 /* Variant: Secondary */
@@ -56,11 +74,13 @@
 .ui-button--secondary:hover:not(:disabled) {
   background: var(--clean-bg-hover, var(--bg-tertiary));
   border-color: var(--clean-accent-primary, var(--accent-primary));
-  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.15);
+  transform: translateY(-1px) scale(1.01);
 }
 
 .ui-button--secondary:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.99);
+  box-shadow: none;
 }
 
 /* Variant: Ghost */
@@ -72,10 +92,13 @@
 
 .ui-button--ghost:hover:not(:disabled) {
   background: var(--clean-bg-elevated, var(--bg-secondary));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
 }
 
 .ui-button--ghost:active:not(:disabled) {
   background: var(--clean-bg-hover, var(--bg-tertiary));
+  transform: scale(0.98);
 }
 
 /* Variant: Danger */
@@ -86,13 +109,14 @@
 }
 
 .ui-button--danger:hover:not(:disabled) {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
+  filter: brightness(1.15);
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.3);
+  transform: translateY(-2px) scale(1.02);
 }
 
 .ui-button--danger:active:not(:disabled) {
   filter: brightness(0.95);
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 /* Variant: Success */
@@ -103,13 +127,14 @@
 }
 
 .ui-button--success:hover:not(:disabled) {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
+  filter: brightness(1.15);
+  box-shadow: 0 2px 12px rgba(16, 185, 129, 0.3);
+  transform: translateY(-2px) scale(1.02);
 }
 
 .ui-button--success:active:not(:disabled) {
   filter: brightness(0.95);
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 /* Sizes */
@@ -152,6 +177,15 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  transition: transform 250ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.ui-button:hover:not(:disabled) .ui-button__icon {
+  transform: scale(1.1) rotate(3deg);
+}
+
+.ui-button:active:not(:disabled) .ui-button__icon {
+  transform: scale(0.95);
 }
 
 .ui-button__icon--left {
@@ -184,6 +218,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -194,19 +229,6 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-}
-
-/* Legacy Holographic Support (Deprecated - kept for backwards compatibility) */
-.ui-button--holographic,
-.ui-button--hexagonal {
-  /* Remove holographic effects - use standard button styles */
-}
-
-.ui-button--glow-cyan,
-.ui-button--glow-magenta,
-.ui-button--glow-amber,
-.ui-button--glow-violet {
-  /* Remove glow effects - use standard button styles */
 }
 
 /* Accessibility: Respect reduced motion */
