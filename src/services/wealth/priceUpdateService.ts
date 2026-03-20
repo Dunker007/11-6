@@ -10,7 +10,7 @@
 
 import { logger } from '../logging/loggerService';
 
-import { wealthMarketDataService } from './marketDataService';
+import { marketDataService } from './marketDataService';
 
 export type PriceUpdateInterval = '1s' | '15s' | '1m' | '5m' | '15m' | '1h';
 
@@ -53,7 +53,7 @@ class PriceUpdateService {
     other: '15m',
   };
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): PriceUpdateService {
     if (!PriceUpdateService.instance) {
@@ -130,7 +130,7 @@ class PriceUpdateService {
    */
   private async fetchPrice(symbol: string): Promise<void> {
     try {
-      const priceData = await wealthMarketDataService.getRealTimePrice(symbol);
+      const priceData = await marketDataService.getRealTimePrice(symbol);
 
       const update: PriceUpdate = {
         symbol,

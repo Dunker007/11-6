@@ -1,8 +1,23 @@
 import React, { useState, lazy, Suspense, memo } from 'react';
+import {
+  LayoutDashboard,
+  Brain,
+  DollarSign,
+  TrendingUp,
+  Gem,
+  Cpu,
+  Lightbulb,
+  Sparkles,
+  Bot,
+  Key,
+  FlaskConical,
+  Rocket
+} from 'lucide-react';
 import { CyberCard } from '../ui/CyberCard';
 import { CyberButton } from '../ui/CyberButton';
 import { CyberLoader } from '../ui/CyberLoader';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
+import { Sidebar, Tab } from '../Navigation/Sidebar';
 import './UnifiedDashboard.css';
 
 // Lazy load all heavy components for optimal bundle splitting
@@ -18,14 +33,8 @@ const WealthLab = lazy(() => import('../LLMOptimizer/WealthLab/WealthLab'));
 const IdeaLab = lazy(() => import('../LLMOptimizer/IdeaLab'));
 const GoogleAIHub = lazy(() => import('../LLMOptimizer/GoogleAIHub'));
 
+// Use TabId from Sidebar or define compatible type
 type TabId = 'overview' | 'intelligence' | 'credentials' | 'idle' | 'agents' | 'testing' | 'setup' | 'revenue' | 'backoffice' | 'wealth' | 'ideas' | 'googleai';
-
-interface Tab {
-  id: TabId;
-  name: string;
-  icon: string;
-  badge?: number;
-}
 
 // Professional Loading Fallback
 const TabLoadingFallback = () => (
@@ -36,20 +45,28 @@ const TabLoadingFallback = () => (
 
 export const UnifiedDashboard: React.FC = memo(() => {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const tabs: Tab[] = [
-    { id: 'overview', name: 'Overview', icon: '📊' },
-    { id: 'revenue', name: 'Revenue', icon: '💰' },
-    { id: 'backoffice', name: 'Back Office', icon: '📈' },
-    { id: 'wealth', name: 'Wealth Lab', icon: '💎' },
-    { id: 'ideas', name: 'Idea Lab', icon: '💡' },
-    { id: 'googleai', name: 'Google AI', icon: '🤖' },
-    { id: 'intelligence', name: 'AI Intelligence', icon: '🧠' },
-    { id: 'credentials', name: 'Credentials', icon: '🔐' },
-    { id: 'idle', name: 'Idle Computing', icon: '💻' },
-    { id: 'agents', name: 'AI Agents', icon: '🤖', badge: 7 },
-    { id: 'testing', name: 'Integration Tests', icon: '🧪' },
-    { id: 'setup', name: 'Setup', icon: '🚀' },
+    // Dashboard
+    { id: 'overview', name: 'Overview', icon: <LayoutDashboard size={18} />, category: 'main' },
+    { id: 'intelligence', name: 'AI Intelligence', icon: <Brain size={18} />, category: 'main' },
+
+    // Revenue & Finance
+    { id: 'revenue', name: 'Revenue', icon: <DollarSign size={18} />, category: 'revenue' },
+    { id: 'backoffice', name: 'Back Office', icon: <TrendingUp size={18} />, category: 'revenue' },
+    { id: 'wealth', name: 'Wealth Lab', icon: <Gem size={18} />, category: 'revenue' },
+    { id: 'idle', name: 'Idle Computing', icon: <Cpu size={18} />, category: 'revenue' },
+
+    // Innovation Labs
+    { id: 'ideas', name: 'Idea Lab', icon: <Lightbulb size={18} />, category: 'labs' },
+    { id: 'googleai', name: 'Google AI', icon: <Sparkles size={18} />, category: 'labs' },
+    { id: 'agents', name: 'AI Agents', icon: <Bot size={18} />, badge: 7, category: 'labs' },
+
+    // System
+    { id: 'credentials', name: 'Credentials', icon: <Key size={18} />, category: 'system' },
+    { id: 'testing', name: 'Integration Tests', icon: <FlaskConical size={18} />, category: 'system' },
+    { id: 'setup', name: 'Setup', icon: <Rocket size={18} />, category: 'system' },
   ];
 
   const renderTabContent = () => {
@@ -136,7 +153,7 @@ export const UnifiedDashboard: React.FC = memo(() => {
   };
 
   return (
-    <div className="cyber-command-center">
+    <div className={`cyber-command-center ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       {/* Animated Background */}
       <div className="cyber-background">
         <div className="cyber-background__stars"></div>
@@ -145,78 +162,58 @@ export const UnifiedDashboard: React.FC = memo(() => {
         <div className="cyber-background__glow cyber-background__glow--purple"></div>
       </div>
 
-      {/* Header */}
-      <header className="cyber-header">
-        <div className="cyber-header__container">
-          <div className="cyber-header__top">
-            <div className="cyber-header__brand">
-              <div className="cyber-header__logo">
-                <img
-                  src="/assets/branding/dlx-brain-command-center.png"
-                  alt="DLX Studios"
-                  className="cyber-header__logo-img"
-                />
+      {/* Sidebar Navigation */}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={(id) => setActiveTab(id as TabId)}
+        tabs={tabs}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      />
+
+      {/* Main Layout */}
+      <div className="cyber-main-layout">
+        {/* Header */}
+        <header className="cyber-header">
+          <div className="cyber-header__container">
+            <div className="cyber-header__content">
+              <div className="cyber-header__breadcrumbs">
+                <span className="cyber-breadcrumb-item">DLX Ultimate</span>
+                <span className="cyber-breadcrumb-separator">/</span>
+                <span className="cyber-breadcrumb-item cyber-breadcrumb-item--active">
+                  {tabs.find(t => t.id === activeTab)?.name || 'Overview'}
+                </span>
               </div>
-              <div className="cyber-header__title">
-                <h1 className="gradient-text">
-                  DLX Studios Ultimate
-                </h1>
-                <p className="cyber-header__subtitle">
-                  Enterprise Revenue Automation Platform
-                </p>
+
+              <div className="cyber-header__actions">
+                <CyberButton
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setActiveTab('credentials')}
+                  leftIcon={<span>⚙️</span>}
+                >
+                  Settings
+                </CyberButton>
+                <CyberButton
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setActiveTab('setup')}
+                  leftIcon={<span>🚀</span>}
+                >
+                  Quick Start
+                </CyberButton>
               </div>
-            </div>
-            <div className="cyber-header__actions">
-              <CyberButton
-                variant="secondary"
-                size="md"
-                onClick={() => setActiveTab('credentials')}
-                leftIcon={<span>⚙️</span>}
-              >
-                Settings
-              </CyberButton>
-              <CyberButton
-                variant="primary"
-                size="md"
-                onClick={() => setActiveTab('setup')}
-                leftIcon={<span>🚀</span>}
-              >
-                Quick Start
-              </CyberButton>
             </div>
           </div>
+        </header>
 
-          {/* Tabs Navigation */}
-          <nav className="cyber-tabs">
-            <div className="cyber-tabs__container">
-              {tabs.map((tab, index) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`cyber-tab ${activeTab === tab.id ? 'cyber-tab--active' : ''} animate-fade-in-up`}
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <span className="cyber-tab__icon">{tab.icon}</span>
-                  <span className="cyber-tab__name">{tab.name}</span>
-                  {tab.badge && (
-                    <span className="cyber-tab__badge animate-pulse">
-                      {tab.badge}
-                    </span>
-                  )}
-                  {activeTab === tab.id && (
-                    <span className="cyber-tab__indicator"></span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </nav>
-        </div>
-      </header>
-
-      {/* Content Area */}
-      <main className="cyber-content">
-        {renderTabContent()}
-      </main>
+        {/* Content Area */}
+        <main className="cyber-content">
+          <div key={activeTab} className="page-transition">
+            {renderTabContent()}
+          </div>
+        </main>
+      </div>
     </div>
   );
 });
@@ -239,7 +236,7 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ se
           <h2 className="cyber-section__title">
             <span>Overview</span>
           </h2>
-          <div className="cyber-stats-grid">
+          <div className="cyber-stats-grid stagger-children">
             {quickStats.map((stat, idx) => (
               <CyberCard
                 key={idx}
@@ -248,8 +245,7 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ se
                 hoverEffect={true}
                 neonBorder={true}
                 cornerAccents={false}
-                className="cyber-stat-card animate-fade-in-up"
-                style={{ animationDelay: `${idx * 0.05}s` }}
+                className="cyber-stat-card"
               >
                 <div className="cyber-stat-card__header">
                   <span className="cyber-stat-card__icon">{stat.icon}</span>
@@ -273,76 +269,66 @@ const OverviewTab: React.FC<{ setActiveTab: (tab: TabId) => void }> = memo(({ se
           <h2 className="cyber-section__title">
             <span>Quick Access</span>
           </h2>
-          <div className="cyber-features-grid">
+          <div className="cyber-features-grid stagger-children">
             <FeatureCard
               icon="💰"
               title="Master Revenue Dashboard"
               description="Unified view of all revenue sources - Stripe, Gumroad, affiliates, passive income, and idle computing"
               onClick={() => setActiveTab('revenue')}
-              delay={0}
             />
             <FeatureCard
               icon="📈"
               title="Back Office & Analytics"
               description="Financial charts, expense tracking, and business performance metrics"
               onClick={() => setActiveTab('backoffice')}
-              delay={0.1}
             />
             <FeatureCard
               icon="💎"
               title="Wealth Lab"
               description="Crypto & ETF portfolio tracking, budget management, and net worth analysis"
               onClick={() => setActiveTab('wealth')}
-              delay={0.2}
             />
             <FeatureCard
               icon="💡"
               title="Idea Lab"
               description="Brainstorm and plan ideas with interactive canvas and mind maps"
               onClick={() => setActiveTab('ideas')}
-              delay={0.3}
             />
             <FeatureCard
               icon="🤖"
               title="Google AI Hub"
               description="Gemini AI Studio, NotebookLM research, vision-to-code, and smart code analysis"
               onClick={() => setActiveTab('googleai')}
-              delay={0.4}
             />
             <FeatureCard
               icon="🧠"
               title="AI Intelligence"
               description="10 intelligent systems optimizing revenue, content, and automation in real-time"
               onClick={() => setActiveTab('intelligence')}
-              delay={0.5}
             />
             <FeatureCard
               icon="🔐"
               title="Manage Credentials"
               description="Connect and manage all your service credentials in one secure vault"
               onClick={() => setActiveTab('credentials')}
-              delay={0.6}
             />
             <FeatureCard
               icon="💻"
               title="Idle Computing Revenue"
               description="Earn up to $432/month from your unused computing resources"
               onClick={() => setActiveTab('idle')}
-              delay={0.7}
             />
             <FeatureCard
               icon="🤖"
               title="AI Agents"
               description="7 specialized agents ready to help with content, revenue, and more"
               onClick={() => setActiveTab('agents')}
-              delay={0.8}
             />
             <FeatureCard
               icon="🧪"
               title="Test Integrations"
               description="One-click testing for all your service connections"
               onClick={() => setActiveTab('testing')}
-              delay={0.9}
             />
           </div>
         </section>
@@ -395,10 +381,9 @@ interface FeatureCardProps {
   title: string;
   description: string;
   onClick?: () => void;
-  delay?: number;
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = memo(({ icon, title, description, onClick, delay = 0 }) => (
+const FeatureCard: React.FC<FeatureCardProps> = memo(({ icon, title, description, onClick }) => (
   <CyberCard
     variant="glass"
     glow={true}
@@ -406,8 +391,7 @@ const FeatureCard: React.FC<FeatureCardProps> = memo(({ icon, title, description
     neonBorder={true}
     clickable={true}
     onClick={onClick}
-    className="cyber-feature-card animate-fade-in-up"
-    style={{ animationDelay: `${delay * 0.05}s` }}
+    className="cyber-feature-card"
   >
     <div className="cyber-feature-card__icon">{icon}</div>
     <h3 className="cyber-feature-card__title">{title}</h3>

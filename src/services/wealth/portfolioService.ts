@@ -5,7 +5,7 @@
  */
 
 import type { Portfolio, Position, AssetType } from '@/types/wealth';
-import { wealthMarketDataService } from './marketDataService';
+import { marketDataService } from './marketDataService';
 import { logger } from '../logging/loggerService';
 
 const PORTFOLIOS_KEY = 'dlx_wealth_portfolios';
@@ -104,7 +104,7 @@ class PortfolioService {
     // Get current price
     let currentPrice = costBasis;
     try {
-      const priceData = await wealthMarketDataService.getRealTimePrice(symbol);
+      const priceData = await marketDataService.getRealTimePrice(symbol);
       currentPrice = priceData.price;
     } catch (error) {
       logger.error(`Failed to fetch price for ${symbol}, using cost basis:`, { error, symbol });
@@ -177,7 +177,7 @@ class PortfolioService {
     // Update positions with current prices
     for (const position of portfolio.holdings) {
       try {
-        const priceData = await wealthMarketDataService.getRealTimePrice(position.symbol);
+        const priceData = await marketDataService.getRealTimePrice(position.symbol);
         const currentValue = priceData.price * position.quantity;
         totalCost += position.costBasis * position.quantity;
         totalValue += currentValue;
@@ -292,7 +292,7 @@ class PortfolioService {
     const benchmarkSymbol = benchmark === 'SP500' ? 'SPY' : benchmark === 'BTC' ? 'BTC' : customSymbol || 'SPY';
 
     try {
-      const benchmarkPrice = await wealthMarketDataService.getRealTimePrice(benchmarkSymbol);
+      const benchmarkPrice = await marketDataService.getRealTimePrice(benchmarkSymbol);
       // Simplified - in production, calculate actual benchmark return over period
       const benchmarkReturn = benchmarkPrice.changePercent24h;
 

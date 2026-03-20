@@ -6,6 +6,11 @@ import {
   AgentAction,
   AgentSuggestion,
 } from '../../services/agents/specialtyAgentService';
+import { CyberButton } from '../ui/CyberButton';
+import { CyberBadge } from '../ui/CyberBadge';
+import { Textarea } from '../ui/Input';
+import { Send, Trash2, ArrowLeft, Zap } from 'lucide-react';
+import './AgentChat.css';
 
 interface Props {
   agentId?: string;
@@ -59,7 +64,7 @@ export const AgentChat: React.FC<Props> = ({ agentId: initialAgentId }) => {
     setIsTyping(true);
 
     try {
-      const response = await specialtyAgentService.sendMessage(selectedAgent.id, userMessage);
+      await specialtyAgentService.sendMessage(selectedAgent.id, userMessage);
       const conversation = specialtyAgentService.getConversation(selectedAgent.id);
       setMessages(conversation?.messages || []);
     } catch (error) {
@@ -93,16 +98,6 @@ export const AgentChat: React.FC<Props> = ({ agentId: initialAgentId }) => {
     }
   };
 
-  const handleQuickAction = (suggestion: AgentSuggestion) => {
-    const agent = agents.find(a => a.id === suggestion.agentId);
-    if (agent) {
-      selectAgent(agent);
-      if (suggestion.action) {
-        handleExecuteAction(suggestion.action);
-      }
-    }
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -111,57 +106,35 @@ export const AgentChat: React.FC<Props> = ({ agentId: initialAgentId }) => {
   };
 
   if (!selectedAgent) {
-    return <div>Loading agents...</div>;
+    return <div className="loading-state">Loading agents...</div>;
   }
 
   const agentSuggestions = suggestions.filter(s => s.agentId === selectedAgent.id);
 
   return (
-    <div style={{ display: 'flex', height: '100%', maxHeight: '800px', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', background: 'white' }}>
+    <div className="agent-chat-container">
       {/* Agent Sidebar */}
-      <div style={{ width: '280px', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb' }}>
-          <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', fontWeight: 'bold' }}>🤖 AI Agents</h3>
-          <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Choose your assistant</p>
+      <div className="agent-sidebar">
+        <div className="agent-sidebar-header">
+          <h3 className="agent-sidebar-title">🤖 AI Agents</h3>
+          <p className="agent-sidebar-subtitle">Choose your assistant</p>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div className="agent-list">
           {agents.map(agent => (
             <div
               key={agent.id}
               onClick={() => selectAgent(agent)}
-              style={{
-                padding: '15px',
-                cursor: 'pointer',
-                background: selectedAgent.id === agent.id ? '#eff6ff' : 'white',
-                borderLeft: selectedAgent.id === agent.id ? '3px solid #3b82f6' : '3px solid transparent',
-                borderBottom: '1px solid #f3f4f6',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                if (selectedAgent.id !== agent.id) {
-                  e.currentTarget.style.background = '#f9fafb';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedAgent.id !== agent.id) {
-                  e.currentTarget.style.background = 'white';
-                }
-              }}
+              className={`agent-list-item ${selectedAgent.id === agent.id ? 'selected' : ''}`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                <span style={{ fontSize: '24px' }}>{agent.avatar}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: '600' }}>{agent.name}</div>
-                  <div style={{ fontSize: '11px', color: '#6b7280' }}>{agent.role}</div>
+              <div className="agent-item-content">
+                <span className="agent-avatar">{agent.avatar}</span>
+                <div className="agent-info">
+                  <div className="agent-name">{agent.name}</div>
+                  <div className="agent-role">{agent.role}</div>
                 </div>
                 <div
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: agent.status === 'available' ? '#10b981' : '#6b7280',
-                  }}
+                  className={`agent-status-dot ${agent.status === 'available' ? 'available' : 'busy'}`}
                 />
               </div>
             </div>
@@ -170,68 +143,44 @@ export const AgentChat: React.FC<Props> = ({ agentId: initialAgentId }) => {
       </div>
 
       {/* Chat Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className="chat-area">
         {/* Chat Header */}
-        <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '32px' }}>{selectedAgent.avatar}</span>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: '0 0 3px 0', fontSize: '18px', fontWeight: 'bold' }}>{selectedAgent.name}</h3>
-              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>{selectedAgent.description}</p>
+        <div className="chat-header">
+          <div className="chat-agent-info">
+            <span className="chat-agent-avatar">{selectedAgent.avatar}</span>
+            <div className="chat-agent-details">
+              <h3>{selectedAgent.name}</h3>
+              <p>{selectedAgent.description}</p>
             </div>
-            <button
-              onClick={() => {
-                specialtyAgentService.clearConversation(selectedAgent.id);
-                setMessages([]);
-              }}
-              style={{
-                padding: '8px 16px',
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                color: '#6b7280',
-              }}
-            >
-              🗑️ Clear Chat
-            </button>
           </div>
+          <CyberButton
+            variant="ghost"
+            size="sm"
+            leftIcon={<Trash2 size={14} />}
+            onClick={() => {
+              specialtyAgentService.clearConversation(selectedAgent.id);
+              setMessages([]);
+            }}
+          >
+            Clear Chat
+          </CyberButton>
         </div>
 
         {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', background: '#fafafa' }}>
+        <div className="messages-container">
           {messages.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '15px' }}>{selectedAgent.avatar}</div>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>
-                Hi! I'm {selectedAgent.name}
-              </h4>
-              <p style={{ color: '#6b7280', marginBottom: '25px', maxWidth: '400px', margin: '0 auto' }}>
-                {selectedAgent.description}
-              </p>
+            <div className="empty-state">
+              <div className="empty-state-avatar">{selectedAgent.avatar}</div>
+              <h4>Hi! I'm {selectedAgent.name}</h4>
+              <p>{selectedAgent.description}</p>
 
-              <div style={{ marginTop: '25px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: '#374151' }}>
-                  I can help you with:
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '500px', margin: '0 auto' }}>
-                  {selectedAgent.capabilities.slice(0, 4).map((capability, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: '12px',
-                        background: 'white',
-                        borderRadius: '8px',
-                        border: '1px solid #e5e7eb',
-                        fontSize: '13px',
-                        textAlign: 'left',
-                      }}
-                    >
-                      ✓ {capability}
-                    </div>
-                  ))}
-                </div>
+              <div className="capabilities-list">
+                <div className="capabilities-label">I can help you with:</div>
+                {selectedAgent.capabilities.slice(0, 4).map((capability, idx) => (
+                  <div key={idx} className="capability-item">
+                    ✓ {capability}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -239,81 +188,50 @@ export const AgentChat: React.FC<Props> = ({ agentId: initialAgentId }) => {
           {messages.map(message => (
             <div
               key={message.id}
-              style={{
-                marginBottom: '15px',
-                display: 'flex',
-                justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
-              }}
+              className={`message-row ${message.role}`}
             >
-              <div
-                style={{
-                  maxWidth: '75%',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  background: message.role === 'user' ? '#3b82f6' : 'white',
-                  color: message.role === 'user' ? 'white' : '#374151',
-                  border: message.role === 'agent' ? '1px solid #e5e7eb' : 'none',
-                  boxShadow: message.role === 'agent' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                }}
-              >
+              <div className={`message-bubble ${message.role}`}>
                 {message.role === 'agent' && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '20px' }}>{selectedAgent.avatar}</span>
-                    <span style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>
-                      {selectedAgent.name}
-                    </span>
+                  <div className="message-agent-header">
+                    <span className="message-agent-avatar">{selectedAgent.avatar}</span>
+                    <span className="message-agent-name">{selectedAgent.name}</span>
                   </div>
                 )}
 
-                <div style={{ fontSize: '14px', lineHeight: '1.5' }}>{message.content}</div>
+                <div className="message-content">{message.content}</div>
 
                 {message.actions && message.actions.length > 0 && (
-                  <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div className="message-actions">
                     {message.actions.map(action => (
                       <button
                         key={action.id}
                         onClick={() => handleExecuteAction(action)}
-                        style={{
-                          padding: '10px 16px',
-                          background: '#3b82f6',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '13px',
-                          fontWeight: '500',
-                          textAlign: 'left',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
+                        className="action-button"
                       >
                         {action.icon && <span>{action.icon}</span>}
                         <div>
-                          <div>{action.label}</div>
-                          <div style={{ fontSize: '11px', opacity: 0.9 }}>{action.description}</div>
+                          <div style={{ fontWeight: 600 }}>{action.label}</div>
+                          <div style={{ fontSize: '11px', opacity: 0.8 }}>{action.description}</div>
                         </div>
                       </button>
                     ))}
                   </div>
                 )}
 
-                <div style={{ fontSize: '11px', opacity: 0.7, marginTop: '8px' }}>
-                  {new Date(message.timestamp).toLocaleTimeString()}
+                <div className="message-time">
+                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             </div>
           ))}
 
           {isTyping && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px' }}>
-              <span style={{ fontSize: '20px' }}>{selectedAgent.avatar}</span>
-              <div style={{ padding: '10px 16px', background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#9ca3af', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#9ca3af', animation: 'pulse 1.5s ease-in-out 0.2s infinite' }} />
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#9ca3af', animation: 'pulse 1.5s ease-in-out 0.4s infinite' }} />
-                </div>
+            <div className="typing-indicator">
+              <span className="chat-agent-avatar" style={{ fontSize: '20px' }}>{selectedAgent.avatar}</span>
+              <div className="typing-bubble">
+                <div className="typing-dot" />
+                <div className="typing-dot" />
+                <div className="typing-dot" />
               </div>
             </div>
           )}
@@ -323,71 +241,48 @@ export const AgentChat: React.FC<Props> = ({ agentId: initialAgentId }) => {
 
         {/* Suggestions */}
         {agentSuggestions.length > 0 && messages.length === 0 && (
-          <div style={{ padding: '15px 20px', borderTop: '1px solid #e5e7eb', background: '#fffbeb' }}>
-            <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '10px', color: '#92400e' }}>
-              💡 Suggested Actions:
+          <div className="suggestions-area">
+            <div className="suggestions-title">
+              <Zap size={12} style={{ display: 'inline', marginRight: '4px' }} />
+              SUGGESTED ACTIONS
             </div>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <div className="suggestions-list">
               {agentSuggestions.map(suggestion => (
-                <button
+                <CyberBadge
                   key={suggestion.id}
+                  label={suggestion.title}
+                  variant="secondary"
+                  size="sm"
+                  className="cursor-pointer hover-lift"
+                  // @ts-ignore - onClick not strictly on Badge props but works on span
                   onClick={() => suggestion.action && handleExecuteAction(suggestion.action)}
-                  style={{
-                    padding: '8px 14px',
-                    background: 'white',
-                    border: '1px solid #fbbf24',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    color: '#92400e',
-                    fontWeight: '500',
-                  }}
-                >
-                  {suggestion.title}
-                </button>
+                />
               ))}
             </div>
           </div>
         )}
 
         {/* Input */}
-        <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb', background: 'white' }}>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
-            <textarea
+        <div className="input-area">
+          <div className="input-container">
+            <Textarea
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={`Ask ${selectedAgent.name} anything...`}
-              style={{
-                flex: 1,
-                padding: '12px',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                fontSize: '14px',
-                resize: 'none',
-                minHeight: '48px',
-                maxHeight: '120px',
-                fontFamily: 'inherit',
-              }}
+              className="chat-input"
               rows={1}
+              holographic
             />
-            <button
+            <CyberButton
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isTyping}
-              style={{
-                padding: '12px 24px',
-                background: inputMessage.trim() && !isTyping ? '#3b82f6' : '#9ca3af',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: inputMessage.trim() && !isTyping ? 'pointer' : 'not-allowed',
-                fontSize: '14px',
-                fontWeight: '600',
-                height: '48px',
-              }}
+              variant="primary"
+              rightIcon={<Send size={16} />}
+              isLoading={isTyping}
             >
               Send
-            </button>
+            </CyberButton>
           </div>
         </div>
       </div>
@@ -406,137 +301,90 @@ export const AgentGrid: React.FC = () => {
 
   if (selectedAgentId) {
     return (
-      <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
-        <button
+      <div className="agent-grid-container">
+        <CyberButton
           onClick={() => setSelectedAgentId(null)}
-          style={{
-            padding: '10px 20px',
-            background: '#6b7280',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            marginBottom: '20px',
-            fontWeight: '500',
-          }}
+          variant="ghost"
+          leftIcon={<ArrowLeft size={16} />}
+          style={{ marginBottom: '20px' }}
         >
-          ← Back to Agents
-        </button>
+          Back to Agents
+        </CyberButton>
         <AgentChat agentId={selectedAgentId} />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '30px' }}>
-        <h1 style={{ margin: '0 0 10px 0', fontSize: '28px', fontWeight: 'bold' }}>🤖 AI Specialty Agents</h1>
-        <p style={{ margin: 0, color: '#6b7280' }}>
-          Choose an agent to help you with specific tasks. Each agent is specialized in their area.
-        </p>
+    <div className="agent-grid-container">
+      <div className="agent-grid-header">
+        <h1>🤖 AI Specialty Agents</h1>
+        <p>Choose an agent to help you with specific tasks. Each agent is specialized in their area.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+      <div className="agent-grid">
         {agents.map(agent => (
           <div
             key={agent.id}
             onClick={() => setSelectedAgentId(agent.id)}
-            style={{
-              padding: '25px',
-              background: 'white',
-              border: '2px solid #e5e7eb',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#3b82f6';
-              e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#e5e7eb';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
+            className="agent-card"
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
-              <span style={{ fontSize: '40px' }}>{agent.avatar}</span>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ margin: '0 0 3px 0', fontSize: '18px', fontWeight: 'bold' }}>{agent.name}</h3>
-                <div style={{ fontSize: '13px', color: '#6b7280' }}>{agent.role}</div>
+            <div className="agent-card-header">
+              <span className="agent-card-avatar">{agent.avatar}</span>
+              <div className="agent-card-info">
+                <h3>{agent.name}</h3>
+                <CyberBadge
+                  label={agent.role}
+                  variant="secondary"
+                  size="sm"
+                />
               </div>
-              <div
-                style={{
-                  padding: '4px 10px',
-                  background: agent.status === 'available' ? '#10b981' : '#6b7280',
-                  color: 'white',
-                  borderRadius: '12px',
-                  fontSize: '11px',
-                  fontWeight: '600',
-                }}
-              >
-                {agent.status.toUpperCase()}
+              <div style={{ marginLeft: 'auto' }}>
+                <CyberBadge
+                  label={agent.status}
+                  variant={agent.status === 'available' ? 'success' : 'warning'}
+                  size="sm"
+                  glow={agent.status === 'available'}
+                />
               </div>
             </div>
 
-            <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 15px 0', lineHeight: '1.5' }}>
+            <p className="agent-card-description">
               {agent.description}
             </p>
 
-            <div style={{ marginBottom: '15px' }}>
-              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: '#374151' }}>
-                Capabilities:
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            <div className="agent-card-capabilities">
+              <div className="capabilities-label">Capabilities</div>
+              <div className="capabilities-tags">
                 {agent.capabilities.slice(0, 3).map((capability, idx) => (
-                  <div
+                  <CyberBadge
                     key={idx}
-                    style={{
-                      padding: '4px 10px',
-                      background: '#eff6ff',
-                      color: '#1e40af',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: '500',
-                    }}
-                  >
-                    {capability}
-                  </div>
+                    label={capability}
+                    variant="outline"
+                    size="sm"
+                  />
                 ))}
                 {agent.capabilities.length > 3 && (
-                  <div
-                    style={{
-                      padding: '4px 10px',
-                      background: '#f3f4f6',
-                      color: '#6b7280',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: '500',
-                    }}
-                  >
-                    +{agent.capabilities.length - 3} more
-                  </div>
+                  <CyberBadge
+                    label={`+${agent.capabilities.length - 3}`}
+                    variant="outline"
+                    size="sm"
+                  />
                 )}
               </div>
             </div>
 
-            <button
-              style={{
-                width: '100%',
-                padding: '10px',
-                background: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '600',
-              }}
+            <CyberButton
+              fullWidth
+              variant="primary"
+              rightIcon={<ArrowLeft size={16} style={{ transform: 'rotate(180deg)' }} />}
             >
-              Chat with {agent.name.split(' ')[0]} →
-            </button>
+              Chat with {agent.name.split(' ')[0]}
+            </CyberButton>
           </div>
         ))}
       </div>
     </div>
   );
 };
+

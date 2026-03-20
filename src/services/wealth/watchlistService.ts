@@ -4,7 +4,7 @@
  * Manages watchlists and price/news alerts
  */
 
-import { wealthMarketDataService } from './marketDataService';
+import { marketDataService } from './marketDataService';
 import { logger } from '../logging/loggerService';
 import type { Watchlist, Alert } from '@/types/wealth';
 
@@ -180,7 +180,7 @@ class WatchlistService {
     for (const alert of this.alerts.values()) {
       if (alert.type === 'price' && alert.priceAlert && !alert.priceAlert.triggered) {
         try {
-          const priceData = await wealthMarketDataService.getRealTimePrice(alert.symbol);
+          const priceData = await marketDataService.getRealTimePrice(alert.symbol);
           const currentPrice = priceData.price;
           const shouldTrigger =
             (alert.priceAlert.direction === 'above' && currentPrice >= alert.priceAlert.targetPrice) ||

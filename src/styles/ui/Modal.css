@@ -1,32 +1,50 @@
-/* Modal Component Styles */
+/* Modal Component Styles - Cyberpunk Edition */
+
 .ui-modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--color-bg-overlay);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(var(--blur-sm));
+  -webkit-backdrop-filter: blur(var(--blur-sm));
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: var(--z-modal);
-  padding: var(--spacing-4);
-  animation: fade-in var(--duration-base) var(--ease-out);
+  padding: var(--space-4);
+  animation: fade-in var(--transition-base) var(--ease-out);
 }
 
 .ui-modal {
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-2xl);
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl), var(--shadow-cyber);
   max-width: 90vw;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  animation: slide-up-fade var(--duration-slow) var(--ease-out);
+  animation: slide-up-fade var(--transition-slow) var(--ease-out);
   overflow: hidden;
+  position: relative;
+}
+
+/* Neon border effect */
+.ui-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient-accent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 .ui-modal--sm {
@@ -59,23 +77,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-5);
-  border-bottom: 1px solid var(--color-border-muted);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border-default);
+  background: rgba(15, 23, 42, 0.4);
 }
 
 .ui-modal__title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
   margin: 0;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
 }
 
 .ui-modal__close {
   margin-left: auto;
+  color: var(--text-secondary);
+}
+
+.ui-modal__close:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .ui-modal__body {
-  padding: var(--spacing-5);
+  padding: var(--space-5);
   overflow-y: auto;
   flex: 1;
 }
@@ -84,6 +110,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -94,9 +121,9 @@
     opacity: 0;
     transform: translateY(20px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
-

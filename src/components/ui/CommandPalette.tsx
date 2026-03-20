@@ -42,15 +42,30 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   // Define available commands
   const commands: CommandItem[] = useMemo(() => [
+    // --- NAVIGATION ---
     {
-      id: 'nav-llm',
-      label: 'Go to LLM Optimizer',
-      description: 'Open LLM optimization panel',
+      id: 'nav-overview',
+      label: 'Go to Overview',
+      description: 'Return to the main dashboard overview',
+      icon: <Activity size={18} />,
+      category: 'navigation',
+      keywords: ['home', 'dashboard', 'main'],
+      shortcut: 'G then O',
+      action: () => {
+        onNavigate?.('overview');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-intelligence',
+      label: 'Go to AI Intelligence',
+      description: 'View AI system status and metrics',
       icon: <Zap size={18} />,
       category: 'navigation',
-      keywords: ['llm', 'optimizer', 'models'],
+      keywords: ['ai', 'intelligence', 'status'],
+      shortcut: 'G then I',
       action: () => {
-        onNavigate?.('llm');
+        onNavigate?.('intelligence');
         onClose();
       },
     },
@@ -60,93 +75,141 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       description: 'View revenue and financial metrics',
       icon: <TrendingUp size={18} />,
       category: 'navigation',
-      keywords: ['revenue', 'financial', 'money'],
+      keywords: ['revenue', 'financial', 'money', 'stripe'],
+      shortcut: 'G then R',
       action: () => {
         onNavigate?.('revenue');
         onClose();
       },
     },
     {
-      id: 'nav-crypto',
-      label: 'Go to Crypto Lab',
-      description: 'Open cryptocurrency trading interface',
-      icon: <Bitcoin size={18} />,
-      category: 'navigation',
-      keywords: ['crypto', 'trading', 'bitcoin'],
-      action: () => {
-        onNavigate?.('crypto-lab');
-        onClose();
-      },
-    },
-    {
       id: 'nav-wealth',
       label: 'Go to Wealth Lab',
-      description: 'Open personal finance management',
-      icon: <TrendingUp size={18} />,
+      description: 'Open personal finance and crypto management',
+      icon: <Bitcoin size={18} />,
       category: 'navigation',
-      keywords: ['wealth', 'finance', 'budget'],
+      keywords: ['wealth', 'finance', 'crypto', 'budget'],
+      shortcut: 'G then W',
       action: () => {
-        onNavigate?.('wealth-lab');
+        onNavigate?.('wealth');
         onClose();
       },
     },
     {
-      id: 'nav-idea',
+      id: 'nav-ideas',
       label: 'Go to Idea Lab',
-      description: 'Open idea planning workspace',
+      description: 'Brainstorm and plan new projects',
       icon: <Lightbulb size={18} />,
       category: 'navigation',
-      keywords: ['idea', 'planning', 'brainstorm'],
+      keywords: ['idea', 'planning', 'brainstorm', 'canvas'],
+      shortcut: 'G then L',
       action: () => {
-        onNavigate?.('idea-lab');
+        onNavigate?.('ideas');
         onClose();
       },
     },
     {
-      id: 'nav-editor',
-      label: 'Go to Vibed Ed',
-      description: 'Open code editor',
+      id: 'nav-googleai',
+      label: 'Go to Google AI Hub',
+      description: 'Access Gemini and other Google AI tools',
       icon: <Code size={18} />,
       category: 'navigation',
-      keywords: ['editor', 'code', 'vibed'],
+      keywords: ['google', 'gemini', 'ai', 'studio'],
+      shortcut: 'G then G',
       action: () => {
-        onNavigate?.('vibed-ed');
+        onNavigate?.('googleai');
         onClose();
       },
     },
     {
-      id: 'nav-workflows',
-      label: 'Go to Workflows',
-      description: 'Open workflow management',
+      id: 'nav-agents',
+      label: 'Go to AI Agents',
+      description: 'Manage and interact with autonomous agents',
       icon: <Rocket size={18} />,
       category: 'navigation',
-      keywords: ['workflow', 'automation'],
+      keywords: ['agents', 'bots', 'automation'],
+      shortcut: 'G then A',
       action: () => {
-        onNavigate?.('workflows');
+        onNavigate?.('agents');
         onClose();
       },
     },
     {
-      id: 'nav-settings',
-      label: 'Open Settings',
-      description: 'Configure application settings',
+      id: 'nav-credentials',
+      label: 'Manage Credentials',
+      description: 'Securely manage API keys and secrets',
       icon: <Settings size={18} />,
       category: 'settings',
-      keywords: ['settings', 'config', 'preferences'],
+      keywords: ['credentials', 'keys', 'secrets', 'auth'],
+      shortcut: 'G then C',
       action: () => {
-        onNavigate?.('settings');
+        onNavigate?.('credentials');
         onClose();
       },
     },
     {
-      id: 'nav-quick-labs',
-      label: 'Go to Quick Labs',
-      description: 'Open quick lab tools',
+      id: 'nav-testing',
+      label: 'Integration Tests',
+      description: 'Run system integration tests',
       icon: <Activity size={18} />,
-      category: 'navigation',
-      keywords: ['quick', 'labs', 'tools'],
+      category: 'settings',
+      keywords: ['test', 'integration', 'debug'],
+      shortcut: 'G then T',
       action: () => {
-        onNavigate?.('quick-labs');
+        onNavigate?.('testing');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-idle',
+      label: 'Idle Computing',
+      description: 'Manage idle resource monetization',
+      icon: <Clock size={18} />,
+      category: 'navigation',
+      keywords: ['idle', 'mining', 'compute', 'golem'],
+      shortcut: 'G then D',
+      action: () => {
+        onNavigate?.('idle');
+        onClose();
+      },
+    },
+
+    // --- ACTIONS ---
+    {
+      id: 'act-new-idea',
+      label: 'Create New Idea',
+      description: 'Start a new brainstorming session',
+      icon: <Lightbulb size={18} />,
+      category: 'actions',
+      keywords: ['new', 'create', 'idea'],
+      action: () => {
+        onNavigate?.('ideas');
+        // In a real app, this might also trigger a "New Idea" modal
+        onClose();
+      },
+    },
+    {
+      id: 'act-run-tests',
+      label: 'Run All Tests',
+      description: 'Execute full integration test suite',
+      icon: <Activity size={18} />,
+      category: 'actions',
+      keywords: ['run', 'test', 'suite'],
+      action: () => {
+        onNavigate?.('testing');
+        // Could trigger test run
+        onClose();
+      },
+    },
+    {
+      id: 'act-add-credential',
+      label: 'Add New Credential',
+      description: 'Securely store a new API key',
+      icon: <Settings size={18} />,
+      category: 'actions',
+      keywords: ['add', 'key', 'credential'],
+      action: () => {
+        onNavigate?.('credentials');
         onClose();
       },
     },

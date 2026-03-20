@@ -5,7 +5,7 @@
  * Similar to Sharesight's dividend tracking features
  */
 
-import { wealthMarketDataService } from './marketDataService';
+import { marketDataService } from './marketDataService';
 import { wealthService } from './wealthService';
 import type { Asset, DividendPayment, Position } from '@/types/wealth';
 
@@ -35,7 +35,7 @@ class DividendTrackingService {
   private dividendCache: Map<string, DividendPayment[]> = new Map();
   private readonly CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): DividendTrackingService {
     if (!DividendTrackingService.instance) {
@@ -61,7 +61,7 @@ class DividendTrackingService {
     }
 
     // Fetch from market data service
-    const dividends = await wealthMarketDataService.getDividendHistory(
+    const dividends = await marketDataService.getDividendHistory(
       asset.symbol,
       startDate,
       endDate

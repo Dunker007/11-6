@@ -14,7 +14,7 @@ release/
 release-new/
 
 # Environment & Secrets (CRITICAL - Never commit these!)
-.env
+
 .env.local
 .env.*.local
 *.key

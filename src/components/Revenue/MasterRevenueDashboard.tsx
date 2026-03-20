@@ -24,7 +24,6 @@ import {
 import {
   DollarSign,
   TrendingUp,
-  TrendingDown,
   Activity,
   BarChart3,
   Download,

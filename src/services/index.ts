@@ -100,9 +100,9 @@ export { deployWorkflowService } from './workflow/deployWorkflowService';
 
 export { useWealthStore } from './wealth/wealthStore';
 export { portfolioService } from './wealth/portfolioService';
-export { wealthMarketDataService } from './wealth/marketDataService';
+export { marketDataService } from './wealth/marketDataService';
 export { dividendTrackingService } from './wealth/dividendTrackingService';
-export { capitalGainsTaxService } from './wealth/taxReportingService';
+export { taxReportingService } from './wealth/taxReportingService';
 
 // ========================================
 // CRYPTO & TRADING

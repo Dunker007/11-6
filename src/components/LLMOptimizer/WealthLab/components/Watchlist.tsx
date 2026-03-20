@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, Trash2, Edit2, Bell, TrendingUp, TrendingDown, X, Save, CheckCircle2 } from 'lucide-react';
 import { watchlistService } from '@/services/wealth/watchlistService';
-import { wealthMarketDataService } from '@/services/wealth/marketDataService';
+import { marketDataService } from '@/services/wealth/marketDataService';
 import { useToast } from '@/components/ui';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 import type { Watchlist } from '@/types/wealth';
@@ -52,7 +52,7 @@ function Watchlist() {
 
     for (const symbol of watchlist.symbols) {
       try {
-        const priceData = await wealthMarketDataService.getRealTimePrice(symbol);
+        const priceData = await marketDataService.getRealTimePrice(symbol);
         priceMap.set(symbol, {
           price: priceData.price,
           change: priceData.change24h || 0,
@@ -193,7 +193,7 @@ function Watchlist() {
   return (
     <div className="watchlist-container">
       <div className="watchlist-header">
-      <h2>Watchlists</h2>
+        <h2>Watchlists</h2>
         <button
           className="create-watchlist-btn"
           onClick={() => setIsCreating(true)}

@@ -65,6 +65,7 @@ import { Component, ErrorInfo, ReactNode } from 'react';
 import { errorLogger } from '@/services/errors/errorLogger';
 import { logger } from '@/services/logging/loggerService';
 import type { CapturedError } from '@/types/error';
+import './ErrorBoundary.css';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -78,6 +79,7 @@ interface ErrorBoundaryState {
   error: Error | null;
   capturedError: CapturedError | null;
 }
+
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -116,35 +118,22 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
 
       return (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '2rem',
-            backgroundColor: 'var(--bg-secondary)',
-            border: '1px solid rgba(255, 82, 82, 0.3)',
-            borderRadius: '0.5rem',
-            color: 'var(--text-primary)',
-            gap: '1rem',
-            minHeight: '200px',
-          }}
-        >
-          <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}>
-            ⚠️ Error in {this.props.sectionName || 'Component'}
+        <div className="error-boundary-container">
+          <div className="error-icon">⚠️</div>
+          <h3 className="error-title">
+            System Malfunction: {this.props.sectionName || 'Component'}
           </h3>
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center', maxWidth: '32rem' }}>
+          <p className="error-message">
             {this.state.capturedError
               ? errorLogger.getUserFriendlyMessage(this.state.capturedError)
-              : this.state.error?.message || 'An error occurred'}
+              : this.state.error?.message || 'An unexpected error occurred within the neural network.'}
           </p>
           {this.state.capturedError && (
-            <div style={{ textAlign: 'left', maxWidth: '32rem', width: '100%' }}>
-              <span style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '0.5rem' }}>
-                Suggested steps:
+            <div className="error-details">
+              <span className="error-steps-label">
+                Recommended Protocols:
               </span>
-              <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+              <ul className="error-steps-list">
                 {errorLogger.getRecoverySteps(this.state.capturedError).map((step) => (
                   <li key={step}>{step}</li>
                 ))}
@@ -153,17 +142,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           )}
           <button
             onClick={this.handleRetry}
-            style={{
-              padding: '0.5rem 1rem',
-              background: 'var(--accent-primary)',
-              border: 'none',
-              borderRadius: '0.5rem',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-            }}
+            className="retry-button"
           >
-            Try Again
+            Reinitialize System
           </button>
         </div>
       );

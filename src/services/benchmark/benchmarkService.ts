@@ -1,15 +1,25 @@
-// Benchmark Service - PC Performance Testing Suite
-// Only import systeminformation in Electron context
-let si: any = null;
-if (typeof process !== 'undefined' && process.versions?.electron) {
-  try {
-    si = require('systeminformation');
-  } catch {
-    si = null;
-  }
-}
+/**
+ * Unified Benchmark Service
+ *
+ * Combines LLM benchmarking (latency/throughput) and System benchmarking (CPU/RAM/Disk/GPU).
+ *
+ * Features:
+ * - LLM Model Benchmarking (latency, throughput, error rates)
+ * - System Hardware Benchmarking (CPU ops, Memory bandwidth, Disk I/O, GPU FPS)
+ */
 
-export interface BenchmarkResult {
+import { llmRouter } from '../ai/router';
+import { logger } from '../logging/loggerService';
+import { getModelCatalog } from '../ai/modelCatalogService';
+import type {
+  BenchmarkRequest,
+  BenchmarkResult as LLMBenchmarkResult,
+  BenchmarkMeasurement,
+} from '@/types/optimizer';
+
+// --- System Benchmark Types ---
+
+export interface SystemBenchmarkResult {
   test: string;
   score: number;
   unit: string;
@@ -18,11 +28,11 @@ export interface BenchmarkResult {
   details?: Record<string, any>;
 }
 
-export interface BenchmarkSuite {
-  cpu: BenchmarkResult;
-  memory: BenchmarkResult;
-  disk: BenchmarkResult;
-  gpu?: BenchmarkResult;
+export interface SystemBenchmarkSuite {
+  cpu: SystemBenchmarkResult;
+  memory: SystemBenchmarkResult;
+  disk: SystemBenchmarkResult;
+  gpu?: SystemBenchmarkResult;
   overall: {
     score: number;
     rating: 'excellent' | 'good' | 'average' | 'poor';
@@ -31,10 +41,28 @@ export interface BenchmarkSuite {
   duration: number; // milliseconds
 }
 
+// --- LLM Benchmark Constants ---
+
+const DEFAULT_BENCHMARK_PROMPT =
+  'Respond with a short confirmation message that says "Benchmark OK". This is a latency measurement request.';
+
+// --- Main Service Class ---
+
 export class BenchmarkService {
   private static instance: BenchmarkService;
+  private si: any = null;
 
-  private constructor() {}
+  private constructor() {
+    // Initialize systeminformation only in Electron context
+    if (typeof process !== 'undefined' && process.versions?.electron) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        this.si = require('systeminformation');
+      } catch {
+        this.si = null;
+      }
+    }
+  }
 
   static getInstance(): BenchmarkService {
     if (!BenchmarkService.instance) {
@@ -43,9 +71,176 @@ export class BenchmarkService {
     return BenchmarkService.instance;
   }
 
+  // ==================================================================================
+  // 🧠 LLM BENCHMARKING
+  // ==================================================================================
+
+  async runLLMBenchmark(request: BenchmarkRequest): Promise<LLMBenchmarkResult[]> {
+    const prompt = request.prompt || DEFAULT_BENCHMARK_PROMPT;
+    const runs = request.runs && request.runs > 0 ? request.runs : 1;
+    const catalogById = new Map(getModelCatalog().map((entry) => [entry.id, entry]));
+    const results: LLMBenchmarkResult[] = [];
+
+    for (const modelId of request.modelIds) {
+      const entry = catalogById.get(modelId);
+      if (!entry) {
+        results.push({
+          modelId,
+          modelName: modelId,
+          provider: 'unknown',
+          measurements: [],
+          averageLatencyMs: null,
+          averageThroughput: null,
+          status: 'error',
+          error: 'Model not found in catalog',
+          startedAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+        });
+        continue;
+      }
+
+      const startedAt = new Date().toISOString();
+      const measurements: BenchmarkMeasurement[] = [];
+
+      // Get the provider for this model
+      const provider = llmRouter.getProvider(entry.provider);
+      if (!provider) {
+        results.push({
+          modelId,
+          modelName: entry.displayName,
+          provider: entry.provider,
+          measurements: [],
+          averageLatencyMs: null,
+          averageThroughput: null,
+          status: 'error',
+          error: `Provider ${entry.provider} not available`,
+          startedAt,
+          completedAt: new Date().toISOString(),
+        });
+        continue;
+      }
+
+      // Check if provider is healthy
+      const isHealthy = await provider.healthCheck();
+      if (!isHealthy) {
+        results.push({
+          modelId,
+          modelName: entry.displayName,
+          provider: entry.provider,
+          measurements: [],
+          averageLatencyMs: null,
+          averageThroughput: null,
+          status: 'error',
+          error: `Provider ${entry.provider} is offline`,
+          startedAt,
+          completedAt: new Date().toISOString(),
+        });
+        continue;
+      }
+
+      // Get actual model name from provider (catalog ID might differ from provider model ID)
+      let actualModelId = entry.id;
+      try {
+        const providerModels = await provider.getModels();
+        // Try to find matching model by name or use catalog ID
+        const matchingModel = providerModels.find(
+          (m) => m.id === entry.id || m.name.toLowerCase().includes(entry.displayName.toLowerCase())
+        );
+        if (matchingModel) {
+          actualModelId = matchingModel.id;
+        }
+      } catch (err) {
+        // If we can't get models, use catalog ID as fallback
+        logger.warn(`Could not get models from ${entry.provider}, using catalog ID:`, { error: err });
+      }
+
+      let error: string | undefined;
+      for (let run = 0; run < runs; run += 1) {
+        const startTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        try {
+          // Set preferred provider temporarily for this benchmark
+          const originalPreferred = llmRouter.getPreferredProvider();
+          llmRouter.setPreferredProvider(entry.provider as 'ollama' | 'lmstudio' | 'gemini');
+
+          const response = await provider.generate(prompt, {
+            model: actualModelId,
+            temperature: 0.91,
+            maxTokens: 64,
+          });
+
+          // Restore original preferred provider
+          if (originalPreferred) {
+            llmRouter.setPreferredProvider(originalPreferred);
+          }
+
+          const endTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
+          const latency = endTime - startTime;
+          const tokens = response.tokensUsed ?? null;
+          const throughput =
+            tokens && latency > 0 ? (tokens / (latency / 1000)) : undefined;
+
+          measurements.push({
+            run: run + 1,
+            latencyMs: latency,
+            tokensPerSecond: throughput,
+          });
+        } catch (err) {
+          // Restore original preferred provider on error
+          const originalPreferred = llmRouter.getPreferredProvider();
+          if (originalPreferred && originalPreferred !== entry.provider) {
+            llmRouter.setPreferredProvider(originalPreferred);
+          }
+
+          const endTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
+          const latency = endTime - startTime;
+          const reason = (err as Error).message || 'Unknown error';
+          measurements.push({
+            run: run + 1,
+            latencyMs: latency,
+            error: reason,
+          });
+          error = reason;
+        }
+      }
+
+      const successfulRuns = measurements.filter((m) => !m.error);
+      const averageLatency =
+        successfulRuns.length > 0
+          ? successfulRuns.reduce((sum, m) => sum + m.latencyMs, 0) / successfulRuns.length
+          : null;
+      const averageThroughput =
+        successfulRuns.length > 0
+          ? successfulRuns.reduce((sum, m) => sum + (m.tokensPerSecond ?? 0), 0) / successfulRuns.length
+          : null;
+
+      results.push({
+        modelId,
+        modelName: entry.displayName,
+        provider: entry.provider,
+        measurements,
+        averageLatencyMs: averageLatency,
+        averageThroughput: averageThroughput ?? null,
+        status: error
+          ? successfulRuns.length > 0
+            ? 'partial'
+            : 'error'
+          : 'success',
+        error,
+        startedAt,
+        completedAt: new Date().toISOString(),
+      });
+    }
+
+    return results;
+  }
+
+  // ==================================================================================
+  // 💻 SYSTEM BENCHMARKING
+  // ==================================================================================
+
   // CPU Benchmark - Prime number calculation
-  async benchmarkCPU(iterations: number = 1000000): Promise<BenchmarkResult> {
-    if (!si) {
+  async benchmarkCPU(iterations: number = 1000000): Promise<SystemBenchmarkResult> {
+    if (!this.si) {
       return {
         test: 'CPU',
         score: 0,
@@ -80,7 +275,7 @@ export class BenchmarkService {
       const opsPerSecond = (iterations / duration) * 1000;
 
       // Get CPU info for context
-      const cpuInfo = await si.cpu();
+      const cpuInfo = await this.si.cpu();
       const cores = cpuInfo.cores || cpuInfo.physicalCores || 1;
 
       return {
@@ -107,8 +302,8 @@ export class BenchmarkService {
   }
 
   // Memory Benchmark - Array operations
-  async benchmarkMemory(sizeMB: number = 100): Promise<BenchmarkResult> {
-    if (!si) {
+  async benchmarkMemory(sizeMB: number = 100): Promise<SystemBenchmarkResult> {
+    if (!this.si) {
       return {
         test: 'Memory',
         score: 0,
@@ -142,7 +337,7 @@ export class BenchmarkService {
       const duration = endTime - startTime;
       const throughput = (sizeMB / duration) * 1000; // MB/s
 
-      const memInfo = await si.mem();
+      const memInfo = await this.si.mem();
       const totalGB = memInfo.total / (1024 * 1024 * 1024);
 
       return {
@@ -169,12 +364,12 @@ export class BenchmarkService {
   }
 
   // Disk Benchmark - Actual I/O test via IPC
-  async benchmarkDisk(): Promise<BenchmarkResult> {
+  async benchmarkDisk(): Promise<SystemBenchmarkResult> {
     try {
       // Try to use IPC for actual disk I/O test
-      if (typeof window !== 'undefined' && window.benchmark) {
+      if (typeof window !== 'undefined' && (window as any).benchmark) {
         try {
-          const result = await window.benchmark.disk();
+          const result = await (window as any).benchmark.disk();
           if (result.success && result.readSpeed && result.writeSpeed) {
             const avgSpeed = (result.readSpeed + result.writeSpeed) / 2;
             return {
@@ -196,7 +391,7 @@ export class BenchmarkService {
       }
 
       // Fallback to estimation if IPC not available
-      if (!si) {
+      if (!this.si) {
         return {
           test: 'Disk',
           score: 0,
@@ -207,7 +402,7 @@ export class BenchmarkService {
       }
 
       // Get disk info
-      const fsSize = await si.fsSize();
+      const fsSize = await this.si.fsSize();
       if (!fsSize || fsSize.length === 0) {
         return {
           test: 'Disk',
@@ -223,7 +418,7 @@ export class BenchmarkService {
 
       // Estimate disk speed based on type
       let estimatedSpeed = 100; // Default MB/s
-      let rating = 'average';
+      let rating: 'excellent' | 'good' | 'average' | 'poor' = 'average';
 
       if (diskType.toLowerCase().includes('nvme')) {
         estimatedSpeed = 3000; // NVMe SSDs are fast
@@ -261,7 +456,7 @@ export class BenchmarkService {
   }
 
   // GPU Benchmark - WebGL compute shader test
-  async benchmarkGPU(): Promise<BenchmarkResult> {
+  async benchmarkGPU(): Promise<SystemBenchmarkResult> {
     return new Promise((resolve) => {
       try {
         // Check if WebGL is available
@@ -327,12 +522,12 @@ export class BenchmarkService {
     });
   }
 
-  // Run full benchmark suite
-  async runBenchmarkSuite(
+  // Run full system benchmark suite
+  async runSystemBenchmarkSuite(
     onProgress?: (test: string, progress: number) => void
-  ): Promise<BenchmarkSuite> {
+  ): Promise<SystemBenchmarkSuite> {
     const startTime = performance.now();
-    const results: Partial<BenchmarkSuite> = {
+    const results: Partial<SystemBenchmarkSuite> = {
       timestamp: new Date(),
     };
 
@@ -396,4 +591,3 @@ export class BenchmarkService {
 }
 
 export const benchmarkService = BenchmarkService.getInstance();
-

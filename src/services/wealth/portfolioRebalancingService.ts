@@ -11,7 +11,7 @@
 
 import { logger } from '../logging/loggerService';
 import { wealthService } from './wealthService';
-import { wealthMarketDataService } from './marketDataService';
+import { marketDataService } from './marketDataService';
 import type { Position, AssetType } from '@/types/wealth';
 
 export interface TargetAllocation {
@@ -79,7 +79,7 @@ class PortfolioRebalancingService {
     tradingCostPerTrade: 0, // Free trades assumed
   };
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): PortfolioRebalancingService {
     if (!PortfolioRebalancingService.instance) {
@@ -200,9 +200,9 @@ class PortfolioRebalancingService {
       const relevantPositions = target.symbol
         ? positions.filter(p => p.symbol === target.symbol)
         : positions.filter(p => {
-            const asset = assets.find(a => a.symbol === p.symbol);
-            return asset?.type === target.assetType;
-          });
+          const asset = assets.find(a => a.symbol === p.symbol);
+          return asset?.type === target.assetType;
+        });
 
       const currentValue = relevantPositions.reduce((sum, pos) => {
         const asset = assets.find(a => a.symbol === pos.symbol);

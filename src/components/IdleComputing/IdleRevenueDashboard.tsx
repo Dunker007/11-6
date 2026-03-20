@@ -8,11 +8,10 @@ import {
 
 export const IdleRevenueDashboard: React.FC = () => {
   const [resources, setResources] = useState<ComputeResource[]>([]);
-  const [networks, setNetworks] = useState<IdleNetwork[]>([]);
   const [availableNetworks, setAvailableNetworks] = useState<IdleNetwork[]>([]);
   const [earnings, setEarnings] = useState<EarningsHistory[]>([]);
   const [selectedNetwork, setSelectedNetwork] = useState<IdleNetwork | null>(null);
-  const [powerCostKWh, setPowerCostKWh] = useState(0.12);
+  const powerCostKWh = 0.12;
 
   useEffect(() => {
     initialize();
